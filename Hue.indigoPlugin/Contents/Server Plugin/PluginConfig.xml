@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<PluginConfig>
+    <!-- You can add a SupportURL element inside here if you want a context
+          sensitive help link on the config UI - otherwise it will just link
+          to the URL specified in the AboutInformation element. -->
+    <SupportURL></SupportURL>
+
+    <Field id="address" type="textfield" defaultValue="">
+        <Label>IP Address:</Label>
+    </Field>
+    <Field id="hostId" type="textfield" defaultValue="" readonly="true">
+        <Label>Host ID:</Label>
+    </Field>
+    <Field id="simpleSeparator1" type="separator"/>
+    <Field id="startPairingButton"
+           type="button"
+           tooltip="Click this button to retry pairing">
+        <Label>Pairing:</Label>
+        <Title>Retry Pairing</Title>
+        <CallbackMethod>restartPairing</CallbackMethod>
+    </Field>
+
+</PluginConfig>

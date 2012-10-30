@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<Actions>
+    <Action id="setColor" deviceFilter="self">
+        <Name>Set Color</Name>
+        <CallbackMethod>setColor</CallbackMethod>
+        <ConfigUI>
+            <Field id="red" type="textfield" defaultValue="255">
+                <Label>Red:</Label>
+            </Field>
+            <Field id="green" type="textfield" defaultValue="255">
+                <Label>Green:</Label>
+            </Field>
+            <Field id="blue" type="textfield" defaultValue="255">
+                <Label>Blue:</Label>
+            </Field>
+        </ConfigUI>
+    </Action>
+</Actions>
