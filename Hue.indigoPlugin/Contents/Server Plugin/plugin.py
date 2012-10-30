@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 ####################
-# Copyright (c) 2012, Perceptive Automation, LLC. All rights reserved.
-# http://www.perceptiveautomation.com
+# Developed by Alistair Galbraith
+# This is UNSUPPORTED, AS-IS, open source code - do with it as you wish. Don't blame me if it breaks! :)
 
 import os
 import sys
