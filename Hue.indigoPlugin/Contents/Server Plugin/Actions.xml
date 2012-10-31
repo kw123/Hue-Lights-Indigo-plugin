@@ -5,13 +5,38 @@
         <CallbackMethod>setColor</CallbackMethod>
         <ConfigUI>
             <Field id="red" type="textfield" defaultValue="255">
-                <Label>Red:</Label>
+                <Label>Red (0-255):</Label>
             </Field>
             <Field id="green" type="textfield" defaultValue="255">
-                <Label>Green:</Label>
+                <Label>Green (0-255):</Label>
             </Field>
             <Field id="blue" type="textfield" defaultValue="255">
-                <Label>Blue:</Label>
+                <Label>Blue (0-255):</Label>
+            </Field>
+            <Field id="brightnessPercent" type="textfield" defaultValue="100">
+                <Label>Brightness % (0-100):</Label>
+            </Field>
+        </ConfigUI>
+    </Action>
+    <Action id="setWhite" deviceFilter="self">
+        <Name>Set White</Name>
+        <CallbackMethod>setWhite</CallbackMethod>
+        <ConfigUI>
+            <Field type="menu" id="whiteVariation" defaultValue="relax">
+            <Label>Popup Menu:</Label>
+            <List>
+                <Option value="relax">Relax</Option>
+                <Option value="concentrate">Concentrate</Option>
+                <Option value="energize">Energize</Option>
+                <Option value="reading">Reading</Option>
+                <Option value="custom">Custom Temperature</Option>
+            </List>
+        </Field>
+            <Field id="customTemperature" type="textfield" defaultValue="255" visibleBindingId="whiteVariation" visibleBindingValue="custom">
+                <Label>Temperature (500-154):</Label>
+            </Field>
+            <Field id="brightnessPercent" type="textfield" defaultValue="100">
+                <Label>Brightness % (0-100):</Label>
             </Field>
         </ConfigUI>
     </Action>

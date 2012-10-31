@@ -83,6 +83,34 @@ class Plugin(indigo.PluginBase):
         indigoDevice.updateStateOnServer(key="onOffState", value=True)
         indigoDevice.updateStateOnServer(key="brightnessLevel", value=floor((brightness/255)*100))
 
+    def setTemperature(self, indigoDevice, temperature, brightness):
+
+        # Debug
+        self.debugLog("setTemperature(%s, %i, %i)" % (indigoDevice.name, temperature, brightness))
+
+        # Sanity check for an IP address
+        ipAddress = self.pluginPrefs.get("address", None)
+        if ipAddress is None:
+            indigo.server.log(u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com", isError=True)
+            return
+
+        # Sanity check on bulb ID
+        bulbId = indigoDevice.pluginProps.get("bulbId", None)
+        if bulbId is None or bulbId == 0:
+            indigo.server.log(u"No bulb ID selected for device \"%s\". Check settings for this bulb and select a Hue bulb to control." % (indigoDevice.name), isError=True)
+            return
+
+        # Submit to Hue
+        requestData = json.dumps({"bri":brightness, "ct": temperature, "on":True})
+        self.debugLog(u"Request is %s" % requestData)
+        bulbCommandRequest = urllib2.Request("http://%s/api/%s/lights/%s/state" % (ipAddress, self.pluginPrefs["hostId"], bulbId), requestData)
+        bulbCommandRequest.get_method = lambda: 'PUT'
+        bulbCommandResponse = urllib2.urlopen(bulbCommandRequest)
+        bulbCommandResponseData = json.loads(bulbCommandResponse.read())
+        self.debugLog(u"Got response %s" % bulbCommandResponseData)
+        indigoDevice.updateStateOnServer(key="onOffState", value=True)
+        indigoDevice.updateStateOnServer(key="brightnessLevel", value=brightness)
+
     def setRGB(self, indigoDevice, red, green, blue, brightness):
 
         # Sanity check for an IP address
@@ -106,7 +134,7 @@ class Plugin(indigo.PluginBase):
         xyz = colormodels.xyz_normalize(xyz)
 
         # Submit to Hue
-        requestData = json.dumps({"bri":255, "xy": [xyz[0], xyz[1]], "on":True})
+        requestData = json.dumps({"bri":(brightness/100)*255, "xy": [xyz[0], xyz[1]], "on":True})
         self.debugLog(u"Request is %s" % requestData)
         bulbCommandRequest = urllib2.Request("http://%s/api/%s/lights/%s/state" % (ipAddress, self.pluginPrefs["hostId"], bulbId), requestData)
         bulbCommandRequest.get_method = lambda: 'PUT'
@@ -114,7 +142,7 @@ class Plugin(indigo.PluginBase):
         bulbCommandResponseData = json.loads(bulbCommandResponse.read())
         self.debugLog(u"Got response %s" % bulbCommandResponseData)
         indigoDevice.updateStateOnServer(key="onOffState", value=True)
-        indigoDevice.updateStateOnServer(key="brightnessLevel", value=100)
+        indigoDevice.updateStateOnServer(key="brightnessLevel", value=brightness)
 
     def updateLightsList(self):
 
@@ -427,16 +455,80 @@ class Plugin(indigo.PluginBase):
 
         try:
             red = int(pluginAction.props.get(u"red", None))
+        except ValueError:
+            # The int() cast above might fail if the user didn't enter a number:
+            indigo.server.log(
+                u"Set Color for device \"%s\" -- invalid red value (must range 0-255)" % (dev.name,),
+                isError=True)
+            return
+
+        try:
             green = int(pluginAction.props.get(u"green", None))
+        except ValueError:
+            # The int() cast above might fail if the user didn't enter a number:
+            indigo.server.log(
+                u"Set Color for device \"%s\" -- invalid green value (must range 0-255)" % (dev.name,),
+                isError=True)
+            return
+
+        try:
             blue = int(pluginAction.props.get(u"blue", None))
         except ValueError:
             # The int() cast above might fail if the user didn't enter a number:
             indigo.server.log(
-                u"Set Color for device \"%s\" -- invalid color values (must range 0-255)" % (dev.name,),
+                u"Set Color for device \"%s\" -- invalid blue value (must range 0-255)" % (dev.name,),
                 isError=True)
             return
 
-        self.setRGB(dev, red, green, blue, 255)
+        try:
+            brightness = int(pluginAction.props.get(u"brightnessPercent", 100))
+        except ValueError:
+            # The int() cast above might fail if the user didn't enter a number:
+            indigo.server.log(
+                u"Set Color for device \"%s\" -- invalid brightness percentage (must range 0-100)" % (dev.name,),
+                isError=True)
+            return
+
+        self.setRGB(dev, red, green, blue, brightness)
+
+    def setWhite(self, pluginAction, dev):
+
+        preset = pluginAction.props.get(u"whiteVariation", None)
+
+        try:
+            temperature = int(pluginAction.props.get(u"customTemperature", 0))
+        except ValueError:
+            # The int() cast above might fail if the user didn't enter a number:
+            indigo.server.log(
+                u"Set White for device \"%s\" -- invalid color temperature (must range 0-255)" % (dev.name,),
+                isError=True)
+            return
+
+        try:
+            brightness = int(pluginAction.props.get(u"brightnessPercent", 100))
+            brightness = (brightness / 100) * 255
+        except ValueError:
+            # The int() cast above might fail if the user didn't enter a number:
+            indigo.server.log(
+                u"Set White for device \"%s\" -- invalid brightness percentage (must range 0-100)" % (dev.name,),
+                isError=True)
+            return
+
+        # Configure presets
+        if preset == "concentrate":
+            brightness = 219
+            temperature = 233
+        elif preset == "relax":
+            brightness = 144
+            temperature = 469
+        elif preset == "energize":
+            brightness = 203
+            temperature = 156
+        elif preset == "reading":
+            brightness = 240
+            temperature = 346
+
+        self.setTemperature(dev, temperature, brightness)
 
     ########################################
     # Device Management Methods
