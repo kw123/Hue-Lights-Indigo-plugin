@@ -40,4 +40,16 @@
             </Field>
         </ConfigUI>
     </Action>
+    <Action id="longAlert" deviceFilter="self">
+        <Name>Long Alert</Name>
+        <CallbackMethod>longAlert</CallbackMethod>
+    </Action>
+    <Action id="stopAlert" deviceFilter="self">
+        <Name>Cancel Long Alert</Name>
+        <CallbackMethod>stopAlert</CallbackMethod>
+    </Action>
+    <Action id="alertOnce" deviceFilter="self">
+        <Name>Short Alert</Name>
+        <CallbackMethod>alertOnce</CallbackMethod>
+    </Action>
 </Actions>

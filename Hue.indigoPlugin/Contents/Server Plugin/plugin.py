@@ -9,10 +9,11 @@ import sys
 import uuid
 import hashlib
 import simplejson as json
-import urllib2
+import requests
 import socket
 from math import floor
 from ColorPy import colormodels
+import urllib2
 
 # Note the "indigo" module is automatically imported and made available inside
 # our global name space by the host process.
@@ -74,12 +75,9 @@ class Plugin(indigo.PluginBase):
             return
 
         requestData = json.dumps({"bri": int(brightness), "on": onState})
-        self.debugLog(u"Request is %s" % requestData)
-        bulbCommandRequest = urllib2.Request("http://%s/api/%s/lights/%s/state" % (ipAddress, self.pluginPrefs["hostId"], bulbId), requestData)
-        bulbCommandRequest.get_method = lambda: 'PUT'
-        bulbCommandResponse = urllib2.urlopen(bulbCommandRequest)
-        bulbCommandResponseData = json.loads(bulbCommandResponse.read())
-        self.debugLog(u"Got response %s" % bulbCommandResponseData)
+        r = requests.put("http://%s/api/%s/lights/%s/state" % (ipAddress, self.pluginPrefs["hostId"], bulbId), data=requestData)
+        self.debugLog("Got response - %s" % r.content)
+
         indigoDevice.updateStateOnServer(key="onOffState", value=True)
         indigoDevice.updateStateOnServer(key="brightnessLevel", value=floor((brightness/255)*100))
 
@@ -103,11 +101,37 @@ class Plugin(indigo.PluginBase):
         # Submit to Hue
         requestData = json.dumps({"bri":brightness, "ct": temperature, "on":True})
         self.debugLog(u"Request is %s" % requestData)
-        bulbCommandRequest = urllib2.Request("http://%s/api/%s/lights/%s/state" % (ipAddress, self.pluginPrefs["hostId"], bulbId), requestData)
-        bulbCommandRequest.get_method = lambda: 'PUT'
-        bulbCommandResponse = urllib2.urlopen(bulbCommandRequest)
-        bulbCommandResponseData = json.loads(bulbCommandResponse.read())
-        self.debugLog(u"Got response %s" % bulbCommandResponseData)
+        r = requests.put("http://%s/api/%s/lights/%s/state" % (ipAddress, self.pluginPrefs["hostId"], bulbId), data=requestData)
+        self.debugLog("Got response - %s" % r.content)
+
+        # Update on Indigo
+        indigoDevice.updateStateOnServer(key="onOffState", value=True)
+        indigoDevice.updateStateOnServer(key="brightnessLevel", value=((brightness/255)*100))
+
+    def setHSB(self, indigoDevice, temperature, brightness):
+
+        # Debug
+        self.debugLog("setTemperature(%s, %i, %i)" % (indigoDevice.name, temperature, brightness))
+
+        # Sanity check for an IP address
+        ipAddress = self.pluginPrefs.get("address", None)
+        if ipAddress is None:
+            indigo.server.log(u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com", isError=True)
+            return
+
+        # Sanity check on bulb ID
+        bulbId = indigoDevice.pluginProps.get("bulbId", None)
+        if bulbId is None or bulbId == 0:
+            indigo.server.log(u"No bulb ID selected for device \"%s\". Check settings for this bulb and select a Hue bulb to control." % (indigoDevice.name), isError=True)
+            return
+
+        # Submit to Hue
+        requestData = json.dumps({"bri":brightness, "ct": temperature, "on":True})
+        self.debugLog(u"Request is %s" % requestData)
+        r = requests.put("http://%s/api/%s/lights/%s/state" % (ipAddress, self.pluginPrefs["hostId"], bulbId), data=requestData)
+        self.debugLog("Got response - %s" % r.content)
+
+        # Update on Indigo
         indigoDevice.updateStateOnServer(key="onOffState", value=True)
         indigoDevice.updateStateOnServer(key="brightnessLevel", value=brightness)
 
@@ -135,14 +159,30 @@ class Plugin(indigo.PluginBase):
 
         # Submit to Hue
         requestData = json.dumps({"bri":(brightness/100)*255, "xy": [xyz[0], xyz[1]], "on":True})
-        self.debugLog(u"Request is %s" % requestData)
-        bulbCommandRequest = urllib2.Request("http://%s/api/%s/lights/%s/state" % (ipAddress, self.pluginPrefs["hostId"], bulbId), requestData)
-        bulbCommandRequest.get_method = lambda: 'PUT'
-        bulbCommandResponse = urllib2.urlopen(bulbCommandRequest)
-        bulbCommandResponseData = json.loads(bulbCommandResponse.read())
-        self.debugLog(u"Got response %s" % bulbCommandResponseData)
+        r = requests.put("http://%s/api/%s/lights/%s/state" % (ipAddress, self.pluginPrefs["hostId"], bulbId), data=requestData)
+        self.debugLog("Got response - %s" % r.content)
+
+        # Update on Indigo
         indigoDevice.updateStateOnServer(key="onOffState", value=True)
         indigoDevice.updateStateOnServer(key="brightnessLevel", value=brightness)
+
+    def setAlert(self, indigoDevice, alertType="lselect"):
+
+        # Sanity check for an IP address
+        ipAddress = self.pluginPrefs.get("address", None)
+        if ipAddress is None:
+            indigo.server.log(u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com", isError=True)
+            return
+
+        # Sanity check on bulb ID
+        bulbId = indigoDevice.pluginProps.get("bulbId", None)
+        if bulbId is None or bulbId == 0:
+            indigo.server.log(u"No bulb ID selected for device \"%s\". Check settings for this bulb and select a Hue bulb to control." % (indigoDevice.name), isError=True)
+            return
+
+        requestData = json.dumps({"alert": alertType})
+        r = requests.put("http://%s/api/%s/lights/%s/state" % (ipAddress, self.pluginPrefs["hostId"], bulbId), data=requestData)
+        self.debugLog("Got response - %s" % r.content)
 
     def updateLightsList(self):
 
@@ -152,45 +192,55 @@ class Plugin(indigo.PluginBase):
             indigo.server.log(u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com", isError=True)
             pass
 
-        # Parse the response
-        lightsListResponse = urllib2.urlopen("http://%s/api/%s/lights" % (ipAddress, self.pluginPrefs.get("hostId", "ERROR")))
-        lightsListResponseData = json.loads(lightsListResponse.read())
-        self.debugLog(u"Got response %s" % lightsListResponseData)
+        # Force a timeout
+        socket.setdefaulttimeout(3)
 
-        # We should have a dictionary. If so, it's a light list
-        if isinstance(lightsListResponseData, dict):
+        try:
 
-            self.debugLog(u"Loaded lights list - %s" % (lightsListResponseData))
-            self.lightsDict = lightsListResponseData
-            indigo.server.log(u"Loaded %i bulb(s)" % len(self.lightsDict))
+            # Parse the response
+            r = requests.get("http://%s/api/%s/lights" % (ipAddress, self.pluginPrefs.get("hostId", "ERROR")), timeout=3)
+            lightsListResponseData = json.loads(r.content)
+            self.debugLog(u"Got response %s" % lightsListResponseData)
 
-        elif isinstance(lightsListResponseData, list):
+            # We should have a dictionary. If so, it's a light list
+            if isinstance(lightsListResponseData, dict):
 
-            # Get the first item
-            firstResponseItem = lightsListResponseData[0]
+                self.debugLog(u"Loaded lights list - %s" % (lightsListResponseData))
+                self.lightsDict = lightsListResponseData
+                indigo.server.log(u"Loaded %i bulb(s)" % len(self.lightsDict))
 
-            # Did we get an error?
-            errorDict = firstResponseItem.get("error", None)
-            if errorDict is not None:
+            elif isinstance(lightsListResponseData, list):
 
-                errorCode = errorDict.get("type", None)
+                # Get the first item
+                firstResponseItem = lightsListResponseData[0]
 
-                # Is this a link button not pressed error?
-                if errorCode == 1:
-                    indigo.server.log(u"Not paired with Hue. Press the middle button on the Hue hub, then press the Retry Pairing button in Plugin Settings", isError=True)
-                    self.paired = False
+                # Did we get an error?
+                errorDict = firstResponseItem.get("error", None)
+                if errorDict is not None:
+
+                    errorCode = errorDict.get("type", None)
+
+                    # Is this a link button not pressed error?
+                    if errorCode == 1:
+                        indigo.server.log(u"Not paired with Hue. Press the middle button on the Hue hub, then press the Retry Pairing button in Plugin Settings", isError=True)
+                        self.paired = False
+
+                    else:
+                        indigo.server.log(u"Error #%i from Hue Hub when loading available bulbs. Description is \"%s\"" % (errorCode, errorDict.get("description", "(No Description")), isError=True)
+                        self.paired = False
 
                 else:
-                    indigo.server.log(u"Error #%i from Hue Hub when loading available bulbs. Description is \"%s\"" % (errorCode, errorDict.get("description", "(No Description")), isError=True)
-                    self.paired = False
+
+                    indigo.server.log(u"Unexpected response from Hue (%s) when loading available bulbs!" % (lightsListResponseData))
 
             else:
 
                 indigo.server.log(u"Unexpected response from Hue (%s) when loading available bulbs!" % (lightsListResponseData))
 
-        else:
 
-            indigo.server.log(u"Unexpected response from Hue (%s) when loading available bulbs!" % (lightsListResponseData))
+        except requests.exceptions.Timeout, e:
+
+            indigo.server.log(u"Timeout loading light list from hue at %s - check settings and retry" % ipAddress, isError=True)
 
     ########################################
     # Registration Methods
@@ -211,8 +261,8 @@ class Plugin(indigo.PluginBase):
             indigo.server.log(u"Checking with the Hue hub at %s for pairing state..." % (ipAddress))
             requestData = json.dumps({"username": self.pluginPrefs.get("hostId", None), "devicetype": "Indigo Hue Plugin"})
             self.debugLog(u"Request is %s" % requestData)
-            loginResponse = urllib2.urlopen("http://%s/api" % ipAddress, requestData)
-            responseData = json.loads(loginResponse.read())
+            r = requests.post("http://%s/api" % ipAddress, data=requestData, timeout=3)
+            responseData = json.loads(r.content)
             self.debugLog(u"Got response %s" % responseData)
 
             # We should have a single response item
@@ -247,9 +297,9 @@ class Plugin(indigo.PluginBase):
 
                 indigo.server.log(u"Invalid response from Hue. Check the IP address and try again.", isError=True)
 
-        except urllib2.URLError, urlError:
+        except requests.exceptions.Timeout:
 
-            indigo.server.log(u"Error connecting to Hue hub at %s - check the IP address and try again." % ipAddress, isError=True)
+            indigo.server.log(u"Timeout connecting to Hue hub at %s - check the IP address and try again." % ipAddress, isError=True)
 
 
     ########################################
@@ -529,6 +579,18 @@ class Plugin(indigo.PluginBase):
             temperature = 346
 
         self.setTemperature(dev, temperature, brightness)
+
+    def alertOnce(self, pluginAction, dev):
+
+        self.setAlert(dev, "select")
+
+    def longAlert(self, pluginAction, dev):
+
+        self.setAlert(dev, "lselect")
+
+    def stopAlert(self, pluginAction, dev):
+
+        self.setAlert(dev, "none")
 
     ########################################
     # Device Management Methods
