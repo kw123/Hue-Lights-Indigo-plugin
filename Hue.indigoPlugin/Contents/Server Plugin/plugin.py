@@ -252,9 +252,6 @@ class Plugin(indigo.PluginBase):
     ######################
     def actionControlDimmerRelay(self, action, dev):
 
-        self.debugLog("actionControlDimmerRelay - action is %s, dev is %s" % (action, dev))
-        self.debugLog("Command is %s" % action.deviceAction)
-
         # Get key variables
         command = action.deviceAction
         bulbId = dev.pluginProps.get("bulbId", None)
