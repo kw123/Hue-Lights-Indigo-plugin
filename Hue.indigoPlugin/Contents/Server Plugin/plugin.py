@@ -83,9 +83,6 @@ class Plugin(indigo.PluginBase):
 
     def setTemperature(self, indigoDevice, temperature, brightness):
 
-        # Debug
-        self.debugLog("setTemperature(%s, %i, %i)" % (indigoDevice.name, temperature, brightness))
-
         # Sanity check for an IP address
         ipAddress = self.pluginPrefs.get("address", None)
         if ipAddress is None:
@@ -108,10 +105,10 @@ class Plugin(indigo.PluginBase):
         indigoDevice.updateStateOnServer(key="onOffState", value=True)
         indigoDevice.updateStateOnServer(key="brightnessLevel", value=((brightness/255)*100))
 
-    def setHSB(self, indigoDevice, temperature, brightness):
+    def setHSB(self, indigoDevice, hue, saturation, brightness):
 
         # Debug
-        self.debugLog("setTemperature(%s, %i, %i)" % (indigoDevice.name, temperature, brightness))
+        self.debugLog("setHSB(%s, %i, %i, %i)" % (indigoDevice.name, hue, saturation, brightness))
 
         # Sanity check for an IP address
         ipAddress = self.pluginPrefs.get("address", None)
@@ -126,7 +123,7 @@ class Plugin(indigo.PluginBase):
             return
 
         # Submit to Hue
-        requestData = json.dumps({"bri":brightness, "ct": temperature, "on":True})
+        requestData = json.dumps({"bri":brightness, "hue": hue, "sat": saturation, "on":True})
         self.debugLog(u"Request is %s" % requestData)
         r = requests.put("http://%s/api/%s/lights/%s/state" % (ipAddress, self.pluginPrefs["hostId"], bulbId), data=requestData)
         self.debugLog("Got response - %s" % r.content)
@@ -150,15 +147,15 @@ class Plugin(indigo.PluginBase):
             return
 
         # We need to convert the RGB value to Yxy.
-        redScale = float(red) / 255
-        greenScale = float(green) / 255
-        blueScale = float(blue) / 255
+        redScale = float(red) / 255.0
+        greenScale = float(green) / 255.0
+        blueScale = float(blue) / 255.0
         colormodels.init(phosphor_red=colormodels.xyz_color(0.64843, 0.33086), phosphor_green=colormodels.xyz_color(0.4091,0.518), phosphor_blue=colormodels.xyz_color(0.167, 0.04))
         xyz = colormodels.xyz_from_rgb(colormodels.irgb_color(red, green, blue))
         xyz = colormodels.xyz_normalize(xyz)
 
         # Submit to Hue
-        requestData = json.dumps({"bri":(brightness/100)*255, "xy": [xyz[0], xyz[1]], "on":True})
+        requestData = json.dumps({"bri":int(float((brightness/100.0)*255.0)), "xy": [xyz[0], xyz[1]], "on":True})
         r = requests.put("http://%s/api/%s/lights/%s/state" % (ipAddress, self.pluginPrefs["hostId"], bulbId), data=requestData)
         self.debugLog("Got response - %s" % r.content)
 
@@ -540,6 +537,42 @@ class Plugin(indigo.PluginBase):
             return
 
         self.setRGB(dev, red, green, blue, brightness)
+
+    def setHueSaturationBrightness(self, pluginAction, dev):
+
+        try:
+            hue = int(pluginAction.props.get(u"hue", None))
+        except ValueError:
+            # The int() cast above might fail if the user didn't enter a number:
+            indigo.server.log(
+                u"Set Hue, Saturation, Brightness for device \"%s\" -- invalid hue value (must range 0-255)" % (dev.name,),
+                isError=True)
+            return
+
+        try:
+            saturation = int(pluginAction.props.get(u"saturation", None))
+        except ValueError:
+            # The int() cast above might fail if the user didn't enter a number:
+            indigo.server.log(
+                u"Set Hue, Saturation, Brightness for device \"%s\" -- invalid saturation value (must range 0-255)" % (dev.name,),
+                isError=True)
+            return
+
+        try:
+            brightness = int(pluginAction.props.get(u"brightnessPercent", 100))
+        except ValueError:
+            # The int() cast above might fail if the user didn't enter a number:
+            indigo.server.log(
+                u"Set Color for device \"%s\" -- invalid brightness percentage (must range 0-100)" % (dev.name,),
+                isError=True)
+            return
+
+        # Scale these values to match Hue
+        hueBrightness = int(floor((float(brightness)/100.0) * 255.0))
+        hueSaturation = int(floor((float(saturation)/100.0) * 255.0))
+        hueHue = int(floor((float(hue)/360.0) * 72000.0))
+
+        self.setHSB(dev, hueHue, hueSaturation, hueBrightness)
 
     def setWhite(self, pluginAction, dev):
 

@@ -18,6 +18,21 @@
             </Field>
         </ConfigUI>
     </Action>
+    <Action id="setHSB" deviceFilter="self">
+        <Name>Set Hue, Saturation and Brightness</Name>
+        <CallbackMethod>setHueSaturationBrightness</CallbackMethod>
+        <ConfigUI>
+            <Field id="hue" type="textfield" defaultValue="230">
+                <Label>Hue ° (0-360):</Label>
+            </Field>
+            <Field id="saturation" type="textfield" defaultValue="100">
+                <Label>Saturation % (0-100):</Label>
+            </Field>
+            <Field id="brightnessPercent" type="textfield" defaultValue="100">
+                <Label>Brightness % (0-100):</Label>
+            </Field>
+        </ConfigUI>
+    </Action>
     <Action id="setWhite" deviceFilter="self">
         <Name>Set White</Name>
         <CallbackMethod>setWhite</CallbackMethod>
