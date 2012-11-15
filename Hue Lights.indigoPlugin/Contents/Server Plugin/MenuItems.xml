@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<MenuItems>
+    <MenuItem id="menu1">
+        <Name>Reload Bulb List</Name>
+        <CallbackMethod>updateLightsList</CallbackMethod>
+    </MenuItem>
+</MenuItems>

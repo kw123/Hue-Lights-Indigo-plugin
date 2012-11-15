@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<PluginConfig>
+	<SupportURL></SupportURL>
+	<Field id="title" type="label" alignText="center" fontColor="blue">
+		<Label>Hue Lights Configuration</Label>
+	</Field>
+	<Field id="address" type="textfield" defaultValue="">
+		<Label>IP Address:</Label>
+	</Field>
+	<Field id="labelAddress" type="label" alignWithControl="true" fontColor="darkgray" fontSize="small">
+		<Label>IP address of Hue hub (e.g. 192.168.1.15)</Label>
+	</Field>
+	<Field id="hostId" type="textfield" defaultValue="" readonly="true">
+		<Label>Host ID:</Label>
+	</Field>
+	<Field id="labelHostId" type="label" alignWithControl="true" fontColor="darkgray" fontSize="small">
+		<Label>(read-only). Generated host ID assigned by the Hue hub.</Label>
+	</Field>
+	<Field id="startPairingButton"
+			type="button"
+			tooltip="If this is the first time connecting to a Hue hub, click this to start pairing. Press the button on the Hue hub, then press this button again to finish pairing">
+		<Label>Pairing:</Label>
+		<Title>Start/Finish</Title>
+		<CallbackMethod>restartPairing</CallbackMethod>
+    </Field>
+	<Field id="simpleSeparator1" type="separator"/>
+	<Field id="debugLabel" type="label" fontColor="darkgray" fontSize="small">
+		<Label>If you are having problems with the plugin (or you are instructed by support), you can enable extra logging in the Event Log window by checking this button. Use with caution.
+		</Label>
+	</Field>
+	<Field id="showDebugInfo" type="checkbox">
+		<Label>Enable debuging:</Label>
+		<Description>(not recommended)</Description>
+	</Field>
+	<Field id="simpleSeparator2" type="separator"/>
+	<Field id="instructions0" type="label" fontColor="black" fontSize="small">
+		<Label>INSTRUCTION:</Label>
+	</Field>
+	<Field id="instructions1" type="label" fontColor="darkgray" fontSize="small">
+		<Label>Enter the IP address or host name assigned to the Hue hub by your router.  If you are unable to find the IP address given to your Hue hub using your router's administrative interface, you can obtain the Hue hub's IP address by registering on and using the www.meethue.com web site, then viewing your hub settings.</Label>
+	</Field>
+	<Field id="instructions2" type="label" fontColor="darkgray" fontSize="small">
+		<Label>After the IP address or host name has been entered, click the Start/Finish button. Go to the Hue hub and press the button in the center of the hub, then come back to this dialog and press the Start/Finish button again.</Label>
+	</Field>
+	<Field id="instructions3" type="label" fontColor="darkgray" fontSize="small">
+		<Label>Once this is done, click the Save button.</Label>
+	</Field>
+</PluginConfig>

@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+<Devices>
+    <!-- Bulb Device -->
+	<Device type="dimmer" id="hueBulb">
+		<Name>Hue Bulb</Name>
+		<ConfigUI>
+			<Field id="bulbId" type="menu">
+				<Label>Hue Bulb:</Label>
+				<List class="self" method="bulbListGenerator"/>
+			</Field>
+			<Field id="address" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+			<Field id="rampRate" type="textfield">
+				<Label>Ramp Rate:</Label>
+			</Field>
+			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 540 seconds)
+0 = instant.
+Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+</Label>
+			</Field>
+			<Field id="nameOnHub" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+			<Field id="savedBrightness" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+		</ConfigUI>
+		<States>
+			<State id="hue">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Hue (°)</TriggerLabel>
+				<ControlPageLabel>Hue (°)</ControlPageLabel>
+			</State>
+			<State id="saturation">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Saturation (%)</TriggerLabel>
+				<ControlPageLabel>Saturation (%)</ControlPageLabel>
+			</State>
+			<State id="colorRed">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Red Level (0-255)</TriggerLabel>
+				<ControlPageLabel>Red Level (0-255)</ControlPageLabel>
+			</State>
+			<State id="colorGreen">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Green Level (0-255)</TriggerLabel>
+				<ControlPageLabel>Green Level (0-255)</ControlPageLabel>
+			</State>
+			<State id="colorBlue">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Blue Level (0-255)</TriggerLabel>
+				<ControlPageLabel>Blue Level (0-255)</ControlPageLabel>
+			</State>
+			<State id="colorX">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>X Color Chromaticity</TriggerLabel>
+				<ControlPageLabel>X Color Chromaticity (CIE 1931)</ControlPageLabel>
+			</State>
+			<State id="colorY">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Y Color Chromaticity</TriggerLabel>
+				<ControlPageLabel>Y Color Chromaticity (CIE 1931)</ControlPageLabel>
+			</State>
+			<State id="colorTemp">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Color Temperature (K)</TriggerLabel>
+				<ControlPageLabel>Color Temperature (K)</ControlPageLabel>
+			</State>
+			<State id="colorMode">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Color Mode</TriggerLabel>
+				<ControlPageLabel>Color Mode</ControlPageLabel>
+			</State>
+			<State id="alertMode">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Alert Mode</TriggerLabel>
+				<ControlPageLabel>Alert Mode</ControlPageLabel>
+			</State>
+			<State id="effect">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Effect</TriggerLabel>
+				<ControlPageLabel>Effect</ControlPageLabel>
+			</State>
+			<State id="online">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Online</TriggerLabel>
+				<ControlPageLabel>Online</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+</Devices>

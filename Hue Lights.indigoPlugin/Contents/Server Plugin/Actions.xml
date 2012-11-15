@@ -1,0 +1,145 @@
+<?xml version="1.0"?>
+<Actions>
+	<Action id="setRGB" deviceFilter="self" uiPath="DeviceActions">
+		<Name>Set Red/Green/Blue Levels</Name>
+		<CallbackMethod>setRGBAction</CallbackMethod>
+		<ConfigUI>
+			<Field id="red" type="textfield" defaultValue="255">
+				<Label>Red:</Label>
+			</Field>
+			<Field id="labelRed" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 255)
+0 = red LEDs off.
+255 = red LEDs on full.</Label>
+			</Field>
+			<Field id="green" type="textfield" defaultValue="255">
+				<Label>Green:</Label>
+			</Field>
+			<Field id="labelGreen" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 255)
+0 = green LEDs off.
+255 = green LEDs on full.</Label>
+			</Field>
+			<Field id="blue" type="textfield" defaultValue="255">
+				<Label>Blue:</Label>
+			</Field>
+			<Field id="labelBlue" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 255)
+0 = blue LEDs off.
+255 = blue LEDs on full.</Label>
+			</Field>
+			<Field id="rampRate" type="textfield">
+				<Label>Ramp Rate:</Label>
+			</Field>
+			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 540 seconds)
+0 = instant.
+Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
+			</Field>
+		</ConfigUI>
+	</Action>
+	<Action id="setHSB" deviceFilter="self" uiPath="DeviceActions">
+		<Name>Set Hue/Saturation/Brightness</Name>
+		<CallbackMethod>setHSBAction</CallbackMethod>
+		<ConfigUI>
+			<Field id="hue" type="textfield" defaultValue="230">
+				<Label>Hue:</Label>
+			</Field>
+			<Field id="labelHue" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 360°)
+0 (and 360) = red, 60 = yellow, 120 = green, 180 = cyan, 240 = blue, 300 = magenta.</Label>
+			</Field>
+			<Field id="saturation" type="textfield" defaultValue="100">
+				<Label>Saturation:</Label>
+			</Field>
+			<Field id="labelSaturation" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 100%)
+0 = white (Hue is meaningless).
+100 = full color (no white mixed in).</Label>
+			</Field>
+			<Field id="brightness" type="textfield" defaultValue="100">
+				<Label>Brightness:</Label>
+			</Field>
+			<Field id="labelBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 100%)
+0 = off.
+100 = full brightness.</Label>
+			</Field>
+			<Field id="rampRate" type="textfield">
+				<Label>Ramp Rate:</Label>
+			</Field>
+			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 540 seconds)
+0 = instant.
+Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
+			</Field>
+		</ConfigUI>
+	</Action>
+	<Action id="setCT" deviceFilter="self" uiPath="DeviceActions">
+		<Name>Set Color Temperature</Name>
+		<CallbackMethod>setCTAction</CallbackMethod>
+		<ConfigUI>
+			<Field type="menu" id="preset" defaultValue="relax">
+				<Label>Presets:</Label>
+				<List>
+					<Option value="relax">Relax</Option>
+					<Option value="reading">Reading</Option>
+					<Option value="concentrate">Concentrate</Option>
+					<Option value="energize">Energize</Option>
+					<Option value="custom">Custom Temperature</Option>
+				</List>
+			</Field>
+			<Field id="labelPoint" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Select a preset white point or select "Custom Temperature" to specify a specific color temperature (in Kelvin).</Label>
+			</Field>
+			<Field id="temperature" type="textfield" defaultValue="2800" visibleBindingId="preset" visibleBindingValue="custom">
+				<Label>Color Temperature:</Label>
+			</Field>
+			<Field id="labelTemperature" type="label" visibleBindingId="preset" visibleBindingValue="custom" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(2000 - 6500 K)
+2000 = very warm (more red).
+6500 = very cool (more blue).</Label>
+			</Field>
+			<Field id="brightness" type="textfield" visibleBindingId="preset" visibleBindingValue="custom" defaultValue="100">
+				<Label>Brightness:</Label>
+			</Field>
+			<Field id="labelBrightness" type="label" visibleBindingId="preset" visibleBindingValue="custom" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 100%)
+0 = off.
+100 = full brightness.</Label>
+			</Field>
+			<Field id="rampRate" type="textfield">
+				<Label>Ramp Rate:</Label>
+			</Field>
+			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 540 seconds)
+0 = instant.
+Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
+			</Field>
+		</ConfigUI>
+	</Action>
+	<Action id="alertOnce" deviceFilter="self" uiPath="DeviceActions">
+		<Name>Short Alert</Name>
+		<CallbackMethod>alertOnce</CallbackMethod>
+	</Action>
+	<Action id="longAlert" deviceFilter="self" uiPath="DeviceActions">
+		<Name>Long Alert</Name>
+		<CallbackMethod>longAlert</CallbackMethod>
+	</Action>
+	<Action id="stopAlert" deviceFilter="self" uiPath="DeviceActions">
+		<Name>Cancel Alert</Name>
+		<CallbackMethod>stopAlert</CallbackMethod>
+	</Action>
+	<!-- This may be used in the future when the "effect"
+			parameter is better understood.
+	<Action id="effect" deviceFilter="self">
+		<Name>Effect</Name>
+		<CallbackMethod>effect</CallbackMethod>
+		<ConfigUI>
+			<Field id="effect" type="textfield">
+				<Label>Effect Text:</Label>
+			</Field>
+		</ConfigUI>
+	</Action>
+	-->
+</Actions>
