@@ -52,10 +52,12 @@ class Plugin(indigo.PluginBase):
 		indigo.PluginBase.__init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
 		self.debug = pluginPrefs.get('showDebugInfo', False)
 		self.debugLog(u"Initializing Plugin.")
-		self.deviceList = []
-		self.paired = False
-		self.lightsDict = dict()
-		self.ipAddress = ""
+		self.deviceList = []		# list of device IDs to monitor
+		self.brighteningList = []	# list of device IDs being brightened
+		self.dimmingList = []		# list of device IDs being dimmed
+		self.paired = False			# if paired with Hue hub or not
+		self.lightsDict = dict()	# Hue bulb ID: Name dict.
+		self.ipAddress = ""			# Hue hub IP address
 	
 	# Unload Plugin
 	########################################
@@ -103,7 +105,7 @@ class Plugin(indigo.PluginBase):
 	
 	
 	########################################
-	# Overridden Plugin Methods
+	# Standard Plugin Methods
 	########################################
 	
 	# New Device Created
@@ -121,13 +123,68 @@ class Plugin(indigo.PluginBase):
 		#
 		try:
 			while True:
-				self.sleep(5)
+				## Brightening Devices ##
+				i = 0
+				# Loop 10 times (about 0.5 sec per loop).
+				while i < 10:
+					# Go through the devices waiting to be brightened.
+					for brightenDeviceId in self.brighteningList:
+						# Make sure the device is in the deviceList.
+						if brightenDeviceId in self.deviceList:
+							# Increase the brightness level by 10 percent.
+							brightenDevice = indigo.devices[brightenDeviceId]
+							brightness = brightenDevice.states['brightnessLevel']
+							self.debugLog(u"Brightness: " + str(brightness))
+							brightness += 10
+							self.debugLog(u"Updated to: " + str(brightness))
+							if brightness >= 100:
+								brightness = 100
+								self.brighteningList.remove(brightenDeviceId)
+								# Log the event to Indigo log.
+								indigo.server.log(u"\"" + brightenDevice.name + "\" stop brightening")
+								# Get the bulb status
+								self.getBulbStatus(brightenDeviceId)
+								# Log the new brightnss.
+								indigo.server.log(u"\"" + brightenDevice.name + "\" status request (received: 100)")
+							# Convert percent-based brightness to 255-based brightness.
+							brightness = int(round(brightness / 100.0 * 255.0))
+							# Set brightness to new value, with 0.5 sec ramp rate and no logging.
+							self.setBrightness(brightenDevice, brightness, 0.5, False)
+							
+					# Go through the devices waiting to be dimmed.
+					for dimDeviceId in self.dimmingList:
+						# Make sure the device is in the deviceList.
+						if dimDeviceId in self.deviceList:
+							# Decrease the brightness level by 10 percent.
+							dimDevice = indigo.devices[dimDeviceId]
+							brightness = dimDevice.states['brightnessLevel']
+							brightness -= 10
+							if brightness <= 0:
+								brightness = 0
+								self.dimmingList.remove(dimDeviceId)
+								# Log the event to Indigo log.
+								indigo.server.log(u"\"" + dimDevice.name + "\" stop dimming")
+								# Get the bulb status
+								self.getBulbStatus(dimDeviceId)
+								# Log the new brightnss.
+								indigo.server.log(u"\"" + dimDevice.name + "\" status request (received: 0)")
+							# Convert percent-based brightness to 255-based brightness.
+							brightness = int(round(brightness / 100.0 * 255.0))
+							# Set brightness to new value, with 0.5 sec ramp rate and no logging.
+							self.setBrightness(dimDevice, brightness, 0.5, False)
+							
+					# Wait for 0.5 seconds before loop repeats.
+					self.sleep(0.5)
+					# Increment loop counter.
+					i += 1
+					
+				# Now the the brightening/dimming loop has finished, get device states.
 				# Cycle through each device.
 				for deviceId in self.deviceList:
 					# Get the bulb's status.
 					self.getBulbStatus(deviceId)
 					# Wait just a bit to avoid hub rate limiting.
-					self.sleep(0.2)
+					self.sleep(0.15)
 							
 		except self.StopThread:
 			self.debugLog(u"runConcurrentThread stopped.")
@@ -198,7 +255,7 @@ class Plugin(indigo.PluginBase):
 		errorsDict['showAlertText'] = ""
 		descString = u""
 		
-		### SET RGB COLOR ###
+		### SET RGB LEVELS ###
 		if typeId == "setRGB":
 			# Check the RGB values.
 			red = valuesDict.get('red', 0)
@@ -213,9 +270,8 @@ class Plugin(indigo.PluginBase):
 			if blue == "":
 				blue = 0
 				valuesDict['blue'] = blue
-			rampRate = valuesDict.get('rampRate', False)
-			if rampRate == "":
-				rampRate = False
+			rampRate = valuesDict.get('rampRate', "")
+			
 			try:
 				red = int(red)
 				if (red < 0) or (red > 255):
@@ -259,7 +315,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['blue'] = "Invalid Blue value: " + str(e)
 				errorsDict['showAlertText'] += errorsDict['blue'] + "\n\n"
 			# Validate Ramp Rate.
-			if rampRate:
+			if len(rampRate) > 0:
 				try:
 					rampRate = float(rampRate)
 					if (rampRate < 0) or (rampRate > 540):
@@ -274,6 +330,10 @@ class Plugin(indigo.PluginBase):
 					isError = True
 					errorsDict['rampRate'] = "Invalid Ramp Rate value: " + str(e)
 					errorsDict['showAlertText'] += errorsDict['rampRate'] + "\n\n"
+			if not isError:
+				descString += u"set hue bulb RGB levels to " + str(red) + ", " + str(green) + ", " + str(blue)
+				if len(valuesDict.get('rampRate', "")) > 0:
+					descString += u" with ramp rate " + str(rampRate)
 					
 		### SET HSB ###
 		elif typeId == "setHSB":
@@ -290,9 +350,8 @@ class Plugin(indigo.PluginBase):
 			if brightness == "":
 				brightness = device.states['brightnessLevel']
 				valuesDict['brightness'] = brightness
-			rampRate = valuesDict.get('rampRate', False)
-			if rampRate == "":
-				rampRate = False
+			rampRate = valuesDict.get('rampRate', "")
+			
 			try:
 				hue = int(hue)
 				if (hue < 0) or (hue > 360):
@@ -336,7 +395,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['brightness'] = "Invalid Brightness value: " + str(e)
 				errorsDict['showAlertText'] += errorsDict['brightness'] + "\n\n"
 			# Validate Ramp Rate.
-			if rampRate:
+			if len(rampRate) > 0:
 				try:
 					rampRate = float(rampRate)
 					if (rampRate < 0) or (rampRate > 540):
@@ -351,6 +410,10 @@ class Plugin(indigo.PluginBase):
 					isError = True
 					errorsDict['rampRate'] = "Invalid Ramp Rate value: " + str(e)
 					errorsDict['showAlertText'] += errorsDict['rampRate'] + "\n\n"
+			if not isError:
+				descString += u"set hue bulb hue, sturation, brightness to " + str(hue) + ", " + str(saturation) + ", " + str(brightness)
+				if len(valuesDict.get('rampRate', "")) > 0:
+					descString += u" with ramp rate " + str(rampRate)
 					
 		### SET COLOR TEMPERATURE ###
 		elif typeId == "setCT":
@@ -367,9 +430,8 @@ class Plugin(indigo.PluginBase):
 			if brightness == "":
 				brightness = device.states['brightnessLevel']
 				valuesDict['brightness'] = brightness
-			rampRate = valuesDict.get('rampRate', False)
-			if rampRate == "":
-				rampRate = False
+			rampRate = valuesDict.get('rampRate', "")
+			
 			# Validate that a Preset item or Custom was selected.
 			if preset == False:
 				isError = True
@@ -404,9 +466,8 @@ class Plugin(indigo.PluginBase):
 					isError = True
 					errorsDict['brightness'] = "Invalid Brightness value: " + str(e)
 					errorsDict['showAlertText'] += errorsDict['brightness'] + "\n\n"
-					
 			# Validate Ramp Rate.
-			if rampRate:
+			if len(rampRate) > 0:
 				try:
 					rampRate = float(rampRate)
 					if (rampRate < 0) or (rampRate > 540):
@@ -421,6 +482,13 @@ class Plugin(indigo.PluginBase):
 					isError = True
 					errorsDict['rampRate'] = "Invalid Ramp Rate value: " + str(e)
 					errorsDict['showAlertText'] += errorsDict['rampRate'] + "\n\n"
+			if not isError:
+				if preset != "custom":
+					descString += u"set hue bulb color temperature to preset \"" + preset + "\""
+				else:
+					descString += u"set hue bulb color temperature to custom value " + str(temperature) + " K at " + str(brightness) + "% brightness"
+				if len(valuesDict.get('rampRate', "")) > 0:
+					descString += u" with ramp rate " + str(rampRate)
 					
 		valuesDict['description'] = descString
 		if isError:
@@ -584,7 +652,9 @@ class Plugin(indigo.PluginBase):
 				
 	# Set Bulb Brightness
 	########################################
-	def setBrightness(self, device, brightness, rampRate=-1):
+	def setBrightness(self, device, brightness, rampRate=-1, showLog=True):
+		# NOTE that brightness is expected to be in the range of 0 to 255.
+		
 		# If a rampRate wasn't specified (default of -1 assigned), use the default.
 		#   (rampRate should be an integer expressing 10th of seconds, so
 		#   5 = 0.5 seconds, 100 = 10 seconds, etc).
@@ -621,9 +691,10 @@ class Plugin(indigo.PluginBase):
 			r = requests.put(command, data=requestData)
 			self.debugLog("Got response - %s" % r.content)
 			# Update the device brightness (which automatically changes on state).
-			self.updateDeviceState(device, 'brightnessLevel', int(ceil(brightness/255.0*100.0)))
+			self.updateDeviceState(device, 'brightnessLevel', int(round(brightness/255.0*100.0)))
 			# Log the change.
-			indigo.server.log(message = u"\"" + device.name + "\" on to " + str(int(ceil(brightness/255.0*100.0))) + " at ramp rate " + str(rampRate / 10.0) + " sec.")
+			if showLog:
+				indigo.server.log(message = u"\"" + device.name + "\" on to " + str(int(round(brightness/255.0*100.0))) + " at ramp rate " + str(rampRate / 10.0) + " sec.")
 		else:
 			requestData = json.dumps({"on": False, "transitiontime": rampRate})
 			command = "http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId)
@@ -633,7 +704,8 @@ class Plugin(indigo.PluginBase):
 			# Update the device brightness (which automatically changes on state).
 			self.updateDeviceState(device, 'brightnessLevel', 0)
 			# Log the change.
-			indigo.server.log(u"\"" + device.name + "\" off at ramp rate " + str(rampRate / 10.0) + " sec.")
+			if showLog:
+				indigo.server.log(u"\"" + device.name + "\" off at ramp rate " + str(rampRate / 10.0) + " sec.")
 			
 	# Turn Bulb On or Off
 	########################################
@@ -682,9 +754,9 @@ class Plugin(indigo.PluginBase):
 				r = requests.put(command, data=requestData)
 				self.debugLog("Got response - %s" % r.content)
 				# Update the Indigo device.
-				self.updateDeviceState(device, 'brightnessLevel', int(ceil(savedBrightness/255.0*100.0)))
+				self.updateDeviceState(device, 'brightnessLevel', int(round(savedBrightness/255.0*100.0)))
 				# Log the change.
-				indigo.server.log(u"\"" + device.name + "\" on to " + str(int(ceil(savedBrightness/255.0*100.0))) + " at ramp rate " + str(rampRate / 10.0) + " sec.")
+				indigo.server.log(u"\"" + device.name + "\" on to " + str(int(round(savedBrightness/255.0*100.0))) + " at ramp rate " + str(rampRate / 10.0) + " sec.")
 			else:
 				# Since the bulb can be "on" with 0 brightness, we'll need
 				#   to also tell the bulb to go to 100% brightness.
@@ -753,9 +825,9 @@ class Plugin(indigo.PluginBase):
 		
 		# Update on Indigo
 		if int(ceil(brightness/255.0*100.0)) > 0:
-			self.updateDeviceState(device, 'brightnessLevel', int(ceil(brightness / 255.0 * 100.0)))
+			self.updateDeviceState(device, 'brightnessLevel', int(round(brightness / 255.0 * 100.0)))
 			# Log the change.
-			indigo.server.log(u"\"" + device.name + "\" on to " + str(int(ceil(brightness / 255.0 * 100.0))) + " using white point " + str(int(floor(1000000.0 / temperature))) + " K at ramp rate " + str(rampRate / 10.0) + " sec.")
+			indigo.server.log(u"\"" + device.name + "\" on to " + str(int(rount(brightness / 255.0 * 100.0))) + " using white point " + str(int(floor(1000000.0 / temperature))) + " K at ramp rate " + str(rampRate / 10.0) + " sec.")
 		else:
 			self.updateDeviceState(device, 'brightnessLevel', 0)
 			# Log the change.
@@ -801,8 +873,8 @@ class Plugin(indigo.PluginBase):
 		# Update on Indigo
 		# Log the change.
 		if int(ceil(brightness/255.0*100.0)) > 0:
-			self.updateDeviceState(device, 'brightnessLevel', int(ceil(brightness/255.0*100.0)))
-			indigo.server.log(u"\"" + device.name + u"\" on to " + str(int(ceil(brightness / 255.0 * 100.0))) + u" with hue " + str(int(round(hue / 182.0))) + u"° saturation " + str(int(saturation / 255.0 * 100.0)) + u"% at ramp rate " + str(rampRate / 10.0) + u" sec.")
+			self.updateDeviceState(device, 'brightnessLevel', int(round(brightness/255.0*100.0)))
+			indigo.server.log(u"\"" + device.name + u"\" on to " + str(int(round(brightness / 255.0 * 100.0))) + u" with hue " + str(int(round(hue / 182.0))) + u"° saturation " + str(int(saturation / 255.0 * 100.0)) + u"% at ramp rate " + str(rampRate / 10.0) + u" sec.")
 		else:
 			self.updateDeviceState(device, 'brightnessLevel', 0)
 			# Log the change.
@@ -1112,7 +1184,7 @@ class Plugin(indigo.PluginBase):
 				self.debugLog("device set brightness:\n%s" % action)
 			except Exception, e:
 				self.debugLog("device set brightness: (Unable to display action data due to error: " + str(e) + ")")
-			brightnessLevel = int(round(action.actionValue / 100.0 * 255.0))
+			brightnessLevel = int(floor(action.actionValue / 100.0 * 255.0))
 			# Save the new brightness level into the device properties.
 			tempProps = device.pluginProps
 			tempProps['savedBrightness'] = brightnessLevel
@@ -1131,10 +1203,10 @@ class Plugin(indigo.PluginBase):
 				brightnessLevel = 100
 			# Save the new brightness level into the device properties.
 			tempProps = device.pluginProps
-			tempProps['savedBrightness'] = int(round(brightnessLevel / 100.0 * 255.0))
+			tempProps['savedBrightness'] = int(floor(brightnessLevel / 100.0 * 255.0))
 			self.updateDeviceProps(device, tempProps)
 			# Set the new brightness level on the bulb.
-			self.setBrightness(device, int(round(brightnessLevel / 100.0 * 255.0)))
+			self.setBrightness(device, int(floor(brightnessLevel / 100.0 * 255.0)))
 			
 		##### DIM BY #####
 		elif command == indigo.kDeviceAction.DimBy:
@@ -1147,10 +1219,10 @@ class Plugin(indigo.PluginBase):
 				brightnessLevel = 0
 			# Save the new brightness level into the device properties.
 			tempProps = device.pluginProps
-			tempProps['savedBrightness'] = int(round(brightnessLevel / 100.0 * 255.0))
+			tempProps['savedBrightness'] = int(floor(brightnessLevel / 100.0 * 255.0))
 			self.updateDeviceProps(device, tempProps)
 			# Set the new brightness level on the bulb.
-			self.setBrightness(device, int(round(brightnessLevel / 100.0 * 255.0)))
+			self.setBrightness(device, int(floor(brightnessLevel / 100.0 * 255.0)))
 			
 		##### REQUEST STATUS #####
 		elif command == indigo.kDeviceAction.RequestStatus:
@@ -1158,7 +1230,9 @@ class Plugin(indigo.PluginBase):
 				self.debugLog("device request status:\n%s" % action)
 			except Exception, e:
 				self.debugLog("device request status: (Unable to display action data due to error: " + str(e) + ")")
-			self.getBulbStatus(device)
+			self.getBulbStatus(device.id)
+			# Log the new brightnss.
+			indigo.server.log(u"\"" + device.name + "\" status request (received: " + str(device.states['brightnessLevel']) + ")")
 
 		#### CATCH ALL #####
 		else:
@@ -1169,6 +1243,67 @@ class Plugin(indigo.PluginBase):
 	# Custom Plugin Action callbacks (defined in Actions.xml)
 	########################################
 	
+	# Start/Stop Brightening
+	########################################
+	def startStopBrightening(self, action, device):
+		self.debugLog(u"startStopBrightening: device: " + device.name + ", action:\n" + str(action))
+		# Make sure the device is in the deviceList.
+		if device.id in self.deviceList:
+			
+			# First, remove from the dimmingList if it's there.
+			if device.id in self.dimmingList:
+				self.dimmingList.remove(device.id)
+				# Log the event to Indigo log.
+				indigo.server.log(u"\"" + device.name + "\" stop dimming")
+				
+			# Now remove from brighteningList if it's in the list and add if not.
+			if device.id in self.brighteningList:
+				self.brighteningList.remove(device.id)
+				# Log the event to Indigo log.
+				indigo.server.log(u"\"" + device.name + "\" stop brightening")
+				# Get the bulb status
+				self.getBulbStatus(device.id)
+				# Log the new brightnss.
+				indigo.server.log(u"\"" + device.name + "\" status request (received: " + str(device.states['brightnessLevel']) + ")")
+			else:
+				# Only begin brightening if current brightness is less than 100%.
+				if device.states['brightnessLevel'] < 100:
+					self.brighteningList.append(device.id)
+					# Log the event in Indigo log.
+					indigo.server.log(u"\"" + device.name + "\" start brightening")
+				
+		return
+		
+	# Start/Stop Dimming
+	########################################
+	def startStopDimming(self, action, device):
+		self.debugLog(u"startStopDimming: device: " + device.name + ", action:\n" + str(action))
+		# Make sure the device is in the deviceList.
+		if device.id in self.deviceList:
+			# First, remove from brighteningList if it's there.
+			if device.id in self.brighteningList:
+				self.brighteningList.remove(device.id)
+				# Log the event to Indigo log.
+				indigo.server.log(u"\"" + device.name + "\" stop brightening")
+				
+			# Now remove from dimmingList if it's in the list and add if not.
+			if device.id in self.dimmingList:
+				self.dimmingList.remove(device.id)
+				# Log the event to Indigo log.
+				indigo.server.log(u"\"" + device.name + "\" stop dimming")
+				# Get the bulb status
+				self.getBulbStatus(device.id)
+				# Log the new brightnss.
+				indigo.server.log(u"\"" + device.name + "\" status request (received: " + str(device.states['brightnessLevel']) + ")")
+			else:
+				# Only begin dimming if current brightness is greater than 0%.
+				if device.states['brightnessLevel'] > 0:
+					self.dimmingList.append(device.id)
+					# Log the event in Indigo log.
+					indigo.server.log(u"\"" + device.name + "\" start dimming")
+
+		return
+
 	# Set RGB Level Action
 	########################################
 	def setRGBAction(self, action, device):

@@ -1,5 +1,13 @@
 <?xml version="1.0"?>
 <Actions>
+	<Action id="startStopBrightening" deviceFilter="self" uiPath="DeviceActions">
+		<Name>Start/Stop Brightening</Name>
+		<CallbackMethod>startStopBrightening</CallbackMethod>
+	</Action>
+	<Action id="startStopDimming" deviceFilter="self" uiPath="DeviceActions">
+		<Name>Start/Stop Dimming</Name>
+		<CallbackMethod>startStopDimming</CallbackMethod>
+	</Action>
 	<Action id="setRGB" deviceFilter="self" uiPath="DeviceActions">
 		<Name>Set Red/Green/Blue Levels</Name>
 		<CallbackMethod>setRGBAction</CallbackMethod>
@@ -35,6 +43,9 @@
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
+			</Field>
+			<Field id="description" type="textfield" hidden="true">
+				<Label/>
 			</Field>
 		</ConfigUI>
 	</Action>
@@ -72,6 +83,9 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
+			</Field>
+			<Field id="description" type="textfield" hidden="true">
+				<Label/>
 			</Field>
 		</ConfigUI>
 	</Action>
@@ -116,6 +130,9 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
 			</Field>
+			<Field id="description" type="textfield" hidden="true">
+				<Label/>
+			</Field>
 		</ConfigUI>
 	</Action>
 	<Action id="alertOnce" deviceFilter="self" uiPath="DeviceActions">
@@ -138,6 +155,9 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<ConfigUI>
 			<Field id="effect" type="textfield">
 				<Label>Effect Text:</Label>
+			</Field>
+			<Field id="description" type="textfield" hidden="true">
+				<Label/>
 			</Field>
 		</ConfigUI>
 	</Action>
