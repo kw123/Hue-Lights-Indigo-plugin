@@ -17,14 +17,15 @@
 #	Version 0.9
 #
 #	History:	0.9 (13-Nov-2012) (Version Number Reset)
-#				* Initial Nathan Sheldon branch beta release.
-#				* This version removes the use of ColorPy from Alistair's
-#				  version and all attempts to faithfully reproduce
-#				  true red, green and blue colors, were abandoned
-#				  as the Hue is not capable of that high of a color
-#				  gamut coverage.  RGB levels, if used, are now
-#				  converted to HSB values using included libraries
-#				  instead of xyY values using ColorPy libraries.
+#				* Initial Nathan Sheldon forked beta release.
+#				* This version removes the use of the "ColorPy" library from
+#				  Alistair's version and replaces it with the "colormath"
+#				  library as it includes the ability to specify a target
+#				  illumination source during color conversion, thus presenting
+#				  a closer RGB to xyY conversion (and vice-versa).
+#				* Most of Alistair's original code was rewritten to remain
+#				  consistent with coding convensions in my other plugins, but
+#				  some of his code is still in here.
 #
 ################################################################################
 
@@ -34,10 +35,9 @@ import uuid
 import hashlib
 import requests
 import socket
-import colorsys
+from colormath.color_objects import RGBColor, xyYColor, XYZColor
 import simplejson as json
-from math import ceil
-from math import floor
+from math import ceil, floor
 
 
 ################################################################################
@@ -217,21 +217,21 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['bulbId'] + "\n\n"
 					
 		# Validate the default ramp rate (transition time) is reasonable.
-		if valuesDict.get('rampRate', "") != "":
+		if valuesDict.get('rate', "") != "":
 			try:
-				rampRate = float(valuesDict['rampRate'])
+				rampRate = float(valuesDict['rate'])
 				if rampRate < 0 or rampRate > 540:
 					isError = True
-					errorsDict['rampRate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds."
-					errorsDict['showAlertText'] += errorsDict['rampRate'] + "\n\n"
+					errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds."
+					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 			except ValueError:
 				isError = True
-				errorsDict['rampRate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds."
-				errorsDict['showAlertText'] += errorsDict['rampRate'] + "\n\n"
+				errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds."
+				errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 			except Execption, e:
 				isError = True
-				errorsDict['rampRate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds. Error: " + str(e)
-				errorsDict['showAlertText'] += errorsDict['rampRate'] + "\n\n"
+				errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds. Error: " + str(e)
+				errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 				
 		# Show errors if there are any.
 		if isError:
@@ -270,7 +270,7 @@ class Plugin(indigo.PluginBase):
 			if blue == "":
 				blue = 0
 				valuesDict['blue'] = blue
-			rampRate = valuesDict.get('rampRate', "")
+			rampRate = valuesDict.get('rate', "")
 			
 			try:
 				red = int(red)
@@ -320,19 +320,19 @@ class Plugin(indigo.PluginBase):
 					rampRate = float(rampRate)
 					if (rampRate < 0) or (rampRate > 540):
 						isError = True
-						errorsDict['rampRate'] = "Ramp Rate must be a number between 0 and 540 seconds and can be in increments of 0.1 seconds."
-						errorsDict['showAlertText'] += errorsDict['rampRate'] + "\n\n"
+						errorsDict['rate'] = "Ramp Rate must be a number between 0 and 540 seconds and can be in increments of 0.1 seconds."
+						errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 				except ValueError:
 					isError = True
-					errorsDict['rampRate'] = "Ramp Rate must be a number between 0 and 540 seconds and can be in increments of 0.1 seconds."
-					errorsDict['showAlertText'] += errorsDict['rampRate'] + "\n\n"
+					errorsDict['rate'] = "Ramp Rate must be a number between 0 and 540 seconds and can be in increments of 0.1 seconds."
+					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 				except Exception, e:
 					isError = True
-					errorsDict['rampRate'] = "Invalid Ramp Rate value: " + str(e)
-					errorsDict['showAlertText'] += errorsDict['rampRate'] + "\n\n"
+					errorsDict['rate'] = "Invalid Ramp Rate value: " + str(e)
+					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 			if not isError:
 				descString += u"set hue bulb RGB levels to " + str(red) + ", " + str(green) + ", " + str(blue)
-				if len(valuesDict.get('rampRate', "")) > 0:
+				if len(valuesDict.get('rate', "")) > 0:
 					descString += u" with ramp rate " + str(rampRate)
 					
 		### SET HSB ###
@@ -350,7 +350,7 @@ class Plugin(indigo.PluginBase):
 			if brightness == "":
 				brightness = device.states['brightnessLevel']
 				valuesDict['brightness'] = brightness
-			rampRate = valuesDict.get('rampRate', "")
+			rampRate = valuesDict.get('rate', "")
 			
 			try:
 				hue = int(hue)
@@ -400,19 +400,19 @@ class Plugin(indigo.PluginBase):
 					rampRate = float(rampRate)
 					if (rampRate < 0) or (rampRate > 540):
 						isError = True
-						errorsDict['rampRate'] = "Ramp Rate must be a number between 0 and 540 seconds and can be in increments of 0.1 seconds."
-						errorsDict['showAlertText'] += errorsDict['rampRate'] + "\n\n"
+						errorsDict['rate'] = "Ramp Rate must be a number between 0 and 540 seconds and can be in increments of 0.1 seconds."
+						errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 				except ValueError:
 					isError = True
-					errorsDict['rampRate'] = "Ramp Rate must be a number between 0 and 540 seconds and can be in increments of 0.1 seconds."
-					errorsDict['showAlertText'] += errorsDict['rampRate'] + "\n\n"
+					errorsDict['rate'] = "Ramp Rate must be a number between 0 and 540 seconds and can be in increments of 0.1 seconds."
+					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 				except Exception, e:
 					isError = True
-					errorsDict['rampRate'] = "Invalid Ramp Rate value: " + str(e)
-					errorsDict['showAlertText'] += errorsDict['rampRate'] + "\n\n"
+					errorsDict['rate'] = "Invalid Ramp Rate value: " + str(e)
+					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 			if not isError:
 				descString += u"set hue bulb hue, sturation, brightness to " + str(hue) + ", " + str(saturation) + ", " + str(brightness)
-				if len(valuesDict.get('rampRate', "")) > 0:
+				if len(valuesDict.get('rate', "")) > 0:
 					descString += u" with ramp rate " + str(rampRate)
 					
 		### SET COLOR TEMPERATURE ###
@@ -430,7 +430,7 @@ class Plugin(indigo.PluginBase):
 			if brightness == "":
 				brightness = device.states['brightnessLevel']
 				valuesDict['brightness'] = brightness
-			rampRate = valuesDict.get('rampRate', "")
+			rampRate = valuesDict.get('rate', "")
 			
 			# Validate that a Preset item or Custom was selected.
 			if preset == False:
@@ -472,22 +472,22 @@ class Plugin(indigo.PluginBase):
 					rampRate = float(rampRate)
 					if (rampRate < 0) or (rampRate > 540):
 						isError = True
-						errorsDict['rampRate'] = "Ramp Rate must be a number between 0 and 540 seconds and can be in increments of 0.1 seconds."
-						errorsDict['showAlertText'] += errorsDict['rampRate'] + "\n\n"
+						errorsDict['rate'] = "Ramp Rate must be a number between 0 and 540 seconds and can be in increments of 0.1 seconds."
+						errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 				except ValueError:
 					isError = True
-					errorsDict['rampRate'] = "Ramp Rate must be a number between 0 and 540 seconds and can be in increments of 0.1 seconds."
-					errorsDict['showAlertText'] += errorsDict['rampRate'] + "\n\n"
+					errorsDict['rate'] = "Ramp Rate must be a number between 0 and 540 seconds and can be in increments of 0.1 seconds."
+					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 				except Exception, e:
 					isError = True
-					errorsDict['rampRate'] = "Invalid Ramp Rate value: " + str(e)
-					errorsDict['showAlertText'] += errorsDict['rampRate'] + "\n\n"
+					errorsDict['rate'] = "Invalid Ramp Rate value: " + str(e)
+					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 			if not isError:
 				if preset != "custom":
 					descString += u"set hue bulb color temperature to preset \"" + preset + "\""
 				else:
 					descString += u"set hue bulb color temperature to custom value " + str(temperature) + " K at " + str(brightness) + "% brightness"
-				if len(valuesDict.get('rampRate', "")) > 0:
+				if len(valuesDict.get('rate', "")) > 0:
 					descString += u" with ramp rate " + str(rampRate)
 					
 		valuesDict['description'] = descString
@@ -597,13 +597,15 @@ class Plugin(indigo.PluginBase):
 				self.updateDeviceState(device, 'colorX', bulb['state']['xy'][0])
 				self.updateDeviceState(device, 'colorY', bulb['state']['xy'][1])
 				#   Red, Green, and Blue Color.
-				#     Convert from HSB to linear RGB (real numbers from 0 to 1).
-				rgb = colorsys.hsv_to_rgb((bulb['state']['hue']/182.04)/360.00, bulb['state']['sat']/255.00, bulb['state']['bri']/255.00)
-				#     Assign the 3 RGB values to device states (after converting them to
-				#     integers in the 0-255 range).
-				self.updateDeviceState(device, 'colorRed', int(ceil(rgb[0]*255.00)))
-				self.updateDeviceState(device, 'colorGreen', int(ceil(rgb[1]*255.00)))
-				self.updateDeviceState(device, 'colorBlue', int(ceil(rgb[2]*255.00)))
+				#     Convert from XY to RGB.
+				xyy = xyYColor(bulb['state']['xy'][0], bulb['state']['xy'][1], bulb['state']['bri']/255.0, illuminant='a')
+				rgb = xyy.convert_to('rgb', target_illuminant='a')
+				#     Assign the 3 RGB values to device states. We multiply each RGB value
+				#     by the brightness percentage because the above xyY conversion returns
+				#     normalized RGB values (ignoring luminance in the conversion).
+				self.updateDeviceState(device, 'colorRed', int(round(rgb.rgb_r * bulb['state']['bri'] / 255.0)))
+				self.updateDeviceState(device, 'colorGreen', int(round(rgb.rgb_g * bulb['state']['bri'] / 255.0)))
+				self.updateDeviceState(device, 'colorBlue', int(round(rgb.rgb_b * bulb['state']['bri'] / 255.0)))
 				#   Color Temperature (convert from 154-500 mireds to 6494-2000 K).
 				self.updateDeviceState(device, 'colorTemp', int(floor(1000000.0/bulb['state']['ct'])))
 				#   Alert Status.
@@ -664,7 +666,7 @@ class Plugin(indigo.PluginBase):
 				#   properties (as entered by the user) is expressed in fractions
 				#   of a second (0.5 = 0.5 seconds, 10 = 10 seconds, etc), so
 				#   it must be converted to 10th seconds here.
-				rampRate = int(round(float(device.pluginProps.get('rampRate', 0.5)) * 10))
+				rampRate = int(round(float(device.pluginProps.get('rate', 0.5)) * 10))
 			except Exception, e:
 				self.errorLog(u"Default ramp rate could not be obtained: " + str(e))
 				rampRate = 5
@@ -719,7 +721,7 @@ class Plugin(indigo.PluginBase):
 				#   properties (as entered by the user) is expressed in fractions
 				#   of a second (0.5 = 0.5 seconds, 10 = 10 seconds, etc), so
 				#   it must be converted to 10th seconds here.
-				rampRate = int(round(float(device.pluginProps.get('rampRate', 0.5)) * 10))
+				rampRate = int(round(float(device.pluginProps.get('rate', 0.5)) * 10))
 			except Exception, e:
 				self.errorLog(u"Default ramp rate could not be obtained: " + str(e))
 				rampRate = 5
@@ -795,7 +797,7 @@ class Plugin(indigo.PluginBase):
 				#   properties (as entered by the user) is expressed in fractions
 				#   of a second (0.5 = 0.5 seconds, 10 = 10 seconds, etc), so
 				#   it must be converted to 10th seconds here.
-				rampRate = int(round(float(device.pluginProps.get('rampRate', 0.5)) * 10))
+				rampRate = int(round(float(device.pluginProps.get('rate', 0.5)) * 10))
 			except Exception, e:
 				self.errorLog(u"Default ramp rate could not be obtained: " + str(e))
 				rampRate = 5
@@ -827,7 +829,7 @@ class Plugin(indigo.PluginBase):
 		if int(ceil(brightness/255.0*100.0)) > 0:
 			self.updateDeviceState(device, 'brightnessLevel', int(round(brightness / 255.0 * 100.0)))
 			# Log the change.
-			indigo.server.log(u"\"" + device.name + "\" on to " + str(int(rount(brightness / 255.0 * 100.0))) + " using white point " + str(int(floor(1000000.0 / temperature))) + " K at ramp rate " + str(rampRate / 10.0) + " sec.")
+			indigo.server.log(u"\"" + device.name + "\" on to " + str(int(round(brightness / 255.0 * 100.0))) + " using color temperature " + str(int(floor(1000000.0 / temperature))) + " K at ramp rate " + str(rampRate / 10.0) + " sec.")
 		else:
 			self.updateDeviceState(device, 'brightnessLevel', 0)
 			# Log the change.
@@ -845,7 +847,7 @@ class Plugin(indigo.PluginBase):
 				#   properties (as entered by the user) is expressed in fractions
 				#   of a second (0.5 = 0.5 seconds, 10 = 10 seconds, etc), so
 				#   it must be converted to 10th seconds here.
-				rampRate = int(round(float(device.pluginProps.get('rampRate', 0.5)) * 10))
+				rampRate = int(round(float(device.pluginProps.get('rate', 0.5)) * 10))
 			except Exception, e:
 				self.errorLog(u"Default ramp rate could not be obtained: " + str(e))
 				rampRate = 5
@@ -892,7 +894,7 @@ class Plugin(indigo.PluginBase):
 				#   properties (as entered by the user) is expressed in fractions
 				#   of a second (0.5 = 0.5 seconds, 10 = 10 seconds, etc), so
 				#   it must be converted to 10th seconds here.
-				rampRate = int(round(float(device.pluginProps.get('rampRate', 0.5)) * 10))
+				rampRate = int(round(float(device.pluginProps.get('rate', 0.5)) * 10))
 			except Exception, e:
 				self.errorLog(u"Default ramp rate could not be obtained: " + str(e))
 				rampRate = 5
@@ -911,29 +913,45 @@ class Plugin(indigo.PluginBase):
 			self.errorLog(u"No bulb ID selected for device \"%s\". Check settings for this bulb and select a Hue bulb to control." % (device.name))
 			return
 		
-		# Convert the red, green, and blue integers into linear RGB values.
-		red = red/255.00
-		green = green/255.00
-		blue = blue/255.00
-		# Convert the linear RGB to HSB.
-		hsb = colorsys.rgb_to_hsv(red, green, blue)
+		# Convert the linear RGB to xyY.
+		rgb = RGBColor(red, green, blue)
+		xyy = rgb.convert_to('xyy', target_illuminant='a')
+		# target_illuminant "a" = incandescent
+		# xyy.xyy_x is the x chromaticity.
+		# xyy.xyy_y is the y chromaticity.
+		# xyy.xyy_Y is the z chrimaticity (ignored).
+		
+		# Determine the brightness based on the highest RGB value.
+		#   This is a crude method, but using the Y component from
+		#   the conversion above results in brightness values lower
+		#   than what the bulb is capable of.
+		brightness = red
+		if blue > brightness:
+			brightness = blue
+		elif green > brightness:
+			brightness = green
 		
 		# Send to Hue
-		requestData = json.dumps({"bri": int(round(hsb[2]*255.0)), "hue": int(floor(hsb[0]*360.0*182.0)), "sat": int(ceil(hsb[1]*255.0)), "transitiontime": int(rampRate), "on": True})
+		requestData = json.dumps({"bri": brightness, "xy": [xyy.xyy_x, xyy.xyy_y], "transitiontime": int(rampRate), "on": True})
 		command = "http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId)
 		self.debugLog(u"Data: " + str(requestData) + ", URL: " + command)
 		r = requests.put(command, data=requestData)
 		self.debugLog("Got response - %s" % r.content)
 		
 		# Update on Indigo
-		if int(round(hsb[2]*100.0)) > 0:
-			self.updateDeviceState(device, 'brightnessLevel', int(round(hsb[2]*100.0)))
+		if brightness > 0:
+			self.updateDeviceState(device, 'brightnessLevel', brightness)
 			# Log the change.
-			indigo.server.log(u"\"" + device.name + "\" on to " + str(int(round(hsb[2]*100.0))) + " with RGB values " + str(int(red * 255.0)) + ", " + str(int(green * 255.0)) + " and " + str(int(blue * 255.0)) + " at ramp rate " + str(rampRate / 10.0) + " sec.")
+			indigo.server.log(u"\"" + device.name + "\" on to " + str(brightness) + " with RGB values " + str(red) + ", " + str(green) + " and " + str(blue) + " at ramp rate " + str(rampRate / 10.0) + " sec.")
 		else:
 			self.updateDeviceState(device, 'brightnessLevel', 0)
 			# Log the change.
 			indigo.server.log(u"\"" + device.name + "\" off at ramp rate " + str(rampRate / 10.0) + " sec.")
+		# Update the red, gree, and blue device states.
+		self.updateDeviceState(device, 'colorRed', red)
+		self.updateDeviceState(device, 'colorGreen', green)
+		self.updateDeviceState(device, 'colorBlue', blue)
+		
 			
 	# Start Alert (Blinking)
 	########################################
@@ -1327,11 +1345,11 @@ class Plugin(indigo.PluginBase):
 			return
 			
 		try:
-			rampRate = action.props.get('rampRate', -1)
+			rampRate = action.props.get('rate', -1)
 			if rampRate != "":
 				rampRate = float(rampRate)
 			else:
-				rampRate = device.pluginProps.get('rampRate', 0.5)
+				rampRate = device.pluginProps.get('rate', 0.5)
 		except ValueError:
 			self.errorLog(u"Ramp Rate value specified for \"" + device.name +u"\" is invalid.")
 			return
@@ -1364,11 +1382,11 @@ class Plugin(indigo.PluginBase):
 			return
 		
 		try:
-			rampRate = action.props.get('rampRate', -1)
+			rampRate = action.props.get('rate', -1)
 			if rampRate != "":
 				rampRate = float(rampRate)
 			else:
-				rampRate = device.pluginProps.get('rampRate', 0.5)
+				rampRate = device.pluginProps.get('rate', 0.5)
 		except ValueError:
 			self.errorLog(u"Ramp Rate value specified for \"" + device.name +u"\" is invalid.")
 			return
@@ -1404,11 +1422,11 @@ class Plugin(indigo.PluginBase):
 				brightness = int(ceil(device.states['brightnessLevel'] / 100.0 * 255.0))
 				
 		try:
-			rampRate = action.props.get('rampRate', -1)
+			rampRate = action.props.get('rate', -1)
 			if rampRate != "":
 				rampRate = float(rampRate)
 			else:
-				rampRate = device.pluginProps.get('rampRate', 0.5)
+				rampRate = device.pluginProps.get('rate', 0.5)
 		except ValueError:
 			self.errorLog(u"Ramp Rate value specified for \"" + device.name +u"\" is invalid.")
 			return

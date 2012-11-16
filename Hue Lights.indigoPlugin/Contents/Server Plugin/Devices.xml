@@ -11,7 +11,7 @@
 			<Field id="address" type="textfield" hidden="true">
 				<Label/>
 			</Field>
-			<Field id="rampRate" type="textfield">
+			<Field id="rate" type="textfield">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">

@@ -12,6 +12,10 @@
 		<Name>Set Red/Green/Blue Levels</Name>
 		<CallbackMethod>setRGBAction</CallbackMethod>
 		<ConfigUI>
+			<Field id="intro1" type="label" fontColor="darkgray" fontSize="small">
+				<Label>NOTE: The Hue light bulbs are not capable of displaying the same full spectrum of light that your computer monitor or television can display. Thus, when entering Red, Green, and Blue values, the bulb will switch to the closest color it can render to the color you specified.*
+				</Label>
+			</Field>
 			<Field id="red" type="textfield" defaultValue="255">
 				<Label>Red:</Label>
 			</Field>
@@ -36,13 +40,16 @@
 0 = blue LEDs off.
 255 = blue LEDs on full.</Label>
 			</Field>
-			<Field id="rampRate" type="textfield">
+			<Field id="rate" type="textfield">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
+			</Field>
+			<Field id="details0" type="label" fontColor="darkgray" fontSize="small">
+				<Label>* Within 60 seconds (or less) after this action executes, the device states, including the red, green, and blue color components, will update to reflect a more accurate representation the color being presented by the Hue bulb. These conversions are done by the Hue hub itself.</Label>
 			</Field>
 			<Field id="description" type="textfield" hidden="true">
 				<Label/>
@@ -53,6 +60,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Set Hue/Saturation/Brightness</Name>
 		<CallbackMethod>setHSBAction</CallbackMethod>
 		<ConfigUI>
+			<Field id="intro1" type="label" fontColor="darkgray" fontSize="small">
+				<Label>NOTE: The Hue light bulbs are not capable of displaying the same full spectrum of light that your computer monitor or television can display. Thus, when entering Hue and Saturation values, the bulb will switch to the closest color it can render to the color you specified.*
+				</Label>
+			</Field>
 			<Field id="hue" type="textfield" defaultValue="230">
 				<Label>Hue:</Label>
 			</Field>
@@ -76,13 +87,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 0 = off.
 100 = full brightness.</Label>
 			</Field>
-			<Field id="rampRate" type="textfield">
+			<Field id="rate" type="textfield">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
+			</Field>
+			<Field id="details0" type="label" fontColor="darkgray" fontSize="small">
+				<Label>* Within 60 seconds (or less) after this action executes, the device states, including the hue and saturation, will update to reflect a more accurate representation the color being presented by the Hue bulb. These conversions are done by the Hue hub itself.</Label>
 			</Field>
 			<Field id="description" type="textfield" hidden="true">
 				<Label/>
@@ -93,6 +107,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Set Color Temperature</Name>
 		<CallbackMethod>setCTAction</CallbackMethod>
 		<ConfigUI>
+			<Field id="intro1" type="label" fontColor="darkgray" fontSize="small">
+				<Label>Color temperature represents the shade of white being seen. When entering a Custom Temperature, a lower number means a "warmer", or more red shade of white.  A higher number means a "cooler", or more blue shade of white.
+				</Label>
+			</Field>
 			<Field type="menu" id="preset" defaultValue="relax">
 				<Label>Presets:</Label>
 				<List>
@@ -122,13 +140,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 0 = off.
 100 = full brightness.</Label>
 			</Field>
-			<Field id="rampRate" type="textfield">
+			<Field id="rate" type="textfield">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
+			</Field>
+			<Field id="details0" type="label" fontColor="darkgray" fontSize="small">
+				<Label>Within 60 seconds (or less) after this action executes, the device states, including the color temperature, will update to reflect a more accurate representation the color being presented by the Hue bulb. These conversions are done by the Hue hub itself.</Label>
 			</Field>
 			<Field id="description" type="textfield" hidden="true">
 				<Label/>
