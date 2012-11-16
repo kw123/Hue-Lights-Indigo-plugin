@@ -173,8 +173,8 @@ class Plugin(indigo.PluginBase):
 							# Set brightness to new value, with 0.5 sec ramp rate and no logging.
 							self.setBrightness(dimDevice, brightness, 0.5, False)
 							
-					# Wait for 0.5 seconds before loop repeats.
-					self.sleep(0.5)
+					# Wait for 0.4 seconds before loop repeats.
+					self.sleep(0.4)
 					# Increment loop counter.
 					i += 1
 					
