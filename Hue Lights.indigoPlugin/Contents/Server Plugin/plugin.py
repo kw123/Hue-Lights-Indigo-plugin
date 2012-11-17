@@ -14,9 +14,14 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 0.9
+#	Version 0.9.1
 #
-#	History:	0.9 (13-Nov-2012) (Version Number Reset)
+#	History:	0.9.1 (16-Nov-2012)
+#				* Tweaked brightening and dimming timing for Start Brightening
+#				  and Start Dimming actions so the rate was about the same speed
+#				  as SmartLabs SwithcLinc Dimmers and LampLinc Dimmers.
+#				--
+#				0.9 (13-Nov-2012)
 #				* Initial Nathan Sheldon forked beta release.
 #				* This version removes the use of the "ColorPy" library from
 #				  Alistair's version and replaces it with the "colormath"
@@ -135,7 +140,7 @@ class Plugin(indigo.PluginBase):
 							brightenDevice = indigo.devices[brightenDeviceId]
 							brightness = brightenDevice.states['brightnessLevel']
 							self.debugLog(u"Brightness: " + str(brightness))
-							brightness += 10
+							brightness += 12
 							self.debugLog(u"Updated to: " + str(brightness))
 							if brightness >= 100:
 								brightness = 100
@@ -158,7 +163,7 @@ class Plugin(indigo.PluginBase):
 							# Decrease the brightness level by 10 percent.
 							dimDevice = indigo.devices[dimDeviceId]
 							brightness = dimDevice.states['brightnessLevel']
-							brightness -= 10
+							brightness -= 12
 							if brightness <= 0:
 								brightness = 0
 								self.dimmingList.remove(dimDeviceId)
@@ -173,8 +178,8 @@ class Plugin(indigo.PluginBase):
 							# Set brightness to new value, with 0.5 sec ramp rate and no logging.
 							self.setBrightness(dimDevice, brightness, 0.5, False)
 							
-					# Wait for 0.4 seconds before loop repeats.
-					self.sleep(0.4)
+					# Wait for 0.45 seconds before loop repeats.
+					self.sleep(0.45)
 					# Increment loop counter.
 					i += 1
 					
@@ -834,7 +839,10 @@ class Plugin(indigo.PluginBase):
 			self.updateDeviceState(device, 'brightnessLevel', 0)
 			# Log the change.
 			indigo.server.log(u"\"" + device.name + "\" off at ramp rate " + str(rampRate / 10.0) + " sec.")
-			
+		# Update the other device states as well.
+		self.updateDeviceState(device, 'colorMode', "ct")
+		self.updateDeviceState(device, 'ct', temperature)
+		
 	# Set Hue, Saturation and Brightness
 	########################################
 	def setHSB(self, device, hue, saturation, brightness, rampRate=-1):
@@ -875,13 +883,20 @@ class Plugin(indigo.PluginBase):
 		# Update on Indigo
 		# Log the change.
 		if int(ceil(brightness/255.0*100.0)) > 0:
+			# Change the Indigo device.
 			self.updateDeviceState(device, 'brightnessLevel', int(round(brightness/255.0*100.0)))
+			# Log the change.
 			indigo.server.log(u"\"" + device.name + u"\" on to " + str(int(round(brightness / 255.0 * 100.0))) + u" with hue " + str(int(round(hue / 182.0))) + u"° saturation " + str(int(saturation / 255.0 * 100.0)) + u"% at ramp rate " + str(rampRate / 10.0) + u" sec.")
 		else:
+			# Change the Indigo device.
 			self.updateDeviceState(device, 'brightnessLevel', 0)
 			# Log the change.
 			indigo.server.log(u"\"" + device.name + "\" off at ramp rate " + str(rampRate / 10.0) + " sec.")
-			
+		# Update the other device states.
+		self.updateDeviceState(device, 'colorMode', "hs")
+		self.updateDeviceState(device, 'hue', hue)
+		self.updateDeviceState(device, 'sat', saturation)
+		
 	# Set RGB Levels
 	########################################
 	def setRGB(self, device, red, green, blue, rampRate=-1):
@@ -947,12 +962,15 @@ class Plugin(indigo.PluginBase):
 			self.updateDeviceState(device, 'brightnessLevel', 0)
 			# Log the change.
 			indigo.server.log(u"\"" + device.name + "\" off at ramp rate " + str(rampRate / 10.0) + " sec.")
-		# Update the red, gree, and blue device states.
+		# Update the other device states.
+		self.updateDeviceState(device, 'colorMode', "xy")
+		self.updateDeviceState(device, 'colorX', round(xyy.xyy_x, 4))
+		self.updateDeviceState(device, 'colorY', round(xyy.xyy_y, 4))
 		self.updateDeviceState(device, 'colorRed', red)
 		self.updateDeviceState(device, 'colorGreen', green)
 		self.updateDeviceState(device, 'colorBlue', blue)
 		
-			
+		
 	# Start Alert (Blinking)
 	########################################
 	def setAlert(self, device, alertType="lselect"):
@@ -973,6 +991,8 @@ class Plugin(indigo.PluginBase):
 		r = requests.put("http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId), data=requestData)
 		self.debugLog("Got response - %s" % r.content)
 		
+		# Update the device state.
+		self.updateDeviceState(device, 'alertMode', alertType)
 		# Log the change.
 		if alertType == "select":
 			indigo.server.log(u"\"" + device.name + "\" start short alert blink.")
@@ -1005,8 +1025,10 @@ class Plugin(indigo.PluginBase):
 		r = requests.put(command, data=requestData)
 		indigo.server.log(u"Got response - %s" % r.content)
 		
-		# Update on Indigo
+		# Update the device state.
 		self.updateDeviceState(device, 'effect', effect)
+		# Log the change.
+		indigo.server.log(u"\"" + device.name + "\" set effect \"" + effect + "\"")
 	
 	# Update Lights List
 	########################################
