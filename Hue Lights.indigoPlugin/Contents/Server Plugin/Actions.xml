@@ -8,9 +8,66 @@
 		<Name>Start/Stop Dimming</Name>
 		<CallbackMethod>startStopDimming</CallbackMethod>
 	</Action>
+	<Action id="setBrightness" deviceFilter="self" uiPath="DeviceActions">
+		<Name>Set Brightness with Ramp Rate</Name>
+		<CallbackMethod>setBrightness</CallbackMethod>
+		<ConfigUI>
+			<Field id="brightnessSource" type="menu" defaultValue="custom">
+				<Label>Brightness Source:</Label>
+				<List>
+					<Option value="custom">Enter Value</Option>
+					<Option value="variable">Use Variable</Option>
+					<Option value="dimmer">Other Dimmer Brightness</Option>
+				</List>
+			</Field>
+			<Field id="brightness" type="textfield" visibleBindingId="brightnessSource" visibleBindingValue="custom">
+				<Label>Brightness (0-100):</Label>
+				<Description>Brightness level the device should be set to.</Description>
+			</Field>
+			<Field id="brightnessVariable" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="variable">
+				<Label>Variable:</Label>
+				<List class="indigo.variables"/>
+			</Field>
+			<Field id="brightnessDevice" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="dimmer">
+				<Label>Other Dimmer:</Label>
+				<List class="indigo.devices" filter="indigo.dimmer"/>
+			</Field>
+			<Field id="useRateVariable" type="checkbox" defaultValue="false">
+				<Label>Use Ramp Rate Variable</Label>
+			</Field>
+			<Field id="rate" type="textfield" visibleBindingId="useRateVariable" visibleBindingValue="false">
+				<Label>Ramp Rate:</Label>
+			</Field>
+			<Field id="rateVariable" type="menu" visibleBindingId="useRateVariable" visibleBindingValue="true">
+				<Label>Ramp Rate Variable:</Label>
+				<List class="indigo.variables"/>
+			</Field>
+			<Field id="sep1" type="separator"/>
+			<Field id="instructions1" type="label" fontColor="darkgray" fontSize="small">
+				<Label>INSTRUCTIONS: (You'll need to scroll to view all instructions).
+[Brightness Source]: Select the source of the brightness value to be set on the dimmer. Select "Enter Value" to enter the brightness level (from 0 to 100). Select "Variable" to select an Indigo variable that contains the brightness level (from 0 to 100). Select "Other Dimmer Brightness" to choose another dimmer device as the brightness level source. When this option is selected, Hue Lights will set the brightness of the device being acted upon (this device) to the same brightness of the selected Other Dimmer device.
+				</Label>
+			</Field>
+			<Field id="instructions2" type="label" fontColor="darkgray" fontSize="small">
+				<Label>[Brightness]: Enter a number from 0 to 100 (0 is off, 100 is on at full brightness). [Variable]: Select an Indigo variable that will contain a number from 0 to 100. The value of that variable will be used as the brightness level. [Other Dimmer Brightness]: Select another dimmer device in the Indigo database. The brightness of that device will be used as the brightness level for this device.
+				</Label>
+			</Field>
+			<Field id="instructions3" type="label" fontColor="darkgray" fontSize="small">
+				<Label>[Use Ramp Rate Variable]: Check this checkbox if you'd like to use an Indigo variable as the source for this dimmer's ramp rate.
+				</Label>
+			</Field>
+			<Field id="instructions4" type="label" fontColor="darkgray" fontSize="small">
+				<Label>Ramp Rates represent the full time needed to transition from one brightness level to the next and can be specified in increments of 0.1 seconds. [Ramp Rate]: Enter a ramp rate in seconds. [Ramp Rate Variable]: Select an Indigo variable whose value (in seconds) will be used as the ramp rate for this device.  (e.g. 150 for 1 min, 30 sec. or 6.5 for 6.5 sec).
+				</Label>
+			</Field>
+			<Field id="description" type="textfield" hidden="true">
+				<Label></Label>
+			</Field>
+		</ConfigUI>
+	</Action>
 	<Action id="setRGB" deviceFilter="self" uiPath="DeviceActions">
 		<Name>Set Red/Green/Blue Levels</Name>
-		<CallbackMethod>setRGBAction</CallbackMethod>
+		<CallbackMethod>setRGB</CallbackMethod>
 		<ConfigUI>
 			<Field id="intro1" type="label" fontColor="darkgray" fontSize="small">
 				<Label>NOTE: The Hue light bulbs are not capable of displaying the same full spectrum of light that your computer monitor or television can display. Thus, when entering Red, Green, and Blue values, the bulb will switch to the closest color it can render to the color you specified.*
@@ -58,7 +115,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	</Action>
 	<Action id="setHSB" deviceFilter="self" uiPath="DeviceActions">
 		<Name>Set Hue/Saturation/Brightness</Name>
-		<CallbackMethod>setHSBAction</CallbackMethod>
+		<CallbackMethod>setHSB</CallbackMethod>
 		<ConfigUI>
 			<Field id="intro1" type="label" fontColor="darkgray" fontSize="small">
 				<Label>NOTE: The Hue light bulbs are not capable of displaying the same full spectrum of light that your computer monitor or television can display. Thus, when entering Hue and Saturation values, the bulb will switch to the closest color it can render to the color you specified.*
@@ -105,7 +162,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	</Action>
 	<Action id="setCT" deviceFilter="self" uiPath="DeviceActions">
 		<Name>Set Color Temperature</Name>
-		<CallbackMethod>setCTAction</CallbackMethod>
+		<CallbackMethod>setColorTemperature</CallbackMethod>
 		<ConfigUI>
 			<Field id="intro1" type="label" fontColor="darkgray" fontSize="small">
 				<Label>Color temperature represents the shade of white being seen. When entering a Custom Temperature, a lower number means a "warmer", or more red shade of white.  A higher number means a "cooler", or more blue shade of white.

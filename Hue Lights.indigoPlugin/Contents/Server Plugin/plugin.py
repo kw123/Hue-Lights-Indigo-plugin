@@ -20,6 +20,15 @@
 #				* Tweaked brightening and dimming timing for Start Brightening
 #				  and Start Dimming actions so the rate was about the same speed
 #				  as SmartLabs SwithcLinc Dimmers and LampLinc Dimmers.
+#				* Removed code that immediately changes the RGB color states for
+#				  the Indigo device as the values entered by the user are not
+#				  actual displayed values. Actual values will be updated by the
+#				  getBulbStatus method later.
+#				* Added the "Set Brightness with Ramp Rate" action and associated
+#				  plugin.py code. Renamed multiple methods for easier redability
+#				  and for easier plugin scripting within Indigo.  Reorganized
+#				  order in which methods appear in the source code for a more
+#				  logical layout.
 #				--
 #				0.9 (13-Nov-2012)
 #				* Initial Nathan Sheldon forked beta release.
@@ -154,7 +163,7 @@ class Plugin(indigo.PluginBase):
 							# Convert percent-based brightness to 255-based brightness.
 							brightness = int(round(brightness / 100.0 * 255.0))
 							# Set brightness to new value, with 0.5 sec ramp rate and no logging.
-							self.setBrightness(brightenDevice, brightness, 0.5, False)
+							self.doBrightness(brightenDevice, brightness, 0.5, False)
 							
 					# Go through the devices waiting to be dimmed.
 					for dimDeviceId in self.dimmingList:
@@ -176,7 +185,7 @@ class Plugin(indigo.PluginBase):
 							# Convert percent-based brightness to 255-based brightness.
 							brightness = int(round(brightness / 100.0 * 255.0))
 							# Set brightness to new value, with 0.5 sec ramp rate and no logging.
-							self.setBrightness(dimDevice, brightness, 0.5, False)
+							self.doBrightness(dimDevice, brightness, 0.5, False)
 							
 					# Wait for 0.45 seconds before loop repeats.
 					self.sleep(0.45)
@@ -259,6 +268,99 @@ class Plugin(indigo.PluginBase):
 		errorsDict = indigo.Dict()
 		errorsDict['showAlertText'] = ""
 		descString = u""
+		
+		### SET BRIGHTNESS WITH RAMP RATE ###
+		if typeId == "setBrightness":
+			brightnessSource = valuesDict.get('brightnessSource', False)
+			brightness = valuesDict.get('brightness', False)
+			brightnessVarId = valuesDict.get('brightnessVariable', False)
+			brightnessDevId = valuesDict.get('brightnessDevice', False)
+			useRateVariable = valuesDict.get('useRateVariable', False)
+			rate = valuesDict.get('rate', False)
+			rateVarId = valuesDict.get('rateVariable', False)
+			
+			if not brightnessSource:
+				isError = True
+				errorsDict['brightnessSource'] = u"Please specify a Brightness Source."
+				errorsDict['showAlertText'] += errorsDict['brightnessSource'] + "\n\n"
+			elif brightnessSource == "custom":
+				if not brightness:
+					isError = True
+					errorsDict['brightness'] = u"Please specify a brightness level."
+					errorsDict['showAlertText'] += errorsDict['brightness'] + "\n\n"
+				else:
+					try:
+						brightness = int(brightness)
+						if brightness < 0 or brightness > 100:
+							isError = True
+							errorsDict['brightness'] = u"Brightness levels must be a number between 0 and 100."
+							errorsDict['showAlertText'] += errorsDict['brightness'] + "\n\n"
+					except ValueError:
+						isError = True
+						errorsDict['brightness'] = u"Brightness levels must be a number between 0 and 100."
+						errorsDict['showAlertText'] += errorsDict['brightness'] + "\n\n"
+				descString += u"set brightness of \"" + device.name + "\" to " + str(brightness) + "%"
+			elif brightnessSource == "variable":
+				if not brightnessVarId:
+					isError = True
+					errorsDict['brightnessVariable'] = u"Please specify a variable to use for brightness level."
+					errorsDict['showAlertText'] += errorsDict['brightnessVariable'] + "\n\n"
+				else:
+					try:
+						brightnessVar = indigo.variables[int(brightnessVarId)]
+						descString += u"set brightness of \"" + device.name + "\" to value in variable \"" + brightnessVar.name + "\""
+					except IndexError:
+						isError = True
+						errorsDict['brightnessVariable'] = u"The specified variable does not exist in the Indigo database. Please choose a different variable."
+						errorsDict['showAlertText'] += errorsDict['brightnessVariable'] + "\n\n"
+			elif brightnessSource == "dimmer":
+				if not brightnessDevId:
+					isError = True
+					errorsDict['brightnessDevice'] = u"Please specify a dimmer device to use as the source for brightness level."
+					errorsDict['showAlertText'] += errorsDict['brightnessDevice'] + "\n\n"
+				else:
+					try:
+						brightnessDev = indigo.devices[int(brightnessDevId)]
+						descString += u"set brightness of \"" + device.name + "\" to current brightness of \"" + brightnessDev.name + "\""
+					except IndexError:
+						isError = True
+						errorsDict['brightnessDevice'] = u"The specified device does not exist in the Indigo database. Please choose a different device."
+						errorsDict['showAlertText'] += errorsDict['brightnessDevice'] + "\n\n"
+					if brightnessDev.id == device.id:
+						isError = True
+						errorsDict['brightnessDevice'] = u"You cannot select the same dimmer as the one for which you're setting the brightness."
+						errorsDict['showAlertText'] += errorsDict['brightnessDevice'] + "\n\n"
+			
+			if not useRateVariable:
+				if not rate and rate.__class__ != bool:
+					isError = True
+					errorsDict['rate'] = u"Please enter a Ramp Rate."
+					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
+				else:
+					try:
+						rate = round(float(rate), 1)
+						if rate < 0 or rate > 540:
+							isError = True
+							errorsDict['rate'] = u"Ramp Rate times must be between 0 and 540 seconds."
+							errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
+					except ValueError:
+						isError = True
+						errorsDict['rate'] = u"Ramp Rates must be between 0 and 540 seconds and cannot contain non-numeric characters."
+						errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
+				descString += u" using ramp rate " + str(rate) + " sec"
+			else:
+				if not rateVarId:
+					isError = True
+					errorsDict['rateVariable'] = u"Please select a variable to use for the ramp rate."
+					errorsDict['showAlertText'] += errorsDict['rateVariable'] + "\n\n"
+				else:
+					try:
+						rateVar = indigo.variables[int(rateVarId)]
+						descString += u" using ramp rate in variable \"" + rateVar.name + "\""
+					except IndexError:
+						isError = True
+						errorsDict['rateVariable'] = u"The specified variable does not exist in the Indigo database. Please choose a different variable."
+						errorsDict['showAlertText'] += errorsDict['rateVariable'] + "\n\n"
 		
 		### SET RGB LEVELS ###
 		if typeId == "setRGB":
@@ -534,7 +636,7 @@ class Plugin(indigo.PluginBase):
 	
 	
 	########################################
-	# Plugin-Specific Methods
+	# Plugin-Specific Device Methods
 	########################################
 	
 	# Update Device State
@@ -565,7 +667,12 @@ class Plugin(indigo.PluginBase):
 			self.debugLog(u"updateDeviceProps: Updating device " + device.name + u" properties.")
 			device.replacePluginPropsOnServer(newProps)
 	
-	# Get the status of a bulb.
+	
+	########################################
+	# Hue Communication Methods
+	########################################
+	
+	# Get Bulb Status
 	########################################
 	def getBulbStatus(self, deviceId):
 		device = indigo.devices[deviceId]
@@ -656,67 +763,11 @@ class Plugin(indigo.PluginBase):
 				tempProps = device.pluginProps
 				tempProps['nameOnHub'] = bulb['name']
 				self.updateDeviceProps(device, tempProps)
-				
-	# Set Bulb Brightness
-	########################################
-	def setBrightness(self, device, brightness, rampRate=-1, showLog=True):
-		# NOTE that brightness is expected to be in the range of 0 to 255.
-		
-		# If a rampRate wasn't specified (default of -1 assigned), use the default.
-		#   (rampRate should be an integer expressing 10th of seconds, so
-		#   5 = 0.5 seconds, 100 = 10 seconds, etc).
-		if rampRate == -1:
-			try:
-				# For user-friendliness, the rampRate provided in the device
-				#   properties (as entered by the user) is expressed in fractions
-				#   of a second (0.5 = 0.5 seconds, 10 = 10 seconds, etc), so
-				#   it must be converted to 10th seconds here.
-				rampRate = int(round(float(device.pluginProps.get('rate', 0.5)) * 10))
-			except Exception, e:
-				self.errorLog(u"Default ramp rate could not be obtained: " + str(e))
-				rampRate = 5
-		else:
-			rampRate = int(round(float(rampRate) * 10))
-
-		# Sanity check for an IP address
-		self.ipAddress = self.pluginPrefs.get('address', None)
-		if self.ipAddress is None:
-			self.errorLog(u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com")
-			return
-		
-		# Sanity check on bulb ID
-		bulbId = device.pluginProps.get('bulbId', None)
-		if bulbId is None or bulbId == 0:
-			self.errorLog(u"No bulb ID selected for device \"%s\". Check settings for this bulb and select a Hue bulb to control." % (device.name))
-			return
-		
-		# If requested brightness is greater than 0, proceed. Otherwise, turn off the bulb.
-		if brightness > 0:
-			requestData = json.dumps({"bri": int(brightness), "on": True, "transitiontime": rampRate})
-			command = "http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId)
-			self.debugLog("Sending URL request: " + command)
-			r = requests.put(command, data=requestData)
-			self.debugLog("Got response - %s" % r.content)
-			# Update the device brightness (which automatically changes on state).
-			self.updateDeviceState(device, 'brightnessLevel', int(round(brightness/255.0*100.0)))
-			# Log the change.
-			if showLog:
-				indigo.server.log(message = u"\"" + device.name + "\" on to " + str(int(round(brightness/255.0*100.0))) + " at ramp rate " + str(rampRate / 10.0) + " sec.")
-		else:
-			requestData = json.dumps({"on": False, "transitiontime": rampRate})
-			command = "http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId)
-			self.debugLog("Sending URL request: " + command)
-			r = requests.put(command, data=requestData)
-			self.debugLog("Got response - %s" % r.content)
-			# Update the device brightness (which automatically changes on state).
-			self.updateDeviceState(device, 'brightnessLevel', 0)
-			# Log the change.
-			if showLog:
-				indigo.server.log(u"\"" + device.name + "\" off at ramp rate " + str(rampRate / 10.0) + " sec.")
-			
+	
 	# Turn Bulb On or Off
+	#   (not currently being used)
 	########################################
-	def setOnOff(self, device, onState, rampRate=-1):
+	def doOnOff(self, device, onState, rampRate=-1):
 		# If a rampRate wasn't specified (default of -1 assigned), use the default.
 		#   (rampRate should be an integer expressing 10th of seconds, so
 		#   5 = 0.5 seconds, 100 = 10 seconds, etc).
@@ -789,10 +840,12 @@ class Plugin(indigo.PluginBase):
 			self.updateDeviceState(device, 'brightnessLevel', 0)
 			# Log the change.
 			indigo.server.log(u"\"" + device.name + "\" off at ramp rate " + str(rampRate / 10) + " sec.")
-		
-	# Set Color Temperature
+	
+	# Set Bulb Brightness
 	########################################
-	def setTemperature(self, device, temperature, brightness, rampRate=-1):
+	def doBrightness(self, device, brightness, rampRate=-1, showLog=True):
+		# NOTE that brightness is expected to be in the range of 0 to 255.
+		
 		# If a rampRate wasn't specified (default of -1 assigned), use the default.
 		#   (rampRate should be an integer expressing 10th of seconds, so
 		#   5 = 0.5 seconds, 100 = 10 seconds, etc).
@@ -808,10 +861,7 @@ class Plugin(indigo.PluginBase):
 				rampRate = 5
 		else:
 			rampRate = int(round(float(rampRate) * 10))
-		
-		# Convert temperature from K to mireds.
-		temperature = int(floor(1000000.0 / temperature))
-		
+
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
 		if self.ipAddress is None:
@@ -824,82 +874,33 @@ class Plugin(indigo.PluginBase):
 			self.errorLog(u"No bulb ID selected for device \"%s\". Check settings for this bulb and select a Hue bulb to control." % (device.name))
 			return
 		
-		# Submit to Hue
-		requestData = json.dumps({"bri":brightness, "ct": temperature, "on":True, "transitiontime": int(rampRate)})
-		self.debugLog(u"Request is %s" % requestData)
-		r = requests.put("http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId), data=requestData)
-		self.debugLog("Got response - %s" % r.content)
-		
-		# Update on Indigo
-		if int(ceil(brightness/255.0*100.0)) > 0:
-			self.updateDeviceState(device, 'brightnessLevel', int(round(brightness / 255.0 * 100.0)))
-			# Log the change.
-			indigo.server.log(u"\"" + device.name + "\" on to " + str(int(round(brightness / 255.0 * 100.0))) + " using color temperature " + str(int(floor(1000000.0 / temperature))) + " K at ramp rate " + str(rampRate / 10.0) + " sec.")
-		else:
-			self.updateDeviceState(device, 'brightnessLevel', 0)
-			# Log the change.
-			indigo.server.log(u"\"" + device.name + "\" off at ramp rate " + str(rampRate / 10.0) + " sec.")
-		# Update the other device states as well.
-		self.updateDeviceState(device, 'colorMode', "ct")
-		self.updateDeviceState(device, 'ct', temperature)
-		
-	# Set Hue, Saturation and Brightness
-	########################################
-	def setHSB(self, device, hue, saturation, brightness, rampRate=-1):
-		# If a rampRate wasn't specified (default of -1 assigned), use the default.
-		#   (rampRate should be an integer expressing 10th of seconds, so
-		#   5 = 0.5 seconds, 100 = 10 seconds, etc).
-		if rampRate == -1:
-			try:
-				# For user-friendliness, the rampRate provided in the device
-				#   properties (as entered by the user) is expressed in fractions
-				#   of a second (0.5 = 0.5 seconds, 10 = 10 seconds, etc), so
-				#   it must be converted to 10th seconds here.
-				rampRate = int(round(float(device.pluginProps.get('rate', 0.5)) * 10))
-			except Exception, e:
-				self.errorLog(u"Default ramp rate could not be obtained: " + str(e))
-				rampRate = 5
-		else:
-			rampRate = int(round(float(rampRate) * 10))
-		
-		# Sanity check for an IP address
-		self.ipAddress = self.pluginPrefs.get('address', None)
-		if self.ipAddress is None:
-			self.errorLog(u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com")
-			return
-		
-		# Sanity check on bulb ID
-		bulbId = device.pluginProps.get('bulbId', None)
-		if bulbId is None or bulbId == 0:
-			self.errorLog(u"No bulb ID selected for device \"%s\". Check settings for this bulb and select a Hue bulb to control." % (device.name))
-			return
-		
-		# Submit to Hue
-		requestData = json.dumps({"bri":brightness, "hue": hue, "sat": saturation, "on":True, "transitiontime": rampRate})
-		self.debugLog(u"Request is %s" % requestData)
-		r = requests.put("http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId), data=requestData)
-		self.debugLog("Got response - %s" % r.content)
-		
-		# Update on Indigo
-		# Log the change.
-		if int(ceil(brightness/255.0*100.0)) > 0:
-			# Change the Indigo device.
+		# If requested brightness is greater than 0, proceed. Otherwise, turn off the bulb.
+		if brightness > 0:
+			requestData = json.dumps({"bri": int(brightness), "on": True, "transitiontime": rampRate})
+			command = "http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId)
+			self.debugLog("Sending URL request: " + command)
+			r = requests.put(command, data=requestData)
+			self.debugLog("Got response - %s" % r.content)
+			# Update the device brightness (which automatically changes on state).
 			self.updateDeviceState(device, 'brightnessLevel', int(round(brightness/255.0*100.0)))
 			# Log the change.
-			indigo.server.log(u"\"" + device.name + u"\" on to " + str(int(round(brightness / 255.0 * 100.0))) + u" with hue " + str(int(round(hue / 182.0))) + u"° saturation " + str(int(saturation / 255.0 * 100.0)) + u"% at ramp rate " + str(rampRate / 10.0) + u" sec.")
+			if showLog:
+				indigo.server.log(message = u"\"" + device.name + "\" on to " + str(int(round(brightness/255.0*100.0))) + " at ramp rate " + str(rampRate / 10.0) + " sec.")
 		else:
-			# Change the Indigo device.
+			requestData = json.dumps({"on": False, "transitiontime": rampRate})
+			command = "http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId)
+			self.debugLog("Sending URL request: " + command)
+			r = requests.put(command, data=requestData)
+			self.debugLog("Got response - %s" % r.content)
+			# Update the device brightness (which automatically changes on state).
 			self.updateDeviceState(device, 'brightnessLevel', 0)
 			# Log the change.
-			indigo.server.log(u"\"" + device.name + "\" off at ramp rate " + str(rampRate / 10.0) + " sec.")
-		# Update the other device states.
-		self.updateDeviceState(device, 'colorMode', "hs")
-		self.updateDeviceState(device, 'hue', hue)
-		self.updateDeviceState(device, 'sat', saturation)
-		
+			if showLog:
+				indigo.server.log(u"\"" + device.name + "\" off at ramp rate " + str(rampRate / 10.0) + " sec.")
+	
 	# Set RGB Levels
 	########################################
-	def setRGB(self, device, red, green, blue, rampRate=-1):
+	def doRGB(self, device, red, green, blue, rampRate=-1):
 		# If a rampRate wasn't specified (default of -1 assigned), use the default.
 		#   (rampRate should be an integer expressing 10th of seconds, so
 		#   5 = 0.5 seconds, 100 = 10 seconds, etc).
@@ -955,6 +956,8 @@ class Plugin(indigo.PluginBase):
 		
 		# Update on Indigo
 		if brightness > 0:
+			# Convert brightness to a percentage.
+			brightness = int(round(brightness / 255.0 * 100.0))
 			self.updateDeviceState(device, 'brightnessLevel', brightness)
 			# Log the change.
 			indigo.server.log(u"\"" + device.name + "\" on to " + str(brightness) + " with RGB values " + str(red) + ", " + str(green) + " and " + str(blue) + " at ramp rate " + str(rampRate / 10.0) + " sec.")
@@ -966,14 +969,122 @@ class Plugin(indigo.PluginBase):
 		self.updateDeviceState(device, 'colorMode', "xy")
 		self.updateDeviceState(device, 'colorX', round(xyy.xyy_x, 4))
 		self.updateDeviceState(device, 'colorY', round(xyy.xyy_y, 4))
-		self.updateDeviceState(device, 'colorRed', red)
-		self.updateDeviceState(device, 'colorGreen', green)
-		self.updateDeviceState(device, 'colorBlue', blue)
+		# We don't set the colorRed, colorGreen, and colorBlue states
+		#   because the Hue bulb is not capable of the full RGB color
+		#   gamut and when the Hue hub updates the xy values to reflect
+		#   actual displayed light, the interpreted RGB values will not
+		#   match the values entered by the user in the Action dialog.
 		
+	# Set Hue, Saturation and Brightness
+	########################################
+	def doHSB(self, device, hue, saturation, brightness, rampRate=-1):
+		# If a rampRate wasn't specified (default of -1 assigned), use the default.
+		#   (rampRate should be an integer expressing 10th of seconds, so
+		#   5 = 0.5 seconds, 100 = 10 seconds, etc).
+		if rampRate == -1:
+			try:
+				# For user-friendliness, the rampRate provided in the device
+				#   properties (as entered by the user) is expressed in fractions
+				#   of a second (0.5 = 0.5 seconds, 10 = 10 seconds, etc), so
+				#   it must be converted to 10th seconds here.
+				rampRate = int(round(float(device.pluginProps.get('rate', 0.5)) * 10))
+			except Exception, e:
+				self.errorLog(u"Default ramp rate could not be obtained: " + str(e))
+				rampRate = 5
+		else:
+			rampRate = int(round(float(rampRate) * 10))
 		
+		# Sanity check for an IP address
+		self.ipAddress = self.pluginPrefs.get('address', None)
+		if self.ipAddress is None:
+			self.errorLog(u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com")
+			return
+		
+		# Sanity check on bulb ID
+		bulbId = device.pluginProps.get('bulbId', None)
+		if bulbId is None or bulbId == 0:
+			self.errorLog(u"No bulb ID selected for device \"%s\". Check settings for this bulb and select a Hue bulb to control." % (device.name))
+			return
+		
+		# Submit to Hue
+		requestData = json.dumps({"bri":brightness, "hue": hue, "sat": saturation, "on":True, "transitiontime": rampRate})
+		self.debugLog(u"Request is %s" % requestData)
+		r = requests.put("http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId), data=requestData)
+		self.debugLog("Got response - %s" % r.content)
+		
+		# Update on Indigo
+		# Log the change.
+		if int(ceil(brightness/255.0*100.0)) > 0:
+			# Change the Indigo device.
+			self.updateDeviceState(device, 'brightnessLevel', int(round(brightness/255.0*100.0)))
+			# Log the change.
+			indigo.server.log(u"\"" + device.name + u"\" on to " + str(int(round(brightness / 255.0 * 100.0))) + u" with hue " + str(int(round(hue / 182.0))) + u"° saturation " + str(int(saturation / 255.0 * 100.0)) + u"% at ramp rate " + str(rampRate / 10.0) + u" sec.")
+		else:
+			# Change the Indigo device.
+			self.updateDeviceState(device, 'brightnessLevel', 0)
+			# Log the change.
+			indigo.server.log(u"\"" + device.name + "\" off at ramp rate " + str(rampRate / 10.0) + " sec.")
+		# Update the other device states.
+		self.updateDeviceState(device, 'colorMode', "hs")
+		self.updateDeviceState(device, 'hue', hue)
+		self.updateDeviceState(device, 'saturation', saturation)
+		
+	# Set Color Temperature
+	########################################
+	def doColorTemperature(self, device, temperature, brightness, rampRate=-1):
+		# If a rampRate wasn't specified (default of -1 assigned), use the default.
+		#   (rampRate should be an integer expressing 10th of seconds, so
+		#   5 = 0.5 seconds, 100 = 10 seconds, etc).
+		if rampRate == -1:
+			try:
+				# For user-friendliness, the rampRate provided in the device
+				#   properties (as entered by the user) is expressed in fractions
+				#   of a second (0.5 = 0.5 seconds, 10 = 10 seconds, etc), so
+				#   it must be converted to 10th seconds here.
+				rampRate = int(round(float(device.pluginProps.get('rate', 0.5)) * 10))
+			except Exception, e:
+				self.errorLog(u"Default ramp rate could not be obtained: " + str(e))
+				rampRate = 5
+		else:
+			rampRate = int(round(float(rampRate) * 10))
+		
+		# Convert temperature from K to mireds.
+		temperature = int(floor(1000000.0 / temperature))
+		
+		# Sanity check for an IP address
+		self.ipAddress = self.pluginPrefs.get('address', None)
+		if self.ipAddress is None:
+			self.errorLog(u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com")
+			return
+		
+		# Sanity check on bulb ID
+		bulbId = device.pluginProps.get('bulbId', None)
+		if bulbId is None or bulbId == 0:
+			self.errorLog(u"No bulb ID selected for device \"%s\". Check settings for this bulb and select a Hue bulb to control." % (device.name))
+			return
+		
+		# Submit to Hue
+		requestData = json.dumps({"bri":brightness, "ct": temperature, "on":True, "transitiontime": int(rampRate)})
+		self.debugLog(u"Request is %s" % requestData)
+		r = requests.put("http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId), data=requestData)
+		self.debugLog("Got response - %s" % r.content)
+		
+		# Update on Indigo
+		if int(ceil(brightness/255.0*100.0)) > 0:
+			self.updateDeviceState(device, 'brightnessLevel', int(round(brightness / 255.0 * 100.0)))
+			# Log the change.
+			indigo.server.log(u"\"" + device.name + "\" on to " + str(int(round(brightness / 255.0 * 100.0))) + " using color temperature " + str(int(floor(1000000.0 / temperature))) + " K at ramp rate " + str(rampRate / 10.0) + " sec.")
+		else:
+			self.updateDeviceState(device, 'brightnessLevel', 0)
+			# Log the change.
+			indigo.server.log(u"\"" + device.name + "\" off at ramp rate " + str(rampRate / 10.0) + " sec.")
+		# Update the other device states as well.
+		self.updateDeviceState(device, 'colorMode', "ct")
+		self.updateDeviceState(device, 'colorTemp', temperature)
+	
 	# Start Alert (Blinking)
 	########################################
-	def setAlert(self, device, alertType="lselect"):
+	def doAlert(self, device, alertType="lselect"):
 		
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
@@ -1002,9 +1113,9 @@ class Plugin(indigo.PluginBase):
 			indigo.server.log(u"\"" + device.name + "\" stop alert blink.")
 			
 	# Set Effect Status
-	# (This is experimental right now).
+	#   (not currently being used)
 	########################################
-	def setEffect(self, device, effect):
+	def doEffect(self, device, effect):
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
 		if self.ipAddress is None:
@@ -1033,7 +1144,6 @@ class Plugin(indigo.PluginBase):
 	# Update Lights List
 	########################################
 	def updateLightsList(self):
-		
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
 		if self.ipAddress is None:
@@ -1085,16 +1195,15 @@ class Plugin(indigo.PluginBase):
 			
 		except Exception, e:
 			self.errorLog(u"Unable to obtain list of Hue lights from hub. " + str(e))
-			
-			
+	
+	
 	########################################
-	# Registration Methods
+	# Hue Hub Registration Methods
 	########################################
 
 	# Update Registration State
 	########################################
 	def updateRegistrationState(self):
-		
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get("address", None)
 		if self.ipAddress is None:
@@ -1165,9 +1274,10 @@ class Plugin(indigo.PluginBase):
 		self.debugLog(u"Return bulb list is %s" % returnBulbList)
 		
 		return returnBulbList
-		
+	
+	
 	########################################
-	# Indigo UI Controls
+	# Indigo UI Control Methods
 	########################################
 	
 	# Dimmer/Relay Control Actions
@@ -1194,7 +1304,7 @@ class Plugin(indigo.PluginBase):
 			except Exception, e:
 				self.debugLog("device on: (Unable to display action data due to error: " + str(e) + ")")
 			# Turn it on by setting the brightness to maximum.
-			self.setBrightness(device, 255)
+			self.doBrightness(device, 255)
 			
 		##### TURN OFF #####
 		elif command == indigo.kDeviceAction.TurnOff:
@@ -1203,7 +1313,7 @@ class Plugin(indigo.PluginBase):
 			except Exception, e:
 				self.debugLog("device off: (Unable to display action data due to error: " + str(e) + ")")
 			# Turn it off by setting the brightness to minimum.
-			self.setBrightness(device, 0)
+			self.doBrightness(device, 0)
 
 		##### TOGGLE #####
 		elif command == indigo.kDeviceAction.Toggle:
@@ -1213,13 +1323,13 @@ class Plugin(indigo.PluginBase):
 				self.debugLog("device toggle: (Unable to display action due to error: " + str(e) + ")")
 			if currentOnState == True:
 				# It's on. Turn it off by setting the brightness to minimum.
-				self.setBrightness(device, 0)
+				self.doBrightness(device, 0)
 			else:
 				# It's off. Turn it on by setting the brightness to maximum.
-				self.setBrightness(device, 255)
+				self.doBrightness(device, 255)
 		
 		##### SET BRIGHTNESS #####
-		elif command == indigo.kDeviceAction.SetBrightness:
+		elif command == indigo.kDeviceAction.doBrightness:
 			try:
 				self.debugLog("device set brightness:\n%s" % action)
 			except Exception, e:
@@ -1230,7 +1340,7 @@ class Plugin(indigo.PluginBase):
 			tempProps['savedBrightness'] = brightnessLevel
 			self.updateDeviceProps(device, tempProps)
 			# Set the new brightness level on the bulb.
-			self.setBrightness(device, brightnessLevel)
+			self.doBrightness(device, brightnessLevel)
 
 		##### BRIGHTEN BY #####
 		elif command == indigo.kDeviceAction.BrightenBy:
@@ -1246,7 +1356,7 @@ class Plugin(indigo.PluginBase):
 			tempProps['savedBrightness'] = int(floor(brightnessLevel / 100.0 * 255.0))
 			self.updateDeviceProps(device, tempProps)
 			# Set the new brightness level on the bulb.
-			self.setBrightness(device, int(floor(brightnessLevel / 100.0 * 255.0)))
+			self.doBrightness(device, int(floor(brightnessLevel / 100.0 * 255.0)))
 			
 		##### DIM BY #####
 		elif command == indigo.kDeviceAction.DimBy:
@@ -1262,7 +1372,7 @@ class Plugin(indigo.PluginBase):
 			tempProps['savedBrightness'] = int(floor(brightnessLevel / 100.0 * 255.0))
 			self.updateDeviceProps(device, tempProps)
 			# Set the new brightness level on the bulb.
-			self.setBrightness(device, int(floor(brightnessLevel / 100.0 * 255.0)))
+			self.doBrightness(device, int(floor(brightnessLevel / 100.0 * 255.0)))
 			
 		##### REQUEST STATUS #####
 		elif command == indigo.kDeviceAction.RequestStatus:
@@ -1278,9 +1388,10 @@ class Plugin(indigo.PluginBase):
 		else:
 			indigo.server.log(u"Unhandled Hue bulb command \"%s\"" % (command))
 		pass
-		
+	
+	
 	########################################
-	# Custom Plugin Action callbacks (defined in Actions.xml)
+	# Action Handling Methods
 	########################################
 	
 	# Start/Stop Brightening
@@ -1343,11 +1454,152 @@ class Plugin(indigo.PluginBase):
 					indigo.server.log(u"\"" + device.name + "\" start dimming")
 
 		return
-
+	
+	# Set Brightness
+	########################################
+	def setBrightness(self, action, device):
+		self.debugLog(u"setBrightness: device: " + device.name + ", action:\n" + str(action))
+		
+		brightnessSource = action.props.get('brightnessSource', False)
+		brightness = action.props.get('brightness', False)
+		brightnessVarId = action.props.get('brightnessVariable', False)
+		brightnessDevId = action.props.get('brightnessDevice', False)
+		useRateVariable = action.props.get('useRateVariable', False)
+		rate = action.props.get('rate', False)
+		rateVarId = action.props.get('rateVariable', False)
+		delay = action.props.get('delay', False)
+		retries = action.props.get('retries', False)
+		
+		# Validate the action properties.
+		if not brightnessSource:
+			# The dimmer level source wasn't specified. Try to figure out
+			#   the intended source based on passed data in the action call.
+			if brightness.__class__ != bool:
+				brightnessSource = "custom"
+			elif brightnessVarId:
+				brightnessSource = "variable"
+			elif brightnessDevId:
+				brightnessSource = "dimmer"
+			else:
+				self.errorLog(u"No brightness source information was provided.")
+				return None
+		
+		if brightnessSource == "custom":
+			if brightness == False and brightness.__class__ != int:
+				self.errorLog(u"No brightness level was specified.")
+				return None
+			else:
+				try:
+					brightness = int(brightness)
+					if brightness < 0 or brightness > 100:
+						self.errorLog(u"Brightness level " + str(brightness) + " is outside the acceptable range of 0 to 100.")
+						return None
+				except ValueError:
+					self.errorLog(u"Brightness level \"" + str(brightness) + "\" is invalid. Brightness values can only contain numbers.")
+					return None
+			self.debugLog("Brightness (source: custom): " + str(brightness) + ", class: " + str(brightness.__class__))
+		
+		elif brightnessSource == "variable":
+			if not brightnessVarId:
+				self.errorLog(u"No variable containing the brightness level was specified.")
+				return None
+			else:
+				try:
+					brightnessVar = indigo.variables[int(brightnessVarId)]
+					# Embedding float method inside int method allows for fractional
+					#   data but just drops everything after the decimal.
+					brightness = int(float(brightnessVar.value))
+					if brightness < 0 or brightness > 100:
+						self.errorLog(u"Brightness level " + str(brightness) + " found in variable \"" + brightnessVar.name + "\" is outside the acceptable range of 0 to 100.")
+						return None
+				except ValueError:
+					self.errorLog(u"Brightness level \"" + str(brightnessVar.value) + "\" found in variable \"" + brightnessVar.name + "\" is invalid. Brightness values can only contain numbers.")
+					return None
+				except IndexError:
+					self.errorLog(u"The specified variable (ID " + str(brightnessVarId) + ") does not exist in the Indigo database.")
+					return None
+			self.debugLog("Brightness (source: variable): " + str(brightness) + ", class: " + str(brightness.__class__))
+		
+		elif brightnessSource == "dimmer":
+			if not brightnessDevId:
+				self.errorLog(u"No dimmer was specified as the brightness level source.")
+				return None
+			else:
+				# See if the submitted value is a device ID or a device name.
+				try:
+					brightnessDevId = int(brightnessDevId)
+					# Value is a device ID number.
+				except ValueError:
+					try:
+						brightnessDevId = indigo.devices[brightnessDevId].name
+						# Value is a device name.
+					except KeyError:
+						self.errorLog(u"No device with the name \"" + str(brightnessDevId) + "\" could be found in the Indigo database.")
+						return None
+				try:
+					brightnessDev = indigo.devices[brightnessDevId]
+					brightness = int(brightnessDev.states.get('brightnessLevel', None))
+					if brightness == None:
+						# Looks like this isn't a dimmer after all.
+						self.errorLog(u"Device \"" + brightnessDev.name + "\" does not appear to be a dimmer. Only dimmers can be used as brightness sources.")
+						return None
+					elif brightness < 0 or brightness > 100:
+						self.errorLog(u"Brightness level " + str(brightness) + " of device \"" + brightnessDev.name + "\" is outside the acceptable range of 0 to 100.")
+						return None
+				except ValueError:
+					self.errorLog(u"The device \"" + brightnessDev.name + "\" does not have a brightness level. Please ensure that the device is a dimmer.")
+					return None
+				except KeyError:
+					self.errorLog(u"The specified device (ID " + str(brightnessDevId) + ") does not exist in the Indigo database.")
+					return None
+			self.debugLog("Brightness (source: other dimmer): " + str(brightness) + ", class: " + str(brightness.__class__))
+		
+		else:
+			self.errorLog(u"Unrecognized brightness source \"" + str(brightnessSource) + u"\". Valid brightness sources are \"custom\", \"variable\", and \"dimmer\".")
+			return None
+		
+		if not useRateVariable:
+			if not rate and rate.__class__ == bool:
+				self.errorLog(u"No ramp rate was specified.")
+				return None
+			else:
+				try:
+					rate = float(rate)
+					if rate < 0 or rate > 540:
+						self.errorLog(u"Ramp rate value " + str(rate) + " is outside the acceptible range of 0 to 540.")
+						return None
+				except ValueError:
+					self.errorLog(u"Ramp rate value \"" + str(rate) + " is an invalid value. Ramp rate values can only contain numbers.")
+					return None
+			self.debugLog("Rate: " + str(rate))
+		
+		else:
+			if not rateVarId:
+				self.errorLog(u"No variable containing the ramp rate time was specified.")
+				return None
+			else:
+				try:
+					# Make sure rate is set to ""
+					rate = ""
+					rateVar = indigo.variables[int(rateVarId)]
+					rate = float(rateVar.value)
+					if rate < 0 or rate > 540:
+						self.errorLog(u"Ramp rate value \"" + str(rate) + "\" found in variable \"" + rateVar.name + "\" is outside the acceptible range of 0 to 540.")
+						return None
+				except ValueError:
+					self.errorLog(u"Ramp rate value \"" + str(rate) + "\" found in variable \"" + rateVar.name + "\" is an invalid value. Ramp rate values can only contain numbers.")
+					return None
+				except IndexError:
+					self.errorLog(u"The specified variable (ID " + str(brightnessVarId) + ") does not exist in the Indigo database.")
+			self.debugLog("Rate: " + str(rate))
+		
+		# Send the command.
+		self.doBrightness(device, int(round(brightness / 100.0 * 255.0)), rate)
+		
 	# Set RGB Level Action
 	########################################
-	def setRGBAction(self, action, device):
-		self.debugLog(u"setRGBAction: device: " + device.name + ", action:\n" + str(action))
+	def setRGB(self, action, device):
+		self.debugLog(u"setRGB: device: " + device.name + ", action:\n" + str(action))
 		try:
 			red = int(action.props.get('red', 0))
 		except ValueError:
@@ -1376,12 +1628,12 @@ class Plugin(indigo.PluginBase):
 			self.errorLog(u"Ramp Rate value specified for \"" + device.name +u"\" is invalid.")
 			return
 			
-		self.setRGB(device, red, green, blue, rampRate)
+		self.doRGB(device, red, green, blue, rampRate)
 		
 	# Set HSB Action
 	########################################
-	def setHSBAction(self, action, device):
-		self.debugLog(u"setHSBAction: device: " + device.name + ", action:\n" + str(action))
+	def setHSB(self, action, device):
+		self.debugLog(u"setHSB: device: " + device.name + ", action:\n" + str(action))
 		try:
 			hue = float(action.props.get('hue', 0))
 		except ValueError:
@@ -1418,12 +1670,12 @@ class Plugin(indigo.PluginBase):
 		saturation = int(floor((float(saturation)/100.0) * 255.0))
 		hue = int(floor(hue*182.0))
 		
-		self.setHSB(device, hue, saturation, brightness, rampRate)
+		self.doHSB(device, hue, saturation, brightness, rampRate)
 		
 	# Set Color Temperature Action
 	########################################
-	def setCTAction(self, action, device):
-		self.debugLog(u"setCTAction: device: " + device.name + ", action:\n" + str(action))
+	def setColorTemperature(self, action, device):
+		self.debugLog(u"setColorTemperature: device: " + device.name + ", action:\n" + str(action))
 		preset = action.props.get('preset', "relax")
 		try:
 			temperature = int(action.props.get('temperature', 2800))
@@ -1467,25 +1719,25 @@ class Plugin(indigo.PluginBase):
 			brightness = 240
 			temperature = 2890
 			
-		self.setTemperature(device, temperature, brightness, rampRate)
+		self.doColorTemperature(device, temperature, brightness, rampRate)
 		
 	# Set Single Alert Action
 	########################################
 	def alertOnce(self, action, device):
 		self.debugLog(u"alertOnce: device: " + device.name + ", action:\n" + str(action))
-		self.setAlert(device, "select")
+		self.doAlert(device, "select")
 		
 	# Set Long Alert Action
 	########################################
 	def longAlert(self, action, device):
 		self.debugLog(u"longAlert: device: " + device.name + ", action:\n" + str(action))
-		self.setAlert(device, "lselect")
+		self.doAlert(device, "lselect")
 		
 	# Stop Alert Action
 	########################################
 	def stopAlert(self, action, device):
 		self.debugLog(u"stopAlert: device: " + device.name + ", action:\n" + str(action))
-		self.setAlert(device, "none")
+		self.doAlert(device, "none")
 	
 	# Set Effect (Test) Action
 	########################################
@@ -1495,5 +1747,5 @@ class Plugin(indigo.PluginBase):
 			self.errorLog(u"No effect text provided to try.")
 			return
 			
-		self.setEffect(device, effect)
+		self.doEffect(device, effect)
 		
