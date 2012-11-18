@@ -8,6 +8,7 @@
 		<Name>Start/Stop Dimming</Name>
 		<CallbackMethod>startStopDimming</CallbackMethod>
 	</Action>
+	<Action id="sep1" uiPath="DeviceActions" />
 	<Action id="setBrightness" deviceFilter="self" uiPath="DeviceActions">
 		<Name>Set Brightness with Ramp Rate</Name>
 		<CallbackMethod>setBrightness</CallbackMethod>
@@ -213,6 +214,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</Field>
 		</ConfigUI>
 	</Action>
+	<Action id="sep2" uiPath="DeviceActions" />
 	<Action id="alertOnce" deviceFilter="self" uiPath="DeviceActions">
 		<Name>Short Alert</Name>
 		<CallbackMethod>alertOnce</CallbackMethod>
