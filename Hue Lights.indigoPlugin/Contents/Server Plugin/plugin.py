@@ -57,6 +57,9 @@ from colormath.color_objects import RGBColor, xyYColor, XYZColor
 import simplejson as json
 from math import ceil, floor
 
+# Default timeout
+kTimeout = 4		# seconds
+
 
 ################################################################################
 class Plugin(indigo.PluginBase):
@@ -687,7 +690,12 @@ class Plugin(indigo.PluginBase):
 		if bulbId:
 			command = "http://%s/api/%s/lights/%s" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId)
 			### self.debugLog(u"Sending URL request: " + command)
-			r = requests.get(command)
+			try:
+				r = requests.get(command, timeout=kTimeout)
+			except requests.exceptions.Timeout, e:
+				ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+				return
+				
 			### self.debugLog(u"Data from hub: " + r.content)
 			# Convert the response to a Python object.
 			try:
@@ -746,7 +754,12 @@ class Plugin(indigo.PluginBase):
 				self.updateDeviceState(device, 'colorGreen', 0)
 				self.updateDeviceState(device, 'colorBlue', 0)
 				#   Color Temperature (convert from 154-500 mireds to 6494-2000 K).
-				self.updateDeviceState(device, 'colorTemp', int(floor(1000000.0/bulb['state']['ct'])))
+				if bulb['state']['ct'] > 0:
+					# This is to prevent divide by zero errors if the data returned is incomplete.
+					self.updateDeviceState(device, 'colorTemp', int(floor(1000000.0/bulb['state']['ct'])))
+				else:
+					# Set the state to 0 if the value returned is 0.
+					self.updateDeviceState(device, 'colorTemp', 0)
 				#   Alert Status.
 				self.updateDeviceState(device, 'alertMode', bulb['state']['alert'])
 				#   Effect Status.
@@ -813,7 +826,11 @@ class Plugin(indigo.PluginBase):
 				requestData = json.dumps({"on": onState, "transitiontime": rampRate})
 				command = "http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId)
 				self.debugLog("Sending URL request: " + command)
-				r = requests.put(command, data=requestData)
+				try:
+					r = requests.put(command, data=requestData, timeout=kTimeout)
+				except requests.exceptions.Timeout, e:
+					ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+					return
 				self.debugLog("Got response - %s" % r.content)
 				# Update the Indigo device.
 				self.updateDeviceState(device, 'brightnessLevel', int(round(savedBrightness/255.0*100.0)))
@@ -826,7 +843,11 @@ class Plugin(indigo.PluginBase):
 				requestData = json.dumps({"on": onState, "bri": 255, "transitiontime": rampRate})
 				command = "http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId)
 				self.debugLog("Sending URL request: " + command)
-				r = requests.put(command, data=requestData)
+				try:
+					r = requests.put(command, data=requestData, timeout=kTimeout)
+				except requests.exceptions.Timeout, e:
+					ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+					return
 				self.debugLog("Got response - %s" % r.content)
 				# Update the Indigo device.
 				self.updateDeviceState(device, 'brightnessLevel', 100)
@@ -838,7 +859,11 @@ class Plugin(indigo.PluginBase):
 			requestData = json.dumps({"on": onState, "transitiontime": rampRate})
 			command = "http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId)
 			self.debugLog("Sending URL request: " + command)
-			r = requests.put(command, data=requestData)
+			try:
+				r = requests.put(command, data=requestData, timeout=kTimeout)
+			except requests.exceptions.Timeout, e:
+				ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+				return
 			self.debugLog("Got response - %s" % r.content)
 			# Update the Indigo device.
 			self.updateDeviceState(device, 'brightnessLevel', 0)
@@ -883,7 +908,11 @@ class Plugin(indigo.PluginBase):
 			requestData = json.dumps({"bri": int(brightness), "on": True, "transitiontime": rampRate})
 			command = "http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId)
 			self.debugLog("Sending URL request: " + command)
-			r = requests.put(command, data=requestData)
+			try:
+				r = requests.put(command, data=requestData, timeout=kTimeout)
+			except requests.exceptions.Timeout, e:
+				ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+				return
 			self.debugLog("Got response - %s" % r.content)
 			# Update the device brightness (which automatically changes on state).
 			self.updateDeviceState(device, 'brightnessLevel', int(round(brightness/255.0*100.0)))
@@ -894,7 +923,11 @@ class Plugin(indigo.PluginBase):
 			requestData = json.dumps({"on": False, "transitiontime": rampRate})
 			command = "http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId)
 			self.debugLog("Sending URL request: " + command)
-			r = requests.put(command, data=requestData)
+			try:
+				r = requests.put(command, data=requestData, timeout=kTimeout)
+			except requests.exceptions.Timeout, e:
+				ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+				return
 			self.debugLog("Got response - %s" % r.content)
 			# Update the device brightness (which automatically changes on state).
 			self.updateDeviceState(device, 'brightnessLevel', 0)
@@ -955,7 +988,11 @@ class Plugin(indigo.PluginBase):
 		requestData = json.dumps({"bri": brightness, "xy": [xyy.xyy_x, xyy.xyy_y], "transitiontime": int(rampRate), "on": True})
 		command = "http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId)
 		self.debugLog(u"Data: " + str(requestData) + ", URL: " + command)
-		r = requests.put(command, data=requestData)
+		try:
+			r = requests.put(command, data=requestData, timeout=kTimeout)
+		except requests.exceptions.Timeout, e:
+			ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+			return
 		self.debugLog("Got response - %s" % r.content)
 		
 		# Update on Indigo
@@ -1012,8 +1049,13 @@ class Plugin(indigo.PluginBase):
 		
 		# Submit to Hue
 		requestData = json.dumps({"bri":brightness, "hue": hue, "sat": saturation, "on":True, "transitiontime": rampRate})
+		command = "http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId)
 		self.debugLog(u"Request is %s" % requestData)
-		r = requests.put("http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId), data=requestData)
+		try:
+			r = requests.put(command, data=requestData, timeout=kTimeout)
+		except requests.exceptions.Timeout, e:
+			ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+			return
 		self.debugLog("Got response - %s" % r.content)
 		
 		# Update on Indigo
@@ -1069,8 +1111,13 @@ class Plugin(indigo.PluginBase):
 		
 		# Submit to Hue
 		requestData = json.dumps({"bri":brightness, "ct": temperature, "on":True, "transitiontime": int(rampRate)})
+		command = "http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId)
 		self.debugLog(u"Request is %s" % requestData)
-		r = requests.put("http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId), data=requestData)
+		try:
+			r = requests.put(command, data=requestData, timeout=kTimeout)
+		except requests.exceptions.Timeout, e:
+			ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+			return
 		self.debugLog("Got response - %s" % r.content)
 		
 		# Update on Indigo
@@ -1102,8 +1149,13 @@ class Plugin(indigo.PluginBase):
 			self.errorLog(u"No bulb ID selected for device \"%s\". Check settings for this bulb and select a Hue bulb to control." % (device.name))
 			return
 		
+		command = "http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId)
 		requestData = json.dumps({"alert": alertType})
-		r = requests.put("http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId), data=requestData)
+		try:
+			r = requests.put(command, data=requestData, timeout=kTimeout)
+		except requests.exceptions.Timeout, e:
+			ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+			return
 		self.debugLog("Got response - %s" % r.content)
 		
 		# Update the device state.
@@ -1137,7 +1189,11 @@ class Plugin(indigo.PluginBase):
 		indigo.server.log(u"Request is %s" % requestData)
 		command = "http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId)
 		indigo.server.log(u"URL: " + command)
-		r = requests.put(command, data=requestData)
+		try:
+			r = requests.put(command, data=requestData, timeout=kTimeout)
+		except requests.exceptions.Timeout, e:
+			ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+			return
 		indigo.server.log(u"Got response - %s" % r.content)
 		
 		# Update the device state.
@@ -1155,11 +1211,12 @@ class Plugin(indigo.PluginBase):
 			return
 		
 		# Force a timeout
-		socket.setdefaulttimeout(3)
+		socket.setdefaulttimeout(kTimeout)
 		
 		try:
 			# Parse the response
-			r = requests.get("http://%s/api/%s/lights" % (self.ipAddress, self.pluginPrefs.get('hostId', "ERROR")), timeout=3)
+			command = "http://%s/api/%s/lights" % (self.ipAddress, self.pluginPrefs.get('hostId', "ERROR"))
+			r = requests.get(command, timeout=kTimeout, timeout=kTimeout)
 			lightsListResponseData = json.loads(r.content)
 			self.debugLog(u"Got response %s" % lightsListResponseData)
 			
@@ -1195,7 +1252,7 @@ class Plugin(indigo.PluginBase):
 				indigo.server.log(u"Unexpected response from Hue (%s) when loading available bulbs!" % (lightsListResponseData))
 			
 		except requests.exceptions.Timeout, e:
-			self.errorLog(u"Timeout loading light list from hue at %s - check settings and retry" % self.ipAddress)
+			self.errorLog(u"Failed to load light list from the Hue hub at %s after %i seconds - check settings and retry." % (self.ipAddress, kTimeout))
 			
 		except Exception, e:
 			self.errorLog(u"Unable to obtain list of Hue lights from hub. " + str(e))
@@ -1215,14 +1272,15 @@ class Plugin(indigo.PluginBase):
 			pass
 		
 		# Configure timeout
-		socket.setdefaulttimeout(5)
+		socket.setdefaulttimeout(kTimeout)
 		
 		# Request login state
 		try:
 			indigo.server.log(u"Checking with the Hue hub at %s for pairing state..." % (self.ipAddress))
 			requestData = json.dumps({"username": self.pluginPrefs.get('hostId', None), "devicetype": "Indigo Hue Plugin"})
 			self.debugLog(u"Request is %s" % requestData)
-			r = requests.post("http://%s/api" % self.ipAddress, data=requestData, timeout=3)
+			command = "http://%s/api" % (self.ipAddress)
+			r = requests.post(command, data=requestData, timeout=kTimeout)
 			responseData = json.loads(r.content)
 			self.debugLog(u"Got response %s" % responseData)
 
@@ -1255,7 +1313,7 @@ class Plugin(indigo.PluginBase):
 				self.errorLog(u"Invalid response from Hue. Check the IP address and try again.")
 				
 		except requests.exceptions.Timeout:
-			self.errorLog(u"Timeout connecting to Hue hub at %s - check the IP address and try again." % self.ipAddress)
+			self.errorLog(u"Failed to connect to Hue hub at %s after %i seconds - check the IP address and try again." % (self.ipAddress, kTimeout))
 			
 	# Restart Pairing with Hue Hub
 	########################################
@@ -1333,7 +1391,7 @@ class Plugin(indigo.PluginBase):
 				self.doBrightness(device, 255)
 		
 		##### SET BRIGHTNESS #####
-		elif command == indigo.kDeviceAction.setBrightness:
+		elif command == indigo.kDeviceAction.SetBrightness:
 			try:
 				self.debugLog("device set brightness:\n%s" % action)
 			except Exception, e:
