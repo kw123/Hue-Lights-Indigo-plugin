@@ -14,9 +14,13 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 0.9.1
+#	Version 0.9.2
 #
-#	History:	0.9.1 (16-Nov-2012)
+#	History:	0.9.2 (17-Nov-2012)
+#				* Corrected error in actionControlDimmerRelay that prevented
+#				  setBrightness call from working.
+#				--
+#				0.9.1 (16-Nov-2012)
 #				* Tweaked brightening and dimming timing for Start Brightening
 #				  and Start Dimming actions so the rate was about the same speed
 #				  as SmartLabs SwithcLinc Dimmers and LampLinc Dimmers.
@@ -1329,7 +1333,7 @@ class Plugin(indigo.PluginBase):
 				self.doBrightness(device, 255)
 		
 		##### SET BRIGHTNESS #####
-		elif command == indigo.kDeviceAction.doBrightness:
+		elif command == indigo.kDeviceAction.setBrightness:
 			try:
 				self.debugLog("device set brightness:\n%s" % action)
 			except Exception, e:
