@@ -14,9 +14,15 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 0.9.2
+#	Version 0.9.3
 #
-#	History:	0.9.2 (17-Nov-2012)
+#	History:	0,9.3 (18-Nov-2012)
+#				* Fixed typo (bug) that caused the plugin to crash when the
+#				  Hue hub was unreachable within the timeout period.
+#				* Worked around a colormath bug that would throw a
+#				  ZeroDivisionError if the "y" component was zero.
+#				--
+#				0.9.2 (17-Nov-2012)
 #				* Corrected error in actionControlDimmerRelay that prevented
 #				  setBrightness call from working.
 #				--
@@ -693,7 +699,7 @@ class Plugin(indigo.PluginBase):
 			try:
 				r = requests.get(command, timeout=kTimeout)
 			except requests.exceptions.Timeout, e:
-				ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+				indigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
 				return
 				
 			### self.debugLog(u"Data from hub: " + r.content)
@@ -722,6 +728,11 @@ class Plugin(indigo.PluginBase):
 				self.updateDeviceState(device, 'colorY', bulb['state']['xy'][1])
 				#   Red, Green, and Blue Color.
 				#     Convert from XY to RGB.
+				if bulb['state']['xy'][1] == 0:
+					# If the y component is zero, there's a bug in colormath that throws a
+					#   ZeroDivisionError.  Work around this by setting the y component to
+					#   something close to, but not quite zero.
+					bulb['state']['xy'][1] = 0.00001
 				xyy = xyYColor(bulb['state']['xy'][0], bulb['state']['xy'][1], bulb['state']['bri']/255.0, illuminant='a')
 				rgb = xyy.convert_to('rgb', target_illuminant='a')
 				#     Assign the 3 RGB values to device states. We multiply each RGB value
@@ -829,7 +840,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					r = requests.put(command, data=requestData, timeout=kTimeout)
 				except requests.exceptions.Timeout, e:
-					ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+					indigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
 					return
 				self.debugLog("Got response - %s" % r.content)
 				# Update the Indigo device.
@@ -846,7 +857,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					r = requests.put(command, data=requestData, timeout=kTimeout)
 				except requests.exceptions.Timeout, e:
-					ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+					indigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
 					return
 				self.debugLog("Got response - %s" % r.content)
 				# Update the Indigo device.
@@ -862,7 +873,7 @@ class Plugin(indigo.PluginBase):
 			try:
 				r = requests.put(command, data=requestData, timeout=kTimeout)
 			except requests.exceptions.Timeout, e:
-				ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+				indigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
 				return
 			self.debugLog("Got response - %s" % r.content)
 			# Update the Indigo device.
@@ -911,7 +922,7 @@ class Plugin(indigo.PluginBase):
 			try:
 				r = requests.put(command, data=requestData, timeout=kTimeout)
 			except requests.exceptions.Timeout, e:
-				ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+				indigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
 				return
 			self.debugLog("Got response - %s" % r.content)
 			# Update the device brightness (which automatically changes on state).
@@ -926,7 +937,7 @@ class Plugin(indigo.PluginBase):
 			try:
 				r = requests.put(command, data=requestData, timeout=kTimeout)
 			except requests.exceptions.Timeout, e:
-				ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+				indigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
 				return
 			self.debugLog("Got response - %s" % r.content)
 			# Update the device brightness (which automatically changes on state).
@@ -991,7 +1002,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			r = requests.put(command, data=requestData, timeout=kTimeout)
 		except requests.exceptions.Timeout, e:
-			ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+			indigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
 			return
 		self.debugLog("Got response - %s" % r.content)
 		
@@ -1054,7 +1065,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			r = requests.put(command, data=requestData, timeout=kTimeout)
 		except requests.exceptions.Timeout, e:
-			ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+			indigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
 			return
 		self.debugLog("Got response - %s" % r.content)
 		
@@ -1116,7 +1127,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			r = requests.put(command, data=requestData, timeout=kTimeout)
 		except requests.exceptions.Timeout, e:
-			ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+			indigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
 			return
 		self.debugLog("Got response - %s" % r.content)
 		
@@ -1154,7 +1165,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			r = requests.put(command, data=requestData, timeout=kTimeout)
 		except requests.exceptions.Timeout, e:
-			ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+			indigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
 			return
 		self.debugLog("Got response - %s" % r.content)
 		
@@ -1192,7 +1203,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			r = requests.put(command, data=requestData, timeout=kTimeout)
 		except requests.exceptions.Timeout, e:
-			ingigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
+			indigo.server.log(u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout))
 			return
 		indigo.server.log(u"Got response - %s" % r.content)
 		
