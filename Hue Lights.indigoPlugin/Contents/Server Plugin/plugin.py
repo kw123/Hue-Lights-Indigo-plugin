@@ -14,9 +14,13 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 0.9.4
+#	Version 0.9.5
 #
-#	History:	0.9.4 (27-Nov-2012)
+#	History:	0.9.5 (27-Dec-2012)
+#				* Fixed bug that would cause the Hue light not to turn off
+#				  if using RGB mode when Red, Green, and Blue were all zero.
+#				--
+#				0.9.4 (27-Nov-2012)
 #				* Fixed bug that would return an error if no default ramp
 #				  rate were enered for a Hue bulb device.
 #				* Added more debug logging.
@@ -1059,8 +1063,15 @@ class Plugin(indigo.PluginBase):
 		elif green > brightness:
 			brightness = green
 		
-		# Send to Hue
-		requestData = json.dumps({"bri": brightness, "xy": [xyy.xyy_x, xyy.xyy_y], "transitiontime": int(rampRate), "on": True})
+		# Send to Hue (Create JSON request based on whether brightness is zero or not).
+		if brightness > 0:
+			requestData = json.dumps({"bri": brightness, "xy": [xyy.xyy_x, xyy.xyy_y], "transitiontime": int(rampRate), "on": True})
+		else:
+			# We create a separate command for when brightness is 0 (or below) because if
+			#   the "on" state in the request was True, the Hue light wouldn't turn off.
+			#   We also explicity state the X and Y values (equivilant to RGB of 1, 1, 1)
+			#   because the xyy object contains invalid "NaN" values when all RGB values are 0.
+			requestData = json.dumps({"bri": 0, "xy": [0.4473, 0.4073], "transitiontime": int(rampRate), "on": False})
 		command = "http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId)
 		self.debugLog(u"Data: " + str(requestData) + ", URL: " + command)
 		try:
