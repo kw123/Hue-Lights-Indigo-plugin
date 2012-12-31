@@ -14,9 +14,13 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 0.9.6
+#	Version 0.9.7
 #
-#	History:	0.9.6 (31-Dec-2012)
+#	History:	0.9.7 (31-Dec-2012)
+#				* Fixed a bug that updated the "hue" state of plugin devices
+#				  with an invalid number when the setHSB action was used.
+#				--
+#				0.9.6 (31-Dec-2012)
 #				* Fixed a divide by zero error in getBulbStatus that could
 #				  happen if the Hue hub returns no value for a blub's color
 #				  temperature.
@@ -1152,7 +1156,7 @@ class Plugin(indigo.PluginBase):
 			return
 		
 		# Submit to Hue
-		requestData = json.dumps({"bri":brightness, "hue": hue, "sat": saturation, "on":True, "transitiontime": rampRate})
+		requestData = json.dumps({"bri":brightness, "hue":hue, "sat":saturation, "on":True, "transitiontime":rampRate})
 		command = "http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.pluginPrefs['hostId'], bulbId)
 		self.debugLog(u"Request is %s" % requestData)
 		try:
@@ -1178,9 +1182,9 @@ class Plugin(indigo.PluginBase):
 			self.updateDeviceState(device, 'brightnessLevel', 0)
 		# Update the other device states.
 		self.updateDeviceState(device, 'colorMode', "hs")
-		self.updateDeviceState(device, 'hue', hue)
-		self.updateDeviceState(device, 'saturation', saturation)
-		
+		self.updateDeviceState(device, 'hue', int(round(hue / 182.0)))
+		self.updateDeviceState(device, 'saturation', int(saturation / 255.0 * 100.0))
+
 	# Set Color Temperature
 	########################################
 	def doColorTemperature(self, device, temperature, brightness, rampRate=-1):
