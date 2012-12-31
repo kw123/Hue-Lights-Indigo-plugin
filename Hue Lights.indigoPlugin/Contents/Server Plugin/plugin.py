@@ -14,9 +14,14 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 0.9.5
+#	Version 0.9.6
 #
-#	History:	0.9.5 (27-Dec-2012)
+#	History:	0.9.6 (31-Dec-2012)
+#				* Fixed a divide by zero error in getBulbStatus that could
+#				  happen if the Hue hub returns no value for a blub's color
+#				  temperature.
+#				--
+#				0.9.5 (27-Dec-2012)
 #				* Fixed bug that would cause the Hue light not to turn off
 #				  if using RGB mode when Red, Green, and Blue were all zero.
 #				--
@@ -772,7 +777,10 @@ class Plugin(indigo.PluginBase):
 				self.updateDeviceState(device, 'colorGreen', int(round(rgb.rgb_g * bulb['state']['bri'] / 255.0)))
 				self.updateDeviceState(device, 'colorBlue', int(round(rgb.rgb_b * bulb['state']['bri'] / 255.0)))
 				#   Color Temperature (convert from 154-500 mireds to 6494-2000 K).
-				self.updateDeviceState(device, 'colorTemp', int(floor(1000000.0/bulb['state']['ct'])))
+				if bulb['state']['ct'] > 0:
+					self.updateDeviceState(device, 'colorTemp', int(floor(1000000.0/bulb['state']['ct'])))
+				else:
+					self.updateDeviceState(device, 'colorTemp', 0)
 				#   Alert Status.
 				self.updateDeviceState(device, 'alertMode', bulb['state']['alert'])
 				#   Effect Status.
