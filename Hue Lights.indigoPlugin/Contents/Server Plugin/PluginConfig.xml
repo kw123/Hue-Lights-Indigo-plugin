@@ -29,7 +29,7 @@
 		</Label>
 	</Field>
 	<Field id="showDebugInfo" type="checkbox">
-		<Label>Enable debuging:</Label>
+		<Label>Enable debugging:</Label>
 		<Description>(not recommended)</Description>
 	</Field>
 	<Field id="simpleSeparator2" type="separator"/>
