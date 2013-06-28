@@ -90,4 +90,49 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 		</States>
 	</Device>
+    <!-- Hue Bulb Attribute Controller (Virtual Dimmer Device) -->
+	<Device type="dimmer" id="hueAttributeController">
+		<Name>Hue Bulb Attribute Controller</Name>
+		<ConfigUI>
+			<Field id="bulbDeviceId" type="menu">
+				<Label>Hue Bulb:</Label>
+				<List class="self" method="bulbDeviceListGenerator"/>
+			</Field>
+			<Field id="attributeToControl" type="menu" defaultValue="hue">
+				<Label>Attribute to Control:</Label>
+				<List>
+					<Option value="hue">Hue</Option>
+					<Option value="saturation">Saturation</Option>
+					<Option value="colorRed">Red Level (RGB)</Option>
+					<Option value="colorGreen">Green Level (RGB)</Option>
+					<Option value="colorBlue">Blue Level (RGB)</Option>
+					<Option value="colorTemp">Color Temperature (K)</Option>
+				</List>
+			</Field>
+			<Field id="labelAttribute" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Select an attribute on the Hue bulb to be conrolled.
+</Label>
+			</Field>
+			<Field id="rate" type="textfield">
+				<Label>Ramp Rate:</Label>
+			</Field>
+			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 540 seconds)
+0 = instant.
+Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+</Label>
+			</Field>
+			<Field id="defaultOnLevel" type="textfield">
+				<Label>Default On Level:</Label>
+			</Field>
+			<Field id="labelOnLevel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(1 to 100 percent)
+Optionally set a default "on" level. When turned on, the Hue Bulb Attribute Controller will go to the percentage specified here.  If no value is specified, the control will always go to 100% when turned "on" by Indigo.
+</Label>
+			</Field>
+			<Field id="address" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+		</ConfigUI>
+	</Device>
 </Devices>

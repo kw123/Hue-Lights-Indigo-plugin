@@ -228,19 +228,23 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Cancel Alert</Name>
 		<CallbackMethod>stopAlert</CallbackMethod>
 	</Action>
-	<!-- This may be used in the future when the "effect"
-			parameter is better understood.
-	<Action id="effect" deviceFilter="self">
+	<Action id="effect" deviceFilter="self" uiPath="DeviceActions">
 		<Name>Effect</Name>
 		<CallbackMethod>effect</CallbackMethod>
 		<ConfigUI>
-			<Field id="effect" type="textfield">
-				<Label>Effect Text:</Label>
+			<Field type="menu" id="effect" defaultValue="none">
+				<Label>Presets:</Label>
+				<List>
+					<Option value="none">None</Option>
+					<Option value="colorloop">Color Loop</Option>
+				</List>
+			</Field>
+			<Field id="labelEffect" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Select a Hue bulb effect. This feature requires the latest Hue hub firmware. Currently, the Hue system only offers the "Color Loop" effect which cycles through all hues at the current saturation and brightness level.</Label>
 			</Field>
 			<Field id="description" type="textfield" hidden="true">
 				<Label/>
 			</Field>
 		</ConfigUI>
 	</Action>
-	-->
 </Actions>
