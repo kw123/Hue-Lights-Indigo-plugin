@@ -8,8 +8,13 @@
 				<Label>Hue Bulb:</Label>
 				<List class="self" method="bulbListGenerator"/>
 			</Field>
-			<Field id="address" type="textfield" hidden="true">
-				<Label/>
+			<Field id="defaultBrightness" type="textfield">
+				<Label>Default Brightness:</Label>
+			</Field>
+			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(1 - 100 percent)
+Optionally set a default brightness level used whenever an "on" command is sent to this bulb.  If no value is entered, when an "on" command is sent, the bulb will return to the brightness it was at before being turned off.
+</Label>
 			</Field>
 			<Field id="rate" type="textfield">
 				<Label>Ramp Rate:</Label>
@@ -18,7 +23,12 @@
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+
+NOTE: Ramp Rates greater than 60 seconds when turning off a bulb will result in the bulb abruptly turning off after dimming for about 60 seconds. This is a bug in the Philips Hue system.  This does not affect Ramp Rates when turning on or changing brightness, only when turning a bulb off.
 </Label>
+			</Field>
+			<Field id="address" type="textfield" hidden="true">
+				<Label/>
 			</Field>
 			<Field id="nameOnHub" type="textfield" hidden="true">
 				<Label/>

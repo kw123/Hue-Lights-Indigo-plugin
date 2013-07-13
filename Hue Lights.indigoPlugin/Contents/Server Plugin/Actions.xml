@@ -107,7 +107,7 @@
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
 			</Field>
 			<Field id="details0" type="label" fontColor="darkgray" fontSize="small">
-				<Label>* Within 60 seconds (or less) after this action executes, the device states, including the red, green, and blue color components, will update to reflect a more accurate representation the color being presented by the Hue bulb. These conversions are done by the Hue hub itself.
+				<Label>* Within 60 seconds (or less) after this action executes, the device states, including the red, green, and blue color components, will update to reflect a more accurate representation of the color being presented by the Hue bulb. These conversions are done by the Hue hub itself.
 				</Label>
 			</Field>
 			<Field id="description" type="textfield" hidden="true">
@@ -155,7 +155,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
 			</Field>
 			<Field id="details0" type="label" fontColor="darkgray" fontSize="small">
-				<Label>* Within 60 seconds (or less) after this action executes, the device states, including the hue and saturation, will update to reflect a more accurate representation the color being presented by the Hue bulb. These conversions are done by the Hue hub itself.</Label>
+				<Label>* Within 60 seconds (or less) after this action executes, the device states, including the hue and saturation, will update to reflect a more accurate representation of the color being presented by the Hue bulb. These conversions are done by the Hue hub itself.</Label>
 			</Field>
 			<Field id="description" type="textfield" hidden="true">
 				<Label/>
@@ -208,7 +208,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
 			</Field>
 			<Field id="details0" type="label" fontColor="darkgray" fontSize="small">
-				<Label>Within 60 seconds (or less) after this action executes, the device states, including the color temperature, will update to reflect a more accurate representation the color being presented by the Hue bulb. These conversions are done by the Hue hub itself.</Label>
+				<Label>Within 60 seconds (or less) after this action executes, the device states, including the color temperature, will update to reflect a more accurate representation of the color being presented by the Hue bulb. These conversions are done by the Hue hub itself.</Label>
 			</Field>
 			<Field id="description" type="textfield" hidden="true">
 				<Label/>
