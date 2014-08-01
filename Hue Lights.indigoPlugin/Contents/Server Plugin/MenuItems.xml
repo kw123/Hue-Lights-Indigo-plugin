@@ -1,7 +1,83 @@
 <?xml version="1.0"?>
 <MenuItems>
     <MenuItem id="menu1">
-        <Name>Reload Bulb List</Name>
+        <Name>Reload Hue Device List</Name>
         <CallbackMethod>updateLightsList</CallbackMethod>
     </MenuItem>
+	<MenuItem id="sep1" />
+	<MenuItem id="savePreset">
+		<Name>Save Preset...</Name>
+		<CallbackMethod>savePreset</CallbackMethod>
+		<ConfigUI>
+			<Field id="deviceId" type="menu" defaultValue="">
+				<Label>Hue Device:</Label>
+				<List class="self" method="bulbDeviceListGenerator"></List>
+			</Field>
+			<Field id="deviceLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Select the Hue device whose current settings you'd like to save to a Preset. The settings can be restored to any compatible Hue device at a later time.</Label>
+			</Field>
+			<Field id="presetId" type="menu" defaultValue="">
+				<Label>Preset:</Label>
+				<List class="self" method="presetListGenerator"></List>
+			</Field>
+			<Field id="presetLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Select the Preset in which the above device's current settings should be stored. Presets with an asterisk (*) next to them have data already saved in them. Selecting one of these Presets will overwrite the data saved in that Preset.</Label>
+			</Field>
+			<Field id="presetName" type="textfield" defaultValue="">
+				<Label>Preset Name:</Label>
+			</Field>
+			<Field id="nameLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Optionally assign a name to this Preset.</Label>
+			</Field>
+			<Field id="rate" type="textfield">
+				<Label>Ramp Rate:</Label>
+			</Field>
+			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 540 seconds)
+0 = instant
+Save a Ramp Rate (transition time) to be used when recalling this Preset, accurate to 0.1 seconds.</Label>
+			</Field>
+		</ConfigUI>
+	</MenuItem>
+	<MenuItem id="recallPreset">
+		<Name>Recall Preset...</Name>
+		<CallbackMethod>recallPreset</CallbackMethod>
+		<ConfigUI>
+			<Field id="deviceId" type="menu" defaultValue="">
+				<Label>Hue Device:</Label>
+				<List class="self" method="bulbDeviceListGenerator"></List>
+			</Field>
+			<Field id="deviceLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Select the Hue device to which the Preset should be applied.</Label>
+			</Field>
+			<Field id="presetId" type="menu" defaultValue="">
+				<Label>Preset:</Label>
+				<List class="self" method="presetListGenerator"></List>
+			</Field>
+			<Field id="presetLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Select the Preset that should be applied to the device. Presets with an asterisk (*) next to them have data saved in them.</Label>
+			</Field>
+			<Field id="rate" type="textfield">
+				<Label>Ramp Rate:</Label>
+			</Field>
+			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 540 seconds)
+0 = instant
+Optionally override this Preset's saved Ramp Rate (transition time). This overrides the device's default rate as well. Ramp Rates are accurate to 0.1 seconds.</Label>
+			</Field>
+		</ConfigUI>
+	</MenuItem>
+	<MenuItem id="displayPreset">
+		<Name>Display Preset in Log...</Name>
+		<CallbackMethod>displayPreset</CallbackMethod>
+		<ConfigUI>
+			<Field id="presetId" type="menu" defaultValue="">
+				<Label>Preset:</Label>
+				<List class="self" method="presetListGenerator"></List>
+			</Field>
+			<Field id="presetLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Select the Preset whose data you'd like to view in the Indigo log. Presets with an asterisk (*) next to them have data saved in them.</Label>
+			</Field>
+		</ConfigUI>
+	</MenuItem>
 </MenuItems>

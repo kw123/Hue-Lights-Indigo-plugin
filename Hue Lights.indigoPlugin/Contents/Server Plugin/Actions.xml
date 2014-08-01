@@ -37,28 +37,14 @@
 				<Label>Use Ramp Rate Variable</Label>
 			</Field>
 			<Field id="rate" type="textfield" visibleBindingId="useRateVariable" visibleBindingValue="false">
-				<Label>Ramp Rate:</Label>
+				<Label>Ramp Rate (0-540):</Label>
 			</Field>
 			<Field id="rateVariable" type="menu" visibleBindingId="useRateVariable" visibleBindingValue="true">
 				<Label>Ramp Rate Variable:</Label>
 				<List class="indigo.variables"/>
 			</Field>
-			<Field id="sep1" type="separator"/>
-			<Field id="instructions1" type="label" fontColor="darkgray" fontSize="small">
-				<Label>INSTRUCTIONS: (You'll need to scroll to view all instructions).
-[Brightness Source]: Select the source of the brightness value to be set on the dimmer. Select "Enter Value" to enter the brightness level (from 0 to 100). Select "Variable" to select an Indigo variable that contains the brightness level (from 0 to 100). Select "Other Dimmer Brightness" to choose another dimmer device as the brightness level source. When this option is selected, Hue Lights will set the brightness of the device being acted upon (this device) to the same brightness of the selected Other Dimmer device.
-				</Label>
-			</Field>
-			<Field id="instructions2" type="label" fontColor="darkgray" fontSize="small">
-				<Label>[Brightness]: Enter a number from 0 to 100 (0 is off, 100 is on at full brightness). [Variable]: Select an Indigo variable that will contain a number from 0 to 100. The value of that variable will be used as the brightness level. [Other Dimmer Brightness]: Select another dimmer device in the Indigo database. The brightness of that device will be used as the brightness level for this device.
-				</Label>
-			</Field>
-			<Field id="instructions3" type="label" fontColor="darkgray" fontSize="small">
-				<Label>[Use Ramp Rate Variable]: Check this checkbox if you'd like to use an Indigo variable as the source for this dimmer's ramp rate.
-				</Label>
-			</Field>
-			<Field id="instructions4" type="label" fontColor="darkgray" fontSize="small">
-				<Label>Ramp Rates represent the full time needed to transition from one brightness level to the next and can be specified in increments of 0.1 seconds. [Ramp Rate]: Enter a ramp rate in seconds. [Ramp Rate Variable]: Select an Indigo variable whose value (in seconds) will be used as the ramp rate for this device.  (e.g. 150 for 1 min, 30 sec. or 6.5 for 6.5 sec).
+			<Field id="rampRateLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Ramp Rates represent the full time needed to transition from one brightness level to the next and can be specified in increments of 0.1 seconds. Range: 0 to 540 sec.
 				</Label>
 			</Field>
 			<Field id="description" type="textfield" hidden="true">
@@ -71,7 +57,7 @@
 		<CallbackMethod>setRGB</CallbackMethod>
 		<ConfigUI>
 			<Field id="intro1" type="label" fontColor="darkgray" fontSize="small">
-				<Label>NOTE: The Hue light bulbs are not capable of displaying the same full spectrum of light that your computer monitor or television can display. Thus, when entering Red, Green, and Blue values, the bulb will switch to the closest color it can render to the color you specified.*
+				<Label>NOTE: Hue light bulbs are not capable of displaying the same full spectrum of light that your computer monitor or television can display. Thus, when entering Red, Green, and Blue values, the bulb will switch to the closest color it can render to the color you specified.* Other supported color lights (LightStrips, LivingColors, etc.) have a slightly wider color range and may represent certain colors (such as green) better.
 				</Label>
 			</Field>
 			<Field id="red" type="textfield" defaultValue="255">
@@ -107,7 +93,7 @@
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
 			</Field>
 			<Field id="details0" type="label" fontColor="darkgray" fontSize="small">
-				<Label>* Within 60 seconds (or less) after this action executes, the device states, including the red, green, and blue color components, will update to reflect a more accurate representation of the color being presented by the Hue bulb. These conversions are done by the Hue hub itself.
+				<Label>* Within 30 seconds (or less) after this action executes, the device states will update to reflect a more accurate representation of the color being presented by the Hue device. These conversions are done by the Hue hub itself.
 				</Label>
 			</Field>
 			<Field id="description" type="textfield" hidden="true">
@@ -120,7 +106,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<CallbackMethod>setHSB</CallbackMethod>
 		<ConfigUI>
 			<Field id="intro1" type="label" fontColor="darkgray" fontSize="small">
-				<Label>NOTE: The Hue light bulbs are not capable of displaying the same full spectrum of light that your computer monitor or television can display. Thus, when entering Hue and Saturation values, the bulb will switch to the closest color it can render to the color you specified.*
+				<Label>NOTE: The Hue light bulbs are not capable of displaying the same full spectrum of light that your computer monitor or television can display. Thus, when entering Hue and Saturation values, the bulb will switch to the closest color it can render to the color you specified.* Other supported color lights (LightStrips, LivingColors, etc.) have a slightly wider color range and may represent certain colors (such as green) better.
 				</Label>
 			</Field>
 			<Field id="hue" type="textfield" defaultValue="230">
@@ -155,7 +141,48 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
 			</Field>
 			<Field id="details0" type="label" fontColor="darkgray" fontSize="small">
-				<Label>* Within 60 seconds (or less) after this action executes, the device states, including the hue and saturation, will update to reflect a more accurate representation of the color being presented by the Hue bulb. These conversions are done by the Hue hub itself.</Label>
+				<Label>* Within 30 seconds (or less) after this action executes, the device states, including the hue and saturation, will update to reflect a more accurate representation of the color being presented by the Hue device. These conversions are done by the Hue hub itself.</Label>
+			</Field>
+			<Field id="description" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+		</ConfigUI>
+	</Action>
+	<Action id="setXYY" deviceFilter="self" uiPath="DeviceActions">
+		<Name>Set xyY Chromatisety (Advanced)</Name>
+		<CallbackMethod>setXYY</CallbackMethod>
+		<ConfigUI>
+			<Field id="intro1" type="label" fontColor="darkgray" fontSize="small">
+				<Label>NOTE: Each Hue device has it's own colorimetry range (gamut). Entering values outside a device's range can result in unexpected colors. See the color plot at http://developers.meethue.com/coreconcepts.html
+				</Label>
+			</Field>
+			<Field id="xyy_x" type="textfield" defaultValue="">
+				<Label>x (X Chromatisety):</Label>
+			</Field>
+			<Field id="labelRed" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 1.0)</Label>
+			</Field>
+			<Field id="xyy_y" type="textfield" defaultValue="">
+				<Label>y (Y Chromatisety):</Label>
+			</Field>
+			<Field id="labelGreen" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 1.0)</Label>
+			</Field>
+			<Field id="xyy_Y" type="textfield" defaultValue="">
+				<Label>Y (Luminosity):</Label>
+			</Field>
+			<Field id="labelBlue" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 1.0)
+0 = off
+1 = full brightness</Label>
+			</Field>
+			<Field id="rate" type="textfield">
+				<Label>Ramp Rate:</Label>
+			</Field>
+			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 540 seconds)
+0 = instant
+Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
 			</Field>
 			<Field id="description" type="textfield" hidden="true">
 				<Label/>
@@ -208,7 +235,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
 			</Field>
 			<Field id="details0" type="label" fontColor="darkgray" fontSize="small">
-				<Label>Within 60 seconds (or less) after this action executes, the device states, including the color temperature, will update to reflect a more accurate representation of the color being presented by the Hue bulb. These conversions are done by the Hue hub itself.</Label>
+				<Label>Within 30 seconds (or less) after this action executes, the device states, including the color temperature, will update to reflect a more accurate representation of the color being presented by the Hue bulb. These conversions are done by the Hue hub itself.</Label>
 			</Field>
 			<Field id="description" type="textfield" hidden="true">
 				<Label/>
@@ -240,7 +267,62 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				</List>
 			</Field>
 			<Field id="labelEffect" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>Select a Hue bulb effect. This feature requires the latest Hue hub firmware. Currently, the Hue system only offers the "Color Loop" effect which cycles through all hues at the current saturation and brightness level.</Label>
+				<Label>Select a Hue device effect. This feature requires the latest Hue hub firmware. Currently, the Hue system only offers the "Color Loop" effect which cycles through all hues at the current saturation and brightness level.</Label>
+			</Field>
+			<Field id="description" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+		</ConfigUI>
+	</Action>
+	<Action id="sep3" uiPath="DeviceActions" />
+	<Action id="savePreset" deviceFilter="self" uiPath="DeviceActions">
+		<Name>Save Preset</Name>
+		<CallbackMethod>savePreset</CallbackMethod>
+		<ConfigUI>
+			<Field id="presetId" type="menu" defaultValue="">
+				<Label>Preset:</Label>
+				<List class="self" method="presetListGenerator"></List>
+			</Field>
+			<Field id="presetLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Select the Preset in which the device's current settings should be stored. Presets with an asterisk (*) next to them have data already saved in them. Selecting one of these Presets will overwrite the data saved in that Preset.</Label>
+			</Field>
+			<Field id="presetName" type="textfield" defaultValue="">
+				<Label>Preset Name:</Label>
+			</Field>
+			<Field id="nameLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Optionally assign a name to this Preset.</Label>
+			</Field>
+			<Field id="rate" type="textfield">
+				<Label>Ramp Rate:</Label>
+			</Field>
+			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 540 seconds)
+0 = instant
+Save a Ramp Rate (transition time) to be used when recalling this Preset, accurate to 0.1 seconds.</Label>
+			</Field>
+			<Field id="description" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+		</ConfigUI>
+	</Action>
+	<Action id="recallPreset" deviceFilter="self" uiPath="DeviceActions">
+		<Name>Recall Preset</Name>
+		<CallbackMethod>recallPreset</CallbackMethod>
+		<ConfigUI>
+			<Field id="presetId" type="menu" defaultValue="">
+				<Label>Preset:</Label>
+				<List class="self" method="presetListGenerator"></List>
+			</Field>
+			<Field id="presetLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Select the Preset that should be applied to the device. Presets with an asterisk (*) next to them have data saved in them.</Label>
+			</Field>
+			<Field id="rate" type="textfield">
+				<Label>Ramp Rate:</Label>
+			</Field>
+			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 540 seconds)
+0 = instant
+Optionally override this Preset's saved Ramp Rate (transition time). This overrides the device's default rate as well. Ramp Rates are accurate to 0.1 seconds.</Label>
 			</Field>
 			<Field id="description" type="textfield" hidden="true">
 				<Label/>

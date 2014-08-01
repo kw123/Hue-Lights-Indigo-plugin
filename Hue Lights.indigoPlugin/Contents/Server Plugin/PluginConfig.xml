@@ -23,7 +23,20 @@
 		<Title>Start/Finish</Title>
 		<CallbackMethod>restartPairing</CallbackMethod>
     </Field>
-	<Field id="simpleSeparator1" type="separator"/>
+	<Field id="sep0" type="separator"/>
+	<Field id="updaterEmailsEnabled" type="checkbox" defaultValue="true">
+		<Label>Enable Plugin Update Notifications:</Label>
+	</Field>
+	<Field id="noticeLabel" type="label" fontSize="small" fontColor="darkgray">
+		<Label>If you'd like to be notified via email when new versions of the Hue Lights plugin become available, enable this option.</Label>
+	</Field>
+	<Field id="updaterEmail" type="textfield" visibleBindingId="updaterEmailsEnabled" visibleBindingValue="true">
+		<Label>Email Address:</Label>
+	</Field>
+	<Field id="emailLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray" visibleBindingId="updaterEmailsEnabled" visibleBindingValue="true">
+		<Label>Enter the email address at which you'd like to be notified of plugin version updates.</Label>
+	</Field>
+	<Field id="sep1" type="separator"/>
 	<Field id="debugLabel" type="label" fontColor="darkgray" fontSize="small">
 		<Label>If you are having problems with the plugin (or you are instructed by support), you can enable extra logging in the Event Log window by checking this button. Use with caution.
 		</Label>
@@ -32,7 +45,7 @@
 		<Label>Enable debugging:</Label>
 		<Description>(not recommended)</Description>
 	</Field>
-	<Field id="simpleSeparator2" type="separator"/>
+	<Field id="sep2" type="separator"/>
 	<Field id="instructions0" type="label" fontColor="black" fontSize="small">
 		<Label>INSTRUCTION:</Label>
 	</Field>

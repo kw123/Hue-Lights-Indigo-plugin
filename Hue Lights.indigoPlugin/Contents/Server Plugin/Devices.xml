@@ -2,10 +2,10 @@
 <Devices>
     <!-- Bulb Device -->
 	<Device type="dimmer" id="hueBulb">
-		<Name>Hue Bulb</Name>
+		<Name>Hue Bulb (Original, Downlight, Spotlight, etc.)</Name>
 		<ConfigUI>
 			<Field id="bulbId" type="menu">
-				<Label>Hue Bulb:</Label>
+				<Label>Hue Device:</Label>
 				<List class="self" method="bulbListGenerator"/>
 			</Field>
 			<Field id="defaultBrightness" type="textfield">
@@ -24,7 +24,7 @@ Optionally set a default brightness level used whenever an "on" command is sent 
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 
-NOTE: Ramp Rates greater than 60 seconds when turning off a bulb will result in the bulb abruptly turning off after dimming for about 60 seconds. This is a bug in the Philips Hue system.  This does not affect Ramp Rates when turning on or changing brightness, only when turning a bulb off.
+NOTE: Ramp Rates greater than 60 seconds when turning off a device will result in the device abruptly turning off after dimming for about 60 seconds. This is a bug in the Philips Hue system specific to the Hue bulb.  This does not affect Ramp Rates when turning on or changing brightness, only when turning a device off.
 </Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true">
@@ -34,6 +34,9 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a bulb will result in 
 				<Label/>
 			</Field>
 			<Field id="savedBrightness" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+			<Field id="modelId" type="textfield" hidden="true">
 				<Label/>
 			</Field>
 		</ConfigUI>
@@ -100,12 +103,355 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a bulb will result in 
 			</State>
 		</States>
 	</Device>
-    <!-- Hue Bulb Attribute Controller (Virtual Dimmer Device) -->
+    <!-- LightStrips Device -->
+	<Device type="dimmer" id="hueLightStrips">
+		<Name>LightStrips</Name>
+		<ConfigUI>
+			<Field id="bulbId" type="menu">
+				<Label>Hue Device:</Label>
+				<List class="self" method="bulbListGenerator"/>
+			</Field>
+			<Field id="defaultBrightness" type="textfield">
+				<Label>Default Brightness:</Label>
+			</Field>
+			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(1 - 100 percent)
+Optionally set a default brightness level used whenever an "on" command is sent to this device.  If no value is entered, when an "on" command is sent, the device will return to the brightness it was at before being turned off.
+</Label>
+			</Field>
+			<Field id="rate" type="textfield">
+				<Label>Ramp Rate:</Label>
+			</Field>
+			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 540 seconds)
+0 = instant.
+Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+</Label>
+			</Field>
+			<Field id="address" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+			<Field id="nameOnHub" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+			<Field id="savedBrightness" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+			<Field id="modelId" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+		</ConfigUI>
+		<States>
+			<State id="hue">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Hue (°)</TriggerLabel>
+				<ControlPageLabel>Hue (°)</ControlPageLabel>
+			</State>
+			<State id="saturation">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Saturation (%)</TriggerLabel>
+				<ControlPageLabel>Saturation (%)</ControlPageLabel>
+			</State>
+			<State id="colorRed">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Red Level (0-255)</TriggerLabel>
+				<ControlPageLabel>Red Level (0-255)</ControlPageLabel>
+			</State>
+			<State id="colorGreen">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Green Level (0-255)</TriggerLabel>
+				<ControlPageLabel>Green Level (0-255)</ControlPageLabel>
+			</State>
+			<State id="colorBlue">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Blue Level (0-255)</TriggerLabel>
+				<ControlPageLabel>Blue Level (0-255)</ControlPageLabel>
+			</State>
+			<State id="colorX">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>X Color Chromaticity</TriggerLabel>
+				<ControlPageLabel>X Color Chromaticity (CIE 1931)</ControlPageLabel>
+			</State>
+			<State id="colorY">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Y Color Chromaticity</TriggerLabel>
+				<ControlPageLabel>Y Color Chromaticity (CIE 1931)</ControlPageLabel>
+			</State>
+			<State id="colorMode">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Color Mode</TriggerLabel>
+				<ControlPageLabel>Color Mode</ControlPageLabel>
+			</State>
+			<State id="alertMode">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Alert Mode</TriggerLabel>
+				<ControlPageLabel>Alert Mode</ControlPageLabel>
+			</State>
+			<State id="effect">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Effect</TriggerLabel>
+				<ControlPageLabel>Effect</ControlPageLabel>
+			</State>
+			<State id="online">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Online</TriggerLabel>
+				<ControlPageLabel>Online</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+    <!-- LivingColors Bloom Device -->
+	<Device type="dimmer" id="hueLivingColorsBloom">
+		<Name>LivingColors (Aura, Bloom, StoryLight, etc.)</Name>
+		<ConfigUI>
+			<Field id="bulbId" type="menu">
+				<Label>Hue Device:</Label>
+				<List class="self" method="bulbListGenerator"/>
+			</Field>
+			<Field id="defaultBrightness" type="textfield">
+				<Label>Default Brightness:</Label>
+			</Field>
+			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(1 - 100 percent)
+Optionally set a default brightness level used whenever an "on" command is sent to this device.  If no value is entered, when an "on" command is sent, the device will return to the brightness it was at before being turned off.
+</Label>
+			</Field>
+			<Field id="rate" type="textfield">
+				<Label>Ramp Rate:</Label>
+			</Field>
+			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 540 seconds)
+0 = instant.
+Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+</Label>
+			</Field>
+			<Field id="address" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+			<Field id="nameOnHub" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+			<Field id="savedBrightness" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+			<Field id="modelId" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+		</ConfigUI>
+		<States>
+			<State id="hue">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Hue (°)</TriggerLabel>
+				<ControlPageLabel>Hue (°)</ControlPageLabel>
+			</State>
+			<State id="saturation">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Saturation (%)</TriggerLabel>
+				<ControlPageLabel>Saturation (%)</ControlPageLabel>
+			</State>
+			<State id="colorRed">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Red Level (0-255)</TriggerLabel>
+				<ControlPageLabel>Red Level (0-255)</ControlPageLabel>
+			</State>
+			<State id="colorGreen">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Green Level (0-255)</TriggerLabel>
+				<ControlPageLabel>Green Level (0-255)</ControlPageLabel>
+			</State>
+			<State id="colorBlue">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Blue Level (0-255)</TriggerLabel>
+				<ControlPageLabel>Blue Level (0-255)</ControlPageLabel>
+			</State>
+			<State id="colorX">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>X Color Chromaticity</TriggerLabel>
+				<ControlPageLabel>X Color Chromaticity (CIE 1931)</ControlPageLabel>
+			</State>
+			<State id="colorY">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Y Color Chromaticity</TriggerLabel>
+				<ControlPageLabel>Y Color Chromaticity (CIE 1931)</ControlPageLabel>
+			</State>
+			<State id="colorMode">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Color Mode</TriggerLabel>
+				<ControlPageLabel>Color Mode</ControlPageLabel>
+			</State>
+			<State id="alertMode">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Alert Mode</TriggerLabel>
+				<ControlPageLabel>Alert Mode</ControlPageLabel>
+			</State>
+			<State id="effect">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Effect</TriggerLabel>
+				<ControlPageLabel>Effect</ControlPageLabel>
+			</State>
+			<State id="online">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Online</TriggerLabel>
+				<ControlPageLabel>Online</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+    <!-- LivingWhites Device -->
+	<Device type="dimmer" id="hueLivingWhites">
+		<Name>LivingWhites</Name>
+		<ConfigUI>
+			<Field id="bulbId" type="menu">
+				<Label>Hue Device:</Label>
+				<List class="self" method="bulbListGenerator" filter="hueLivingWhites"/>
+			</Field>
+			<Field id="defaultBrightness" type="textfield">
+				<Label>Default Brightness:</Label>
+			</Field>
+			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(1 - 100 percent)
+Optionally set a default brightness level used whenever an "on" command is sent to this device.  If no value is entered, when an "on" command is sent, the bulb will return to the brightness it was at before being turned off.
+</Label>
+			</Field>
+			<Field id="rate" type="textfield">
+				<Label>Ramp Rate:</Label>
+			</Field>
+			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 540 seconds)
+0 = instant.
+Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+
+NOTE: Ramp Rates greater than 60 seconds when turning off a device will result in the device abruptly turning off after dimming for about 60 seconds. This is a bug in the Philips Hue system.  This does not affect Ramp Rates when turning on or changing brightness, only when turning a device off.
+</Label>
+			</Field>
+			<Field id="address" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+			<Field id="nameOnHub" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+			<Field id="savedBrightness" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+			<Field id="modelId" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+		</ConfigUI>
+		<States>
+			<State id="alertMode">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Alert Mode</TriggerLabel>
+				<ControlPageLabel>Alert Mode</ControlPageLabel>
+			</State>
+			<State id="effect">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Effect</TriggerLabel>
+				<ControlPageLabel>Effect</ControlPageLabel>
+			</State>
+			<State id="online">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Online</TriggerLabel>
+				<ControlPageLabel>Online</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+    <!-- Hue Group Device -->
+	<Device type="dimmer" id="hueGroup">
+		<Name>Hue Group (Experimental)</Name>
+		<ConfigUI>
+			<Field id="groupId" type="menu">
+				<Label>Hue Group:</Label>
+				<List class="self" method="groupListGenerator"/>
+			</Field>
+			<Field id="defaultBrightness" type="textfield">
+				<Label>Default Brightness:</Label>
+			</Field>
+			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(1 - 100 percent)
+Optionally set a default brightness level used whenever an "on" command is sent to this group.  If no value is entered, when an "on" command is sent, the group will return to the brightness it was last set to.
+</Label>
+			</Field>
+			<Field id="rate" type="textfield">
+				<Label>Ramp Rate:</Label>
+			</Field>
+			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 540 seconds)
+0 = instant.
+Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+</Label>
+			</Field>
+			<Field id="address" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+			<Field id="nameOnHub" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+			<Field id="savedBrightness" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+		</ConfigUI>
+		<States>
+			<State id="hue">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Hue (°)</TriggerLabel>
+				<ControlPageLabel>Hue (°)</ControlPageLabel>
+			</State>
+			<State id="saturation">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Saturation (%)</TriggerLabel>
+				<ControlPageLabel>Saturation (%)</ControlPageLabel>
+			</State>
+			<State id="colorRed">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Red Level (0-255)</TriggerLabel>
+				<ControlPageLabel>Red Level (0-255)</ControlPageLabel>
+			</State>
+			<State id="colorGreen">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Green Level (0-255)</TriggerLabel>
+				<ControlPageLabel>Green Level (0-255)</ControlPageLabel>
+			</State>
+			<State id="colorBlue">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Blue Level (0-255)</TriggerLabel>
+				<ControlPageLabel>Blue Level (0-255)</ControlPageLabel>
+			</State>
+			<State id="colorX">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>X Color Chromaticity</TriggerLabel>
+				<ControlPageLabel>X Color Chromaticity (CIE 1931)</ControlPageLabel>
+			</State>
+			<State id="colorY">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Y Color Chromaticity</TriggerLabel>
+				<ControlPageLabel>Y Color Chromaticity (CIE 1931)</ControlPageLabel>
+			</State>
+			<State id="colorTemp">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Color Temperature (K)</TriggerLabel>
+				<ControlPageLabel>Color Temperature (K)</ControlPageLabel>
+			</State>
+			<State id="colorMode">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Color Mode</TriggerLabel>
+				<ControlPageLabel>Color Mode</ControlPageLabel>
+			</State>
+			<State id="effect">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Effect</TriggerLabel>
+				<ControlPageLabel>Effect</ControlPageLabel>
+			</State>
+			<State id="groupMemberIDs">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Group Member IDs</TriggerLabel>
+				<ControlPageLabel>Group Members IDs</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+    <!-- Hue Device Attribute Controller (Virtual Dimmer Device) -->
 	<Device type="dimmer" id="hueAttributeController">
-		<Name>Hue Bulb Attribute Controller</Name>
+		<Name>Hue Device Attribute Controller</Name>
 		<ConfigUI>
 			<Field id="bulbDeviceId" type="menu">
-				<Label>Hue Bulb:</Label>
+				<Label>Hue Device:</Label>
 				<List class="self" method="bulbDeviceListGenerator"/>
 			</Field>
 			<Field id="attributeToControl" type="menu" defaultValue="hue">
@@ -120,7 +466,7 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a bulb will result in 
 				</List>
 			</Field>
 			<Field id="labelAttribute" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>Select an attribute on the Hue bulb to be conrolled.
+				<Label>Select an attribute on the Hue device to be conrolled.
 </Label>
 			</Field>
 			<Field id="rate" type="textfield">
@@ -137,7 +483,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</Field>
 			<Field id="labelOnLevel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(1 to 100 percent)
-Optionally set a default "on" level. When turned on, the Hue Bulb Attribute Controller will go to the percentage specified here.  If no value is specified, the control will always go to 100% when turned "on" by Indigo.
+Optionally set a default "on" level. When turned on, the Hue Device Attribute Controller will go to the percentage specified here.  If no value is specified, the control will always go to 100% when turned "on" by Indigo.
 </Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true">
