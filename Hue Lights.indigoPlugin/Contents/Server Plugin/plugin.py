@@ -14,9 +14,15 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.3.4
+#	Version 1.3.6
 #
-#	History:	1.3.4
+#	History:	1.3.6
+#				* Added support for the Hue Lux bulb.
+#				--
+#				1.3.5
+#				* Added support for the LivingColors Iris.
+#				--
+#				1.3.4
 #				* Yet another attempt to fix the same bug found in 1.3.0.
 #				--
 #				1.3.3
@@ -307,6 +313,7 @@ requests.defaults.defaults['keep_alive'] = False
 # LLC001	=	LivingColor light (generic)
 # LLC006	=	" " "
 # LLC007	=	" " "
+# LLC010	=	LivingColors Iris (Europe)
 # LLC011	=	Bloom (European?)
 # LLC012	=	Bloom
 # LLC013	=	Disney StoryLight
@@ -314,15 +321,16 @@ requests.defaults.defaults['keep_alive'] = False
 # LST001	=	LED LightStrip
 # LWB001	=	LivingWhites bulb
 # LWB003	=	" " "
+# LWB004	=	Hue Lux bulb
 # LWL001	=	LivingWhites light socket
 #   (compatible Hue bulb devices)
 kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003']
 #   (compatible LivingColors devices)
-kLivingColorsDeviceIDs = ['LLC001', 'LLC006', 'LLC007', 'LLC011', 'LLC012', 'LLC013', 'LLC014']
+kLivingColorsDeviceIDs = ['LLC001', 'LLC006', 'LLC007', 'LLC010', 'LLC011', 'LLC012', 'LLC013', 'LLC014']
 #   (compatible LightStrips devices)
 kLightStripsDeviceIDs = ['LST001']
 #   (compatible LivingWhites devices)
-kLivingWhitesDeviceIDs = ['LWB001', 'LWB003', 'LWL001']
+kLivingWhitesDeviceIDs = ['LWB001', 'LWB003', 'LWB004', 'LWL001']
 #   (all compatible devices)
 kCompatibleDeviceIDs = kHueBulbDeviceIDs + kLivingColorsDeviceIDs + kLightStripsDeviceIDs + kLivingWhitesDeviceIDs
 
