@@ -2,7 +2,7 @@
 <MenuItems>
     <MenuItem id="menu1">
         <Name>Reload Hue Device List</Name>
-        <CallbackMethod>updateLightsList</CallbackMethod>
+        <CallbackMethod>updateLightsGroupsList</CallbackMethod>
     </MenuItem>
 	<MenuItem id="sep1" />
 	<MenuItem id="savePreset">

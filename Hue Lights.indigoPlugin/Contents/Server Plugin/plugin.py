@@ -14,9 +14,16 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.3.6
+#	Version 1.3.7
 #
-#	History:	1.3.6
+#	History:	1.3.7
+#				* Fixed a bug that caused the plugin to crash if there were
+#				  any Hue groups registered with the Hue hub.
+#				* Fixed a bug that prevented Hue Group devices from being
+#				  loaded when the "Reload Hue Device List" plugin menu option
+#				  was selected within the Indigo client.
+#				--
+#				1.3.6
 #				* Added support for the Hue Lux bulb.
 #				--
 #				1.3.5
@@ -1119,7 +1126,7 @@ class Plugin(indigo.PluginBase):
 				return (False, valuesDict, errorsDict)
 			if group.get('lights', "") == "":
 				isError = True
-				errorsDict['groupId'] = u"The selected item is not a Hue Group. Plesea select a Hue Group to control."
+				errorsDict['groupId'] = u"The selected item is not a Hue Group. Please select a Hue Group to control."
 				errorsDict['showAlertText'] += errorsDict['groupId']
 				return (False, valuesDict, errorsDict)
 				
@@ -1379,7 +1386,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
 			# If it is a valid device, check everything else.
 			# Make sure this device can handle color.
-			elif modelId not in kHueBulbDeviceIDs and modelId not in kLightStripsDeviceIDs and modelId not in kLivingColorsDeviceIDs:
+			elif modelId not in kHueBulbDeviceIDs and modelId not in kLightStripsDeviceIDs and modelId not in kLivingColorsDeviceIDs and device.deviceTypeId != "hueGroup":
 				isError = True
 				errorsDict['device'] = u"The \"%s\" device does not support color. Choose a different device." % (device.name)
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
@@ -1471,7 +1478,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
 			# If it is a valid device, check everything else.
 			# Make sure this device can handle color.
-			elif modelId not in kHueBulbDeviceIDs and modelId not in kLightStripsDeviceIDs and modelId not in kLivingColorsDeviceIDs:
+			elif modelId not in kHueBulbDeviceIDs and modelId not in kLightStripsDeviceIDs and modelId not in kLivingColorsDeviceIDs and device.deviceTypeId != "hueGroup":
 				isError = True
 				errorsDict['device'] = u"The \"%s\" device does not support color. Choose a different device." % (device.name)
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
@@ -1563,7 +1570,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
 			# If it is a valid device, check everything else.
 			# Make sure this device can handle color.
-			elif modelId not in kHueBulbDeviceIDs and modelId not in kLightStripsDeviceIDs and modelId not in kLivingColorsDeviceIDs:
+			elif modelId not in kHueBulbDeviceIDs and modelId not in kLightStripsDeviceIDs and modelId not in kLivingColorsDeviceIDs and device.deviceTypeId != "hueGroup":
 				isError = True
 				errorsDict['device'] = u"The \"%s\" device does not support color. Choose a different device." % (device.name)
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
@@ -1655,7 +1662,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
 			# If it is a valid device, check everything else.
 			# Make sure this device can handle color temperature changes.
-			elif device.deviceTypeId != "hueGroup" and modelId not in kHueBulbDeviceIDs:
+			elif modelId not in kHueBulbDeviceIDs and device.deviceTypeId != "hueGroup":
 				isError = True
 				errorsDict['device'] = u"The \"%s\" device does not support variable color temperature. Choose a different device." % (device.name)
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
@@ -1727,7 +1734,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
 			# If it is a valid device, check everything else.
 			# Make sure this device can handle the color effect.
-			elif device.deviceTypeId != "hueGroup" and modelId not in kHueBulbDeviceIDs and modelId not in kLightStripsDeviceIDs and modelId not in kLivingColorsDeviceIDs:
+			elif modelId not in kHueBulbDeviceIDs and modelId not in kLightStripsDeviceIDs and modelId not in kLivingColorsDeviceIDs and device.deviceTypeId != "hueGroup":
 				isError = True
 				errorsDict['device'] = u"The \"%s\" device does not support color effects. Choose a different device." % (device.name)
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
@@ -1750,7 +1757,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
 			# If it is a valid device, check everything else.
 			# Make sure this device can handle the color effect.
-			elif modelId not in kCompatibleDeviceIDs:
+			elif modelId not in kCompatibleDeviceIDs and device.deviceTypeId != "hueGroup":
 				isError = True
 				errorsDict['device'] = u"The \"%s\" device is not a compatible Hue device. Please choose a different device." % (device.name)
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
@@ -1797,7 +1804,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
 			# If it is a valid device, check everything else.
 			# Make sure this device can handle the color effect.
-			elif modelId not in kCompatibleDeviceIDs:
+			elif modelId not in kCompatibleDeviceIDs and device.deviceTypeId != "hueGroup":
 				isError = True
 				errorsDict['device'] = u"The \"%s\" device is not a compatible Hue device. Please choose a different device." % (device.name)
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
@@ -2587,14 +2594,32 @@ class Plugin(indigo.PluginBase):
 		brightness = group['action']['bri']
 		onState = group['action']['on']
 		effect = group['action']['effect']
-		hue = group['action']['hue']
-		saturation = group['action']['sat']
-		colorX = group['action']['xy'][0]
-		colorY = group['action']['xy'][1]
+		try:
+			hue = group['action']['hue']
+		except KeyError:
+			# This group must not have any color devices.  Use a generic yellow hue.
+			hue = 10920
+		try:
+			saturation = group['action']['sat']
+		except KeyError:
+			# This group must not have any color devices.  Use a generic saturation of 0.
+			saturation = 0
+		try:
+			colorX = group['action']['xy'][0]
+			colorY = group['action']['xy'][1]
+		except KeyError:
+			# This group must not have any color devices.  Use a generic colorX and Y value.
+			colorX = 0.2
+			colorY = 0.2
 		colorRed = 255		# Initialize for later
 		colorGreen = 255	# Initialize for later
 		colorBlue = 255		# Initialize for later
-		colorTemp = group['action']['ct']
+		try:
+			colorTemp = group['action']['ct']
+		except KeyError:
+			# This group must not have any color temperature compatible devices.  Assign a
+			#   generic color temperature.
+			colorTemp = 357	# 2800 K
 		colorMode = group['action']['colormode']
 		i = 0		# To count members in group.
 		for tempMemberID in group['lights']:
@@ -3895,7 +3920,22 @@ class Plugin(indigo.PluginBase):
 		except Exception, e:
 			self.errorLog(u"Unable to obtain list of Hue groups from the hub." + str(e))
 	
-	
+	# Update Lights and Groups List
+	########################################
+	def updateLightsGroupsList(self):
+		# Sanity check for an IP address
+		self.ipAddress = self.pluginPrefs.get('address', None)
+		if self.ipAddress is None:
+			errorText = u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com."
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
+		
+		# Execute the updateLigthsList and updateGroupsList methods.
+		self.updateLightsList()
+		self.updateGroupsList()
+
 	########################################
 	# Hue Hub Registration Methods
 	########################################
