@@ -14,9 +14,14 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.3.7
+#	Version 1.3.8
 #
-#	History:	1.3.7
+#	History:	1.3.8
+#				* Added support for generic ZigBee lights such as the GE Link.
+#				* Fixed a bug that caused the plugin to crash if an alert action
+#				  was taken on a Hue Group device.
+#				--
+#				1.3.7
 #				* Fixed a bug that caused the plugin to crash if there were
 #				  any Hue groups registered with the Hue hub.
 #				* Fixed a bug that prevented Hue Group devices from being
@@ -330,6 +335,7 @@ requests.defaults.defaults['keep_alive'] = False
 # LWB003	=	" " "
 # LWB004	=	Hue Lux bulb
 # LWL001	=	LivingWhites light socket
+# ZLL Light	=	Generic ZigBee Light (e.g. GE Link LEDs)
 #   (compatible Hue bulb devices)
 kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003']
 #   (compatible LivingColors devices)
@@ -337,7 +343,7 @@ kLivingColorsDeviceIDs = ['LLC001', 'LLC006', 'LLC007', 'LLC010', 'LLC011', 'LLC
 #   (compatible LightStrips devices)
 kLightStripsDeviceIDs = ['LST001']
 #   (compatible LivingWhites devices)
-kLivingWhitesDeviceIDs = ['LWB001', 'LWB003', 'LWB004', 'LWL001']
+kLivingWhitesDeviceIDs = ['LWB001', 'LWB003', 'LWB004', 'LWL001', 'ZLL Light']
 #   (all compatible devices)
 kCompatibleDeviceIDs = kHueBulbDeviceIDs + kLivingColorsDeviceIDs + kLightStripsDeviceIDs + kLivingWhitesDeviceIDs
 
@@ -448,6 +454,11 @@ class Plugin(indigo.PluginBase):
 			newProps = device.pluginProps
 			newProps['modelId'] = ""
 			device.replacePluginPropsOnServer(newProps)
+		
+		# Prior to version 1.3.8, the "alertMode" state didn't exist in Hue Group devices.
+		#   If that state does not exist, force the device state list to be updated.
+		if device.deviceTypeId == "hueGroup" and not device.states.get('alertMode', False):
+			device.stateListOrDisplayStateIdChanged()
 			
 		# Update the device lists and the device states.
 		# Hue Bulbs
@@ -2130,7 +2141,6 @@ class Plugin(indigo.PluginBase):
 			indigo.server.log(u"Error retrieving Hue bulb status: " + str(e))
 			return False
 			
-		#
 		### Parse Data
 		#
 		# Data common to all device types...
@@ -2594,6 +2604,11 @@ class Plugin(indigo.PluginBase):
 		brightness = group['action']['bri']
 		onState = group['action']['on']
 		effect = group['action']['effect']
+		try:
+			alert = group['state']['alert']
+		except KeyError:
+			# The Hue hub doesn't maintain alert states for groups in the current firmware
+			alert = ""
 		try:
 			hue = group['action']['hue']
 		except KeyError:

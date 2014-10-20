@@ -434,6 +434,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>Color Mode</TriggerLabel>
 				<ControlPageLabel>Color Mode</ControlPageLabel>
 			</State>
+			<State id="alertMode">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Alert Mode</TriggerLabel>
+				<ControlPageLabel>Alert Mode</ControlPageLabel>
+			</State>
 			<State id="effect">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Effect</TriggerLabel>
