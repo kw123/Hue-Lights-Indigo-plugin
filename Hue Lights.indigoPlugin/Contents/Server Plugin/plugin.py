@@ -14,9 +14,14 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.3.8
+#	Version 1.3.9
 #
-#	History:	1.3.8
+#	History:	1.3.9
+#				* Fixed another bug that caused the plugin to crash if a Hue
+#				  Group had no color mode defined on the Hue hub (e.g. all the
+#				  group members were non-color bulbs).
+#				--
+#				1.3.8
 #				* Added support for generic ZigBee lights such as the GE Link.
 #				* Fixed a bug that caused the plugin to crash if an alert action
 #				  was taken on a Hue Group device.
@@ -2603,7 +2608,11 @@ class Plugin(indigo.PluginBase):
 		# Value assignments.
 		brightness = group['action']['bri']
 		onState = group['action']['on']
-		effect = group['action']['effect']
+		try:
+			effect = group['action']['effect']
+		except KeyError:
+			# This group must not have an effect value.  Set it to an empty string.
+			effect = ""
 		try:
 			alert = group['state']['alert']
 		except KeyError:
@@ -2623,9 +2632,9 @@ class Plugin(indigo.PluginBase):
 			colorX = group['action']['xy'][0]
 			colorY = group['action']['xy'][1]
 		except KeyError:
-			# This group must not have any color devices.  Use a generic colorX and Y value.
-			colorX = 0.2
-			colorY = 0.2
+			# This group must not have any color devices.  Use a neutral colorX and Y value.
+			colorX = 0.5128
+			colorY = 0.4147
 		colorRed = 255		# Initialize for later
 		colorGreen = 255	# Initialize for later
 		colorBlue = 255		# Initialize for later
@@ -2635,7 +2644,12 @@ class Plugin(indigo.PluginBase):
 			# This group must not have any color temperature compatible devices.  Assign a
 			#   generic color temperature.
 			colorTemp = 357	# 2800 K
-		colorMode = group['action']['colormode']
+		try:
+			colorMode = group['action']['colormode']
+		except KeyError:
+			# This group must not have any color capabilities.  Use a "ct" as the color mode.
+			colorMode = "ct"
+
 		i = 0		# To count members in group.
 		for tempMemberID in group['lights']:
 			if i > 0:
