@@ -77,69 +77,82 @@ Scripting Examples
 Hue Lights (like most Indigo plugins) supports embedded scripts within Indigo actions. In addition to the standard device control methods such as indigo.device.turnOn("Device Name"), turnOff(), and toggle(), Hue Lights also supports Hue-sepcific actions. Below are some examples of how to execute Hue Lights actions from an embedded script within Indigo.
 
 Set brightness of "Master Bed Dresser Lamp" to 50 percent at a ramp rate of 6.5 seconds.
+
 plug = indigo.server.getPlugin("com.nathansheldon.indigoplugin.HueLights")
 if plug.isEnabled():
-   plug.executeAction("setBrightness", indigo.devices["Master Bed Dresser Lamp"].id, props={"brightness":50, "rate":6.5})
+    plug.executeAction("setBrightness", indigo.devices["Master Bed Dresser Lamp"].id, props={"brightness":50, "rate":6.5})
 
 Immediately set the hue to 290 degrees, saturation to 100% and brightness to 75% for the "Dining Room Light".
+
 plug = indigo.server.getPlugin("com.nathansheldon.indigoplugin.HueLights")
 if plug.isEnabled():
-   plug.executeAction("setHSB", indigo.devices["Dining Room Light"].id, props={"hue":290, "saturation":100, "brightness":76, "rate":0})
+    plug.executeAction("setHSB", indigo.devices["Dining Room Light"].id, props={"hue":290, "saturation":100, "brightness":76, "rate":0})
 
 Set the "Nightstand Lamp" brightness to 60% and color temperature to 2800K.
+
 plug = indigo.server.getPlugin("com.nathansheldon.indigoplugin.HueLights")
 if plug.isEnabled():
-   plug.executeAction("setCT", indigo.devices["Nightstand Lamp"].id, props={"brightness":60, "temperature":2800})
+    plug.executeAction("setCT", indigo.devices["Nightstand Lamp"].id, props={"brightness":60, "temperature":2800})
 
 Set the "Nightstand Lamp" color temperature to the "Reading" preset.
+
 plug = indigo.server.getPlugin("com.nathansheldon.indigoplugin.HueLights")
 if plug.isEnabled():
-   plug.executeAction("setCT", indigo.devices["Nightstand Lamp"].id, props={"preset":"reading"})
+    plug.executeAction("setCT", indigo.devices["Nightstand Lamp"].id, props={"preset":"reading"})
 
 Set the red, green, and blue color values of the "Table Lamp" to 245, 18, and 150 (respectively).
+
 plug = indigo.server.getPlugin("com.nathansheldon.indigoplugin.HueLights")
 if plug.isEnabled():
-   plug.executeAction("setRGB", indigo.devices["Table Lamp"].id, props={"red":245, "green":18, "blue":150})
+    plug.executeAction("setRGB", indigo.devices["Table Lamp"].id, props={"red":245, "green":18, "blue":150})
 
 Set the x, y, and Y chromaticity and luminosity values of the "Bar Ambient Lights" to 0.5145, 0.3978, and 0.75 (respectively). (x, y and Y define the color and brightness in the CIE 1931 xyY color space). Note the capitalized "Y" in the 3rd property "xyy_Y". All property names are case sensitive.
+
 plug = indigo.server.getPlugin("com.nathansheldon.indigoplugin.HueLights")
 if plug.isEnabled():
-   plug.executeAction("setXYY", indigo.devices["Bar Ambient Lights"].id, props={"xyy_x":0.5145, "xyy_y":0.3978, "xyy_Y":0.75})
+    plug.executeAction("setXYY", indigo.devices["Bar Ambient Lights"].id, props={"xyy_x":0.5145, "xyy_y":0.3978, "xyy_Y":0.75})
 
 Enable the long alert for the "Hallway Light".
+
 plug = indigo.server.getPlugin("com.nathansheldon.indigoplugin.HueLights")
 if plug.isEnabled():
-   plug.executeAction("longAlert", indigo.devices["Hallway Light"].id)
+    plug.executeAction("longAlert", indigo.devices["Hallway Light"].id)
 
 Send a single alert pulse to the "Entryway Light".
+
 plug = indigo.server.getPlugin("com.nathansheldon.indigoplugin.HueLights")
 if plug.isEnabled():
-   plug.executeAction("alertOnce", indigo.devices["Entryway Light"].id)
+    plug.executeAction("alertOnce", indigo.devices["Entryway Light"].id)
 
 Stop all active alerts on the "Hallway Light".
+
 plug = indigo.server.getPlugin("com.nathansheldon.indigoplugin.HueLights")
 if plug.isEnabled():
-   plug.executeAction("stopAlert", indigo.devices["Hallway Light"].id)
+    plug.executeAction("stopAlert", indigo.devices["Hallway Light"].id)
 
 Enable the color loop effect on the "Master Bed Dresser Lamp".
+
 plug = indigo.server.getPlugin("com.nathansheldon.indigoplugin.HueLights")
 if plug.isEnabled():
-   plug.executeAction("effect", indigo.devices["Master Bed Dresser Lamp"].id, props={"effect":"colorloop"})
+    plug.executeAction("effect", indigo.devices["Master Bed Dresser Lamp"].id, props={"effect":"colorloop"})
 
 Disable the color loop effect on the "Master Bed Dresser Lamp".
+
 plug = indigo.server.getPlugin("com.nathansheldon.indigoplugin.HueLights")
 if plug.isEnabled():
-   plug.executeAction("effect", indigo.devices["Master Bed Dresser Lamp"].id, props={"effect":"none"})
+    plug.executeAction("effect", indigo.devices["Master Bed Dresser Lamp"].id, props={"effect":"none"})
 
 Start or stop brightening the "Table Lamp".
+
 plug = indigo.server.getPlugin("com.nathansheldon.indigoplugin.HueLights")
 if plug.isEnabled():
-   plug.executeAction("startStopBrightening", indigo.devices["Table Lamp"].id)
+    plug.executeAction("startStopBrightening", indigo.devices["Table Lamp"].id)
 
 Start or stop dimming the "Table Lamp".
+
 plug = indigo.server.getPlugin("com.nathansheldon.indigoplugin.HueLights")
 if plug.isEnabled():
-   plug.executeAction("startStopDimming", indigo.devices["Table Lamp"].id)
+    plug.executeAction("startStopDimming", indigo.devices["Table Lamp"].id)
 
 When executing actions through Python scripts, the "rate" property is always optional. If a rate isn't specified, the device's default ramp rate (transition time) will be used (or 0.5 seconds will be used if no default is set). With the "setCT" color temperature action, if you include the "preset" property, the specified preset will override any temperature and brightness specified. If a "preset" property is not specified, the "temperature" and "brightness" properties are required. Possible preset values are "concentrate", "relax", "energize", and "reading". These presets are based on the default presets included in the Hue app for iOS and control both brightness and color temperature when selected.
 
