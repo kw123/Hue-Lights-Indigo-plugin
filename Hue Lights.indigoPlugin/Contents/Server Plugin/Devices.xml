@@ -297,7 +297,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	</Device>
     <!-- LivingWhites Device -->
 	<Device type="dimmer" id="hueLivingWhites">
-		<Name>LivingWhites/Hue Lux</Name>
+		<Name>LivingWhites (Hue Lux, Generic Light, etc.)</Name>
 		<ConfigUI>
 			<Field id="bulbId" type="menu">
 				<Label>Hue Device:</Label>

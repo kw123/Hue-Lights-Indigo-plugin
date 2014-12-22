@@ -14,9 +14,13 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.3.9
+#	Version 1.3.10
 #
-#	History:	1.3.9
+#	History:	1.3.10
+#				* Fixed a bug that caused the plugine to crash when trying to
+#				  obtain the "effect" state of a Hue Lux light on the hub.
+#				--
+#				1.3.9
 #				* Fixed another bug that caused the plugin to crash if a Hue
 #				  Group had no color mode defined on the Hue hub (e.g. all the
 #				  group members were non-color bulbs).
@@ -2153,7 +2157,6 @@ class Plugin(indigo.PluginBase):
 		brightness = bulb['state']['bri']
 		onState = bulb['state']['on']
 		alert = bulb['state']['alert']
-		effect = bulb['state']['effect']
 		online = bulb['state']['reachable']
 		nameOnHub = bulb['name']
 		modelId = bulb['modelid']
@@ -2188,9 +2191,7 @@ class Plugin(indigo.PluginBase):
 			device.setErrorStateOnServer("")
 		# Update the alert state of the Hue device.
 		self.updateDeviceState(device, 'alertMode', alert)
-		# Update the effect state of the Hue device.
-		self.updateDeviceState(device, 'effect', effect)
-			
+
 		# Device-type-specific data...
 		# -- Hue Bulbs --
 		if modelId in kHueBulbDeviceIDs:
@@ -2204,7 +2205,8 @@ class Plugin(indigo.PluginBase):
 			colorBlue = 255		# Initialize for later
 			colorTemp = bulb['state']['ct']
 			colorMode = bulb['state']['colormode']
-			
+			effect = bulb['state']['effect']
+	
 			#   Value manipulation.
 			# Convert from HSB to RGB, scaling the hue and saturation values appropriately.
 			hsb = HSVColor(hue / 182.0, saturation / 255.0, brightness / 255.0)
@@ -2245,7 +2247,7 @@ class Plugin(indigo.PluginBase):
 				self.updateDeviceState(device, 'colorRed', colorRed)
 				self.updateDeviceState(device, 'colorGreen', colorGreen)
 				self.updateDeviceState(device, 'colorBlue', colorBlue)
-				
+
 			elif onState == False:
 				# Hue device is off. Set brightness to zero.
 				if device.states['brightnessLevel'] != 0:
@@ -2271,7 +2273,10 @@ class Plugin(indigo.PluginBase):
 			else:
 				# Unrecognized on state, but not important enough to mention in regular log.
 				self.debugLog(u"Hue bulb unrecognized on state given by hub: " + str(bulb['state']['on']))
-				
+			
+			# Update the effect state (regardless of onState).
+			self.updateDeviceState(device, 'effect', effect)
+
 			# Update any Hue Device Attribute Controller virtual dimmers associated with this bulb.
 			for controlDeviceId in self.controlDeviceList:
 				controlDevice = indigo.devices[int(controlDeviceId)]
@@ -2315,6 +2320,7 @@ class Plugin(indigo.PluginBase):
 			colorGreen = 255	# Initialize for later
 			colorBlue = 255		# Initialize for later
 			colorMode = bulb['state']['colormode']
+			effect = bulb['state']['effect']
 			
 			#   Value manipulation.
 			# Convert from HSB to RGB, scaling the hue and saturation values appropriately.
@@ -2372,7 +2378,10 @@ class Plugin(indigo.PluginBase):
 			else:
 				# Unrecognized on state, but not important enough to mention in regular log.
 				self.debugLog(u"LightStrips unrecognized on state given by hub: " + str(bulb['state']['on']))
-				
+			
+			# Update the effect state (regardless of onState).
+			self.updateDeviceState(device, 'effect', effect)
+			
 			# Update any Hue Device Attribute Controller virtual dimmers associated with this bulb.
 			for controlDeviceId in self.controlDeviceList:
 				controlDevice = indigo.devices[int(controlDeviceId)]
@@ -2402,7 +2411,7 @@ class Plugin(indigo.PluginBase):
 						# Hue Device is off.  Set Attribute Controller device brightness level to 0.
 						self.updateDeviceState(controlDevice, 'brightnessLevel', 0)
 						
-		# -- LivingColors Bloom --
+		# -- LivingColors --
 		elif modelId in kLivingColorsDeviceIDs:
 			#   Value assignment.
 			saturation = bulb['state']['sat']
@@ -2413,6 +2422,7 @@ class Plugin(indigo.PluginBase):
 			colorGreen = 255	# Initialize for later
 			colorBlue = 255		# Initialize for later
 			colorMode = bulb['state']['colormode']
+			effect = bulb['state']['effect']
 			
 			#   Value manipulation.
 			# Convert from HSB to RGB, scaling the hue and saturation values appropriately.
@@ -2470,7 +2480,10 @@ class Plugin(indigo.PluginBase):
 			else:
 				# Unrecognized on state, but not important enough to mention in regular log.
 				self.debugLog(u"LivingColors unrecognized on state given by hub: " + str(bulb['state']['on']))
-				
+
+			# Update the effect state (regardless of onState).
+			self.updateDeviceState(device, 'effect', effect)
+			
 			# Update any Hue Device Attribute Controller virtual dimmers associated with this bulb.
 			for controlDeviceId in self.controlDeviceList:
 				controlDevice = indigo.devices[int(controlDeviceId)]
