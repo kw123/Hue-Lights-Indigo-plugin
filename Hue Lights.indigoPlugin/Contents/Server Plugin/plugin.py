@@ -14,9 +14,17 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.3.10
+#	Version 1.3.12
 #
-#	History:	1.3.10
+#	History:	1.3.12
+#				* Added support for the Dresden Elektronik FLS-PP lp color
+#				  LED light strip.
+#				--
+#				1.3.11
+#				* Added Hue Go, Color Light, and Color Temperature modules to
+#				  compatible device list.
+#				--
+#				1.3.10
 #				* Fixed a bug that caused the plugine to crash when trying to
 #				  obtain the "effect" state of a Hue Lux light on the hub.
 #				--
@@ -331,24 +339,30 @@ requests.defaults.defaults['keep_alive'] = False
 # LCT001	=	Hue bulb
 # LCT002	=	Hue Downlight BR30 bulb
 # LCT003	=	Hue Spot Light GU10 bulb
-# LLC001	=	LivingColor light (generic)
-# LLC006	=	" " "
-# LLC007	=	" " "
+# LLC001	=	LivingColors light (generic)
+# LLC006	=	LivingColors Gen3 Iris
+# LLC007	=	LivingColors Gen3 Bloom Aura
 # LLC010	=	LivingColors Iris (Europe)
 # LLC011	=	Bloom (European?)
 # LLC012	=	Bloom
 # LLC013	=	Disney StoryLight
-# LLC014	=	LivingColor Aura
+# LLC014	=	LivingColors Aura
+# LLC020	=	Hue Go
+# LLM001	=	Hue Luminaire Color Light Module
+# LLM010	=	Hue Color Temperature Module (2200K - 6500K)
+# LLM011	=	" " "
+# LLM012	=	" " "
 # LST001	=	LED LightStrip
 # LWB001	=	LivingWhites bulb
 # LWB003	=	" " "
-# LWB004	=	Hue Lux bulb
+# LWB004	=	Hue A19 Lux
 # LWL001	=	LivingWhites light socket
 # ZLL Light	=	Generic ZigBee Light (e.g. GE Link LEDs)
+# FLS-PP3	=	Dresden Elektronik FLS-PP lp color LED light strip
 #   (compatible Hue bulb devices)
-kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003']
+kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LLM001', 'LLM010', 'LLM011', 'LLM012', 'FLS-PP3']
 #   (compatible LivingColors devices)
-kLivingColorsDeviceIDs = ['LLC001', 'LLC006', 'LLC007', 'LLC010', 'LLC011', 'LLC012', 'LLC013', 'LLC014']
+kLivingColorsDeviceIDs = ['LLC001', 'LLC006', 'LLC007', 'LLC010', 'LLC011', 'LLC012', 'LLC013', 'LLC014', 'LLC020']
 #   (compatible LightStrips devices)
 kLightStripsDeviceIDs = ['LST001']
 #   (compatible LivingWhites devices)
