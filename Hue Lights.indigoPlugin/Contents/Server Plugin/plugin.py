@@ -14,9 +14,13 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.3.12
+#	Version 1.3.13
 #
-#	History:	1.3.12
+#	History:	1.3.13
+#				* Added support for the Dresden Elektronik FLS-PP lp LED strip
+#				  white light segment.
+#				--
+#				1.3.12
 #				* Added support for the Dresden Elektronik FLS-PP lp color
 #				  LED light strip.
 #				--
@@ -358,7 +362,8 @@ requests.defaults.defaults['keep_alive'] = False
 # LWB004	=	Hue A19 Lux
 # LWL001	=	LivingWhites light socket
 # ZLL Light	=	Generic ZigBee Light (e.g. GE Link LEDs)
-# FLS-PP3	=	Dresden Elektronik FLS-PP lp color LED light strip
+# FLS-PP3	=	Dresden Elektronik FLS-PP lp LED light strip, color LED segment
+# FLS-PP3 White = Dresden Elektronik FLS-PP lp LED light strip, white light segment
 #   (compatible Hue bulb devices)
 kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LLM001', 'LLM010', 'LLM011', 'LLM012', 'FLS-PP3']
 #   (compatible LivingColors devices)
@@ -366,7 +371,7 @@ kLivingColorsDeviceIDs = ['LLC001', 'LLC006', 'LLC007', 'LLC010', 'LLC011', 'LLC
 #   (compatible LightStrips devices)
 kLightStripsDeviceIDs = ['LST001']
 #   (compatible LivingWhites devices)
-kLivingWhitesDeviceIDs = ['LWB001', 'LWB003', 'LWB004', 'LWL001', 'ZLL Light']
+kLivingWhitesDeviceIDs = ['LWB001', 'LWB003', 'LWB004', 'LWL001', 'ZLL Light', 'FLS-PP3 White']
 #   (all compatible devices)
 kCompatibleDeviceIDs = kHueBulbDeviceIDs + kLivingColorsDeviceIDs + kLightStripsDeviceIDs + kLivingWhitesDeviceIDs
 
