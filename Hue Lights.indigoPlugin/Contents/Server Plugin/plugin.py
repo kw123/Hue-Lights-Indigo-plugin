@@ -14,9 +14,13 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.3.13
+#	Version 1.3.14
 #
-#	History:	1.3.13
+#	History:	1.3.14
+#				* Added support for the new 800 lumen Hue bulb and the LED
+#				  LightStrip Plus (temporarily found in the Hue Bulb list).
+#				--
+#				1.3.13
 #				* Added support for the Dresden Elektronik FLS-PP lp LED strip
 #				  white light segment.
 #				--
@@ -343,6 +347,7 @@ requests.defaults.defaults['keep_alive'] = False
 # LCT001	=	Hue bulb
 # LCT002	=	Hue Downlight BR30 bulb
 # LCT003	=	Hue Spot Light GU10 bulb
+# LCT007	=	Hue bulb (800 lumen version)
 # LLC001	=	LivingColors light (generic)
 # LLC006	=	LivingColors Gen3 Iris
 # LLC007	=	LivingColors Gen3 Bloom Aura
@@ -357,6 +362,10 @@ requests.defaults.defaults['keep_alive'] = False
 # LLM011	=	" " "
 # LLM012	=	" " "
 # LST001	=	LED LightStrip
+# LST002	=	LED LightStrip Plus (RGB + color temperature)
+#				The LightStrip Plus is temporarily in the kHueBulbDeviceIDs
+#				list because it supports color temperature and more code will
+#				need to change before it can be added to the kLightStripsDeviceIDs list.
 # LWB001	=	LivingWhites bulb
 # LWB003	=	" " "
 # LWB004	=	Hue A19 Lux
@@ -365,7 +374,7 @@ requests.defaults.defaults['keep_alive'] = False
 # FLS-PP3	=	Dresden Elektronik FLS-PP lp LED light strip, color LED segment
 # FLS-PP3 White = Dresden Elektronik FLS-PP lp LED light strip, white light segment
 #   (compatible Hue bulb devices)
-kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LLM001', 'LLM010', 'LLM011', 'LLM012', 'FLS-PP3']
+kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LCT007', 'LLM001', 'LLM010', 'LLM011', 'LLM012', 'LST002', 'FLS-PP3']
 #   (compatible LivingColors devices)
 kLivingColorsDeviceIDs = ['LLC001', 'LLC006', 'LLC007', 'LLC010', 'LLC011', 'LLC012', 'LLC013', 'LLC014', 'LLC020']
 #   (compatible LightStrips devices)

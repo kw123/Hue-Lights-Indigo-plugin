@@ -2,7 +2,7 @@
 <Devices>
     <!-- Bulb Device -->
 	<Device type="dimmer" id="hueBulb">
-		<Name>Hue Bulb (Original, Downlight, Spotlight, etc.)</Name>
+		<Name>Hue Bulb (Original, Downlight, Spotlight, LightStrip Plus)</Name>
 		<ConfigUI>
 			<Field id="bulbId" type="menu">
 				<Label>Hue Device:</Label>
