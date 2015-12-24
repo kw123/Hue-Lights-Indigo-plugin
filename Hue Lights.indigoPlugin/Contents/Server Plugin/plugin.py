@@ -14,9 +14,12 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.3.15
+#	Version 1.3.16
 #
-#	History:	1.3.15
+#	History:	1.3.16
+#				* Added support for the Phoenix wall lights.
+#				--
+#				1.3.15
 #				* Moved supported device lists into a separate Python file
 #				  for easier maintenance
 #				* Added support for the Hue White A19 extension bulb.
