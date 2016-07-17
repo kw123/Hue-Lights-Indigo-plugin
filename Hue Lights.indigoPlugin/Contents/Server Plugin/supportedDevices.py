@@ -29,24 +29,27 @@
 #				The LightStrip Plus is temporarily in the kHueBulbDeviceIDs
 #				list because it supports color temperature and more code will
 #				need to change before it can be added to the kLightStripsDeviceIDs list.
+# LTW004	=	Hue White Ambiance bulb (color temperature only bulb).
 # LWB001	=	LivingWhites bulb
 # LWB003	=	" " "
 # LWB004	=	Hue A19 Lux
 # LWB006	=	Hue White A19 extension bulb
 # LWL001	=	LivingWhites light socket
+# HML004	=	Phoenix wall lights
+# HML006	=	Phoenix white LED lights
 # ZLL Light	=	Generic ZigBee Light (e.g. GE Link LEDs)
 # FLS-PP3	=	Dresden Elektronik FLS-PP lp LED light strip, color LED segment
 # FLS-PP3 White = Dresden Elektronik FLS-PP lp LED light strip, white light segment
-# HML004	=	Phoenix wall lights
+# Classic A60 TW = Osram Lightify CLA60 Tunable White bulb (color temp. only)
 
 
 #   (compatible Hue bulb devices)
-kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LCT007', 'LLM001', 'LLM010', 'LLM011', 'LLM012', 'LST002', 'FLS-PP3', 'HML004']
+kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LCT007', 'LLM001', 'LLM010', 'LLM011', 'LLM012', 'LTW004', 'LST002', 'FLS-PP3']
 #   (compatible LivingColors devices)
 kLivingColorsDeviceIDs = ['LLC001', 'LLC006', 'LLC007', 'LLC010', 'LLC011', 'LLC012', 'LLC013', 'LLC014', 'LLC020']
 #   (compatible LightStrips devices)
 kLightStripsDeviceIDs = ['LST001']
 #   (compatible LivingWhites devices)
-kLivingWhitesDeviceIDs = ['LWB001', 'LWB003', 'LWB004', 'LWB006', 'LWL001', 'ZLL Light', 'FLS-PP3 White']
+kLivingWhitesDeviceIDs = ['LWB001', 'LWB003', 'LWB004', 'LWB006', 'LWL001', 'ZLL Light', 'FLS-PP3 White', 'HML004', 'HML006', 'Classic A60 TW']
 #   (all compatible devices)
 kCompatibleDeviceIDs = kHueBulbDeviceIDs + kLivingColorsDeviceIDs + kLightStripsDeviceIDs + kLivingWhitesDeviceIDs

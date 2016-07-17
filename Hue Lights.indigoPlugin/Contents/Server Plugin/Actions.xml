@@ -26,7 +26,7 @@
 				<Description>Brightness level the device should be set to.</Description>
 			</Field>
 			<Field id="brightnessVariable" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="variable">
-				<Label>Variable:</Label>
+				<Label>Brightness Variable:</Label>
 				<List class="indigo.variables"/>
 			</Field>
 			<Field id="brightnessDevice" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="dimmer">
@@ -84,13 +84,21 @@
 0 = blue LEDs off
 255 = blue LEDs on full</Label>
 			</Field>
-			<Field id="rate" type="textfield">
-				<Label>Ramp Rate:</Label>
+			<Field id="useRateVariable" type="checkbox" defaultValue="false">
+				<Label>Use Ramp Rate Variable</Label>
 			</Field>
-			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+			<Field id="rate" type="textfield" visibleBindingId="useRateVariable" visibleBindingValue="false">
+				<Label>Ramp Rate (0-540):</Label>
+			</Field>
+			<Field id="rateVariable" type="menu" visibleBindingId="useRateVariable" visibleBindingValue="true">
+				<Label>Ramp Rate Variable:</Label>
+				<List class="indigo.variables"/>
+			</Field>
+			<Field id="rampRateLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 540 seconds)
-0 = instant
-Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
+0 = instant.
+Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+				</Label>
 			</Field>
 			<Field id="details0" type="label" fontColor="darkgray" fontSize="small">
 				<Label>* Within 30 seconds (or less) after this action executes, the device states will update to reflect a more accurate representation of the color being presented by the Hue device. These conversions are done by the Hue hub itself.
@@ -124,21 +132,46 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 0 = white (Hue is meaningless).
 100 = full color (no white mixed in).</Label>
 			</Field>
-			<Field id="brightness" type="textfield" defaultValue="100">
-				<Label>Brightness:</Label>
+			<Field id="brightnessSource" type="menu" defaultValue="custom">
+				<Label>Brightness Source:</Label>
+				<List>
+					<Option value="custom">Enter Value</Option>
+					<Option value="variable">Use Variable</Option>
+					<Option value="dimmer">Other Dimmer Brightness</Option>
+				</List>
 			</Field>
-			<Field id="labelBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+			<Field id="brightness" type="textfield" visibleBindingId="brightnessSource" visibleBindingValue="custom">
+				<Label>Brightness (0-100):</Label>
+				<Description>Brightness level the device should be set to.</Description>
+			</Field>
+			<Field id="brightnessVariable" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="variable">
+				<Label>Brightness Variable:</Label>
+				<List class="indigo.variables"/>
+			</Field>
+			<Field id="brightnessDevice" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="dimmer">
+				<Label>Other Dimmer:</Label>
+				<List class="indigo.devices" filter="indigo.dimmer"/>
+			</Field>
+			<Field id="labelBrightness" type="label" visibleBindingId="brightnessSource" visibleBindingValue="custom" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 100%)
 0 = off.
 100 = full brightness.</Label>
 			</Field>
-			<Field id="rate" type="textfield">
-				<Label>Ramp Rate:</Label>
+			<Field id="useRateVariable" type="checkbox" defaultValue="false">
+				<Label>Use Ramp Rate Variable</Label>
 			</Field>
-			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+			<Field id="rate" type="textfield" visibleBindingId="useRateVariable" visibleBindingValue="false">
+				<Label>Ramp Rate (0-540):</Label>
+			</Field>
+			<Field id="rateVariable" type="menu" visibleBindingId="useRateVariable" visibleBindingValue="true">
+				<Label>Ramp Rate Variable:</Label>
+				<List class="indigo.variables"/>
+			</Field>
+			<Field id="rampRateLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 540 seconds)
 0 = instant.
-Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
+Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+				</Label>
 			</Field>
 			<Field id="details0" type="label" fontColor="darkgray" fontSize="small">
 				<Label>* Within 30 seconds (or less) after this action executes, the device states, including the hue and saturation, will update to reflect a more accurate representation of the color being presented by the Hue device. These conversions are done by the Hue hub itself.</Label>
@@ -176,13 +209,21 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 0 = off
 1 = full brightness</Label>
 			</Field>
-			<Field id="rate" type="textfield">
-				<Label>Ramp Rate:</Label>
+			<Field id="useRateVariable" type="checkbox" defaultValue="false">
+				<Label>Use Ramp Rate Variable</Label>
 			</Field>
-			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+			<Field id="rate" type="textfield" visibleBindingId="useRateVariable" visibleBindingValue="false">
+				<Label>Ramp Rate (0-540):</Label>
+			</Field>
+			<Field id="rateVariable" type="menu" visibleBindingId="useRateVariable" visibleBindingValue="true">
+				<Label>Ramp Rate Variable:</Label>
+				<List class="indigo.variables"/>
+			</Field>
+			<Field id="rampRateLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 540 seconds)
-0 = instant
-Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
+0 = instant.
+Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+				</Label>
 			</Field>
 			<Field id="description" type="textfield" hidden="true">
 				<Label/>
@@ -198,44 +239,80 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				</Label>
 			</Field>
 			<Field type="menu" id="preset" defaultValue="relax">
-				<Label>Presets:</Label>
+				<Label>Preset Color Recipes:</Label>
 				<List>
 					<Option value="relax">Relax</Option>
 					<Option value="reading">Reading</Option>
 					<Option value="concentrate">Concentrate</Option>
 					<Option value="energize">Energize</Option>
-					<Option value="custom">Custom Temperature</Option>
+					<Option value="custom">Custom Temperature/Brightness</Option>
 				</List>
 			</Field>
 			<Field id="labelPoint" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>Select a preset white point or select "Custom Temperature" to specify a specific color temperature (in Kelvin).</Label>
+				<Label>Select a "Preset Color Recipe" or select "Custom Temperature/Brightness" to specify a specific color temperature (in Kelvin).</Label>
 			</Field>
-			<Field id="temperature" type="textfield" defaultValue="2800" visibleBindingId="preset" visibleBindingValue="custom">
+			<Field id="temperatureSource" type="menu" defaultValue="custom" visibleBindingId="preset" visibleBindingValue="custom">
+				<Label>Temperature Source:</Label>
+				<List>
+					<Option value="custom">Enter Value</Option>
+					<Option value="variable">Use Variable</Option>
+				</List>
+			</Field>
+			<Field id="temperature" type="textfield" defaultValue="2800" visibleBindingId="temperatureSource" visibleBindingValue="custom">
 				<Label>Color Temperature:</Label>
 			</Field>
-			<Field id="labelTemperature" type="label" visibleBindingId="preset" visibleBindingValue="custom" alignWithControl="true" fontSize="small" fontColor="darkgray">
+			<Field id="temperatureVariable" type="menu" visibleBindingId="temperatureSource" visibleBindingValue="variable">
+				<Label>Color Temperature Variable:</Label>
+				<List class="indigo.variables"/>
+			</Field>
+			<Field id="labelTemperature" type="label" visibleBindingId="temperatureSource" visibleBindingValue="custom" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(2000 - 6500 K)
 2000 = very warm (more red).
 6500 = very cool (more blue).</Label>
 			</Field>
-			<Field id="brightness" type="textfield" visibleBindingId="preset" visibleBindingValue="custom" defaultValue="100">
-				<Label>Brightness:</Label>
+			<Field id="brightnessSource" type="menu" defaultValue="custom" visibleBindingId="preset" visibleBindingValue="custom">
+				<Label>Brightness Source:</Label>
+				<List>
+					<Option value="custom">Enter Value</Option>
+					<Option value="variable">Use Variable</Option>
+					<Option value="dimmer">Other Dimmer Brightness</Option>
+				</List>
 			</Field>
-			<Field id="labelBrightness" type="label" visibleBindingId="preset" visibleBindingValue="custom" alignWithControl="true" fontSize="small" fontColor="darkgray">
+			<Field id="brightness" type="textfield" visibleBindingId="brightnessSource" visibleBindingValue="custom">
+				<Label>Brightness (0-100):</Label>
+				<Description>Brightness level the device should be set to.</Description>
+			</Field>
+			<Field id="brightnessVariable" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="variable">
+				<Label>Brightness Variable:</Label>
+				<List class="indigo.variables"/>
+			</Field>
+			<Field id="brightnessDevice" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="dimmer">
+				<Label>Other Dimmer:</Label>
+				<List class="indigo.devices" filter="indigo.dimmer"/>
+			</Field>
+			<Field id="labelBrightness" type="label" visibleBindingId="brightnessSource" visibleBindingValue="custom" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 100%)
 0 = off.
 100 = full brightness.</Label>
 			</Field>
-			<Field id="rate" type="textfield">
-				<Label>Ramp Rate:</Label>
+			<Field id="useRateVariable" type="checkbox" defaultValue="false">
+				<Label>Use Ramp Rate Variable</Label>
 			</Field>
-			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+			<Field id="rate" type="textfield" visibleBindingId="useRateVariable" visibleBindingValue="false">
+				<Label>Ramp Rate (0-540):</Label>
+			</Field>
+			<Field id="rateVariable" type="menu" visibleBindingId="useRateVariable" visibleBindingValue="true">
+				<Label>Ramp Rate Variable:</Label>
+				<List class="indigo.variables"/>
+			</Field>
+			<Field id="rampRateLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 540 seconds)
 0 = instant.
-Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.</Label>
+Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+				</Label>
 			</Field>
 			<Field id="details0" type="label" fontColor="darkgray" fontSize="small">
-				<Label>Within 30 seconds (or less) after this action executes, the device states, including the color temperature, will update to reflect a more accurate representation of the color being presented by the Hue bulb. These conversions are done by the Hue hub itself.</Label>
+				<Label>* Within 30 seconds (or less) after this action executes, the device states, including the color temperature, will update to reflect a more accurate representation of the color being presented by the Hue bulb. These conversions are done by the Hue hub itself.</Label>
 			</Field>
 			<Field id="description" type="textfield" hidden="true">
 				<Label/>

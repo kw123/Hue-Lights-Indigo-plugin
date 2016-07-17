@@ -387,6 +387,9 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="savedBrightness" type="textfield" hidden="true">
 				<Label/>
 			</Field>
+			<Field id="modelId" type="textfield" hidden="true">
+				<Label/>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="hue">

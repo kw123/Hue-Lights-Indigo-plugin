@@ -18,9 +18,9 @@
 	</Field>
 	<Field id="startPairingButton"
 			type="button"
-			tooltip="If this is the first time connecting to a Hue hub, click this to start pairing. Press the button on the Hue hub, then press this button again to finish pairing">
+			tooltip="Before clicking this button, press the center button on the Hue hub.  Within 30 seconds of doing that, come back here and click this button to pair with the Hue hub.">
 		<Label>Pairing:</Label>
-		<Title>Start/Finish</Title>
+		<Title>Pair Now</Title>
 		<CallbackMethod>restartPairing</CallbackMethod>
     </Field>
 	<Field id="sep0" type="separator"/>
@@ -50,12 +50,12 @@
 		<Label>INSTRUCTION:</Label>
 	</Field>
 	<Field id="instructions1" type="label" fontColor="darkgray" fontSize="small">
-		<Label>Enter the IP address or host name assigned to the Hue hub by your router.  If you are unable to find the IP address given to your Hue hub using your router's administrative interface, you can obtain the Hue hub's IP address by registering on and using the www.meethue.com web site, then viewing your hub settings.</Label>
+		<Label>Enter the IP address assigned to the Hue hub by your router.  If you are unable to find the IP address given to your Hue hub using your router's administrative interface, you can obtain the Hue hub's IP address by registering on and using the www.meethue.com web site, then viewing your hub settings.</Label>
 	</Field>
 	<Field id="instructions2" type="label" fontColor="darkgray" fontSize="small">
-		<Label>After the IP address or host name has been entered, click the Start/Finish button. Go to the Hue hub and press the button in the center of the hub, then come back to this dialog and press the Start/Finish button again.</Label>
+		<Label>After the IP address has been entered, go to the Hue hub and press the center button.  Within 30 seconds, come back to this dialog and click the "Pair Now" button.</Label>
 	</Field>
 	<Field id="instructions3" type="label" fontColor="darkgray" fontSize="small">
-		<Label>Once this is done, click the Save button.</Label>
+		<Label>Once this is done, click the "Save" button.</Label>
 	</Field>
 </PluginConfig>
