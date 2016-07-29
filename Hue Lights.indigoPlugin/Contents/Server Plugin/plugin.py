@@ -14,10 +14,15 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.3.25
+#	Version 1.3.26
 #
-#	History:	1.3.25
-#				* Added support for the Hue White Ambiance bulb.
+#	History:	1.3.26
+#				* Actually added the 2nd Hue White Ambiance model ID this time.
+#				--
+#				1.3.25
+#				* Added support for 2 Hue White Ambiance bulb models.
+#				* Fixed bug that caused the plugin to crash if a light had no
+#				  color information from the Hue hub.
 #				--
 #				1.3.24
 #				* Fixed a bug that caused the plugin to hang then crash after adding
@@ -2491,7 +2496,7 @@ class Plugin(indigo.PluginBase):
 		#
 		# Data common to all device types...
 		#   Value assignments.
-		brightness = bulb['state'].get('bri', "0")
+		brightness = bulb['state'].get('bri', 0)
 		onState = bulb['state'].get('on', False)
 		alert = bulb['state'].get('alert', "")
 		online = bulb['state'].get('reachable', False)
@@ -2533,14 +2538,14 @@ class Plugin(indigo.PluginBase):
 		# -- Hue Bulbs --
 		if modelId in kHueBulbDeviceIDs:
 			#   Value assignment.  (Using the get() method to avoid KeyErrors).
-			hue = bulb['state'].get('hue', "0")
-			saturation = bulb['state'].get('sat', "0")
+			hue = bulb['state'].get('hue', 0)
+			saturation = bulb['state'].get('sat', 0)
 			colorX = bulb['state'].get('xy', [0,0])[0]
 			colorY = bulb['state'].get('xy', [0,0])[1]
 			colorRed = 255		# Initialize for later
 			colorGreen = 255	# Initialize for later
 			colorBlue = 255		# Initialize for later
-			colorTemp = bulb['state'].get('ct', "0")
+			colorTemp = bulb['state'].get('ct', 0)
 			colorMode = bulb['state'].get('colormode', "ct")
 			effect = bulb['state'].get('effect', "none")
 	

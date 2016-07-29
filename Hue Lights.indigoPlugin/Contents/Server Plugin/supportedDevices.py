@@ -29,7 +29,8 @@
 #				The LightStrip Plus is temporarily in the kHueBulbDeviceIDs
 #				list because it supports color temperature and more code will
 #				need to change before it can be added to the kLightStripsDeviceIDs list.
-# LTW004	=	Hue White Ambiance bulb (color temperature only bulb).
+# LTW001	=	Hue White Ambiance bulb (color temperature only bulb).
+# LTW004	=	Another Hue White Ambiance bulb (color temperature only bulb).
 # LWB001	=	LivingWhites bulb
 # LWB003	=	" " "
 # LWB004	=	Hue A19 Lux
@@ -44,7 +45,7 @@
 
 
 #   (compatible Hue bulb devices)
-kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LCT007', 'LLM001', 'LLM010', 'LLM011', 'LLM012', 'LTW004', 'LST002', 'FLS-PP3']
+kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LCT007', 'LLM001', 'LLM010', 'LLM011', 'LLM012', 'LTW001', 'LTW004', 'LST002', 'FLS-PP3']
 #   (compatible LivingColors devices)
 kLivingColorsDeviceIDs = ['LLC001', 'LLC006', 'LLC007', 'LLC010', 'LLC011', 'LLC012', 'LLC013', 'LLC014', 'LLC020']
 #   (compatible LightStrips devices)
