@@ -14,9 +14,13 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.3.26
+#	Version 1.3.27
 #
-#	History:	1.3.26
+#	History:	1.3.27
+#				* Fixed a bug that caused a plugin crash when updating the status
+#				  of a bulb that has no hue value associated with ti.
+#				--
+#				1.3.26
 #				* Actually added the 2nd Hue White Ambiance model ID this time.
 #				--
 #				1.3.25
@@ -2402,7 +2406,7 @@ class Plugin(indigo.PluginBase):
 	def updateDeviceState(self, device, state, newValue):
 		# Change the device state on the server
 		#   if it's different than the current state.
-		if (newValue != device.states[state]):
+		if (newValue != device.states.get(state, None)):
 			try:
 				self.debugLog(u"updateDeviceState: Updating device " + device.name + u" state: " + str(state) + u" = " + str(newValue))
 			except Exception, e:
@@ -6260,7 +6264,7 @@ class Plugin(indigo.PluginBase):
 						self.lastErrorMessage = errorText
 						return
 				else:
-					temperature = device.states['colorTemp']
+					temperature = device.states.get('colorTemp', 2700)
 					
 			if brightnessSource == "custom":
 				# Using an entered brightness value.
