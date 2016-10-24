@@ -14,9 +14,12 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.3.27
+#	Version 1.3.28
 #
-#	History:	1.3.27
+#	History:	1.3.28
+#				* Added support for the Hue bulb v3, Hue White v2 and Hue White v3.
+#				--
+#				1.3.27
 #				* Fixed a bug that caused a plugin crash when updating the status
 #				  of a bulb that has no hue value associated with ti.
 #				--

@@ -11,6 +11,7 @@
 # LCT002	=	Hue Downlight BR30 bulb
 # LCT003	=	Hue Spot Light GU10 bulb
 # LCT007	=	Hue bulb (800 lumen version)
+# LCT010	=	Hue bulb (version 3)
 # LLC001	=	LivingColors light (generic)
 # LLC006	=	LivingColors Gen3 Iris
 # LLC007	=	LivingColors Gen3 Bloom Aura
@@ -35,6 +36,8 @@
 # LWB003	=	" " "
 # LWB004	=	Hue A19 Lux
 # LWB006	=	Hue White A19 extension bulb
+# LWB010	=	Hue White (version 2)
+# LWB014	=	Hue White (version 3)
 # LWL001	=	LivingWhites light socket
 # HML004	=	Phoenix wall lights
 # HML006	=	Phoenix white LED lights
@@ -45,12 +48,12 @@
 
 
 #   (compatible Hue bulb devices)
-kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LCT007', 'LLM001', 'LLM010', 'LLM011', 'LLM012', 'LTW001', 'LTW004', 'LST002', 'FLS-PP3']
+kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LCT007', 'LLC010', 'LLM001', 'LLM010', 'LLM011', 'LLM012', 'LTW001', 'LTW004', 'LST002', 'FLS-PP3']
 #   (compatible LivingColors devices)
 kLivingColorsDeviceIDs = ['LLC001', 'LLC006', 'LLC007', 'LLC010', 'LLC011', 'LLC012', 'LLC013', 'LLC014', 'LLC020']
 #   (compatible LightStrips devices)
 kLightStripsDeviceIDs = ['LST001']
 #   (compatible LivingWhites devices)
-kLivingWhitesDeviceIDs = ['LWB001', 'LWB003', 'LWB004', 'LWB006', 'LWL001', 'ZLL Light', 'FLS-PP3 White', 'HML004', 'HML006', 'Classic A60 TW']
+kLivingWhitesDeviceIDs = ['LWB001', 'LWB003', 'LWB004', 'LWB006', 'LWB010', 'LWB014', 'LWL001', 'ZLL Light', 'FLS-PP3 White', 'HML004', 'HML006', 'Classic A60 TW']
 #   (all compatible devices)
 kCompatibleDeviceIDs = kHueBulbDeviceIDs + kLivingColorsDeviceIDs + kLightStripsDeviceIDs + kLivingWhitesDeviceIDs
