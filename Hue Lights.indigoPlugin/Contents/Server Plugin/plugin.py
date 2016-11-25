@@ -14,9 +14,13 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.3.29
+#	Version 1.3.30
 #
-#	History:	1.3.29
+#	History:	1.3.30
+#				* Fixed a bug in 1.3.29 that prevented Hue Lights from recognizing the
+#				  2nd generation LightStrips.
+#				--
+#				1.3.29
 #				* Added support for additional Hue light models.
 #				--
 #				1.3.28

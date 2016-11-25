@@ -53,7 +53,7 @@
 
 
 #   (compatible Hue bulb devices)
-kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LCT007', 'LCT010', 'LCT011', 'LCT014', 'LLC010', 'LLM001', 'LLM010', 'LLM011', 'LLM012', 'LTW001', 'LTW004', 'LTW013', 'LTW014' 'LST002', 'FLS-PP3']
+kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LCT007', 'LCT010', 'LCT011', 'LCT014', 'LLC010', 'LLM001', 'LLM010', 'LLM011', 'LLM012', 'LTW001', 'LTW004', 'LTW013', 'LTW014', 'LST002', 'FLS-PP3']
 #   (compatible LivingColors devices)
 kLivingColorsDeviceIDs = ['LLC001', 'LLC006', 'LLC007', 'LLC011', 'LLC012', 'LLC013', 'LLC014', 'LLC020']
 #   (compatible LightStrips devices)
