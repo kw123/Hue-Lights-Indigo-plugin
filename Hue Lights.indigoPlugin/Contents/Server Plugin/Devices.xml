@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <Devices>
-    <!-- Bulb Device -->
+    <!-- Extended Color Device -->
 	<Device type="dimmer" id="hueBulb">
-		<Name>Hue Bulb (Original, Downlight, Spotlight, LightStrip Plus)</Name>
+		<Name>Hue Color/Ambiance (Original, Downlight, Spotlight, etc.)</Name>
 		<ConfigUI>
 			<Field id="bulbId" type="menu">
 				<Label>Hue Device:</Label>
@@ -39,6 +39,36 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 			<Field id="modelId" type="textfield" hidden="true">
 				<Label/>
 			</Field>
+			<!-- By default dimmer type devices automatically inherit these
+			device properties which describe the characteristics of a specific
+			dimmer instance:
+
+				SupportsColor:								True or False
+				-> SupportsRGB:								True or False (requires SupportsColor to be True)
+				-> SupportsWhite:							True or False (requires SupportsColor to be True)
+				   -> SupportsTwoWhiteLevels:				True or False (requires SupportsWhite to be True)
+				   -> SupportsTwoWhiteLevelsSimultaneously:	True or False (requires SupportsTwoWhiteLevels to be True)
+				   -> SupportsWhiteTemperature:				True or False (requires SupportsWhite to be True)
+				   -> SupportsRGBandWhiteSimultaneously:	True or False (requires SupportsRGB and SupportsWhite to be True)
+			
+			Plugins can update these properties either in device ConfigUI
+			(like below), or can update them from python by using the
+			dev.replacePluginPropsOnServer() method, most likely inside your
+			deviceStartComm method. Both will trigger the Indigo Server to
+			automatically rebuild the device's states list based on the needed
+			changes.
+
+			Two white level fields (SupportsTwoWhiteLevels) is used by some hardware
+			to mix cool and warm white levels. Other hardware provides this capability
+			by using a white temperature value (SupportsWhiteTemperature). The two
+			techniques are mutually exlcusive, so choosing to enable two white levels
+			will override (and not show) the white temperature UI.
+			-->
+			<Field type="checkbox" id="SupportsColor" hidden="true" defaultValue="true" />
+			<Field type="checkbox" id="SupportsRGB" hidden="true" defaultValue="true" />
+			<Field type="checkbox" id="SupportsWhite" hidden="true" defaultValue="true" />
+			<Field type="checkbox" id="SupportsWhiteTemperature" hidden="true" defaultValue="true" />
+			<Field type="checkbox" id="SupportsRGBandWhiteSimultaneously" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
 			<State id="hue">
@@ -103,9 +133,79 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 			</State>
 		</States>
 	</Device>
+	<!-- Ambiance Device -->
+	<Device type="dimmer" id="hueAmbiance">
+		<Name>Ambiance Lights</Name>
+		<ConfigUI>
+			<Field id="bulbId" type="menu">
+				<Label>Hue Device:</Label>
+				<List class="self" method="bulbListGenerator"/>
+			</Field>
+			<Field id="defaultBrightness" type="textfield">
+				<Label>Default Brightness:</Label>
+			</Field>
+			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(1 - 100 percent)
+					Optionally set a default brightness level used whenever an "on" command is sent to this device.  If no value is entered, when an "on" command is sent, the device will return to the brightness it was at before being turned off.
+				</Label>
+			</Field>
+			<Field id="rate" type="textfield">
+				<Label>Ramp Rate:</Label>
+			</Field>
+			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 540 seconds)
+					0 = instant.
+					Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+				</Label>
+			</Field>
+			<Field id="address" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+			<Field id="nameOnHub" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+			<Field id="savedBrightness" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+			<Field id="modelId" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+			<Field type="checkbox" id="SupportsColor" hidden="true" defaultValue="false" />
+			<Field type="checkbox" id="SupportsRGB" hidden="true" defaultValue="false" />
+			<Field type="checkbox" id="SupportsWhite" hidden="true" defaultValue="true" />
+			<Field type="checkbox" id="SupportsWhiteTemperature" hidden="true" defaultValue="true" />
+		</ConfigUI>
+		<States>
+			<State id="colorTemp">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Color Temperature (K)</TriggerLabel>
+				<ControlPageLabel>Color Temperature (K)</ControlPageLabel>
+			</State>
+			<State id="colorMode">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Color Mode</TriggerLabel>
+				<ControlPageLabel>Color Mode</ControlPageLabel>
+			</State>
+			<State id="alertMode">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Alert Mode</TriggerLabel>
+				<ControlPageLabel>Alert Mode</ControlPageLabel>
+			</State>
+			<State id="effect">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Effect</TriggerLabel>
+				<ControlPageLabel>Effect</ControlPageLabel>
+			</State>
+			<State id="online">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Online</TriggerLabel>
+				<ControlPageLabel>Online</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
     <!-- LightStrips Device -->
 	<Device type="dimmer" id="hueLightStrips">
-		<Name>LightStrips</Name>
+		<Name>Hue LightStrips</Name>
 		<ConfigUI>
 			<Field id="bulbId" type="menu">
 				<Label>Hue Device:</Label>
@@ -140,6 +240,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="modelId" type="textfield" hidden="true">
 				<Label/>
 			</Field>
+			<Field type="checkbox" id="SupportsColor" hidden="true" defaultValue="true" />
+			<Field type="checkbox" id="SupportsRGB" hidden="true" defaultValue="true" />
+			<Field type="checkbox" id="SupportsWhite" hidden="true" defaultValue="true" />
+			<Field type="checkbox" id="SupportsWhiteTemperature" hidden="true" defaultValue="true" />
+			<Field type="checkbox" id="SupportsRGBandWhiteSimultaneously" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
 			<State id="hue">
@@ -177,6 +282,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>Y Color Chromaticity</TriggerLabel>
 				<ControlPageLabel>Y Color Chromaticity (CIE 1931)</ControlPageLabel>
 			</State>
+			<State id="colorTemp">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Color Temperature (K)</TriggerLabel>
+				<ControlPageLabel>Color Temperature (K)</ControlPageLabel>
+			</State>
 			<State id="colorMode">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Color Mode</TriggerLabel>
@@ -201,7 +311,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	</Device>
     <!-- LivingColors Bloom Device -->
 	<Device type="dimmer" id="hueLivingColorsBloom">
-		<Name>LivingColors (Aura, Bloom, StoryLight, etc.)</Name>
+		<Name>Color Lights (Aura, Bloom, StoryLight, LivingColors, etc.)</Name>
 		<ConfigUI>
 			<Field id="bulbId" type="menu">
 				<Label>Hue Device:</Label>
@@ -236,6 +346,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="modelId" type="textfield" hidden="true">
 				<Label/>
 			</Field>
+			<Field type="checkbox" id="SupportsColor" hidden="true" defaultValue="true" />
+			<Field type="checkbox" id="SupportsRGB" hidden="true" defaultValue="true" />
+			<Field type="checkbox" id="SupportsWhite" hidden="true" defaultValue="false" />
+			<Field type="checkbox" id="SupportsWhiteTemperature" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
 			<State id="hue">
@@ -334,6 +448,10 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device may result in
 			<Field id="modelId" type="textfield" hidden="true">
 				<Label/>
 			</Field>
+			<Field type="checkbox" id="SupportsColor" hidden="true" defaultValue="false" />
+			<Field type="checkbox" id="SupportsRGB" hidden="true" defaultValue="false" />
+			<Field type="checkbox" id="SupportsWhite" hidden="true" defaultValue="false" />
+			<Field type="checkbox" id="SupportsWhiteTemperature" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
 			<State id="alertMode">
@@ -355,7 +473,7 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device may result in
 	</Device>
     <!-- Hue Group Device -->
 	<Device type="dimmer" id="hueGroup">
-		<Name>Hue Group (Experimental)</Name>
+		<Name>Hue Group</Name>
 		<ConfigUI>
 			<Field id="groupId" type="menu">
 				<Label>Hue Group:</Label>
@@ -390,6 +508,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="modelId" type="textfield" hidden="true">
 				<Label/>
 			</Field>
+			<Field type="checkbox" id="SupportsColor" hidden="true" defaultValue="true" />
+			<Field type="checkbox" id="SupportsRGB" hidden="true" defaultValue="true" />
+			<Field type="checkbox" id="SupportsWhite" hidden="true" defaultValue="true" />
+			<Field type="checkbox" id="SupportsWhiteTemperature" hidden="true" defaultValue="true" />
 		</ConfigUI>
 		<States>
 			<State id="hue">

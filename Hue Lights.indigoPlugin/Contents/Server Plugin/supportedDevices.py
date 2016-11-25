@@ -52,13 +52,16 @@
 # Classic A60 TW = Osram Lightify CLA60 Tunable White bulb (color temp. only)
 
 
-#   (compatible Hue bulb devices)
-kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LCT007', 'LCT010', 'LCT011', 'LCT014', 'LLC010', 'LLM001', 'LLM010', 'LLM011', 'LLM012', 'LTW001', 'LTW004', 'LTW013', 'LTW014', 'LST002', 'FLS-PP3']
-#   (compatible LivingColors devices)
+#   (compatible Hue bulb devices) Color and Color Temperature
+kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LCT007', 'LCT010', 'LCT011', 'LCT014', 'LLC010', 'LLM001', 'FLS-PP3']
+#	(compatible Ambiance devices) Color Temperature only
+kAmbianceDeviceIDs = ['LLM010', 'LLM011', 'LLM012', 'LTW001', 'LTW004', 'LTW013', 'LTW014']
+#   (compatible LivingColors devices) Color only
 kLivingColorsDeviceIDs = ['LLC001', 'LLC006', 'LLC007', 'LLC011', 'LLC012', 'LLC013', 'LLC014', 'LLC020']
-#   (compatible LightStrips devices)
-kLightStripsDeviceIDs = ['LST001']
-#   (compatible LivingWhites devices)
+#   (compatible LightStrips devices) Color only on LST001. Color and Color Temperature on LST002.
+kLightStripsDeviceIDs = ['LST001', 'LST002']
+#   (compatible LivingWhites devices) Dimming only (no color change of any kind)
 kLivingWhitesDeviceIDs = ['LWB001', 'LWB003', 'LWB004', 'LWB006', 'LWB007', 'LWB010', 'LWB014', 'LWL001', 'ZLL Light', 'FLS-PP3 White', 'HML004', 'HML006', 'Classic A60 TW']
 #   (all compatible devices)
-kCompatibleDeviceIDs = kHueBulbDeviceIDs + kLivingColorsDeviceIDs + kLightStripsDeviceIDs + kLivingWhitesDeviceIDs
+kCompatibleDeviceIDs = kHueBulbDeviceIDs + kAmbianceDeviceIDs + kLivingColorsDeviceIDs + kLightStripsDeviceIDs + kLivingWhitesDeviceIDs
+

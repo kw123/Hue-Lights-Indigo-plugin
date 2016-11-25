@@ -80,4 +80,9 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 			</Field>
 		</ConfigUI>
 	</MenuItem>
+	<MenuItem id="sep2" />
+	<MenuItem id="toggleDebug">
+		<Name>Toggle Debugging</Name>
+        <CallbackMethod>toggleDebugging</CallbackMethod>
+	</MenuItem>
 </MenuItems>
