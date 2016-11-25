@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Hue Lights
 
 (A plugin for Indigo Domotics’ Indigo Pro 5 or later)
@@ -161,3 +162,4 @@ Known Issues
 	•	Ramp Rate: When turning off a Hue Bulb, Ramp Rates higher than 60 seconds result in the bulb fading at the expected rate but suddenly turning off about 60 seconds after the fade-out begins. This appears to be a bug in how the Hue hub handles slow transitions to "off" with Hue bulbs. This does not appear to affect LightStrips or LivingColors devices. Currently, the only workaround is to set the brightness to 1 percent using the desired Ramp Rate, then create a second action in Indigo to turn off the Hue Bulb that's delayed by the same amount of time as the Ramp Rate.
 	•	Effect: If the "Color Loop" effect is enabled on a bulb using Indigo but then stopped by unplugging and plugging back in the bulb, the "effect" state of the device may not update properly to reflect the fact that the Color Loop effect is no longer active on the bulb. This is because the Hue hub does not always update this state internally when the bulb is unreachable.
 	•	RGB States: Because Philips Hue devices (especially the bulbs) are not true RGB light emitters (i.e. they don't have a true red, green, and blue LED), it's not possible for them to output every color represented by the RGB values that can be specified. Thus, while you can tell a Hue Bulb to display a RGB color of 0 red, 255 green, and 255 blue, the Hue Bulb will only show the closest color it can display to the requested color.
+=======
