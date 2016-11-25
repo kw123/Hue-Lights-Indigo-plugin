@@ -29,9 +29,6 @@
 # LLM012	=	" " "
 # LST001	=	LED LightStrip
 # LST002	=	LED LightStrip Plus (RGB + color temperature)
-#				The LightStrip Plus is temporarily in the kHueBulbDeviceIDs
-#				list because it supports color temperature and more code will
-#				need to change before it can be added to the kLightStripsDeviceIDs list.
 # LTW001	=	Hue White Ambiance bulb (color temperature only bulb).
 # LTW004	=	Another Hue White Ambiance bulb (color temperature only bulb).
 # LTW013	=	Hue Ambiance Spot GU10 spotlight bulb.

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <MenuItems>
     <MenuItem id="menu1">
-        <Name>Reload Hue Device List</Name>
-        <CallbackMethod>updateLightsGroupsList</CallbackMethod>
+        <Name>Reload Hue Hub Config</Name>
+        <CallbackMethod>updateAllHueLists</CallbackMethod>
     </MenuItem>
 	<MenuItem id="sep1" />
 	<MenuItem id="savePreset">

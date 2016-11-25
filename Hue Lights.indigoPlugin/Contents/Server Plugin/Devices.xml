@@ -27,18 +27,14 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 NOTE: Ramp Rates greater than 60 seconds when turning off a device will result in the device abruptly turning off after dimming for about 60 seconds. This is a bug in the Philips Hue system specific to the Hue bulb.  This does not affect Ramp Rates when turning on or changing brightness, only when turning a device off.
 </Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="nameOnHub" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="savedBrightness" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="modelId" type="textfield" hidden="true">
-				<Label/>
-			</Field>
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="savedBrightness" type="textfield" hidden="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="swVersion" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
 			<!-- By default dimmer type devices automatically inherit these
 			device properties which describe the characteristics of a specific
 			dimmer instance:
@@ -64,11 +60,11 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 			techniques are mutually exlcusive, so choosing to enable two white levels
 			will override (and not show) the white temperature UI.
 			-->
-			<Field type="checkbox" id="SupportsColor" hidden="true" defaultValue="true" />
-			<Field type="checkbox" id="SupportsRGB" hidden="true" defaultValue="true" />
-			<Field type="checkbox" id="SupportsWhite" hidden="true" defaultValue="true" />
-			<Field type="checkbox" id="SupportsWhiteTemperature" hidden="true" defaultValue="true" />
-			<Field type="checkbox" id="SupportsRGBandWhiteSimultaneously" hidden="true" defaultValue="false" />
+			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsRGBandWhiteSimultaneously" type="checkbox" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
 			<State id="hue">
@@ -158,22 +154,18 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 					Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 				</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="nameOnHub" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="savedBrightness" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="modelId" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field type="checkbox" id="SupportsColor" hidden="true" defaultValue="false" />
-			<Field type="checkbox" id="SupportsRGB" hidden="true" defaultValue="false" />
-			<Field type="checkbox" id="SupportsWhite" hidden="true" defaultValue="true" />
-			<Field type="checkbox" id="SupportsWhiteTemperature" hidden="true" defaultValue="true" />
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="savedBrightness" type="textfield" hidden="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="swVersion" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
+			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
 		</ConfigUI>
 		<States>
 			<State id="colorTemp">
@@ -228,23 +220,19 @@ Optionally set a default brightness level used whenever an "on" command is sent 
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="nameOnHub" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="savedBrightness" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="modelId" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field type="checkbox" id="SupportsColor" hidden="true" defaultValue="true" />
-			<Field type="checkbox" id="SupportsRGB" hidden="true" defaultValue="true" />
-			<Field type="checkbox" id="SupportsWhite" hidden="true" defaultValue="true" />
-			<Field type="checkbox" id="SupportsWhiteTemperature" hidden="true" defaultValue="true" />
-			<Field type="checkbox" id="SupportsRGBandWhiteSimultaneously" hidden="true" defaultValue="false" />
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="savedBrightness" type="textfield" hidden="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="swVersion" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
+			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsRGBandWhiteSimultaneously" type="checkbox" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
 			<State id="hue">
@@ -334,22 +322,18 @@ Optionally set a default brightness level used whenever an "on" command is sent 
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="nameOnHub" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="savedBrightness" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="modelId" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field type="checkbox" id="SupportsColor" hidden="true" defaultValue="true" />
-			<Field type="checkbox" id="SupportsRGB" hidden="true" defaultValue="true" />
-			<Field type="checkbox" id="SupportsWhite" hidden="true" defaultValue="false" />
-			<Field type="checkbox" id="SupportsWhiteTemperature" hidden="true" defaultValue="false" />
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="savedBrightness" type="textfield" hidden="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="swVersion" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
+			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
 			<State id="hue">
@@ -436,22 +420,18 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 NOTE: Ramp Rates greater than 60 seconds when turning off a device may result in the device abruptly turning off after dimming for about 60 seconds. This is a bug in the Philips Hue system.  This does not affect Ramp Rates when turning on or changing brightness, only when turning a device off.
 </Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="nameOnHub" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="savedBrightness" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="modelId" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field type="checkbox" id="SupportsColor" hidden="true" defaultValue="false" />
-			<Field type="checkbox" id="SupportsRGB" hidden="true" defaultValue="false" />
-			<Field type="checkbox" id="SupportsWhite" hidden="true" defaultValue="false" />
-			<Field type="checkbox" id="SupportsWhiteTemperature" hidden="true" defaultValue="false" />
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="savedBrightness" type="textfield" hidden="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="swVersion" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
+			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
 			<State id="alertMode">
@@ -496,22 +476,15 @@ Optionally set a default brightness level used whenever an "on" command is sent 
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="nameOnHub" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="savedBrightness" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="modelId" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field type="checkbox" id="SupportsColor" hidden="true" defaultValue="true" />
-			<Field type="checkbox" id="SupportsRGB" hidden="true" defaultValue="true" />
-			<Field type="checkbox" id="SupportsWhite" hidden="true" defaultValue="true" />
-			<Field type="checkbox" id="SupportsWhiteTemperature" hidden="true" defaultValue="true" />
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="savedBrightness" type="textfield" hidden="true" />
+			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="groupClass" type="textfield" hidden="true" />
 		</ConfigUI>
 		<States>
 			<State id="hue">
@@ -573,6 +546,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>Group Member IDs</TriggerLabel>
 				<ControlPageLabel>Group Members IDs</ControlPageLabel>
+			</State>
+			<State id="allOn">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>All Group Members On</TriggerLabel>
+				<ControlPageLabel>All Group Memebers On</ControlPageLabel>
+			</State>
+			<State id="anyOn">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Any Group Members On</TriggerLabel>
+				<ControlPageLabel>Any Group Memebers On</ControlPageLabel>
 			</State>
 		</States>
 	</Device>

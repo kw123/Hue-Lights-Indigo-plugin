@@ -14,9 +14,41 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.4.0
+#	Version 1.4.6b1
 #
-#	History:	1.4.0
+#	History:	1.4.6b1 (not yet released).
+#				* Fixed a potential bug in the startup code that may have caused an
+#				  infinite device reload loop, and thus high CPU load.
+#				* Fixed a bug that caused an error when attempting to edit Hue Groups
+#				  device settings in the Indigo UI.
+#				* Added some underlying code needed to support scenes and sensors, as well
+#				  as other Hue features. Scenes and sensors are not yet supported, but
+#				  it will now be easier to provide limited support in the future.
+#				--
+#				1.4.5
+#				* Added automatic detection and loading of new lights and groups. No need
+#				  to manually reload lights with the Reload Hue Device List menu item.
+#				* Fixed a bug that incorrectly reported some updated devices as being out
+#				  of date (from an old Hue Lights plugin version).
+#				* Improved hue device status updating efficiency to reduce the number of
+#				  Hue hub queries.
+#				--
+#				1.4.4
+#				* Fixed another bug with Ambiance Lights Edit Device Settings dialog that
+#				  would incorrectly show an error that the device wasn't an Ambiance Light.
+#				1.4.3
+#				* Fixed a bug with Ambiance Lights Edit Device Settings dialog that
+#				  wouldn't allow you to save changes.
+#				--
+#				1.4.2
+#				* Fixed a bug with Ambiance Lights selection list in Edit Device Settings
+#				  dialog to not appear.
+#				--
+#				1.4.1
+#				* Fixed a bug with LivingColors light update processing that caused
+#				  the plugin to crash.
+#				--
+#				1.4.0
 #				* Changed Hue Lights to now require Indigo 7 or later.
 #				* Added support for color picker in light color setting actions.
 #				* Added support for color and white temperature UI features in Indigo.
@@ -445,9 +477,16 @@ class Plugin(indigo.PluginBase):
 		self.brighteningList = []	# list of device IDs being brightened
 		self.dimmingList = []		# list of device IDs being dimmed
 		self.paired = False			# if paired with Hue hub or not
-		self.lastErrorMessage = ""	# last error message displayed in log
-		self.lightsDict = dict()	# Hue device ID: Name dict.
-		self.groupsDict = dict()	# Hue group ID: Name dict.
+		self.lastErrorMessage = u""	# last error message displayed in log
+		self.hueConfigDict = dict()	# Entire Hue hub configuration dictionary.
+		self.lightsDict = dict()	# Hue devices dict.
+		self.groupsDict = dict()	# Hue groups dict.
+		self.resourcesDict = dict()	# Hue resource links dict.
+		self.sensorsDict = dict()	# Hue sensors dict.
+		self.usersDict = dict()		# Hue users dict.
+		self.scenesDict = dict()	# Hue scenes dict.
+		self.rulesDict = dict()		# Hue trigger rules dict.
+		self.schedulesDict = dict()	# Hue schedules dict.
 		self.ipAddress = ""			# Hue hub IP address
 		self.unsupportedDeviceWarned = False	# Boolean. Was user warned this device isn't supported?
 		# Load the update checker module.
@@ -516,12 +555,10 @@ class Plugin(indigo.PluginBase):
 		else:
 			self.debugLog(u"The username Hue Lights uses to connect to the Hue hub is %s" % hueUsername)
 		
-		# Load lights list
-		self.updateLightsList()
+		# Get the entire Hue hub configuration and report the results.
+		self.updateAllHueLists()
 		
-		# Load groups list
-		self.updateGroupsList()
-		
+			
 	# Start Devices
 	########################################
 	def deviceStartComm(self, device):
@@ -531,7 +568,7 @@ class Plugin(indigo.PluginBase):
 		
 		# Prior to version 1.1.0, the "modelId" property did not exist in lighting devices.
 		#   If that property does not exist, force an update.
-		if device.deviceTypeId != "hueAttributeController" and not device.pluginProps.get('modelId', False):
+		if device.deviceTypeId != "hueAttributeController" and device.deviceTypeId != "hueGroup" and not device.pluginProps.get('modelId', False):
 			self.debugLog(u"The " + device.name + u" device doesn't have a modelId attribute.  Adding it.")
 			newProps = device.pluginProps
 			newProps['modelId'] = ""
@@ -545,11 +582,14 @@ class Plugin(indigo.PluginBase):
 			
 		# Prior to version 1.4, the color device properties did not exist in lighting devices.
 		#   If any of those properties don't exist, notify the user to redefine the device in Indigo.
-		if device.deviceTypeId != "hueAttributeController" and device.pluginProps['modelId'] != "" and device.pluginProps['modelId'] not in kLivingWhitesDeviceIDs:
-			if not device.supportsRGB and not device.supportsWhite:
-				self.debugLog(u"The \"" + device.name + u"\" device doesn't have color properties.")
+		if device.deviceTypeId != "hueAttributeController" and device.pluginProps.get('modelId', "") != "" and device.pluginProps['modelId'] not in kLivingWhitesDeviceIDs:
+			if device.pluginProps['modelId'] in kAmbianceDeviceIDs and not device.supportsWhite:
+				self.debugLog(u"The \"" + device.name + u"\" Ambiance light device doesn't have color temperature properties.")
 				self.errorLog(u"The \"" + device.name + u"\" device is from an old Hue Lights version. Double-click on the device in Indigo, click \"Edit Device Settings\", then click \"Save\" and close the \"Edit Device\" window.")
-		
+			elif not device.supportsRGB:
+				self.debugLog(u"The \"" + device.name + u"\" color light device doesn't have color properties.")
+				self.errorLog(u"The \"" + device.name + u"\" device is from an old Hue Lights version. Double-click on the device in Indigo, click \"Edit Device Settings\", then click \"Save\" and close the \"Edit Device\" window.")
+			
 		# Version 1.4+ handles the original LightStrip and newer LightStrip Plus using the same
 		#   deviceTypeId, but they have different capabilities.  If this is an original LightStrip,
 		#   remove the color temperature properties from this device.
@@ -710,14 +750,11 @@ class Plugin(indigo.PluginBase):
 					j += 1
 				
 				# Now that the brightening/dimming loop has finished, get device states.
-				# Cycle through each device.
-				for deviceId in self.deviceList:
-					# Get the device's status (but only if we're paired with the hub).
-					if self.paired == True:
-						self.getBulbStatus(deviceId)
-					# Wait just a bit to avoid hub rate limiting.
-					self.sleep(0.15)
-					
+				self.updateLightsList()
+				self.parseHueLightsData()
+				self.updateGroupsList()
+				self.parseHueGroupsData()
+	
 		except self.StopThread:
 			self.debugLog(u"runConcurrentThread stopped.")
 			pass
@@ -891,7 +928,7 @@ class Plugin(indigo.PluginBase):
 			# Make sure a bulb was selected.
 			if valuesDict.get('bulbId', "") == "":
 				isError = True
-				errorsDict['bulbId'] = u"Please select a Hue bulb to control."
+				errorsDict['bulbId'] = u"Please select a Hue Color/Ambiance light to control."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
 				return (False, valuesDict, errorsDict)
 			
@@ -925,14 +962,14 @@ class Plugin(indigo.PluginBase):
 				bulb = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving Hue bulb data from hub.  Error reported: " + str(e))
+				indigo.server.log(u"Error retrieving Hue device data from hub.  Error reported: " + str(e))
 				isError = True
-				errorsDict['bulbId'] = u"Error retrieving Hue bulb data from hub. See Indigo log."
+				errorsDict['bulbId'] = u"Error retrieving Hue device data from hub. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
 				return (False, valuesDict, errorsDict)
 			if bulb.get('modelid', "") not in kHueBulbDeviceIDs:
 				isError = True
-				errorsDict['bulbId'] = u"The selected device is not a Hue bulb. Plesea select a Hue bulb to control."
+				errorsDict['bulbId'] = u"The selected device is not a Hue Color/Ambiance light. Plesea select a Hue Color/Ambiance light to control."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
 				return (False, valuesDict, errorsDict)
 				
@@ -943,7 +980,111 @@ class Plugin(indigo.PluginBase):
 					if valuesDict['bulbId'] == otherDevice.pluginProps.get('bulbId', 0):
 						otherDevice = indigo.devices[otherDeviceId]
 						isError = True
-						errorsDict['bulbId'] = u"This Hue bulb is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different Hue bulb to control."
+						errorsDict['bulbId'] = u"This Hue device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different Hue bulb to control."
+						errorsDict['showAlertText'] += errorsDict['bulbId'] + "\n\n"
+				
+			# Validate the default brightness is reasonable.
+			if valuesDict.get('defaultBrightness', "") != "":
+				try:
+					defaultBrightness = int(valuesDict['defaultBrightness'])
+					if defaultBrightness < 1 or defaultBrightness > 100:
+						isError = True
+						errorsDict['defaultBrightness'] = u"The Default Brightness must be a number between 1 and 100."
+						errorsDict['showAlertText'] += errorsDict['defaultBrightness'] + "\n\n"
+				except ValueError:
+					isError = True
+					errorsDict['defaultBrightness'] = u"The Default Brightness must be a number between 1 and 100."
+					errorsDict['showAlertText'] += errorsDict['defaultBrightness'] + "\n\n"
+				except Exception, e:
+					isError = True
+					errorsDict['defaultBrightness'] = u"The Default Brightness must be a number between 1 and 100. Error: " + str(e)
+					errorsDict['showAlertText'] += errorsDict['defaultBrightness'] + "\n\n"
+					
+			# Validate the default ramp rate (transition time) is reasonable.
+			if valuesDict.get('rate', "") != "":
+				try:
+					rampRate = float(valuesDict['rate'])
+					if rampRate < 0 or rampRate > 540:
+						isError = True
+						errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds."
+						errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
+				except ValueError:
+					isError = True
+					errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds."
+					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
+				except Execption, e:
+					isError = True
+					errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds. Error: " + str(e)
+					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
+					
+			# Show errors if there are any.
+			if isError:
+				errorsDict['showAlertText'] = errorsDict['showAlertText'].strip()
+				return (False, valuesDict, errorsDict)
+
+			else:
+				# Define the device's address to appear in Indigo.
+				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (ID " + str(valuesDict['bulbId']) + ")"
+				return (True, valuesDict)
+				
+		#  -- Ambiance Lights --
+		if typeId == "hueAmbiance":
+			# Make sure a bulb was selected.
+			if valuesDict.get('bulbId', "") == "":
+				isError = True
+				errorsDict['bulbId'] = u"Please select a Hue device to control."
+				errorsDict['showAlertText'] += errorsDict['bulbId']
+				return (False, valuesDict, errorsDict)
+			
+			bulbId = valuesDict['bulbId']
+			
+			# Make sure the device selected is a Hue device.
+			#   Get the device info directly from the hub.
+			command = "http://%s/api/%s/lights/%s" % (self.ipAddress, self.hostId, bulbId)
+			self.debugLog(u"Sending URL request: " + command)
+			try:
+				r = requests.get(command, timeout=kTimeout)
+			except requests.exceptions.Timeout:
+				errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+				# Don't display the error if it's been displayed already.
+				if errorText != self.lastErrorMessage:
+					self.errorLog(errorText)
+					# Remember the error.
+					self.lastErrorMessage = errorText
+				return
+			except requests.exceptions.ConnectionError:
+				errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+				# Don't display the error if it's been displayed already.
+				if errorText != self.lastErrorMessage:
+					self.errorLog(errorText)
+					# Remember the error.
+					self.lastErrorMessage = errorText
+				return
+			self.debugLog(u"Data from hub: " + r.content)
+			# Convert the response to a Python object.
+			try:
+				bulb = json.loads(r.content)
+			except Exception, e:
+				# There was an error in the returned data.
+				indigo.server.log(u"Error retrieving Hue device data from hub.  Error reported: " + str(e))
+				isError = True
+				errorsDict['bulbId'] = u"Error retrieving Hue device data from hub. See Indigo log."
+				errorsDict['showAlertText'] += errorsDict['bulbId']
+				return (False, valuesDict, errorsDict)
+			if bulb.get('modelid', "") not in kAmbianceDeviceIDs:
+				isError = True
+				errorsDict['bulbId'] = u"The selected device is not an Ambiance light. Plesea select an Ambiance light to control."
+				errorsDict['showAlertText'] += errorsDict['bulbId']
+				return (False, valuesDict, errorsDict)
+				
+			# Make sure the bulb ID isn't used by another device.
+			for otherDeviceId in self.deviceList:
+				if otherDeviceId != deviceId:
+					otherDevice = indigo.devices[otherDeviceId]
+					if valuesDict['bulbId'] == otherDevice.pluginProps.get('bulbId', 0):
+						otherDevice = indigo.devices[otherDeviceId]
+						isError = True
+						errorsDict['bulbId'] = u"This Hue device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different Hue device to control."
 						errorsDict['showAlertText'] += errorsDict['bulbId'] + "\n\n"
 				
 			# Validate the default brightness is reasonable.
@@ -2427,7 +2568,7 @@ class Plugin(indigo.PluginBase):
 			elif typeId == "hueBulb" and bulb.get('modelid', "") in kHueBulbDeviceIDs:
 				returnBulbList.append([bulbId, bulbDetails["name"]])
 			elif typeId == "hueAmbiance" and bulb.get('modelid', "") in kAmbianceDeviceIDs:
-				returnBulbList.append([bulbId, bulbDetails["none"]])
+				returnBulbList.append([bulbId, bulbDetails["name"]])
 			elif typeId == "hueLightStrips" and bulb.get('modelid', "") in kLightStripsDeviceIDs:
 				returnBulbList.append([bulbId, bulbDetails["name"]])
 			elif typeId == "hueLivingColorsBloom" and bulb.get('modelid', "") in kLivingColorsDeviceIDs:
@@ -2451,7 +2592,7 @@ class Plugin(indigo.PluginBase):
 		returnGroupList.append([0, "0: (All Hue Devices)"])
 
 		# Iterate over our groups, and return the available list in Indigo's format
-		for groupId, groupDetails in self.groupsDict.items():
+		for groupId, groupDetails in sorted(self.groupsDict.items()):
 			# First, get the group info directly from the hub (if the typeId is not blank).
 			if typeId != "":
 				command = "http://%s/api/%s/groups/%s" % (self.ipAddress, self.hostId, groupId)
@@ -2563,7 +2704,15 @@ class Plugin(indigo.PluginBase):
 	def updateDeviceState(self, device, state, newValue):
 		# Change the device state on the server
 		#   if it's different than the current state.
-		if (newValue != device.states[state]):
+
+		# First, if the state doesn't even exist on the device, force a reload
+		#   of the device configuration to try to add the new state.
+		if device.states.get(state, None) is None:
+			self.debugLog(u"The " + device.name + u" device doesn't have the \"" + state + u"\" state.  Updating device.")
+			device.stateListOrDisplayStateIdChanged()
+		
+		# Now try to update the state.
+		if (newValue != device.states.get(state, None)):
 			try:
 				self.debugLog(u"updateDeviceState: Updating device " + device.name + u" state: " + str(state) + u" = " + str(newValue))
 			except Exception, e:
@@ -3111,7 +3260,6 @@ class Plugin(indigo.PluginBase):
 				
 				### Update inherited states for Indigo 7+ devices.
 				if "redLevel" in device.states:
-					self.updateDeviceState(device, 'whiteTemperature', colorTemp)
 					# Red, Green, Blue levels (0-100).
 					self.updateDeviceState(device, 'redLevel', int(round(colorRed / 255.0 * 100.0)))
 					self.updateDeviceState(device, 'greenLevel', int(round(colorGreen / 255.0 * 100.0)))
@@ -3236,14 +3384,650 @@ class Plugin(indigo.PluginBase):
 				# Remember the error.
 				self.lastErrorMessage = errorText 
 				self.unsupportedDeviceWarned = True
+
+	# Parse Hue Lights Data
+	########################################
+	def parseHueLightsData(self):
+		self.debugLog(u"Starting parseHueLightsData.")
+		
+		# Itterate through all the light devices in the lightsDict and update device states
+		#   and device properties as needed.  This method does no actual Hue hub communication.
+		#   It just updates Indigo devices with information already obtained through the use
+		#   of the self.updateLightsList.
+		
+		self.debugLog(u"parseHueLightsData: There are %i devices and groups on the Hue bridge and %i Indigo devices controlling Hue devices and groups." % (len(self.lightsDict), len(self.deviceList)))
+		# Start going through all the devices in the lightsDict and update any corresponding
+		#   Indigo devices to which they may be associated.
+		for bulbId in self.lightsDict:
+			self.debugLog(u"parseHueLightsData: Parsing Hue device ID %s." % (bulbId))
+			# Separate out the specific Hue bulb data.
+			bulb = self.lightsDict[bulbId]
+		
+			# Loop through the self.deviceList and update all the light devices.
+			for deviceId in self.deviceList:
+				device = indigo.devices[deviceId]
 				
+				# If this Indigo device is not for a Hue Group...
+				if device.deviceTypeId != "hueGroup":
+					self.debugLog(u"parseHueLightsData: Looking at Indigo device \"%s\"." % (device.name))
+				
+					# Is this Indigo device the Hue device ID we're looking for?
+					if device.pluginProps['bulbId'] == bulbId:
+						self.debugLog(u"parseHueLightsData: Indigo device \"%s\" is controlling Hue device ID \"%s\". Updating Indigo device properties and states." % (device.name, bulbId))
+						# Data common to all device types...
+						#   Value assignments.
+						brightness = bulb['state'].get('bri', 0)
+						onState = bulb['state'].get('on', False)
+						alert = bulb['state'].get('alert', "")
+						online = bulb['state'].get('reachable', False)
+						nameOnHub = bulb.get('name', "no name")
+						modelId = bulb.get('modelid', "")
+						manufacturerName = bulb.get('manufacturername', "")
+						swVersion = bulb.get('swversion', "")
+						type = bulb.get('type', "")
+						uniqueId = bulb.get('uniqueid', "")
+						
+						#   Value manipulation.
+						# Convert brightness from 0-255 range to 0-100 range.
+						brightnessLevel = int(round(brightness / 255.0 * 100.0))
+						# Compensate for incorrect rounding to zero if original brightness is not zero.
+						if brightnessLevel == 0 and brightness > 0:
+							brightnessLevel = 1
+						# If the "on" state is False, it doesn't matter what brightness the hub
+						#   is reporting, the effective brightness is zero.
+						if onState == False:
+							brightnessLevel = 0
+						
+						#   Update Indigo states and properties common to all Hue devices.	
+						tempProps = device.pluginProps
+						# Update the Hue device name.
+						if nameOnHub != device.pluginProps.get('nameOnHub', False):
+							tempProps['nameOnHub'] = nameOnHub
+						# Update the modelId.
+						if modelId != device.pluginProps.get('modelId', ""):
+							tempProps['modelId'] = modelId
+						# Update the manufacturer name.
+						if manufacturerName != device.pluginProps.get('manufacturerName', ""):
+							tempProps['manufacturerName'] = manufacturerName
+						# Update the software version for the device on the Hue hub.
+						if swVersion != device.pluginProps.get('swVersion', ""):
+							tempProps['swVersion'] = swVersion
+						# Update the type as defined by Hue.
+						if type != device.pluginProps.get('type', ""):
+							tempProps['type'] = type
+						# Update the unique ID (MAC address) of the Hue device.
+						if uniqueId != device.pluginProps.get('uniqueId', ""):
+							tempProps['uniqueId'] = uniqueId
+						# If there were property changes, update the device.
+						if tempProps != device.pluginProps:
+							self.updateDeviceProps(device, tempProps)
+						# Update the online status of the Hue device.
+						self.updateDeviceState(device, 'online', online)
+						# Update the error state if needed.
+						if not online:
+							device.setErrorStateOnServer("disconnected")
+						else:
+							device.setErrorStateOnServer("")
+						# Update the alert state of the Hue device.
+						self.updateDeviceState(device, 'alertMode', alert)
+
+						# Device-type-specific data...
+						
+						# -- Hue Bulbs --
+						if modelId in kHueBulbDeviceIDs:
+							#   Value assignment.  (Using the get() method to avoid KeyErrors).
+							hue = bulb['state'].get('hue', 0)
+							saturation = bulb['state'].get('sat', 0)
+							colorX = bulb['state'].get('xy', [0,0])[0]
+							colorY = bulb['state'].get('xy', [0,0])[1]
+							colorRed = 255		# Initialize for later
+							colorGreen = 255	# Initialize for later
+							colorBlue = 255		# Initialize for later
+							colorTemp = bulb['state'].get('ct', 0)
+							colorMode = bulb['state'].get('colormode', "ct")
+							effect = bulb['state'].get('effect', "none")
+					
+							#   Value manipulation.
+							# Convert from HSB to RGB, scaling the hue and saturation values appropriately.
+							hsb = HSVColor(hue / 182.0, saturation / 255.0, brightness / 255.0)
+							rgb = hsb.convert_to('rgb', rgb_type='wide_gamut_rgb')
+							# RGB values will have a range of 0 to 255.
+							colorRed = int(round(rgb.rgb_r))
+							colorGreen = int(round(rgb.rgb_g))
+							colorBlue = int(round(rgb.rgb_b))
+							# Convert saturation from 0-255 scale to 0-100 scale.
+							saturation = int(round(saturation / 255.0 * 100.0))
+							# Convert hue from 0-65535 scale to 0-360 scale.
+							hue = int(round(hue / 182.0))
+							# Must first test color temp value. If it's zero, the formula throws a divide by zero execption.
+							if colorTemp > 0:
+								# Converting from mireds to Kelvin.
+								colorTemp = int(round(1000000.0/colorTemp))
+							else:
+								colorTemp = 0
+
+							# Update the Indigo device if the Hue device is on.
+							if onState == True:
+								tempProps = device.pluginProps
+								# Update the brightness level if it's different.
+								if device.states['brightnessLevel'] != brightnessLevel:
+									# Log the update.
+									indigo.server.log(u"\"" + device.name + "\" on to " + str(brightnessLevel), 'Updated')
+									self.updateDeviceState(device, 'brightnessLevel', brightnessLevel)
+								# Hue Degrees (0-360).
+								self.updateDeviceState(device, 'hue', hue)
+								# Saturation (0-100).
+								self.updateDeviceState(device, 'saturation', saturation)
+								# CIE XY Cromaticity (range of 0.0 to 1.0 for X and Y)
+								self.updateDeviceState(device, 'colorX', colorX)
+								self.updateDeviceState(device, 'colorY', colorY)
+								# Color Temperature (converted from 154-500 mireds to 6494-2000 K).
+								self.updateDeviceState(device, 'colorTemp', colorTemp)
+								# Color Mode.
+								self.updateDeviceState(device, 'colorMode', colorMode)
+								# Red, Green, Blue (0-255).
+								self.updateDeviceState(device, 'colorRed', colorRed)
+								self.updateDeviceState(device, 'colorGreen', colorGreen)
+								self.updateDeviceState(device, 'colorBlue', colorBlue)
+								
+								### Update inherited states for Indigo 7+ devices.
+								if "whiteLevel" in device.states or "redLevel" in device.states:
+									# White Level (negative saturation, 0-100).
+									self.updateDeviceState(device, 'whiteLevel', 100 - saturation)
+									# White Temperature (0-100).
+									self.updateDeviceState(device, 'whiteTemperature', colorTemp)
+									# Red, Green, Blue levels (0-100).
+									self.updateDeviceState(device, 'redLevel', int(round(colorRed / 255.0 * 100.0)))
+									self.updateDeviceState(device, 'greenLevel', int(round(colorGreen / 255.0 * 100.0)))
+									self.updateDeviceState(device, 'blueLevel', int(round(colorBlue / 255.0 * 100.0)))
+
+							elif onState == False:
+								# Hue device is off. Set brightness to zero.
+								if device.states['brightnessLevel'] != 0:
+									# Log the update.
+									indigo.server.log(u"\"" + device.name + "\" off", 'Updated')
+									self.updateDeviceState(device, 'brightnessLevel', 0)
+								# Hue Degrees (convert from 0-65535 to 0-360).
+								self.updateDeviceState(device, 'hue', hue)
+								# Saturation (convert from 0-255 to 0-100).
+								self.updateDeviceState(device, 'saturation', saturation)
+								# CIE XY Cromaticity.
+								self.updateDeviceState(device, 'colorX', colorX)
+								self.updateDeviceState(device, 'colorY', colorY)
+								# Color Temperature (convert from 154-500 mireds to 6494-2000 K).
+								self.updateDeviceState(device, 'colorTemp', colorTemp)
+								# Color Mode.
+								self.updateDeviceState(device, 'colorMode', colorMode)
+								# Red, Green, and Blue Color.
+								#    If the bulb is off, all RGB values should be 0.
+								self.updateDeviceState(device, 'colorRed', 0)
+								self.updateDeviceState(device, 'colorGreen', 0)
+								self.updateDeviceState(device, 'colorBlue', 0)
+								
+								### Update inherited states for Indigo 7+ devices.
+								if "whiteLevel" in device.states or "redLevel" in device.states:
+									# White Level (negative saturation, 0-100).
+									self.updateDeviceState(device, 'whiteLevel', 100 - saturation)
+									# White Temperature (0-100).
+									self.updateDeviceState(device, 'whiteTemperature', colorTemp)
+									# Red, Green, Blue levels (0-100).
+									self.updateDeviceState(device, 'redLevel', 0)
+									self.updateDeviceState(device, 'greenLevel', 0)
+									self.updateDeviceState(device, 'blueLevel', 0)
+							else:
+								# Unrecognized on state, but not important enough to mention in regular log.
+								self.debugLog(u"Hue bulb unrecognized on state given by hub: " + str(bulb['state']['on']))
+							
+							# Update the effect state (regardless of onState).
+							self.updateDeviceState(device, 'effect', effect)
+
+							# Update any Hue Device Attribute Controller virtual dimmers associated with this bulb.
+							for controlDeviceId in self.controlDeviceList:
+								controlDevice = indigo.devices[int(controlDeviceId)]
+								attributeToControl = controlDevice.pluginProps.get('attributeToControl', None)
+								if deviceId == int(controlDevice.pluginProps.get('bulbDeviceId', None)):
+									# Device has attributes controlled by a Hue Device Attribute Controler.
+									#   Update the controller device based on current bulb device states.
+									#   But if the control destination device is off, update the value of the
+									#   controller (virtual dimmer) to 0.
+									if device.onState == True:
+										# Destination Hue Bulb device is on, update Attribute Controller brightness.
+										if attributeToControl == "hue":
+											# Convert hue scale from 0-360 to 0-100.
+											self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(hue / 360.0 * 100.0)))
+										elif attributeToControl == "saturation":
+											self.updateDeviceState(controlDevice, 'brightnessLevel', saturation)
+										elif attributeToControl == "colorRed":
+											# Convert RGB scale from 0-255 to 0-100.
+											self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorRed / 255.0 * 100.0)))
+										elif attributeToControl == "colorGreen":
+											# Convert RGB scale from 0-255 to 0-100.
+											self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorGreen / 255.0 * 100.0)))
+										elif attributeToControl == "colorBlue":
+											# Convert RGB scale from 0-255 to 0-100.
+											self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorBlue / 255.0 * 100.0)))
+										elif attributeToControl == "colorTemp":
+											# Convert color temperature scale from 2000-6500 to 0-100.
+											self.updateDeviceState(controlDevice, 'brightnessLevel', int(round((colorTemp - 2000.0) / 4500.0 * 100.0)))
+									else:
+										# Hue Device is off.  Set Attribute Controller device brightness level to 0.
+										self.updateDeviceState(controlDevice, 'brightnessLevel', 0)
+
+						# -- Ambiance --
+						elif modelId in kAmbianceDeviceIDs:
+							#   Value assignment.  (Using the get() method to avoid KeyErrors).
+							colorTemp = bulb['state'].get('ct', 0)
+							colorMode = bulb['state'].get('colormode', "ct")
+							effect = bulb['state'].get('effect', "none")
+					
+							#   Value manipulation.
+							# Must first test color temp value. If it's zero, the formula throws a divide by zero execption.
+							if colorTemp > 0:
+								# Converting from mireds to Kelvin.
+								colorTemp = int(round(1000000.0/colorTemp))
+							else:
+								colorTemp = 0
+
+							# Update the Indigo device if the Hue device is on.
+							if onState == True:
+								# Update the brightness level if it's different.
+								if device.states['brightnessLevel'] != brightnessLevel:
+									# Log the update.
+									indigo.server.log(u"\"" + device.name + "\" on to " + str(brightnessLevel), 'Updated')
+									self.updateDeviceState(device, 'brightnessLevel', brightnessLevel)
+								# Color Temperature (converted from 154-500 mireds to 6494-2000 K).
+								self.updateDeviceState(device, 'colorTemp', colorTemp)
+								# Color Mode.
+								self.updateDeviceState(device, 'colorMode', colorMode)
+								
+								### Update inherited states for Indigo 7+ devices.
+								if "whiteLevel" in device.states:
+									# White Level (negative saturation, 0-100).
+									self.updateDeviceState(device, 'whiteLevel', 100)
+									# White Temperature (0-100).
+									self.updateDeviceState(device, 'whiteTemperature', colorTemp)
+
+							elif onState == False:
+								# Hue device is off. Set brightness to zero.
+								if device.states['brightnessLevel'] != 0:
+									# Log the update.
+									indigo.server.log(u"\"" + device.name + "\" off", 'Updated')
+									self.updateDeviceState(device, 'brightnessLevel', 0)
+								# Color Temperature (convert from 154-500 mireds to 6494-2000 K).
+								self.updateDeviceState(device, 'colorTemp', colorTemp)
+								# Color Mode.
+								self.updateDeviceState(device, 'colorMode', colorMode)
+								
+								### Update inherited states for Indigo 7+ devices.
+								if "whiteLevel" in device.states:
+									# White Level (negative saturation, 0-100).
+									self.updateDeviceState(device, 'whiteLevel', 100 - saturation)
+									# White Temperature (0-100).
+									self.updateDeviceState(device, 'whiteTemperature', colorTemp)
+							else:
+								# Unrecognized on state, but not important enough to mention in regular log.
+								self.debugLog(u"Ambiance light unrecognized \"on\" state given by hub: " + str(bulb['state']['on']))
+							
+							# Update the effect state (regardless of onState).
+							self.updateDeviceState(device, 'effect', effect)
+
+							# Update any Hue Device Attribute Controller virtual dimmers associated with this bulb.
+							for controlDeviceId in self.controlDeviceList:
+								controlDevice = indigo.devices[int(controlDeviceId)]
+								attributeToControl = controlDevice.pluginProps.get('attributeToControl', None)
+								if deviceId == int(controlDevice.pluginProps.get('bulbDeviceId', None)):
+									# Device has attributes controlled by a Hue Device Attribute Controler.
+									#   Update the controller device based on current bulb device states.
+									#   But if the control destination device is off, update the value of the
+									#   controller (virtual dimmer) to 0.
+									if device.onState == True:
+										# Destination Ambiance light device is on, update Attribute Controller brightness.
+										if attributeToControl == "colorTemp":
+											# Convert color temperature scale from 2000-6500 to 0-100.
+											self.updateDeviceState(controlDevice, 'brightnessLevel', int(round((colorTemp - 2000.0) / 4500.0 * 100.0)))
+									else:
+										# Hue Device is off.  Set Attribute Controller device brightness level to 0.
+										self.updateDeviceState(controlDevice, 'brightnessLevel', 0)
+										
+						# -- LightStrips --
+						elif modelId in kLightStripsDeviceIDs:
+							#   Value assignment.  (Using the get() method to avoid KeyErrors).
+							hue = bulb['state'].get('hue', 0)
+							saturation = bulb['state'].get('sat', 0)
+							colorX = bulb['state'].get('xy', [0,0])[0]
+							colorY = bulb['state'].get('xy', [0,0])[1]
+							colorRed = 255		# Initialize for later
+							colorGreen = 255	# Initialize for later
+							colorBlue = 255		# Initialize for later
+							# Handle LightStrip Plus color temperature values.
+							if bulb['modelid'] == "LST002":
+								colorTemp = bulb['state'].get('ct', 0)
+							colorMode = bulb['state'].get('colormode', "ct")
+							effect = bulb['state'].get('effect', "none")
+					
+							#   Value manipulation.
+							# Convert from HSB to RGB, scaling the hue and saturation values appropriately.
+							hsb = HSVColor(hue / 182.0, saturation / 255.0, brightness / 255.0)
+							rgb = hsb.convert_to('rgb', rgb_type='wide_gamut_rgb')
+							# RGB values will have a range of 0 to 255.
+							colorRed = int(round(rgb.rgb_r))
+							colorGreen = int(round(rgb.rgb_g))
+							colorBlue = int(round(rgb.rgb_b))
+							# Convert saturation from 0-255 scale to 0-100 scale.
+							saturation = int(round(saturation / 255.0 * 100.0))
+							# Convert hue from 0-65535 scale to 0-360 scale.
+							hue = int(round(hue / 182.0))
+							# Must first test color temp value. If it's zero, the formula throws a divide by zero execption.
+							if bulb['modelid'] == "LST002":
+								if colorTemp > 0:
+									# Converting from mireds to Kelvin.
+									colorTemp = int(round(1000000.0/colorTemp))
+								else:
+									colorTemp = 0
+
+							# Update the Indigo device if the Hue device is on.
+							if onState == True:
+								tempProps = device.pluginProps
+								# Update the brightness level if it's different.
+								if device.states['brightnessLevel'] != brightnessLevel:
+									# Log the update.
+									indigo.server.log(u"\"" + device.name + "\" on to " + str(brightnessLevel), 'Updated')
+									self.updateDeviceState(device, 'brightnessLevel', brightnessLevel)
+								# Hue Degrees (0-360).
+								self.updateDeviceState(device, 'hue', hue)
+								# Saturation (0-100).
+								self.updateDeviceState(device, 'saturation', saturation)
+								# CIE XY Cromaticity (range of 0.0 to 1.0 for X and Y)
+								self.updateDeviceState(device, 'colorX', colorX)
+								self.updateDeviceState(device, 'colorY', colorY)
+								# Color Temperature (converted from 154-500 mireds to 6494-2000 K).
+								if bulb['modelid'] == "LST002":
+									self.updateDeviceState(device, 'colorTemp', colorTemp)
+								# Color Mode.
+								self.updateDeviceState(device, 'colorMode', colorMode)
+								# Red, Green, Blue (0-255).
+								self.updateDeviceState(device, 'colorRed', colorRed)
+								self.updateDeviceState(device, 'colorGreen', colorGreen)
+								self.updateDeviceState(device, 'colorBlue', colorBlue)
+								
+								### Update inherited states for Indigo 7+ devices.
+								if "whiteLevel" in device.states or "redLevel" in device.states:
+									# For LightStrip Plus only...
+									if bulb['modelid'] == "LST002":
+										# White Level (negative saturation, 0-100).
+										self.updateDeviceState(device, 'whiteLevel', 100 - saturation)
+										# White Temperature (0-100).
+										self.updateDeviceState(device, 'whiteTemperature', colorTemp)
+									# Red, Green, Blue levels (0-100).
+									self.updateDeviceState(device, 'redLevel', int(round(colorRed / 255.0 * 100.0)))
+									self.updateDeviceState(device, 'greenLevel', int(round(colorGreen / 255.0 * 100.0)))
+									self.updateDeviceState(device, 'blueLevel', int(round(colorBlue / 255.0 * 100.0)))
+
+							elif onState == False:
+								# Hue device is off. Set brightness to zero.
+								if device.states['brightnessLevel'] != 0:
+									# Log the update.
+									indigo.server.log(u"\"" + device.name + "\" off", 'Updated')
+									self.updateDeviceState(device, 'brightnessLevel', 0)
+								# Hue Degrees (convert from 0-65535 to 0-360).
+								self.updateDeviceState(device, 'hue', hue)
+								# Saturation (convert from 0-255 to 0-100).
+								self.updateDeviceState(device, 'saturation', saturation)
+								# CIE XY Cromaticity.
+								self.updateDeviceState(device, 'colorX', colorX)
+								self.updateDeviceState(device, 'colorY', colorY)
+								# Color Temperature (convert from 154-500 mireds to 6494-2000 K).
+								if bulb['modelid'] == "LST002":
+									self.updateDeviceState(device, 'colorTemp', colorTemp)
+								# Color Mode.
+								self.updateDeviceState(device, 'colorMode', colorMode)
+								# Red, Green, and Blue Color.
+								#    If the bulb is off, all RGB values should be 0.
+								self.updateDeviceState(device, 'colorRed', 0)
+								self.updateDeviceState(device, 'colorGreen', 0)
+								self.updateDeviceState(device, 'colorBlue', 0)
+								
+								### Update inherited states for Indigo 7+ devices.
+								if "whiteLevel" in device.states or "redLevel" in device.states:
+									# For LightStrip Plus only...
+									if bulb['modelid'] == "LST002":
+										# White Level (negative saturation, 0-100).
+										self.updateDeviceState(device, 'whiteLevel', 100 - saturation)
+										# White Temperature (0-100).
+										self.updateDeviceState(device, 'whiteTemperature', colorTemp)
+									# Red, Green, Blue levels (0-100).
+									self.updateDeviceState(device, 'redLevel', 0)
+									self.updateDeviceState(device, 'greenLevel', 0)
+									self.updateDeviceState(device, 'blueLevel', 0)
+							else:
+								# Unrecognized on state, but not important enough to mention in regular log.
+								self.debugLog(u"LightStrip unrecognized on state given by hub: " + str(bulb['state']['on']))
+							
+							# Update the effect state (regardless of onState).
+							self.updateDeviceState(device, 'effect', effect)
+
+							# Update any Hue Device Attribute Controller virtual dimmers associated with this bulb.
+							for controlDeviceId in self.controlDeviceList:
+								controlDevice = indigo.devices[int(controlDeviceId)]
+								attributeToControl = controlDevice.pluginProps.get('attributeToControl', None)
+								if deviceId == int(controlDevice.pluginProps.get('bulbDeviceId', None)):
+									# Device has attributes controlled by a Hue Device Attribute Controler.
+									#   Update the controller device based on current bulb device states.
+									#   But if the control destination device is off, update the value of the
+									#   controller (virtual dimmer) to 0.
+									if device.onState == True:
+										# Destination Hue Bulb device is on, update Attribute Controller brightness.
+										if attributeToControl == "hue":
+											# Convert hue scale from 0-360 to 0-100.
+											self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(hue / 360.0 * 100.0)))
+										elif attributeToControl == "saturation":
+											self.updateDeviceState(controlDevice, 'brightnessLevel', saturation)
+										elif attributeToControl == "colorRed":
+											# Convert RGB scale from 0-255 to 0-100.
+											self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorRed / 255.0 * 100.0)))
+										elif attributeToControl == "colorGreen":
+											# Convert RGB scale from 0-255 to 0-100.
+											self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorGreen / 255.0 * 100.0)))
+										elif attributeToControl == "colorBlue":
+											# Convert RGB scale from 0-255 to 0-100.
+											self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorBlue / 255.0 * 100.0)))
+										elif attributeToControl == "colorTemp" and bulb['modelid'] == "LST002":
+											# Convert color temperature scale from 2000-6500 to 0-100.
+											self.updateDeviceState(controlDevice, 'brightnessLevel', int(round((colorTemp - 2000.0) / 4500.0 * 100.0)))
+									else:
+										# Hue Device is off.  Set Attribute Controller device brightness level to 0.
+										self.updateDeviceState(controlDevice, 'brightnessLevel', 0)
+						
+						# -- LivingColors --
+						elif modelId in kLivingColorsDeviceIDs:
+							#   Value assignment.
+							saturation = bulb['state'].get('sat', "0")
+							hue = bulb['state'].get('hue', "0")
+							colorX = bulb['state'].get('xy', [0,0])[0]
+							colorY = bulb['state'].get('xy', [0,0])[1]
+							colorRed = 255		# Initialize for later
+							colorGreen = 255	# Initialize for later
+							colorBlue = 255		# Initialize for later
+							colorMode = bulb['state'].get('colormode', "xy")
+							effect = bulb['state'].get('effect', "none")
+							
+							#   Value manipulation.
+							# Convert from HSB to RGB, scaling the hue and saturation values appropriately.
+							hsb = HSVColor(hue / 182.0, saturation / 255.0, brightness / 255.0)
+							rgb = hsb.convert_to('rgb', rgb_type='wide_gamut_rgb')
+							colorRed = int(round(rgb.rgb_r))
+							colorGreen = int(round(rgb.rgb_g))
+							colorBlue = int(round(rgb.rgb_b))
+							# Convert saturation from 0-255 scale to 0-100 scale.
+							saturation = int(round(saturation / 255.0 * 100.0))
+							# Convert hue from 0-65535 scale to 0-360 scale.
+							hue = int(round(hue / 182.0))
+
+							# Update the Indigo device if the Hue device is on.
+							if onState == True:
+								# Update the brightness level if it's different.
+								if device.states['brightnessLevel'] != brightnessLevel:
+									# Log the update.
+									indigo.server.log(u"\"" + device.name + "\" on to " + str(brightnessLevel), 'Updated')
+									self.updateDeviceState(device, 'brightnessLevel', brightnessLevel)
+								# Hue Degrees (0-360).
+								self.updateDeviceState(device, 'hue', hue)
+								#   Saturation (0-100).
+								self.updateDeviceState(device, 'saturation', saturation)
+								#   CIE XY Cromaticity.
+								self.updateDeviceState(device, 'colorX', colorX)
+								self.updateDeviceState(device, 'colorY', colorY)
+								#   Color Mode.
+								self.updateDeviceState(device, 'colorMode', colorMode)
+								#   Red, Green, Blue.
+								self.updateDeviceState(device, 'colorRed', colorRed)
+								self.updateDeviceState(device, 'colorGreen', colorGreen)
+								self.updateDeviceState(device, 'colorBlue', colorBlue)
+								
+								### Update inherited states for Indigo 7+ devices.
+								if "redLevel" in device.states:
+									# Red, Green, Blue levels (0-100).
+									self.updateDeviceState(device, 'redLevel', int(round(colorRed / 255.0 * 100.0)))
+									self.updateDeviceState(device, 'greenLevel', int(round(colorGreen / 255.0 * 100.0)))
+									self.updateDeviceState(device, 'blueLevel', int(round(colorBlue / 255.0 * 100.0)))
+							
+							elif onState == False:
+								# Hue device is off. Set brightness to zero.
+								if device.states['brightnessLevel'] != 0:
+									# Log the update.
+									indigo.server.log(u"\"" + device.name + "\" off", 'Updated')
+									self.updateDeviceState(device, 'brightnessLevel', 0)
+								# Hue Degrees (convert from 0-65535 to 0-360).
+								self.updateDeviceState(device, 'hue', hue)
+								# Saturation (convert from 0-255 to 0-100).
+								self.updateDeviceState(device, 'saturation', saturation)
+								# CIE XY Cromaticity.
+								self.updateDeviceState(device, 'colorX', colorX)
+								self.updateDeviceState(device, 'colorY', colorY)
+								# Color Mode.
+								self.updateDeviceState(device, 'colorMode', colorMode)
+								# Red, Green, and Blue Color.
+								#    If the bulb is off, all RGB values should be 0.
+								self.updateDeviceState(device, 'colorRed', 0)
+								self.updateDeviceState(device, 'colorGreen', 0)
+								self.updateDeviceState(device, 'colorBlue', 0)
+								
+								### Update inherited states for Indigo 7+ devices.
+								if "redLevel" in device.states:
+									# Red, Green, Blue levels (0-100).
+									self.updateDeviceState(device, 'redLevel', int(round(colorRed / 255.0 * 100.0)))
+									self.updateDeviceState(device, 'greenLevel', int(round(colorGreen / 255.0 * 100.0)))
+									self.updateDeviceState(device, 'blueLevel', int(round(colorBlue / 255.0 * 100.0)))
+							else:
+								# Unrecognized on state, but not important enough to mention in regular log.
+								self.debugLog(u"LivingColors unrecognized on state given by hub: " + str(bulb['state']['on']))
+
+							# Update the effect state (regardless of onState).
+							self.updateDeviceState(device, 'effect', effect)
+							
+							# Update any Hue Device Attribute Controller virtual dimmers associated with this bulb.
+							for controlDeviceId in self.controlDeviceList:
+								controlDevice = indigo.devices[int(controlDeviceId)]
+								attributeToControl = controlDevice.pluginProps.get('attributeToControl', None)
+								if deviceId == int(controlDevice.pluginProps.get('bulbDeviceId', None)):
+									# Device has attributes controlled by a Hue Device Attribute Controler.
+									#   Update the controller device based on current bulb device states.
+									#   But if the control destination device is off, update the value of the
+									#   controller (virtual dimmer) to 0.
+									if device.onState == True:
+										# Destination Hue Bulb device is on, update Attribute Controller brightness.
+										if attributeToControl == "hue":
+											# Convert hue scale from 0-360 to 0-100.
+											self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(hue / 360.0 * 100.0)))
+										elif attributeToControl == "saturation":
+											self.updateDeviceState(controlDevice, 'brightnessLevel', saturation)
+										elif attributeToControl == "colorRed":
+											# Convert RGB scale from 0-255 to 0-100.
+											self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorRed / 255.0 * 100.0)))
+										elif attributeToControl == "colorGreen":
+											# Convert RGB scale from 0-255 to 0-100.
+											self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorGreen / 255.0 * 100.0)))
+										elif attributeToControl == "colorBlue":
+											# Convert RGB scale from 0-255 to 0-100.
+											self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorBlue / 255.0 * 100.0)))
+									else:
+										# Hue Device is off.  Set Attribute Controller device brightness level to 0.
+										self.updateDeviceState(controlDevice, 'brightnessLevel', 0)
+										
+						# -- LivingWhites --
+						elif modelId in kLivingWhitesDeviceIDs:
+							# Update the Indigo device if the Hue device is on.
+							if onState == True:
+								# Update the brightness level if it's different.
+								if device.states['brightnessLevel'] != brightnessLevel:
+									# Log the update.
+									indigo.server.log(u"\"" + device.name + "\" on to " + str(brightnessLevel), 'Updated')
+									self.updateDeviceState(device, 'brightnessLevel', brightnessLevel)
+							elif onState == False:
+								# Hue device is off. Set brightness to zero.
+								if device.states['brightnessLevel'] != 0:
+									# Log the update.
+									indigo.server.log(u"\"" + device.name + "\" off", 'Updated')
+									self.updateDeviceState(device, 'brightnessLevel', 0)
+							else:
+								# Unrecognized on state, but not important enough to mention in regular log.
+								self.debugLog(u"LivingWhites unrecognized on state given by hub: " + str(bulb['state']['on']))
+								
+							# Update any Hue Device Attribute Controller virtual dimmers associated with this bulb.
+							for controlDeviceId in self.controlDeviceList:
+								controlDevice = indigo.devices[int(controlDeviceId)]
+								attributeToControl = controlDevice.pluginProps.get('attributeToControl', None)
+								if deviceId == int(controlDevice.pluginProps.get('bulbDeviceId', None)):
+									# Device has attributes controlled by a Hue Device Attribute Controler.
+									#   Update the controller device based on current bulb device states.
+									#   But if the control destination device is off, update the value of the
+									#   controller (virtual dimmer) to 0.
+									if device.onState == True:
+										# Destination Hue Bulb device is on, update Attribute Controller brightness.
+										if attributeToControl == "hue":
+											# Convert hue scale from 0-360 to 0-100.
+											self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(hue / 360.0 * 100.0)))
+										elif attributeToControl == "saturation":
+											self.updateDeviceState(controlDevice, 'brightnessLevel', saturation)
+										elif attributeToControl == "colorRed":
+											# Convert RGB scale from 0-255 to 0-100.
+											self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorRed / 255.0 * 100.0)))
+										elif attributeToControl == "colorGreen":
+											# Convert RGB scale from 0-255 to 0-100.
+											self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorGreen / 255.0 * 100.0)))
+										elif attributeToControl == "colorBlue":
+											# Convert RGB scale from 0-255 to 0-100.
+											self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorBlue / 255.0 * 100.0)))
+									else:
+										# Hue Device is off.  Set Attribute Controller device brightness level to 0.
+										self.updateDeviceState(controlDevice, 'brightnessLevel', 0)
+										
+						else:
+							# Unrecognized model ID.
+							if not self.unsupportedDeviceWarned:
+								errorText = u"The \"" + device.name + u"\" device has an unrecognized model ID of \"" + bulb.get('modelid', "") + u"\". Hue Lights plugin does not support this device."
+								self.errorLog(errorText)
+								# Remember the error.
+								self.lastErrorMessage = errorText 
+								self.unsupportedDeviceWarned = True
+						# End of model ID matching if/then test.
+	
+						# Since only 1 Indigo device can control 1 Hue device, there's no need
+						#    to continue the loop, so we're breaking out of the device matching loop.
+						break
+	
+					# End check if this Indigo device is same as Hue device ID.
+				# End check if this is not a Hue Group device.
+			# End loop through self.deviceList.
+		# End loop through self.lightsDict.
+	
 	# Get Group Status
 	########################################
 	def getGroupStatus(self, deviceId):
 		# Get group status.
 		
 		device = indigo.devices[deviceId]
-		# Get the bulbId from the device properties.
+		# Get the groupId from the device properties.
 		groupId = device.pluginProps.get('groupId', -1)
 		self.debugLog(u"Get group status for group %s." % (groupId))
 		# if the groupId exists, get the group status.
@@ -3482,6 +4266,256 @@ class Plugin(indigo.PluginBase):
 					self.updateDeviceState(controlDevice, 'brightnessLevel', 0)
 					
 					
+	# Parse Hue Groups Data
+	########################################
+	def parseHueGroupsData(self):
+		self.debugLog(u"Starting parseHueGroupsData.")
+		
+		# Itterate through all the group devices in the groupsDict and update device states
+		#   and device properties as needed.  This method does no actual Hue hub communication.
+		#   It just updates Indigo devices with information already obtained through the use
+		#   of the self.updateGroupsList.
+		
+		self.debugLog(u"parseHueGroupsData: There are %i groups on the Hue bridge and %i Indigo devices controlling Hue devices and groups." % (len(self.groupsDict), len(self.deviceList)))
+		# Start going through all the devices in the groupsDict and update any corresponding
+		#   Indigo devices to which they may be associated.
+		for groupId in self.groupsDict:
+			self.debugLog(u"parseHueGroupsData: Parsing Hue group ID %s." % (groupId))
+			# Separate out the specific Hue bulb data.
+			group = self.groupsDict[groupId]
+		
+			# Loop through the self.deviceList and update all the group devices.
+			for deviceId in self.deviceList:
+				device = indigo.devices[deviceId]
+				
+				# If this Indigo device is for a Hue Group...
+				if device.deviceTypeId == "hueGroup":
+					self.debugLog(u"parseHueGroupsData: Looking at Indigo device \"%s\"." % (device.name))
+				
+					# Is this Indigo device the Hue device ID we're looking for?
+					if device.pluginProps['groupId'] == groupId:
+						self.debugLog(u"parseHueGroupsData: Indigo device \"%s\" is controlling Hue group ID \"%s\". Updating Indigo device properties and states." % (device.name, groupId))
+
+						# Value assignments.
+						# Get the name of the group as it appears on the Hue hub.
+						nameOnHub = group.get('name', "")
+						groupType = group.get('type', "")
+						groupClass = group.get('class', "")
+						brightness = group['action'].get('bri', "0")
+						onState = group['action'].get('on', False)
+						allOn = group['state'].get('all_on', False)
+						anyOn = group['state'].get('any_on', False)
+						effect = group['action'].get('effect', "")
+						alert = group['action'].get('alert', "")
+						# Use a generic yellow hue as default if there isn't a hue.
+						hue = group['action'].get('hue', 10920)
+						saturation = group['action'].get('sat', 0)
+						# Use a neutral colorX and Y value as default if one isn't there.
+						colorX = group['action'].get('xy', [0.5128, 0.4147])[0]
+						colorY = group['action'].get('xy', [0.5128, 0.4147])[1]
+						colorRed = 255		# Initialize for later
+						colorGreen = 255	# Initialize for later
+						colorBlue = 255		# Initialize for later
+						# Assign a generic 2800 K (357 mired) color temperature if one doesn't exist.
+						colorTemp = group['action'].get('ct', 357)
+						# Use "ct" as the color mode if one wasn't specified.
+						colorMode = group['action'].get('colormode', "ct")
+						# groupMemberIDs is populated a few lines down.
+						groupMemberIDs = ""
+
+						i = 0		# To count members in group.
+						for tempMemberID in group['lights']:
+							if i > 0:
+								groupMemberIDs = groupMemberIDs + ", " + str(tempMemberID)
+							else:
+								groupMemberIDs = tempMemberID
+							i += 1
+						# Clear the "i" variable.
+						del i
+
+						#   Value manipulation.
+						# Convert brightness from 0-255 range to 0-100 range.
+						brightnessLevel = int(round(brightness / 255.0 * 100.0))
+						# Compensate for incorrect rounding to zero if original brightness is not zero.
+						if brightnessLevel == 0 and brightness > 0:
+							brightnessLevel = 1
+						# If the "on" state is False, it doesn't matter what brightness the hub
+						#   is reporting, the effective brightness is zero.
+						if onState == False:
+							brightnessLevel = 0
+						# Convert from HSB to RGB, scaling the hue and saturation values appropriately.
+						hsb = HSVColor(hue / 182.0, saturation / 255.0, brightness / 255.0)
+						rgb = hsb.convert_to('rgb', rgb_type='wide_gamut_rgb')
+						colorRed = int(round(rgb.rgb_r))
+						colorGreen = int(round(rgb.rgb_g))
+						colorBlue = int(round(rgb.rgb_b))
+						# Convert saturation from 0-255 scale to 0-100 scale.
+						saturation = int(round(saturation / 255.0 * 100.0))
+						# Convert hue from 0-65535 scale to 0-360 scale.
+						hue = int(round(hue / 182.0))
+						# Must first test color temp value. If it's zero, the formula throws a divide by zero execption.
+						if colorTemp > 0:
+							# Converting from mireds to Kelvin.
+							colorTemp = int(round(1000000.0/colorTemp))
+						else:
+							colorTemp = 0
+							
+						#   Update Indigo states and properties common to all Hue devices.	
+						tempProps = device.pluginProps
+						# Update the Hue group name.
+						if nameOnHub != tempProps.get('nameOnHub', False):
+							tempProps['nameOnHub'] = nameOnHub
+							self.updateDeviceProps(device, tempProps)
+						# Update the group type.
+						if groupType != tempProps.get('type', False):
+							tempProps['type'] = groupType
+							self.updateDeviceProps(device, tempProps)
+						# Update the group class.
+						if groupClass != tempProps.get('groupClass', False):
+							tempProps['groupClass'] = groupClass
+							self.updateDeviceProps(device, tempProps)
+						# Update the allOn state of the Hue group.
+						self.updateDeviceState(device, 'allOn', allOn)
+						# Update the anyOn state.
+						self.updateDeviceState(device, 'anyOn', anyOn)
+						# Update the alert state.
+						self.updateDeviceState(device, 'alertMode', alert)
+						# Update the effect state.
+						self.updateDeviceState(device, 'effect', effect)
+						# Update the group member IDs.
+						self.updateDeviceState(device, 'groupMemberIDs', groupMemberIDs)
+						
+						# Update the Indigo device if the Hue group is on.
+						if onState == True:
+							# Update the brightness level if it's different.
+							if device.states['brightnessLevel'] != brightnessLevel:
+								# Log the update.
+								indigo.server.log(u"\"" + device.name + "\" on to " + str(brightnessLevel), 'Updated')
+								self.updateDeviceState(device, 'brightnessLevel', brightnessLevel)
+							# Hue Degrees (0-360).
+							self.updateDeviceState(device, 'hue', hue)
+							# Saturation (0-100).
+							self.updateDeviceState(device, 'saturation', saturation)
+							# CIE XY Cromaticity.
+							self.updateDeviceState(device, 'colorX', colorX)
+							self.updateDeviceState(device, 'colorY', colorY)
+							# Color Temperature (converted from 154-500 mireds to 6494-2000 K).
+							self.updateDeviceState(device, 'colorTemp', colorTemp)
+							# Color Mode.
+							self.updateDeviceState(device, 'colorMode', colorMode)
+							# Red, Green, Blue.
+							self.updateDeviceState(device, 'colorRed', colorRed)
+							self.updateDeviceState(device, 'colorGreen', colorGreen)
+							self.updateDeviceState(device, 'colorBlue', colorBlue)
+							
+							### Update inherited states for Indigo 7+ devices.
+							if "whiteLevel" in device.states or "redLevel" in device.states:
+								# White Level (negative saturation, 0-100).
+								self.updateDeviceState(device, 'whiteLevel', 100 - saturation)
+								# White Temperature (0-100).
+								self.updateDeviceState(device, 'whiteTemperature', colorTemp)
+								# Red, Green, Blue levels (0-100).
+								self.updateDeviceState(device, 'redLevel', int(round(colorRed / 255.0 * 100.0)))
+								self.updateDeviceState(device, 'greenLevel', int(round(colorGreen / 255.0 * 100.0)))
+								self.updateDeviceState(device, 'blueLevel', int(round(colorBlue / 255.0 * 100.0)))
+						
+						elif onState == False:
+							# Hue group is off. Set brightness to zero.
+							if device.states['brightnessLevel'] != 0:
+								# Log the update.
+								indigo.server.log(u"\"" + device.name + "\" off", 'Updated')
+								self.updateDeviceState(device, 'brightnessLevel', 0)
+							# Hue Degrees (convert from 0-65535 to 0-360).
+							self.updateDeviceState(device, 'hue', hue)
+							# Saturation (convert from 0-255 to 0-100).
+							self.updateDeviceState(device, 'saturation', saturation)
+							# CIE XY Cromaticity.
+							self.updateDeviceState(device, 'colorX', colorX)
+							self.updateDeviceState(device, 'colorY', colorY)
+							# Color Temperature (convert from 154-500 mireds to 6494-2000 K).
+							self.updateDeviceState(device, 'colorTemp', colorTemp)
+							# Color Mode.
+							self.updateDeviceState(device, 'colorMode', colorMode)
+							# Red, Green, and Blue Color.
+							#    If the bulb is off, all RGB values should be 0.
+							self.updateDeviceState(device, 'colorRed', 0)
+							self.updateDeviceState(device, 'colorGreen', 0)
+							self.updateDeviceState(device, 'colorBlue', 0)
+							# Effect
+							self.updateDeviceState(device, 'effect', "")
+							# Alert
+							self.updateDeviceState(device, 'alertMode', "")
+
+							### Update inherited states for Indigo 7+ devices.
+							if "whiteLevel" in device.states or "redLevel" in device.states:
+								# White Level (negative saturation, 0-100).
+								self.updateDeviceState(device, 'whiteLevel', 100 - saturation)
+								# White Temperature (0-100).
+								self.updateDeviceState(device, 'whiteTemperature', colorTemp)
+								# Red, Green, Blue levels (0-100).
+								self.updateDeviceState(device, 'redLevel', int(round(colorRed / 255.0 * 100.0)))
+								self.updateDeviceState(device, 'greenLevel', int(round(colorGreen / 255.0 * 100.0)))
+								self.updateDeviceState(device, 'blueLevel', int(round(colorBlue / 255.0 * 100.0)))
+						else:
+							# Unrecognized on state, but not important enough to mention in regular log.
+							self.debugLog(u"Hue group unrecognized on state given by hub: " + str(group['action']['on']))
+							
+						# Update any Hue Device Attribute Controller virtual dimmers associated with this bulb.
+						for controlDeviceId in self.controlDeviceList:
+							controlDevice = indigo.devices[int(controlDeviceId)]
+							attributeToControl = controlDevice.pluginProps.get('attributeToControl', None)
+							if deviceId == int(controlDevice.pluginProps.get('bulbDeviceId', None)):
+								# Device has attributes controlled by a Hue Device Attribute Controler.
+								#   Update the controller device based on current bulb device states.
+								#   But if the control destination device is off, update the value of the
+								#   controller (virtual dimmer) to 0.
+								if device.onState == True:
+									# Destination Hue Bulb device is on, update Attribute Controller brightness.
+									if attributeToControl == "hue":
+										# Convert hue scale from 0-360 to 0-100.
+										self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(hue / 360.0 * 100.0)))
+									elif attributeToControl == "saturation":
+										self.updateDeviceState(controlDevice, 'brightnessLevel', saturation)
+									elif attributeToControl == "colorRed":
+										# Convert RGB scale from 0-255 to 0-100.
+										self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorRed / 255.0 * 100.0)))
+									elif attributeToControl == "colorGreen":
+										# Convert RGB scale from 0-255 to 0-100.
+										self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorGreen / 255.0 * 100.0)))
+									elif attributeToControl == "colorBlue":
+										# Convert RGB scale from 0-255 to 0-100.
+										self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorBlue / 255.0 * 100.0)))
+									elif attributeToControl == "colorTemp":
+										# Convert color temperature scale from 2000-6500 to 0-100.
+										self.updateDeviceState(controlDevice, 'brightnessLevel', int(round((colorTemp - 2000.0) / 4500.0 * 100.0)))
+								else:
+									# Indigo Device is off.  Set Attribute Controller device brightness level to 0.
+									self.updateDeviceState(controlDevice, 'brightnessLevel', 0)
+						# End Hue Attribute Controller device updating.
+						
+						# Since only 1 Indigo device can control 1 Hue group, there's no need
+						#    to continue the loop, so we're breaking out of the device matching loop.
+						break
+	
+					# End check if this Indigo device is same as Hue group ID.
+				# End check if this is a Hue Group device.
+			# End loop through self.deviceList.
+		# End loop through self.groupsDict.
+
+	# Parse Hue Users (User Device) Data
+	########################################
+	def parseHueUsersData(self):
+		self.debugLog(u"Starting parseHueUsersData.")
+		# Soon to be filled in.
+	
+	# Parse Hue Scenes Data
+	########################################
+	def parseHueScenesData(self):
+		self.debugLog(u"Starting parseHueScenesData.")
+		# Soon to be filled in.
+
+
+
 	# Turn Device On or Off
 	########################################
 	def doOnOff(self, device, onState, rampRate=-1):
@@ -4487,6 +5521,107 @@ class Plugin(indigo.PluginBase):
 		# Update the device state.
 		self.updateDeviceState(device, 'effect', effect)
 	
+	
+	# Get Entire Hue Hub Config
+	########################################
+	def getHueConfig(self):
+		# This method obtains the entire configuration object from the Hue hub.  That
+		#   object contains various Hue hub settings along with every paired light and
+		#   sensor device, along with every group, scene, trigger rule, and schedule
+		#   on the hub.  For this reason, this method should not be called frequently
+		#   to avoid causing Hue hub performacne degredation.
+		self.debugLog(u"Starting getHueConfig.")
+		# Sanity check for an IP address
+		self.ipAddress = self.pluginPrefs.get('address', None)
+		if self.ipAddress is None:
+			errorText = u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com."
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
+		
+		# Force a timeout
+		socket.setdefaulttimeout(kTimeout)
+		
+		try:
+			# Send the command and parse the response
+			command = "http://%s/api/%s/" % (self.ipAddress, self.hostId)
+			self.debugLog(u"Sending command to hub: %s" % command)
+			r = requests.get(command, timeout=kTimeout)
+			hueConfigResponseData = json.loads(r.content)
+			self.debugLog(u"Got response %s" % hueConfigResponseData)
+			
+			# We should have a dictionary. If so, it's a Hue configuration response.
+			if isinstance(hueConfigResponseData, dict):
+				self.debugLog(u"Loaded entire Hue hub configuration - %s" % (hueConfigResponseData))
+				
+				# Load the entire configuration into one big dictionary object.
+				self.hueConfigDict = hueConfigResponseData
+				# Now separate out the component obects into various dictionaries to
+				#   be used by other methods in the plugin.
+				self.lightsDict		= hueConfigResponseData.get('lights', dict())
+				self.groupsDict		= hueConfigResponseData.get('groups', dict())
+				self.resourcesDict	= hueConfigResponseData.get('resourcelinks', dict())
+				self.sensorsDict	= hueConfigResponseData.get('sensors', dict())
+				self.usersDict		= hueConfigResponseData['config'].get('whitelist', dict())
+				self.scenesDict		= hueConfigResponseData.get('scenes', dict())
+				self.rulesDict		= hueConfigResponseData.get('rules', dict())
+				self.schedulesDict	= hueConfigResponseData.get('schedules', dict())
+			
+				# Make sure the plugin knows it's actually paired now.
+				self.paired = True
+				
+			elif isinstance(hueConfigResponseData, list):
+				# Get the first item
+				firstResponseItem = hueConfigResponseData[0]
+				
+				# Did we get an error?
+				errorDict = firstResponseItem.get('error', None)
+				if errorDict is not None:
+					
+					errorCode = errorDict.get('type', None)
+					
+					# Is this a link button not pressed error?
+					if errorCode == 1:
+						errorText = u"Not paired with the Hue hub. Press the middle button on the Hue hub, then press the Pair Now button in the Hue Lights Configuration window (Plugins menu)."
+						self.errorLog(errorText)
+						# Remember the error.
+						self.lastErrorMessage = errorText
+						self.paired = False
+						
+					else:
+						errorText = u"Error #%i from Hue hub when getting the Hue hub configuraiton. Description is \"%s\"." % (errorCode, errorDict.get('description', u"(no description"))
+						self.errorLog(errorText)
+						# Remember the error.
+						self.lastErrorMessage = errorText
+						self.paired = False
+					
+				else:
+					indigo.server.log(u"Unexpected response from Hue hub (%s) when getting the Hue hub configuration!" % (hueConfigResponseData))
+					
+			else:
+				indigo.server.log(u"Unexpected response from Hue hub (%s) when getting the Hue hub configuration!" % (hueConfigResponseData))
+			
+		except requests.exceptions.Timeout:
+			errorText = u"Failed to load the configuration from the Hue hub at %s after %i seconds - check settings and retry." % (self.ipAddress, kTimeout)
+			# Don't display the error if it's been displayed already.
+			if errorText != self.lastErrorMessage:
+				self.errorLog(errorText)
+				# Remember the error.
+				self.lastErrorMessage = errorText
+			
+		except requests.exceptions.ConnectionError:
+			errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected, turned on and the network settings are correct." % (self.ipAddress)
+			# Don't display the error if it's been displayed already.
+			if errorText != self.lastErrorMessage:
+				self.errorLog(errorText)
+				# Remember the error.
+				self.lastErrorMessage = errorText
+			return
+			
+		except Exception, e:
+			self.errorLog(u"Unable to obtain the configuration from the Hue hub." + str(e))
+	
 	# Update Lights List
 	########################################
 	def updateLightsList(self):
@@ -4499,6 +5634,9 @@ class Plugin(indigo.PluginBase):
 			# Remember the error.
 			self.lastErrorMessage = errorText
 			return
+		
+		# Remember the current number of Hue lights to see if new ones have been added.
+		lastLightsCount = len(self.lightsDict)
 		
 		# Force a timeout
 		socket.setdefaulttimeout(kTimeout)
@@ -4515,10 +5653,21 @@ class Plugin(indigo.PluginBase):
 			if isinstance(lightsListResponseData, dict):
 				self.debugLog(u"Loaded lights list - %s" % (lightsListResponseData))
 				self.lightsDict = lightsListResponseData
-				if len(self.lightsDict) != 1:
-					indigo.server.log(u"Loaded %i lights." % len(self.lightsDict))
-				else:
-					indigo.server.log(u"Loaded %i light." % len(self.lightsDict))
+				
+				# See if there are more lights now than there were last time we checked.
+				if len(self.lightsDict) > lastLightsCount and lastLightsCount is not 0:
+					lightsCountChange = len(self.lightsDict) - lastLightsCount
+					if lightsCountChange == 1:
+						indigo.server.log(u"%i new Hue light found and loaded. Be sure to create an Indigo device to control the new Hue light." % lightsCountChange)
+					else:
+						indigo.server.log(u"%i new Hue lights found and loaded. Be sure to create Indigo devices to control the new Hue lights." % lightsCountChange)
+				elif len(self.lightsDict) < lastLightsCount:
+					lightsCountChange = lastLightsCount - len(self.lightsDict)
+					if lightsCountChange == 1:
+						indigo.server.log(u"%i Hue light removal was detected from the Hue hub. Check your Hue Lights Indigo devices. One of them may have been controlling the missing Hue lights." % lightsCountChange)
+					else:
+						indigo.server.log(u"%i Hue light removals were detected on the Hue hub. Check your Hue Lights Indigo devices. Some of them may have been controlling the missing Hue lights." % lightsCountChange)
+					
 				# Make sure the plugin knows it's actually paired now.
 				self.paired = True
 				
@@ -4591,6 +5740,9 @@ class Plugin(indigo.PluginBase):
 			self.lastErrorMessage = errorText
 			return
 		
+		# Remember the current number of Hue groups to see if new ones have been added.
+		lastGroupsCount = len(self.groupsDict)
+		
 		# Force a timeout
 		socket.setdefaulttimeout(kTimeout)
 		
@@ -4606,10 +5758,20 @@ class Plugin(indigo.PluginBase):
 			if isinstance(groupsListResponseData, dict):
 				self.debugLog(u"Loaded groups list - %s" % (groupsListResponseData))
 				self.groupsDict = groupsListResponseData
-				if len(self.groupsDict) != 1:
-					indigo.server.log(u"Loaded %i groups." % len(self.groupsDict))
-				else:
-					indigo.server.log(u"Loaded %i group." % len(self.groupsDict))
+				
+				# See if there are more groups now than there were last time we checked.
+				if len(self.groupsDict) > lastGroupsCount and lastGroupsCount is not 0:
+					groupsCountChange = len(self.groupsDict) - lastGroupsCount
+					if groupsCountChange == 1:
+						indigo.server.log(u"%i new Hue group found and loaded. Be sure to create an Indigo device to control the new Hue group." % groupsCountChange)
+					else:
+						indigo.server.log(u"%i new Hue groups found and loaded. Be sure to create Indigo devices to control the new Hue groups." % groupsCountChange)
+				elif len(self.groupsDict) < lastGroupsCount:
+					groupsCountChange = lastGroupsCount - len(self.groupsDict)
+					if groupsCountChange == 1:
+						indigo.server.log(u"%i less Hue group was found on the Hue hub. Check your Hue Lights Indigo devices. One of them may have been controlling the missing Hue group." % groupsCountChange)
+					else:
+						indigo.server.log(u"%i fewer Hue groups were found on the Hue hub. Check your Hue Lights Indigo devices. Some of them may have been controlling the missing Hue groups." % groupsCountChange)
 				# Make sure the plugin knows it's actually paired now.
 				self.paired = True
 				
@@ -4666,7 +5828,10 @@ class Plugin(indigo.PluginBase):
 	
 	# Update Lights and Groups List
 	########################################
-	def updateLightsGroupsList(self):
+	def updateAllHueLists(self):
+		# This function is generally only used as a callback method for the
+		#    Plugins -> Hue Lights -> Reload Hue Hub Config menu item, but can
+		#    be used to force a reload of everything from the Hue hub.
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
 		if self.ipAddress is None:
@@ -4676,9 +5841,61 @@ class Plugin(indigo.PluginBase):
 			self.lastErrorMessage = errorText
 			return
 		
-		# Execute the updateLigthsList and updateGroupsList methods.
-		self.updateLightsList()
-		self.updateGroupsList()
+		# Get the entire configuration from the Hue hub.
+		self.getHueConfig()
+		
+		# Now report the results.
+		#
+		# Lights list...
+		if len(self.lightsDict) == 1:
+			indigo.server.log(u"Loaded %i light." % len(self.lightsDict))
+		else:
+			indigo.server.log(u"Loaded %i lights." % len(self.lightsDict))
+		
+		# Groups list...
+		if len(self.groupsDict) == 1:
+			indigo.server.log(u"Loaded %i group." % len(self.groupsDict))
+		else:
+			indigo.server.log(u"Loaded %i groups." % len(self.groupsDict))
+		
+		# User devices list...
+		#if len(self.usersDict) == 1:
+		#	indigo.server.log(u"Loaded %i user device." % len(self.usersDict))
+		#else:
+		#	indigo.server.log(u"Loaded %i user devices." % len(self.usersDict))
+		
+		# Scenes list...
+		#if len(self.scenesDict) == 1:
+		#	indigo.server.log(u"Loaded %i scene." % len(self.scenesDict))
+		#else:
+		#	indigo.server.log(u"Loaded %i scenes." % len(self.scenesDict))
+
+		# Resource links list...
+		#if len(self.resourcesDict) == 1:
+		#	indigo.server.log(u"Loaded %i resource link." % len(self.resourcesDict))
+		#else:
+		#	indigo.server.log(u"Loaded %i resource links." % len(self.resourcesDict))
+		
+		# Trigger rules list...
+		#if len(self.rulesDict) == 1:
+		#	indigo.server.log(u"Loaded %i trigger rule." % len(self.rulesDict))
+		#else:
+		#	indigo.server.log(u"Loaded %i trigger rules." % len(self.rulesDict))
+		
+		# Schedules list...
+		#if len(self.schedulesDict) == 1:
+		#	indigo.server.log(u"Loaded %i schedule." % len(self.schedulesDict))
+		#else:
+		#	indigo.server.log(u"Loaded %i schedules." % len(self.schedulesDict))
+		
+		# Sensors list...
+		#if len(self.sensorsDict) == 1:
+		#	indigo.server.log(u"Loaded %i sensor." % len(self.sensorsDict))
+		#else:
+		#	indigo.server.log(u"Loaded %i sensors." % len(self.sensorsDict))
+		
+
+
 
 	########################################
 	# Hue Hub Pairing Methods
