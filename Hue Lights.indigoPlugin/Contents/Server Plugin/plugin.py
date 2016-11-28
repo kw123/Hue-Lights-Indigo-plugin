@@ -14,9 +14,13 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.4.6b1
+#	Version 1.4.6b2
 #
-#	History:	1.4.6b1 (not yet released).
+#	History:	1.4.6b2 (limited release).
+#				* Changed light and group status update process to use less CPU in mid
+#				  to large Hue installations.
+#				--
+#				1.4.6b1 (limited release).
 #				* Fixed a potential bug in the startup code that may have caused an
 #				  infinite device reload loop, and thus high CPU load.
 #				* Fixed a bug that caused an error when attempting to edit Hue Groups
@@ -634,9 +638,7 @@ class Plugin(indigo.PluginBase):
 					#   this error instead of the actual bulb definition.
 					self.debugLog(u"Hue device definition cannot be displayed because: " + str(e))
 				self.deviceList.append(device.id)
-				# Get the bulb's status.
-				self.getBulbStatus(device.id)
-				
+
 	# Stop Devices
 	########################################
 	def deviceStopComm(self, device):
@@ -3390,30 +3392,31 @@ class Plugin(indigo.PluginBase):
 	def parseHueLightsData(self):
 		self.debugLog(u"Starting parseHueLightsData.")
 		
-		# Itterate through all the light devices in the lightsDict and update device states
-		#   and device properties as needed.  This method does no actual Hue hub communication.
-		#   It just updates Indigo devices with information already obtained through the use
-		#   of the self.updateLightsList.
+		# Itterate through all the Indigo devices and look for Hue light changes in the
+		#   self.lightsDict that changed, then update the Indigo device states and properties
+		#   as needed.  This method does no actual Hue hub communication.  It just updates
+		#   Indigo devices with information already obtained through the use of the
+		#   self.updateLightsList.
 		
-		self.debugLog(u"parseHueLightsData: There are %i devices and groups on the Hue bridge and %i Indigo devices controlling Hue devices and groups." % (len(self.lightsDict), len(self.deviceList)))
-		# Start going through all the devices in the lightsDict and update any corresponding
-		#   Indigo devices to which they may be associated.
-		for bulbId in self.lightsDict:
-			self.debugLog(u"parseHueLightsData: Parsing Hue device ID %s." % (bulbId))
-			# Separate out the specific Hue bulb data.
-			bulb = self.lightsDict[bulbId]
+		self.debugLog(u"parseHueLightsData: There are %i lights on the Hue bridge and %i Indigo devices controlling Hue lights and groups." % (len(self.lightsDict), len(self.deviceList)))
+		# Start going through all the devices in the self.deviceList and update any Indigo
+		#   devices that are controlling the Hue light devices.
+		for deviceId in self.deviceList:
+			device = indigo.devices[deviceId]
+			self.debugLog(u"parseHueLightsData: Looking at Indigo device \"%s\"." % (device.name))
 		
-			# Loop through the self.deviceList and update all the light devices.
-			for deviceId in self.deviceList:
-				device = indigo.devices[deviceId]
-				
-				# If this Indigo device is not for a Hue Group...
-				if device.deviceTypeId != "hueGroup":
-					self.debugLog(u"parseHueLightsData: Looking at Indigo device \"%s\"." % (device.name))
-				
-					# Is this Indigo device the Hue device ID we're looking for?
-					if device.pluginProps['bulbId'] == bulbId:
-						self.debugLog(u"parseHueLightsData: Indigo device \"%s\" is controlling Hue device ID \"%s\". Updating Indigo device properties and states." % (device.name, bulbId))
+			# If this Indigo device is not for a Hue Group...
+			if device.deviceTypeId != "hueGroup":
+				self.debugLog(u"parseHueLightsData: Indigo device \"%s\" is not for a Hue group. Proceeing." % (device.name))
+				# Go through each Hue light device and see if it is controlled by this Indigo device.
+				for bulbId in self.lightsDict:
+					bulb = self.lightsDict[bulbId]
+					self.debugLog(u"parseHueLightsData: Parsing Hue device ID %s (\"%s\")." % (bulbId, bulb.get('name', "no name")))
+					
+					# Separate out the specific Hue bulb data.
+					# Is this Hue device ID the one associated with this Indigo device?
+					if bulbId == device.pluginProps['bulbId']:
+						self.debugLog(u"parseHueLightsData: Indigo device \"%s\" is controlling Hue device ID \"%s\" (\"%s\"). Updating Indigo device properties and states." % (device.name, bulbId, bulb.get('name', "no name")))
 						# Data common to all device types...
 						#   Value assignments.
 						brightness = bulb['state'].get('bri', 0)
@@ -4016,10 +4019,10 @@ class Plugin(indigo.PluginBase):
 						#    to continue the loop, so we're breaking out of the device matching loop.
 						break
 	
-					# End check if this Indigo device is same as Hue device ID.
-				# End check if this is not a Hue Group device.
-			# End loop through self.deviceList.
-		# End loop through self.lightsDict.
+					# End check if this Hue device ID is for this Indigo device.
+				# End loop through self.lightsDict.
+			# End check if this is not a Hue Group device.
+		# End loop through self.deviceList.
 	
 	# Get Group Status
 	########################################
@@ -4271,31 +4274,31 @@ class Plugin(indigo.PluginBase):
 	def parseHueGroupsData(self):
 		self.debugLog(u"Starting parseHueGroupsData.")
 		
-		# Itterate through all the group devices in the groupsDict and update device states
-		#   and device properties as needed.  This method does no actual Hue hub communication.
-		#   It just updates Indigo devices with information already obtained through the use
-		#   of the self.updateGroupsList.
+		# Itterate through all the Indigo devices and look for Hue group changes in the
+		#   self.groupsDict that changed, then update the Indigo device states and properties
+		#   as needed.  This method does no actual Hue hub communication.  It just updates
+		#   Indigo devices with information already obtained through the use of the
+		#   self.updateGroupsList.
 		
-		self.debugLog(u"parseHueGroupsData: There are %i groups on the Hue bridge and %i Indigo devices controlling Hue devices and groups." % (len(self.groupsDict), len(self.deviceList)))
-		# Start going through all the devices in the groupsDict and update any corresponding
-		#   Indigo devices to which they may be associated.
-		for groupId in self.groupsDict:
-			self.debugLog(u"parseHueGroupsData: Parsing Hue group ID %s." % (groupId))
-			# Separate out the specific Hue bulb data.
-			group = self.groupsDict[groupId]
+		self.debugLog(u"parseHueGroupsData: There are %i groups on the Hue bridge and %i Indigo devices controlling Hue lights and groups." % (len(self.groupsDict), len(self.deviceList)))
+		# Start going through all the devices in the self.deviceList and update any Indigo
+		#   devices that are controlling the Hue group devices.
+		for deviceId in self.deviceList:
+			device = indigo.devices[deviceId]
+			self.debugLog(u"parseHueGroupsData: Looking at Indigo device \"%s\"." % (device.name))
 		
-			# Loop through the self.deviceList and update all the group devices.
-			for deviceId in self.deviceList:
-				device = indigo.devices[deviceId]
-				
-				# If this Indigo device is for a Hue Group...
-				if device.deviceTypeId == "hueGroup":
-					self.debugLog(u"parseHueGroupsData: Looking at Indigo device \"%s\"." % (device.name))
-				
-					# Is this Indigo device the Hue device ID we're looking for?
-					if device.pluginProps['groupId'] == groupId:
-						self.debugLog(u"parseHueGroupsData: Indigo device \"%s\" is controlling Hue group ID \"%s\". Updating Indigo device properties and states." % (device.name, groupId))
-
+			# If this Indigo device is for a Hue Group...
+			if device.deviceTypeId == "hueGroup":
+				self.debugLog(u"parseHueGroupsData: Indigo device \"%s\" is for a Hue group. Proceeing." % (device.name))
+				# Go through each Hue group device and see if it is controlled by this Indigo device.
+				for groupId in self.groupsDict:
+					group = self.groupsDict[groupId]
+					self.debugLog(u"parseHueGroupsData: Parsing Hue group ID %s (\"%s\")." % (groupId, group.get('name', "no name")))
+					
+					# Separate out the specific Hue group data.
+					# Is this Hue group ID the one associated with this Indigo device?
+					if groupId == device.pluginProps['groupId']:
+						self.debugLog(u"parseHueGroupsData: Indigo device \"%s\" is controlling Hue group ID \"%s\" (\"%s\"). Updating Indigo device properties and states." % (device.name, groupId, group.get('name', "no name")))
 						# Value assignments.
 						# Get the name of the group as it appears on the Hue hub.
 						nameOnHub = group.get('name', "")
@@ -4497,10 +4500,10 @@ class Plugin(indigo.PluginBase):
 						#    to continue the loop, so we're breaking out of the device matching loop.
 						break
 	
-					# End check if this Indigo device is same as Hue group ID.
-				# End check if this is a Hue Group device.
-			# End loop through self.deviceList.
-		# End loop through self.groupsDict.
+					# End check if this Hue Group device is the one associated with the Indigo device.
+				# End loop through self.groupsDict.
+			# End check if this is a Hue Group device.
+		# End loop through self.deviceList.
 
 	# Parse Hue Users (User Device) Data
 	########################################
