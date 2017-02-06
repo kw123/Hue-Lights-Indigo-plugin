@@ -14,429 +14,10 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.4.6b2
+#	Version 1.5.1
 #
-#	History:	1.4.6b2 (limited release).
-#				* Changed light and group status update process to use less CPU in mid
-#				  to large Hue installations.
-#				--
-#				1.4.6b1 (limited release).
-#				* Fixed a potential bug in the startup code that may have caused an
-#				  infinite device reload loop, and thus high CPU load.
-#				* Fixed a bug that caused an error when attempting to edit Hue Groups
-#				  device settings in the Indigo UI.
-#				* Added some underlying code needed to support scenes and sensors, as well
-#				  as other Hue features. Scenes and sensors are not yet supported, but
-#				  it will now be easier to provide limited support in the future.
-#				--
-#				1.4.5
-#				* Added automatic detection and loading of new lights and groups. No need
-#				  to manually reload lights with the Reload Hue Device List menu item.
-#				* Fixed a bug that incorrectly reported some updated devices as being out
-#				  of date (from an old Hue Lights plugin version).
-#				* Improved hue device status updating efficiency to reduce the number of
-#				  Hue hub queries.
-#				--
-#				1.4.4
-#				* Fixed another bug with Ambiance Lights Edit Device Settings dialog that
-#				  would incorrectly show an error that the device wasn't an Ambiance Light.
-#				1.4.3
-#				* Fixed a bug with Ambiance Lights Edit Device Settings dialog that
-#				  wouldn't allow you to save changes.
-#				--
-#				1.4.2
-#				* Fixed a bug with Ambiance Lights selection list in Edit Device Settings
-#				  dialog to not appear.
-#				--
-#				1.4.1
-#				* Fixed a bug with LivingColors light update processing that caused
-#				  the plugin to crash.
-#				--
-#				1.4.0
-#				* Changed Hue Lights to now require Indigo 7 or later.
-#				* Added support for color picker in light color setting actions.
-#				* Added support for color and white temperature UI features in Indigo.
-#				* Added Toggle Debugging menu item in Hue Lights plugin menu.
-#				* Changed LightStrip Plus handling so it appears with the original
-#				  Hue LigthStrip model in Edit Device Settings dialog.
-#				* Updated Hue Group device name to show that it's no longer experimental.
-#				--
-#				1.3.30
-#				* Fixed a bug in 1.3.29 that prevented Hue Lights from recognizing the
-#				  2nd generation LightStrips.
-#				--
-#				1.3.29
-#				* Added support for additional Hue light models.
-#				--
-#				1.3.28
-#				* Added support for the Hue bulb v3, Hue White v2 and Hue White v3.
-#				--
-#				1.3.27
-#				* Fixed a bug that caused a plugin crash when updating the status
-#				  of a bulb that has no hue value associated with ti.
-#				--
-#				1.3.26
-#				* Actually added the 2nd Hue White Ambiance model ID this time.
-#				--
-#				1.3.25
-#				* Added support for 2 Hue White Ambiance bulb models.
-#				* Fixed bug that caused the plugin to crash if a light had no
-#				  color information from the Hue hub.
-#				--
-#				1.3.24
-#				* Fixed a bug that caused the plugin to hang then crash after adding
-#				  a Hue Group device.
-#				--
-#				1.3.23
-#				* Added ability to use an Indigo variable for the ramp rate in all
-#				  actions that have a ramp rate parameter.
-#				* Added ability to use Indigo variables and other Indigo dimmers
-#				  as the brightess source in actions that have a 0 to 100 percent
-#				  scale brightness parameter (i.e. the "Set Hue/Saturation/Brightess"
-#				  and "Set Color Temperature" actions. The "Set Brightness with
-#				  Ramp Rate" action already had this capability).
-#				* Added ability to use an Indigo variable for color temperature
-#				  in the "Set Color Temperature" action.
-#				--
-#				1.3.22
-#				* Fixed error when attempting to obtain device status from Osram
-#				  CLA60 lights.  Light now appears as a Living Whites bulb.
-#				* Improved light status gathering method to prevent plugin crashes
-#				  if a light device doesn't have an expected property.
-#				--
-#				1.3.21
-#				* Added support for the Osram Lightify CLA60 Tunable White bulb.
-#				--
-#				1.3.20
-#				* Fixed the pairing process to work with hub firmware from 04-2016.
-#				* Simplified hub pairing process (much less complicated now).
-#				* Improved plugin configuration window error checking.
-#				--
-#				1.3.19
-#				* Added support for new Phoenix light model.
-#				--
-#				1.3.18
-#				* Fixed incompatibility with Indigo 6.1.8 that caused every
-#				  HTTP connection to the Hue hub to generate a "Starting
-#				  new HTTP connection (1)..." entry in the Indigo log.
-#				--
-#				1.3.17
-#				* Updated Phoenix support so it appears in the LivingWhites
-#				  device list instad of the color Hue bulbs list.
-#				--
-#				1.3.16
-#				* Added support for the Phoenix wall lights.
-#				--
-#				1.3.15
-#				* Moved supported device lists into a separate Python file
-#				  for easier maintenance
-#				* Added support for the Hue White A19 extension bulb.
-#				--
-#				1.3.14
-#				* Added support for the new 800 lumen Hue bulb and the LED
-#				  LightStrip Plus (temporarily found in the Hue Bulb list).
-#				--
-#				1.3.13
-#				* Added support for the Dresden Elektronik FLS-PP lp LED strip
-#				  white light segment.
-#				--
-#				1.3.12
-#				* Added support for the Dresden Elektronik FLS-PP lp color
-#				  LED light strip.
-#				--
-#				1.3.11
-#				* Added Hue Go, Color Light, and Color Temperature modules to
-#				  compatible device list.
-#				--
-#				1.3.10
-#				* Fixed a bug that caused the plugine to crash when trying to
-#				  obtain the "effect" state of a Hue Lux light on the hub.
-#				--
-#				1.3.9
-#				* Fixed another bug that caused the plugin to crash if a Hue
-#				  Group had no color mode defined on the Hue hub (e.g. all the
-#				  group members were non-color bulbs).
-#				--
-#				1.3.8
-#				* Added support for generic ZigBee lights such as the GE Link.
-#				* Fixed a bug that caused the plugin to crash if an alert action
-#				  was taken on a Hue Group device.
-#				--
-#				1.3.7
-#				* Fixed a bug that caused the plugin to crash if there were
-#				  any Hue groups registered with the Hue hub.
-#				* Fixed a bug that prevented Hue Group devices from being
-#				  loaded when the "Reload Hue Device List" plugin menu option
-#				  was selected within the Indigo client.
-#				--
-#				1.3.6
-#				* Added support for the Hue Lux bulb.
-#				--
-#				1.3.5
-#				* Added support for the LivingColors Iris.
-#				--
-#				1.3.4
-#				* Yet another attempt to fix the same bug found in 1.3.0.
-#				--
-#				1.3.3
-#				* Another attempt to fix the same bug found in 1.3.0.
-#				--
-#				1.3.2
-#				* Fixed a bug introduced in 1.3.1 that causes an error when
-#				  no ramp rate is provided for Color Temperatur and other
-#				  color change actions are initiated.
-#				--
-#				1.3.1
-#				* Fixed a bug that could cause a plugin crash if a string
-#				  was passed as the ramp rate in a Python script when
-#				  executing any action that sets color.
-#				--
-#				1.3.0
-#				* Added limited, experimental support for Hue groups.
-#				  Support is limited to working with existing groups on
-#				  the Hue hub. Hue groups are treated like other Hue
-#				  devices.
-#				* Minor error message corrections throughout the plugin.
-#				--
-#				1.2.11 (29-Apr-2014)
-#				* Fixed a bug that would cause device edit dialogs to
-#				  incorrectly report that the hub was not paired after
-#				  the hub had been unreachable then became reachable again.
-#				--
-#				1.2.10 (23-Apr-2014)
-#				* Fixed a bug that would cause the plugin to crash
-#				  if a command was sent to the hub while the hub
-#				  (or the plugin) was in an unstable state that
-#				  resulted in an invalid pairing status.
-#				* Updated the error reporting process so that major
-#				  connection failure errors were actually reported as
-#				  errors in the log rather than standard log entries.
-#				* Updated the error reporting process so frequently
-#				  displayed errors during a network or hub outage
-#				  are reduced from once every 4 seconds to about once
-#				  every minute.
-#				--
-#				1.2.9 (31-Mar-2014)
-#				* Added support for the LivingColor Aura available
-#				  in Europe (model ID LLC014).
-#				* Updated Hue device types in Indigo device dialog
-#				  to help clarify which device type to choose based
-#				  on which Hue device you have.
-#				--
-#				1.2.8 (07-Feb-2014)
-#				* Added support for the European version of the
-#				  Bloom (model ID LLC011).
-#				* Audited code to make sure all printable text is
-#				  explicitly marked as Unicode text.
-#				--
-#				1.2.7 (10-Dec-2013)
-#				* Added support for the Friends of Hue Disney
-#				  StoryLight.
-#				--
-#				1.2.6 (21-Nov-2013)
-#				* Added support for the Hue GU10 spot light.
-#				* Increased number of Presets from 10 to 30.
-#				--
-#				1.2.5 (05-Nov-2013)
-#				* Added support for the Hue "Downlight" BR30 bulb.
-#				--
-#				1.2.4 (10-Sep-2013)
-#				* Added optional Ramp Rate to the Save Preset and Recall Preset
-#				  actions and menu items.
-#				* Fixed (hopefully) a bug that caused an ASCII translation error
-#				  when editing an action for a device with non-ASCII characters
-#				  in the name.
-#				--
-#				1.2.3 (04-Sep-2013... later that day.  :-) )
-#				* Fixed a bug that caused a "typeId 'setBrightness'" error when
-#				  attempting to create a Set Brightness with Ramp Rate action.
-#				--
-#				1.2.2 (04-Sep-2013)
-#				* Increased the number of connection retries should a connection
-#				  error be reported by the requests library.  Also disabled the
-#				  HTTP "keep alive" connection pooling feature.
-#				--
-#				1.2.1 (02-Sep-2013)
-#				* Fixed a bug that could cause the plugin to crash when using the
-#				  Set Hue/Saturation/Brightness action from an external or embedded
-#				  script then from an Indigo action.
-#				* Added elipses to Plugins menu Preset items to conform to standard
-#				  menu item naming convension when a dialog results from selecting
-#				  a menu item.
-#				--
-#				1.2.0 (25-Aug-2013)
-#				* Added Hue device settings Presets option that can save a device's
-#				  current settings to be recalled (applied) later to any other
-#				  compatible Hue device.
-#				* Fixed a bug that would cause Hue devices to not turn off if the
-#				  requested brightness level was 0 when using the Set RGB, Set HSB,
-#				  Set Color Temperature, or Set xyY actions.
-#				--
-#				1.1.1 (20-Aug-2013)
-#				* Added code to update device error states if a Hue device's online
-#				  state changes to false, or there's some other kind of error.
-#				* Corrected some UI labeling errors.
-#				--
-#				1.1.0 (18-Aug-2013)
-#				* Added support for the following Friends of Hue devices:
-#				     - LightStrips
-#				     - LivingColors Bloom
-#				* Added experimental support for LivingWhites devices.
-#				* Fixed a bug that wouldn't turn off the Hue bulb as quickly if using
-#				  the standard device Turn Off command as opposed to setting the
-#				  brightness to 0 method.
-#				* Updated the Set Red/Green/Blue function to better match
-#				  Hue device capabilities.
-#				* Added a Set xyY Chromaticity (Advanced) action that allows one to
-#				  directly specify the x/y chromaticity and Y luminosity values for
-#				  devices that can render color.
-#				--
-#				1.0.3 (09-Aug-2013)
-#				* Fixed bug that caused the plugin to crash when using a LightStrip
-#				  device.
-#				--
-#				1.0.2 (09-Aug-2013)
-#				* Added ability to recognize new LightStrips and "wall washer" strips.
-#				--
-#				1.0.1 (30-Jul-2013)
-#				* Added the indigoPluginUpdateChecker module (code by Travis CooK)
-#				  to facilitate automatic plugin version checking.
-#				--
-#				1.0 (03-Jul-2013)
-#				* Updated brightness status code to accurately reflect a 1
-#				  percent brightness level (rather than rounding up to 2 percent).
-#				* Added Default Brightness property for Hue Bulbs devices so
-#				  their features are more consistent with other lighting devices
-#				  in Indigo (such as SwitchLinc and LampLinc Dimmers).
-#				* Changed "on", "off", and "toggle" action control functions so
-#				  that sending an "on" command to a Hue Bulb from within Indigo
-#				  returns the bulb to its previous brightness level, or its
-#				  default brightness level (if set).
-#				* Updated Brightness, HSB, and Color Temperature setting methods
-#				  so that they properly save the brightness level specified in
-#				  those actions to the Hue Bulb's device properties for recall
-#				  should an "on" command be sent to it.
-#				* Updated the bulb status gathering method so that if the bulb
-#				  brightness changes outside of the Hue Lights plugin (or the hub
-#				  updates the bulb brightness during a long transition time),
-#				  Hue Lights does not save the new brightness to the bulb
-#				  properties and thus causing an "on" command later to recall an
-#				  incorrect previous brightness state.
-#				* Changed the logging slightly to more closely match the log
-#				  format of native INSTEON device changes.
-#				--
-#				0.10.2 (24-Jun-2013)
-#				* Added more code to work better with LivingWhites bulbs.
-#				--
-#				0.10.1 (24-Jun-2013)
-#				* Modified debugging code so it wouldn't throw errors when the
-#				  plugin is installed on versions of Indigo Pro earlier than
-#				  version 5.1.7.
-#				* Added the LWB003 model ID to the list of recognized Hue models.
-#				--
-#				0.10.0 (12-Jun-2013)
-#				* Added a Hue Bulb Attribute Controller virtual dimmer device
-#				  which can be created to control a specific attribute (hue,
-#				  saturation, RGB levels, or color temperature) of an existing
-#				  Hue Lights bulb device.
-#				* Added an "Effect" action which allows you to specify an effect
-#				  to be turned on for a Hue bulb (requires latest firmware on
-#				  the Hue hub. Currently, only the Color Loop effect is supported
-#				  by the Hue hub and bulbs).
-#				* Changed light control methods so that if the current light
-#				  brightness is below 6% and the requested action is to turn off
-#				  the bulb, set the ramp rate to 0 regardless of the default or
-#				  specified ramp rate (transition time) because going from a
-#				  brightness of 6% or lower to an off state with a dimming rate
-#				  isn't noticeable.
-#				--
-#				0.9.11 (10-Apr-2013)
-#				* Updated code to more elegantly handle non-Hue devices attached
-#				  to the Hue hub.
-#				--
-#				0.9.10 (02-Apr-2013)
-#				* Fixed a bug that would cause the plugin to crash if a
-#				  registered bulb on the Hue hub had no "hue" attribute (which
-#				  could happen when using "LivingWhites" plugin dimmers found in
-#				  some European countries).
-#				--
-#				0.9.9 (24-Jan-2013)
-#				* Attempted to make RGB-to-xyY conversions more accurate by
-#				  changing the illuminant used by the colormath functions from
-#				  type "a" to type "e".
-#				--
-#				0.9.8 (23-Jan-2013)
-#				* Fixed a bug that would crash the plugin if no device was
-#				  selected in a start/stopBrightening/Dimming action when the
-#				  action was executed.
-#				* Fixed a bug that would cause an error during device creation
-#				  dialog validation for new Hue Light devices in Indigo 5.x.
-#				--
-#				0.9.7 (31-Dec-2012)
-#				* Fixed a bug that updated the "hue" state of plugin devices
-#				  with an invalid number when the setHSB action was used.
-#				--
-#				0.9.6 (31-Dec-2012)
-#				* Fixed a divide by zero error in getBulbStatus that could
-#				  happen if the Hue hub returns no value for a blub's color
-#				  temperature.
-#				--
-#				0.9.5 (27-Dec-2012)
-#				* Fixed bug that would cause the Hue light not to turn off
-#				  if using RGB mode when Red, Green, and Blue were all zero.
-#				--
-#				0.9.4 (27-Nov-2012)
-#				* Fixed bug that would return an error if no default ramp
-#				  rate were enered for a Hue bulb device.
-#				* Added more debug logging.
-#				* Changed how logging is done to be more consistant with
-#				  other Indigo device update events. A log entry now appears
-#				  after the physical device has changed (as was always the
-#				  case) but now it appears before the Indigo device state
-#				  is updated.
-#				* Increased delay between status update requests to about
-#				  8 seconds to decrease number of requests per minute
-#				  sent to the Hue hub.
-#				--
-#				0,9.3 (18-Nov-2012)
-#				* Fixed typo (bug) that caused the plugin to crash when the
-#				  Hue hub was unreachable within the timeout period.
-#				* Worked around a colormath bug that would throw a
-#				  ZeroDivisionError if the "y" component was zero.
-#				* Added checks in bulb status gathering to prevent unnecessary
-#				  Indigo device status updates. Added logging for any device
-#				  brightness updates detected.
-#				* Added more exception handling for HTTP requests to hub.
-#				* Slightly tweaked status request timing.
-#				--
-#				0.9.2 (17-Nov-2012)
-#				* Corrected error in actionControlDimmerRelay that prevented
-#				  setBrightness call from working.
-#				--
-#				0.9.1 (16-Nov-2012)
-#				* Tweaked brightening and dimming timing for Start Brightening
-#				  and Start Dimming actions so the rate was about the same speed
-#				  as SmartLabs SwithcLinc Dimmers and LampLinc Dimmers.
-#				* Removed code that immediately changes the RGB color states for
-#				  the Indigo device as the values entered by the user are not
-#				  actual displayed values. Actual values will be updated by the
-#				  getBulbStatus method later.
-#				* Added the "Set Brightness with Ramp Rate" action and associated
-#				  plugin.py code. Renamed multiple methods for easier redability
-#				  and for easier plugin scripting within Indigo.  Reorganized
-#				  order in which methods appear in the source code for a more
-#				  logical layout.
-#				--
-#				0.9 (13-Nov-2012)
-#				* Initial Nathan Sheldon forked beta release.
-#				* This version removes the use of the "ColorPy" library from
-#				  Alistair's version and replaces it with the "colormath"
-#				  library as it includes the ability to specify a target
-#				  illumination source during color conversion, thus presenting
-#				  a closer RGB to xyY conversion (and vice-versa).
-#				* Most of Alistair's original code was rewritten to remain
-#				  consistent with coding convensions in my other plugins, but
-#				  some of his code is still in here.
+#	See the "VERSION_HISTORY.txt" file in the same location as this plugin.py
+#	file for a complete version change history.
 #
 ################################################################################
 
@@ -493,6 +74,9 @@ class Plugin(indigo.PluginBase):
 		self.schedulesDict = dict()	# Hue schedules dict.
 		self.ipAddress = ""			# Hue hub IP address
 		self.unsupportedDeviceWarned = False	# Boolean. Was user warned this device isn't supported?
+		self.usersListSelection = ""	# String. The Hue whilelist user ID selected in action UIs.
+		self.sceneListSelection = ""	# String. The Hue scene ID selected in action UIs.
+		self.groupListSelection = ""	# String. The Hue group ID selected in action UIs.
 		# Load the update checker module.
 		self.updater = indigoPluginUpdateChecker.updateChecker(self, 'http://www.nathansheldon.com/files/PluginVersions/Hue-Lights.html')
 	
@@ -585,29 +169,70 @@ class Plugin(indigo.PluginBase):
 			device.stateListOrDisplayStateIdChanged()
 			
 		# Prior to version 1.4, the color device properties did not exist in lighting devices.
-		#   If any of those properties don't exist, notify the user to redefine the device in Indigo.
-		if device.deviceTypeId != "hueAttributeController" and device.pluginProps.get('modelId', "") != "" and device.pluginProps['modelId'] not in kLivingWhitesDeviceIDs:
-			if device.pluginProps['modelId'] in kAmbianceDeviceIDs and not device.supportsWhite:
-				self.debugLog(u"The \"" + device.name + u"\" Ambiance light device doesn't have color temperature properties.")
-				self.errorLog(u"The \"" + device.name + u"\" device is from an old Hue Lights version. Double-click on the device in Indigo, click \"Edit Device Settings\", then click \"Save\" and close the \"Edit Device\" window.")
-			elif not device.supportsRGB:
-				self.debugLog(u"The \"" + device.name + u"\" color light device doesn't have color properties.")
-				self.errorLog(u"The \"" + device.name + u"\" device is from an old Hue Lights version. Double-click on the device in Indigo, click \"Edit Device Settings\", then click \"Save\" and close the \"Edit Device\" window.")
-			
-		# Version 1.4+ handles the original LightStrip and newer LightStrip Plus using the same
-		#   deviceTypeId, but they have different capabilities.  If this is an original LightStrip,
-		#   remove the color temperature properties from this device.
-		if device.deviceTypeId == "hueLightStrips" and device.pluginProps['modelId'] == "LST001":
-			self.debugLog(u"The " + device.name + u" is an original LightStrip device. Updating device properties to reflect lack of color temperature support.")
-			newProps = device.pluginProps
-			if device.supportsWhite:
-				newProps['SupportsWhite'] = False
-			if device.supportsWhiteTemperature:
-				newProps['SupportsWhiteTemperature'] = False
-			if device.supportsRGBandWhiteSimultaneously:
+		#   If any of those properties don't exist, update the device properties based on model ID.
+		if device.deviceTypeId != "hueAttributeController" and device.deviceTypeId != "hueGroup" and device.configured:
+			self.debugLog(u"Ths " + device.name + u" device is not an Attribute Controller or Hue group, and it's configured.")
+			if device.pluginProps['modelId'] in kHueBulbDeviceIDs and device.pluginProps.get('SupportsColor', "") == "":
+				self.debugLog(u"The \"" + device.name + u"\" Color/Ambiance light device doesn't have color properties.  Adding them.")
+				newProps = device.pluginProps
+				newProps['SupportsColor'] = True
+				newProps['SupportsRGB'] = True
+				newProps['SupportsWhite'] = True
+				newProps['SupportsWhiteTemperature'] = True
 				newProps['SupportsRGBandWhiteSimultaneously'] = False
-			device.replacePluginPropsOnServer(newProps)
-		
+				device.replacePluginPropsOnServer(newProps)
+				indigo.server.log(u"The \"" + device.name + u"\" Color/Ambiance light device is from an old Hue Lights version. It's properties have been updated.")
+			elif device.pluginProps['modelId'] in kAmbianceDeviceIDs and not device.supportsColor:
+				self.debugLog(u"The \"" + device.name + u"\" Ambiance light device doesn't have color temperature properties.  Adding them.")
+				newProps = device.pluginProps
+				newProps['SupportsColor'] = True
+				newProps['SupportsRGB'] = False
+				newProps['SupportsWhite'] = True
+				newProps['SupportsWhiteTemperature'] = True
+				device.replacePluginPropsOnServer(newProps)
+				indigo.server.log(u"The \"" + device.name + u"\" Ambiance light device is from old an Hue Lights version. It's properties have been updated.")
+			elif device.pluginProps['modelId'] in kLivingColorsDeviceIDs and device.pluginProps.get('SupportsColor', "") == "":
+				self.debugLog(u"The \"" + device.name + u"\" Color light device doesn't have color properties.  Adding them.")
+				newProps = device.pluginProps
+				newProps['SupportsColor'] = True
+				newProps['SupportsRGB'] = True
+				newProps['SupportsWhite'] = False
+				newProps['SupportsWhiteTemperature'] = False
+				device.replacePluginPropsOnServer(newProps)
+				indigo.server.log(u"The \"" + device.name + u"\" Color light device is from old an Hue Lights version. It's properties have been updated.")
+			elif device.pluginProps['modelId'] in kLightStripsDeviceIDs and device.pluginProps.get('SupportsColor', "") == "":
+				self.debugLog(u"The \"" + device.name + u"\" LightStrip device doesn't have color properties.  Adding them.")
+				newProps = device.pluginProps
+				newProps['SupportsColor'] = True
+				newProps['SupportsRGB'] = True
+				# If this is version 2 of the LightStrip, add color temperature support.
+				if device.pluginProps['modelId'] == "LST002":
+					newProps['SupportsWhite'] = True
+					newProps['SupportsWhiteTemperature'] = True
+					newProps['SupportsRGBandWhiteSimultaneously'] = False
+				else:
+					newProps['SupportsWhite'] = False
+				device.replacePluginPropsOnServer(newProps)
+				indigo.server.log(u"The \"" + device.name + u"\" LightStrip device is from an old Hue Lights version. It's properties have been updated.")
+			elif device.pluginProps['modelId'] in kLivingWhitesDeviceIDs and device.pluginProps.get('SupportsColor', "") == "":
+				self.debugLog(u"The \"" + device.name + u"\" LivingWhites type light device doesn't have the necessary Indigo 7 properties.  Adding them.")
+				newProps = device.pluginProps
+				newProps['SupportsColor'] = False
+				device.replacePluginPropsOnServer(newProps)
+				indigo.server.log(u"The \"" + device.name + u"\" LivingWhites type light device is from an old Hue Lights version. It's properties have been updated.")
+		elif device.deviceTypeId == "hueGroup" and device.configured:
+			self.debugLog(u"Ths " + device.name + u" device is a Hue group and is configured.")
+			if device.pluginProps.get('SupportsColor', "") == "":
+				self.debugLog(u"The \"" + device.name + u"\" Hue group device doesn't have color properties.  Adding them.")
+				newProps = device.pluginProps
+				newProps['SupportsColor'] = True
+				newProps['SupportsRGB'] = True
+				newProps['SupportsWhite'] = True
+				newProps['SupportsWhiteTemperature'] = True
+				newProps['SupportsRGBandWhiteSimultaneously'] = False
+				device.replacePluginPropsOnServer(newProps)
+				indigo.server.log(u"The \"" + device.name + u"\" Hue group device is from an old Hue Lights version. It's properties have been updated.")
+				
 		# Update the device lists and the device states.
 		# Hue Device Attribute Controller
 		if device.deviceTypeId == "hueAttributeController":
@@ -625,8 +250,6 @@ class Plugin(indigo.PluginBase):
 				except Exception, e:
 					self.debugLog(u"Hue Group device definition cannot be displayed because: " + str(e))
 				self.deviceList.append(device.id)
-				# Get the group's status.
-				self.getGroupStatus(device.id)
 		# Other Hue Devices
 		else:
 			if device.id not in self.deviceList:
@@ -668,7 +291,7 @@ class Plugin(indigo.PluginBase):
 	# Run a Concurrent Thread for Status Updates
 	########################################
 	def runConcurrentThread(self):
-		self.debugLog(u"runConcurrentThread called.")
+		self.debugLog(u"Starting runConcurrentThread.")
 		#
 		# Continuously loop through all Hue lighting devices to see if the
 		#   status has changed.
@@ -766,8 +389,36 @@ class Plugin(indigo.PluginBase):
 
 	# Color Picker Dialog Methods
 	#   (based on code from Matt Bendiksen)
+	#
+	# isIntCompat (anything)
+	#	Returns True if the passed value can
+	#   be converted to an integer. False otherwise.
+	# calcRgbHexValsFromRgbLevels (valuesDict)
+	#   Calculates RGB Hex values based on
+	#   RGB values (0 to 255).
+	# calcRgbHexValsFromHsbLevels (valuesDict)
+	#   Calculates RGB Hex values based on
+	#   HSB values (0 to 360 for hue, 0 to 100 for
+	#   saturation).
+	# rgbColorPickerUpdated (valuesDict, typeId, devId)
+	#   Called every time the color picker color
+	#   is changed. Takes the Hex values from
+	#   the color picker, converts then assigns
+	#   those values to compatible valuesDict
+	#   elements.
+	# rgbColorFieldUpdated (valuesDict, typeId, devId)
+	#   Called by the Set Red/Green/Blue Levels action.
+	#   Calls calcRgbHexValsFromRgbLevels and combines
+	#   the result into a single valuesDict element.
+	# hsbColorFieldUpdated (valuesDict, typeId, devId)
+	#   Called by the Set Hue/Saturation/Brightness
+	#   action. Calls calcRgbHexValsFromHsbLevels and
+	#   combines the result into a single valuesDict
+	#   element.
 	########################################
 	def isIntCompat(self, someValue):
+		self.debugLog(u"Starting isIntCompat.")
+		self.debugLog(u"someValue: " + str(someValue))
 		# Check if a value is an integer or not.
 		try:
 			if type(someValue) == int:
@@ -782,6 +433,8 @@ class Plugin(indigo.PluginBase):
 			return False
 
 	def calcRgbHexValsFromRgbLevels(self, valuesDict):
+		self.debugLog(u"Starting calcRgbHexValsFromRgbLevels.")
+		self.debugLog(u"valuesDict: " + str(valuesDict))
 		# Convert RGB integer values to RGB hex values.
 		rgbHexVals = []
 		for channel in ['red', 'green', 'blue']:
@@ -800,14 +453,22 @@ class Plugin(indigo.PluginBase):
 		return ' '.join(rgbHexVals)
 
 	def calcRgbHexValsFromHsbLevels(self, valuesDict):
+		self.debugLog(u"Starting calcRgbHexValsFromHsbLevels.")
+		self.debugLog(u"valuesDict: " + str(valuesDict))
 		# Convert HSB integer values to RGB hex values.
 		rgbHexVals = []
 		hue = 0
 		saturation = 0
 		brightness = 0
 		brightnessSource = valuesDict.get('brightnessSource', "custom")
-		brightnessDevId = int(valuesDict.get('brightnessDevice', 0))
-		brightnessVarId = int(valuesDict.get('brightnessVariable', 0))
+		brightnessDevId = valuesDict.get('brightnessDevice', 0)
+		brightnessVarId = valuesDict.get('brightnessVariable', 0)
+		# Make sure the values for device and variable IDs are integers to prevent
+		#   errors during integer conversion.
+		if brightnessDevId.__class__ != int:
+			brightnessDevId = 0
+		if brightnessVarId.__class__ != int:
+			brightnessVarId = 0
 
 		for channel in ['hue', 'saturation', 'brightness']:
 			fieldValue = 0
@@ -853,7 +514,7 @@ class Plugin(indigo.PluginBase):
 		return ' '.join(rgbHexVals)
 
 	def rgbColorPickerUpdated(self, valuesDict, typeId, devId):
-		self.debugLog(u"rgbColorPickerUpdated called.")
+		self.debugLog(u"Starting rgbColorPickerUpdated.")
 		self.debugLog(u"typeId: " + typeId + "\ndevId: " + str(devId) + "\nvaluesDict: " + str(valuesDict))
 		# Get the raw 3 byte, space-separated hex string from the color picker.
 		rgbHexList = valuesDict['rgbColor'].split()
@@ -883,7 +544,7 @@ class Plugin(indigo.PluginBase):
 		return (valuesDict)
 
 	def rgbColorFieldUpdated(self, valuesDict, typeId, devId):
-		self.debugLog(u"rgbColorFieldUpdated called.")
+		self.debugLog(u"Starting rgbColorFieldUpdated.")
 		self.debugLog(u"typeId: " + typeId + "\ndevId: " + str(devId) + "\nvaluesDict: " + str(valuesDict))
 		valuesDict['rgbColor'] = self.calcRgbHexValsFromRgbLevels(valuesDict)
 
@@ -896,7 +557,7 @@ class Plugin(indigo.PluginBase):
 		return (valuesDict)
 
 	def hsbColorFieldUpdated(self, valuesDict, typeId, devId):
-		self.debugLog(u"hsbColorFieldUpdated called.")
+		self.debugLog(u"Starting hsbColorFieldUpdated.")
 		self.debugLog(u"typeId: " + typeId + "\ndevId: " + str(devId) + "\nvaluesDict: " + str(valuesDict))
 		valuesDict['rgbColor'] = self.calcRgbHexValsFromHsbLevels(valuesDict)
 
@@ -909,10 +570,40 @@ class Plugin(indigo.PluginBase):
 		return (valuesDict)
 
 
+	# Users List Item Selected (callback from action UI)
+	########################################
+	def usersListItemSelected(self, valuesDict=None, typeId="", deviceId=0):
+		self.debugLog(u"Starting usersListItemSelected.  valuesDict: " + str(valuesDict) + u", typeId: " + str(typeId) + u", targetId: " + str(deviceId))
+		
+		self.usersListSelection = valuesDict['userId']
+		# Clear these dictionary elements so the sceneLights list will be blank if the sceneId is blank.
+		valuesDict['sceneLights'] = list()
+		valuesDict['sceneId'] = ""
+		
+		return valuesDict
+		
+	# Scenes List Item Selected (callback from action UI)
+	########################################
+	def scenesListItemSelected(self, valuesDict=None, typeId="", deviceId=0):
+		self.debugLog(u"Starting scenesListItemSelected.  valuesDict: " + str(valuesDict) + u", typeId: " + str(typeId) + u", targetId: " + str(deviceId))
+		
+		self.sceneListSelection = valuesDict['sceneId']
+		
+		return valuesDict
+	
+	# Groups List Item Selected (callback from action UI)
+	########################################
+	def groupsListItemSelected(self, valuesDict=None, typeId="", deviceId=0):
+		self.debugLog(u"Starting groupsListItemSelected.  valuesDict: " + str(valuesDict) + u", typeId: " + str(typeId) + u", targetId: " + str(deviceId))
+		
+		self.groupListSelection = valuesDict['groupId']
+		
+		return valuesDict
+	
 	# Validate Device Configuration
 	########################################
 	def validateDeviceConfigUi(self, valuesDict, typeId, deviceId):
-		self.debugLog(u"validateDeviceConfigUi called.\n  valuesDict: %s\n  typeId: %s\n  deviceId: %s" % (valuesDict, typeId, deviceId))
+		self.debugLog(u"Starting validateDeviceConfigUi.\n  valuesDict: %s\n  typeId: %s\n  deviceId: %s" % (valuesDict, typeId, deviceId))
 		errorsDict = indigo.Dict()
 		errorsDict['showAlertText'] = ""
 		isError = False
@@ -1623,24 +1314,78 @@ class Plugin(indigo.PluginBase):
 	# Validate Action Configuration.
 	########################################
 	def validateActionConfigUi(self, valuesDict, typeId, deviceId):
-		device = indigo.devices[deviceId]
-		self.debugLog(u"Validating action config for type: " + typeId + u", device: " + device.name)
-		self.debugLog(u"Values:\n" + str(valuesDict))
+		self.debugLog(u"Starting validateActionConfigUi.  valuesDict: " + str(valuesDict) + u", typeId: " + str(typeId) + u", deviceId: " + str(deviceId))
+		if deviceId == 0:
+			device = None
+			modelId = 0
+		else:
+			device = indigo.devices[deviceId]
+			modelId = device.pluginProps.get('modelId', False)
 		isError = False
 		errorsDict = indigo.Dict()
 		errorsDict['showAlertText'] = ""
 		descString = u""
-		modelId = device.pluginProps.get('modelId', False)
 		
 		# Make sure we're still paired with the Hue hub.
 		if self.paired == False:
 			isError = True
 			errorsDict['device'] = u"Not currently paired with the Hue hub. Use the Configure... option in the Plugins -> Hue Lights menu to pair Hue Lights with the Hue hub first."
-			errorsDict['showAlertText'] += errorsDict['device']
+			errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
 			return (False, valuesDict, errorsDict)
 			
+		### RECALL HUE SCENE ###
+		if typeId == "recallScene":
+			descString = "recall hue scene"
+			sceneId = valuesDict.get('sceneId', "")
+			userId = valuesDict.get('userId', "")
+			groupId = valuesDict.get('groupId', "")
+			sceneLights = self.sceneLightsListGenerator("", valuesDict, typeId, deviceId)
+			
+			if sceneId != "":
+				sceneName = self.scenesDict[sceneId]['name']
+				descString += u" " + sceneName
+			else:
+				isError = True
+				errorsDict['sceneId'] = u"A Scene must be selected."
+				errorsDict['showAlertText'] += errorsDict['sceneId'] + "\n\n"
+			
+			if userId != "":
+				if userId != "all":
+					userName = self.usersDict[userId]['name'].replace("#", " app on ")
+					descString += u" from " + userName
+				else:
+					if sceneId != "":
+						userId = self.scenesDict[sceneId]['owner']
+						userName = self.usersDict[userId]['name'].replace("#", " app on ")
+						descString += u" from " + userName
+			else:
+				isError = True
+				errorsDict['userId'] = u"A Scene Creator must be selected."
+				errorsDict['showAlertText'] += errorsDict['userId'] + "\n\n"
+			
+			if groupId != "":
+				if groupId == "0":
+					groupName = "All Hue Lights"
+					descString += u" for " + groupName
+				else:
+					groupName = self.groupsDict[groupId]['name']
+					descString += u" for the " + groupName + u" hue group"
+			else:
+				isError = True
+				errorsDict['groupId'] = u"A Group must be selected."
+				errorsDict['showAlertText'] += errorsDict['userId'] + "\n\n"
+			
+			if len(sceneLights) < 1:
+				isError = True
+				errorsDict['sceneLights'] = u"The selected Scene and Group Limit combination will prevent any lights from changing when this scene is recalled. Change the Scene or Group Limit selection and make sure at least 1 light is listed in the Lights Affected list."
+				errorsDict['showAlertText'] += errorsDict['sceneLights'] + "\n\n"
+				
+			if isError:
+				errorsDict['showAlertText'] = errorsDict['showAlertText'].strip()
+				return (False, valuesDict, errorsDict)
+
 		### SET BRIGHTNESS WITH RAMP RATE ###
-		if typeId == "setBrightness":
+		elif typeId == "setBrightness":
 			brightnessSource = valuesDict.get('brightnessSource', False)
 			brightness = valuesDict.get('brightness', False)
 			brightnessVarId = valuesDict.get('brightnessVariable', False)
@@ -2524,122 +2269,61 @@ class Plugin(indigo.PluginBase):
 	# Bulb List Generator
 	########################################
 	def bulbListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
-		returnBulbList = list()
 		# Used in actions that need a list of Hue hub devices.
-		self.debugLog(u"bulbListGenerator called.\n  filter: %s\n  valuesDict: %s\n  typeId: %s\n  targetId: %s" % (filter, valuesDict, typeId, targetId))
+		self.debugLog(u"Starting bulbListGenerator.\n  filter: %s\n  valuesDict: %s\n  typeId: %s\n  targetId: %s" % (filter, valuesDict, typeId, targetId))
+		
+		returnBulbList = list()
 		
 		# Iterate over our bulbs, and return the available list in Indigo's format
 		for bulbId, bulbDetails in self.lightsDict.items():
-			# First, get the device info directly from the hub (if the typeId is not blank).
-			if typeId != "":
-				command = "http://%s/api/%s/lights/%s" % (self.ipAddress, self.hostId, bulbId)
-				self.debugLog(u"Sending URL request: " + command)
-				try:
-					r = requests.get(command, timeout=kTimeout)
-				except requests.exceptions.Timeout:
-					errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
-					# Don't display the error if it's been displayed already.
-					if errorText != self.lastErrorMessage:
-						self.errorLog(errorText)
-						# Remember the error.
-						self.lastErrorMessage = errorText
-				except requests.exceptions.ConnectionError:
-					errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
-					# Don't display the error if it's been displayed already.
-					if errorText != self.lastErrorMessage:
-						self.errorLog(errorText)
-						# Remember the error.
-						self.lastErrorMessage = errorText
-				try:
-					# If the content contains non-ASCII characters, this will fail.
-					self.debugLog(u"Data from hub: " + r.content)
-				except Exception, e:
-					self.debugLog(u"Data from hub could not be displayed because of an error: " + str(e))
-				# Convert the response to a Python object.
-				try:
-					bulb = json.loads(r.content)
-				except Exception, e:
-					# There was an error in the returned data.
-					indigo.server.log(u"Error retrieving Hue bulb data from hub.  Error reported: " + str(e))
-					
-					
-			# Next, limit the list to the type of devices indicated in the filter variable.
 			if typeId == "":
 				# If no typeId exists, list all devices.
-				returnBulbList.append([bulbId, bulbDetails["name"]])
-			elif typeId == "hueBulb" and bulb.get('modelid', "") in kHueBulbDeviceIDs:
-				returnBulbList.append([bulbId, bulbDetails["name"]])
-			elif typeId == "hueAmbiance" and bulb.get('modelid', "") in kAmbianceDeviceIDs:
-				returnBulbList.append([bulbId, bulbDetails["name"]])
-			elif typeId == "hueLightStrips" and bulb.get('modelid', "") in kLightStripsDeviceIDs:
-				returnBulbList.append([bulbId, bulbDetails["name"]])
-			elif typeId == "hueLivingColorsBloom" and bulb.get('modelid', "") in kLivingColorsDeviceIDs:
-				returnBulbList.append([bulbId, bulbDetails["name"]])
-			elif typeId == "hueLivingWhites" and bulb.get('modelid', "") in kLivingWhitesDeviceIDs:
-				returnBulbList.append([bulbId, bulbDetails["name"]])
+				returnBulbList.append([bulbId, bulbDetails['name']])
+			elif typeId == "hueBulb" and bulbDetails['modelid'] in kHueBulbDeviceIDs:
+				returnBulbList.append([bulbId, bulbDetails['name']])
+			elif typeId == "hueAmbiance" and bulbDetails['modelid'] in kAmbianceDeviceIDs:
+				returnBulbList.append([bulbId, bulbDetails['name']])
+			elif typeId == "hueLightStrips" and bulbDetails['modelid'] in kLightStripsDeviceIDs:
+				returnBulbList.append([bulbId, bulbDetails['name']])
+			elif typeId == "hueLivingColorsBloom" and bulbDetails['modelid'] in kLivingColorsDeviceIDs:
+				returnBulbList.append([bulbId, bulbDetails['name']])
+			elif typeId == "hueLivingWhites" and bulbDetails['modelid'] in kLivingWhitesDeviceIDs:
+				returnBulbList.append([bulbId, bulbDetails['name']])
 			
 		# Debug
-		self.debugLog(u"Return bulb list is %s" % returnBulbList)
+		self.debugLog(u"bulbListGenerator: Return bulb list is %s" % returnBulbList)
 		
 		return returnBulbList
 		
 	# Group List Generator
 	########################################
 	def groupListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
-		returnGroupList = list()
 		# Used in actions that need a list of Hue hub groups.
-		self.debugLog(u"groupListGenerator called.\n  filter: %s\n  valuesDict: %s\n  typeId: %s\n  targetId: %s" % (filter, valuesDict, typeId, targetId))
+		self.debugLog(u"Starting groupListGenerator.\n  filter: %s\n  valuesDict: %s\n  typeId: %s\n  targetId: %s" % (filter, valuesDict, typeId, targetId))
+		
+		returnGroupList = list()
 		
 		# Add the special default zero group to the beginning of the list.
-		returnGroupList.append([0, "0: (All Hue Devices)"])
+		returnGroupList.append([0, "0: (All Hue Lights)"])
 
 		# Iterate over our groups, and return the available list in Indigo's format
 		for groupId, groupDetails in sorted(self.groupsDict.items()):
-			# First, get the group info directly from the hub (if the typeId is not blank).
-			if typeId != "":
-				command = "http://%s/api/%s/groups/%s" % (self.ipAddress, self.hostId, groupId)
-				self.debugLog(u"Sending URL request: " + command)
-				try:
-					r = requests.get(command, timeout=kTimeout)
-				except requests.exceptions.Timeout:
-					errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
-					# Don't display the error if it's been displayed already.
-					if errorText != self.lastErrorMessage:
-						self.errorLog(errorText)
-						# Remember the error.
-						self.lastErrorMessage = errorText
-				except requests.exceptions.ConnectionError:
-					errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
-					# Don't display the error if it's been displayed already.
-					if errorText != self.lastErrorMessage:
-						self.errorLog(errorText)
-						# Remember the error.
-						self.lastErrorMessage = errorText
-				try:
-					# If the content contains non-ASCII characters, this will fail.
-					self.debugLog(u"Data from hub: " + r.content)
-				except Exception, e:
-					self.debugLog(u"Data from hub could not be displayed because of an error: " + str(e))
-				# Convert the response to a Python object.
-				try:
-					group = json.loads(r.content)
-				except Exception, e:
-					# There was an error in the returned data.
-					indigo.server.log(u"Error retrieving Hue group data from hub.  Error reported: " + str(e))
-					
-			returnGroupList.append([groupId, str(groupId) + ": " + groupDetails["name"]])
+			
+			returnGroupList.append([groupId, str(groupId) + ": " + groupDetails['name']])
 			
 		# Debug
-		self.debugLog(u"Return group list is %s" % returnGroupList)
+		self.debugLog(u"groupListGenerator: Return group list is %s" % returnGroupList)
 		
 		return returnGroupList
 		
 	# Bulb Device List Generator
 	########################################
 	def bulbDeviceListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
-		returnDeviceList = list()
 		# Used in actions that need a list of Hue Lights plugin devices that aren't
 		#   attribute controllers or groups.
+		self.debugLog(u"Starting bulbDeviceListGenerator.\n  filter: %s\n  valuesDict: %s\n  typeId: %s\n  targetId: %s" % (filter, valuesDict, typeId, targetId))
+		
+		returnDeviceList = list()
 		
 		# Iterate over our devices, and return the available devices as a 2-tupple list.
 		for deviceId in self.deviceList:
@@ -2648,19 +2332,20 @@ class Plugin(indigo.PluginBase):
 				returnDeviceList.append([deviceId, device.name])
 			
 		# Debug
-		self.debugLog(u"Return Hue device list is %s" % returnDeviceList)
+		self.debugLog(u"bulbDeviceListGenerator: Return Hue device list is %s" % returnDeviceList)
 		
 		return returnDeviceList
 		
 	# Generate Presets List
 	########################################
 	def presetListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
-		self.debugLog(u"presetListGenerator called. typeId: " + str(typeId) + u", targetId: " + str(deviceId))
+		# Used by action dialogs to generate a list of Presets saved in the Hue Lights plugin prefs.
+		self.debugLog(u"Starting presetListGenerator.\n  filter: %s\n  valuesDict: %s\n  typeId: %s\n  targetId: %s" % (filter, valuesDict, typeId, deviceId))
 		
 		theList = list()	# Menu item list.
 		
 		presets = self.pluginPrefs.get('presets', None)
-		self.debugLog(u"Presets in plugin prefs:\n" + str(presets))
+		self.debugLog(u"presetListGenerator: Presets in plugin prefs:\n" + str(presets))
 		
 		if presets != None:
 			presetNumber = 0
@@ -2679,11 +2364,157 @@ class Plugin(indigo.PluginBase):
 			
 		return theList
 		
+	# Generate Users List
+	########################################
+	def usersListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
+		# Used by action dialogs to generate a list of Hue scene "owner" devices or "Creators".
+		self.debugLog(u"Starting usersListGenerator.\n  filter: %s\n  valuesDict: %s\n  typeId: %s\n  targetId: %s" % (filter, valuesDict, typeId, deviceId))
+		
+		theList = list()	# Menu item list.
+		
+		users = self.usersDict
+		
+		# Add a list item at the top for all items.
+		theList.append(('all', "All Scene Creators"))
+		
+		if users != None:
+			for userId, userData in users.iteritems():
+				userName = userData.get('name', "(unknown)")
+				# Hue API convention when registering an application (a.k.a. "user")
+				#   is to name the "user" as <app name>#<device name>.  We'll translate that
+				#   here to something more readable and descriptive for the list.
+				userName = userName.replace("#", " app on ")
+				self.debugLog(u"usersListGenerator: usersListSelection value: " + str(self.usersListSelection) + u", userId: " + str(userId) + u", userData: " + json.dumps(userData, indent=2))
+				# Don't display the "Indigo Hue Lights" user as that's this plugin which
+				#   won't have any scenes associated with it, which could be confusing.
+				if userName != "Indigo Hue Lights":
+					theList.append((userId, userName))
+	
+		return theList
+		
+	# Generate Scenes List
+	########################################
+	def scenesListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
+		# Used by action dialogs to list Hue scenes on the Hue hub for a particular "owner" device.
+		self.debugLog(u"Starting scenesListGenerator.\n  filter: %s\n  valuesDict: %s\n  typeId: %s\n  targetId: %s" % (filter, valuesDict, typeId, deviceId))
+		
+		theList = list()	# Menu item list.
+		
+		scenes = self.scenesDict
+		
+		if scenes != None:
+			for sceneId, sceneData in scenes.iteritems():
+				sceneOwner = sceneData.get('owner', "")
+				sceneName = sceneData.get('name', "(unknown)")
+				if valuesDict.get('userId', "all") == "all":
+					sceneDisplayName = sceneName + u" (from " + self.usersDict[sceneOwner]['name'].replace("#", " app on ") + u")"
+				else:
+					# Don't add the "(from ... app on ...)" string to the scene name if that Scene Creator was selected.
+					sceneDisplayName = sceneName
+				sceneLights = sceneData.get('lights', list())
+				self.debugLog(u"scenesListGenerator: usersListSelection value: " + str(self.usersListSelection) + u", sceneId: " + str(sceneId) + u", sceneOwner: " + sceneOwner + u", sceneName: " + sceneName + u", sceneData: " + json.dumps(sceneData, indent=2))
+				# Filter the list based on which Hue user (scene owner) is selected.
+				if sceneOwner == self.usersListSelection or self.usersListSelection == "all" or self.usersListSelection == "":
+					theList.append((sceneId, sceneDisplayName))
+	
+					# Create a descriptive list of the lights that are part of this scene.
+					self.sceneDescriptionDetail = u"Lights in this scene:\n"
+					i = 0
+					for light in sceneLights:
+						if i > 0:
+							self.sceneDescriptionDetail += u", "
+						lightName = self.lightsDict[light]['name']
+						self.sceneDescriptionDetail += lightName
+						i += 1
+	
+		return theList
+		
+	# Generate Lights List for a Scene
+	########################################
+	def sceneLightsListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
+		# Used by action dialogs to generate a list of lights in a Hue scene, limited by Hue group.
+		self.debugLog(u"Starting sceneLightsListGenerator.\n  filter: %s\n  valuesDict: %s\n  typeId: %s\n  targetId: %s" % (filter, valuesDict, typeId, deviceId))
+		
+		theList = list()	# List item list.
+		
+		sceneId = valuesDict.get('sceneId', "")
+		groupId = valuesDict.get('groupId', "")
+		
+		if sceneId == "":
+			# The sceneId is blank. This only happens when the action/menu dialog is
+			#   called for the first time (or without any settings already saved). This
+			#   means that the first item of both scene and group lists will be displayed
+			#   in the action/menu dialog, set the sceneId based on that assumption.
+			try:
+				# We're using "try" here because it's possible there are 0 scenes
+				#   on the hub.  If so, this will throw an exception.
+				sceneId = self.scenesDict.items()[0][0]
+				if groupId == "":
+					# If the groupId is blank as well (likely), set it to "0" so the
+					#   intersectingLights list is populated properly below.
+					groupId = "0"
+			except Exception, e:
+				# Just leave the sceneId blank.
+				pass
+	
+		# If the sceneId isn't blank, get the list of lights.
+		if sceneId != "":
+			# Get the list of lights in the scene.
+			sceneLights = self.scenesDict[sceneId]['lights']
+			self.debugLog(u"sceneLightsListGenerator: sceneLights value: " + str(sceneLights))
+			# Get the list of lights in the group.
+			# If the groupId is 0, then the all lights group was selected.
+			if groupId != "0":
+				groupLights = self.groupsDict[groupId]['lights']
+				self.debugLog(u"sceneLightsListGenerator: groupLights value: " + str(groupLights))
+				# Get the intersection of scene lights and group lights.
+				intersectingLights = list(set(sceneLights) & set(groupLights))
+			else:
+				# Since no group limit was selected, all lights in the scene
+				#   should appear in the list.
+				intersectingLights = sceneLights
+			self.debugLog(u"sceneLightsListGenerator: intersectingLights value: " + str(intersectingLights))
+			
+			# Get the name on the Hue hub for each light.
+			for lightId in intersectingLights:
+				lightName = self.lightsDict[lightId]['name']
+				theList.append((lightId, lightName))
+		
+		return theList
+		
+	# Generate Lights List for a Group
+	########################################
+	def groupLightsListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
+		# Used by action dialogs to generate lists of lights in a Hue group.
+		self.debugLog(u"Starting groupLightsListGenerator.\n  filter: %s\n  valuesDict: %s\n  typeId: %s\n  targetId: %s" % (filter, valuesDict, typeId, deviceId))
+		
+		theList = list()	# List item list.
+		
+		groupId = valuesDict.get('groupId', "")
+		
+		# If the group ID is not blank, let's try to find the current selection in the valuesDict.
+		if groupId != "":
+			# Get the list of lights in the group.
+			# If the groupId is 0, then the all lights group was selected.
+			if groupId == "0":
+				groupLights = self.lightsDict.keys()
+				self.debugLog(u"groupLightsListGenerator: groupLights value: " + str(groupLights))
+			else:
+				groupLights = self.groupsDict[groupId]['lights']
+				self.debugLog(u"groupLightsListGenerator: groupLights value: " + str(groupLights))
+			
+			# Get the name on the Hue hub for each light.
+			for lightId in groupLights:
+				lightName = self.lightsDict[lightId]['name']
+				theList.append((lightId, lightName))
+		
+		return theList
+		
 	# Did Device Communications Properties Change?
 	########################################
 	def didDeviceCommPropertyChange(self, origDev, newDev):
 		# Automatically called by plugin host when device properties change.
-		self.debugLog("didDeviceCommPropertyChange called.")
+		self.debugLog("Starting didDeviceCommPropertyChange.")
 		# We only want to reload the device if the bulbId changes.
 		if origDev.deviceTypeId != "hueAttributeController" and origDev.deviceTypeId != "hueGroup":
 			if origDev.pluginProps['bulbId'] != newDev.pluginProps['bulbId']:
@@ -3461,6 +3292,9 @@ class Plugin(indigo.PluginBase):
 						# Update the unique ID (MAC address) of the Hue device.
 						if uniqueId != device.pluginProps.get('uniqueId', ""):
 							tempProps['uniqueId'] = uniqueId
+						# Update the savedBrightness property to the current brightness level.
+						if brightnessLevel != device.pluginProps.get('savedBrightness', -1):
+							tempProps['savedBrightness'] = brightness
 						# If there were property changes, update the device.
 						if tempProps != device.pluginProps:
 							self.updateDeviceProps(device, tempProps)
@@ -3645,7 +3479,7 @@ class Plugin(indigo.PluginBase):
 								
 								### Update inherited states for Indigo 7+ devices.
 								if "whiteLevel" in device.states:
-									# White Level (negative saturation, 0-100).
+									# White Level (set to 100 at all times for Ambiance bulbs).
 									self.updateDeviceState(device, 'whiteLevel', 100)
 									# White Temperature (0-100).
 									self.updateDeviceState(device, 'whiteTemperature', colorTemp)
@@ -3663,8 +3497,8 @@ class Plugin(indigo.PluginBase):
 								
 								### Update inherited states for Indigo 7+ devices.
 								if "whiteLevel" in device.states:
-									# White Level (negative saturation, 0-100).
-									self.updateDeviceState(device, 'whiteLevel', 100 - saturation)
+									# White Level (set to 100 at all times for Ambiance bulbs).
+									self.updateDeviceState(device, 'whiteLevel', 100)
 									# White Temperature (0-100).
 									self.updateDeviceState(device, 'whiteTemperature', colorTemp)
 							else:
@@ -4568,6 +4402,7 @@ class Plugin(indigo.PluginBase):
 		except ValueError:
 			defaultBrightness = 0
 		# If the bulb has a default brightness, use it instead of the saved brightness.
+		#   (We're using the "savedBrightness" variable as the brightness goal here).
 		if defaultBrightness > 0:
 			# Convert default brightness from percentage to 1-255 range.
 			savedBrightness = int(round(defaultBrightness / 100.0 * 255.0))
@@ -4826,7 +4661,7 @@ class Plugin(indigo.PluginBase):
 	# Set RGB Levels
 	########################################
 	def doRGB(self, device, red, green, blue, rampRate=-1):
-		self.debugLog(u"doRGB called. RGB: %s, %s, %s. Device: %s" % (red, green, blue, device))
+		self.debugLog(u"Starting doRGB. RGB: %s, %s, %s. Device: %s" % (red, green, blue, device))
 		# red:			Integer from 0 to 255.
 		# green:		Integer from 0 to 255.
 		# blue:			Integer from 0 to 255.
@@ -5524,15 +5359,85 @@ class Plugin(indigo.PluginBase):
 		# Update the device state.
 		self.updateDeviceState(device, 'effect', effect)
 	
+	# Recall a Hue Scene
+	########################################
+	def doScene(self, groupId="0", sceneId=""):
+		# groupId:		String. Group ID (numeral) on Hue hub on which to apply the scene.
+		# sceneId:		String. Scene ID on Hue hub of scene to be applied to the group.
+		
+		# The Hue hub behavior is to apply the scene to all members of the group that are
+		#   also members of the scene.  If a group is selected that has no lights that are
+		#   also part of the scene, nothing will happen when the scene is activated.  The
+		#   build-in Hue group 0 is the set of all Hue lights, so if the scene is applied
+		#   to group 0, all lights that are part of the scene will be affected.
+		
+		# Sanity check for an IP address
+		self.ipAddress = self.pluginPrefs.get('address', None)
+		if self.ipAddress is None:
+			errorText = u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com"
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
+		
+		# Make sure a scene ID was sent.
+		if sceneId == "":
+			errorText = u"No scene selected. Check settings for this action and select a scene to recall."
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
+		else:
+			# Let's get more scene information.
+			sceneName = self.scenesDict[sceneId]['name']
+			sceneOwner = self.scenesDict[sceneId]['owner']
+			userName = self.usersDict[sceneOwner]['name'].replace("#", " app on ")
+		
+		# If the group isn't the default group ID 0, get more group info.
+		if groupId != "0":
+			groupName = self.groupsDict[groupId]['name']
+		else:
+			groupName = "all hue lights"
+		
+		# Create the JSON object and send the command to the hub.
+		requestData = json.dumps({"scene": sceneId})
+		# Create the command based on whether this is a light or group device.
+		command = "http://%s/api/%s/groups/%s/action" % (self.ipAddress, self.hostId, groupId)
+		self.debugLog("Sending URL request: " + command)
+		
+		try:
+			r = requests.put(command, data=requestData, timeout=kTimeout)
+		
+		except requests.exceptions.Timeout:
+			errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+			# Don't display the error if it's been displayed already.
+			if errorText != self.lastErrorMessage:
+				self.errorLog(errorText)
+				# Remember the error.
+				self.lastErrorMessage = errorText
+			return
+
+		except requests.exceptions.ConnectionError:
+			errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+			# Don't display the error if it's been displayed already.
+			if errorText != self.lastErrorMessage:
+				self.errorLog(errorText)
+				# Remember the error.
+				self.lastErrorMessage = errorText
+			return
+		
+		self.debugLog("Got response - %s" % r.content)
+		indigo.server.log(u"\"" + sceneName + u"\" scene from \"" + userName + u"\" recalled for \"" + groupName + u"\"", 'Hue Lights')
 	
+
 	# Get Entire Hue Hub Config
 	########################################
 	def getHueConfig(self):
 		# This method obtains the entire configuration object from the Hue hub.  That
-		#   object contains various Hue hub settings along with every paired light and
-		#   sensor device, along with every group, scene, trigger rule, and schedule
-		#   on the hub.  For this reason, this method should not be called frequently
-		#   to avoid causing Hue hub performacne degredation.
+		#   object contains various Hue hub settings along with every paired light,
+		#   sensor device, group, scene, trigger rule, and schedule on the hub.
+		#   For this reason, this method should not be called frequently to avoid
+		#   causing Hue hub performacne degredation.
 		self.debugLog(u"Starting getHueConfig.")
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
@@ -5566,7 +5471,8 @@ class Plugin(indigo.PluginBase):
 				self.groupsDict		= hueConfigResponseData.get('groups', dict())
 				self.resourcesDict	= hueConfigResponseData.get('resourcelinks', dict())
 				self.sensorsDict	= hueConfigResponseData.get('sensors', dict())
-				self.usersDict		= hueConfigResponseData['config'].get('whitelist', dict())
+				tempDict			= hueConfigResponseData.get('config', dict())
+				self.usersDict		= tempDict.get('whitelist', dict())
 				self.scenesDict		= hueConfigResponseData.get('scenes', dict())
 				self.rulesDict		= hueConfigResponseData.get('rules', dict())
 				self.schedulesDict	= hueConfigResponseData.get('schedules', dict())
@@ -6091,9 +5997,9 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def actionControlDimmerRelay(self, action, device):
 		try:
-			self.debugLog(u"actionControlDimmerRelay called for device " + device.name + u". action: " + str(action) + u"\n\ndevice: " + str(device))
+			self.debugLog(u"Starting actionControlDimmerRelay for device " + device.name + u". action: " + str(action) + u"\n\ndevice: " + str(device))
 		except Exception, e:
-			self.debugLog(u"actionControlDimmerRelay called for device " + device.name + u". (Unable to display action or device data due to error: " + str(e) + u")")
+			self.debugLog(u"Starting actionControlDimmerRelay for device " + device.name + u". (Unable to display action or device data due to error: " + str(e) + u")")
 		# Get the current brightness and on-state of the device.
 		currentBrightness = device.states['brightnessLevel']
 		currentOnState = device.states['onOffState']
@@ -8743,7 +8649,7 @@ class Plugin(indigo.PluginBase):
 	# Save Preset Action
 	########################################
 	def savePreset(self, action, device):
-		self.debugLog(u"savePreset called. action values:\n" + str(action) + u"\nDevice/Type ID:\n" + str(device) + "\n")
+		self.debugLog(u"Starting savePreset. action values:\n" + str(action) + u"\nDevice/Type ID:\n" + str(device) + "\n")
 		errorsDict = indigo.Dict()
 		errorsDict['showAlertText'] = u""
 		actionType = "action"
@@ -8892,7 +8798,7 @@ class Plugin(indigo.PluginBase):
 	# Recall Preset Action
 	########################################
 	def recallPreset(self, action, device):
-		self.debugLog(u"recallPreset called. action values:\n" + str(action) + u"\nDevice/Type ID:\n" + str(device) + u"\n")
+		self.debugLog(u"Starting recallPreset. action values:\n" + str(action) + u"\nDevice/Type ID:\n" + str(device) + u"\n")
 		errorsDict = indigo.Dict()
 		errorsDict['showAlertText'] = u""
 		actionType = "action"
@@ -9108,7 +9014,7 @@ class Plugin(indigo.PluginBase):
 	# Display Preset Menu Action
 	########################################
 	def displayPreset(self, valuesDict, typeId):
-		self.debugLog(u"displayPreset called. action values:\n" + str(valuesDict) + u"\nType ID:\n" + str(typeId) + "\n")
+		self.debugLog(u"Starting displayPreset. action values:\n" + str(valuesDict) + u"\nType ID:\n" + str(typeId) + "\n")
 		errorsDict = indigo.Dict()
 		errorsDict['showAlertText'] = u""
 		
@@ -9153,6 +9059,51 @@ class Plugin(indigo.PluginBase):
 
 		# Return a tuple to dismiss the menu item dialog.
 		return (True, valuesDict)
+
+	# Recall Hue Scene Action
+	########################################
+	def recallScene(self, action, device):
+		self.debugLog(u"Starting recallScene. action values:\n" + str(action) + u"\nDevice/Type ID:\n" + str(device) + u"\n")
+		errorsDict = indigo.Dict()
+		errorsDict['showAlertText'] = u""
+		actionType = "action"
+		# Work with both Menu and Action actions.
+		try:
+			actionTest = action.props
+			# If this succeeds, no need to do anything.
+		except AttributeError:
+			# If there is an attribute error, this is a Plugins menu call.
+			actionType = "menu"
+		
+		# Get the sceneId.
+		if actionType == "menu":
+			sceneId = action.get('sceneId', False)
+		else:
+			sceneId = action.props.get('sceneId', False)
+			
+		if not sceneId:
+			errorText = u"No Scene specified."
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return False
+
+		# Get the groupId.
+		if actionType == "menu":
+			groupId = action.get('groupId', False)
+		else:
+			groupId = action.props.get('groupId', False)
+			
+		if not groupId:
+			# No group ID specified.  Assume it should be 0 (apply scene to all devices).
+			groupId = 0
+
+		# Recall the scene.
+		self.doScene(groupId, sceneId)
+
+		# Return a tuple if this is a menu item action.
+		if actionType == "menu":
+			return (True, action)
 
 	# Toggle Debug Logging Menu Action
 	########################################

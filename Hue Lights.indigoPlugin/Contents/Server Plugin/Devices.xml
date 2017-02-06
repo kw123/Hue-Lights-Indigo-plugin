@@ -4,19 +4,22 @@
 	<Device type="dimmer" id="hueBulb">
 		<Name>Hue Color/Ambiance (Original, Downlight, Spotlight, etc.)</Name>
 		<ConfigUI>
-			<Field id="bulbId" type="menu">
+			<Field id="bulbId" type="menu"
+				tooltip="Select a Hue light to control. This menu only shows lights that support both full color and color temperature (a.k.a. Ambiance) features, except for the LightStrips.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbListGenerator"/>
 			</Field>
-			<Field id="defaultBrightness" type="textfield">
+			<Field id="defaultBrightness" type="textfield"
+				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
 				<Label>Default Brightness:</Label>
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an "on" command is sent to this bulb.  If no value is entered, when an "on" command is sent, the bulb will return to the brightness it was at before being turned off.
+Optionally set a default brightness level used whenever an "on" command is sent to this light.  If no value is entered, when an "on" command is sent, the light will return to the brightness it was at before being turned off.
 </Label>
 			</Field>
-			<Field id="rate" type="textfield">
+			<Field id="rate" type="textfield"
+				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the light should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -133,19 +136,22 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 	<Device type="dimmer" id="hueAmbiance">
 		<Name>Ambiance Lights</Name>
 		<ConfigUI>
-			<Field id="bulbId" type="menu">
+			<Field id="bulbId" type="menu"
+				tooltip="Select a Hue light to control. This menu only shows color temperature (a.k.a. Ambiance) lights. Lights that also support full color will appear in the Hue Color/Ambiance device list.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbListGenerator"/>
 			</Field>
-			<Field id="defaultBrightness" type="textfield">
+			<Field id="defaultBrightness" type="textfield"
+				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
 				<Label>Default Brightness:</Label>
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(1 - 100 percent)
-					Optionally set a default brightness level used whenever an "on" command is sent to this device.  If no value is entered, when an "on" command is sent, the device will return to the brightness it was at before being turned off.
+					Optionally set a default brightness level used whenever an "on" command is sent to this light. If no value is entered, when an "on" command is sent, the light will return to the brightness it was at before being turned off.
 				</Label>
 			</Field>
-			<Field id="rate" type="textfield">
+			<Field id="rate" type="textfield"
+				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the light should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -199,11 +205,13 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 	<Device type="dimmer" id="hueLightStrips">
 		<Name>Hue LightStrips</Name>
 		<ConfigUI>
-			<Field id="bulbId" type="menu">
+			<Field id="bulbId" type="menu"
+				tooltip="Select a Hue light to control. This menu only shows Hue LightStrips.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbListGenerator"/>
 			</Field>
-			<Field id="defaultBrightness" type="textfield">
+			<Field id="defaultBrightness" type="textfield"
+				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
 				<Label>Default Brightness:</Label>
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -211,7 +219,8 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 Optionally set a default brightness level used whenever an "on" command is sent to this device.  If no value is entered, when an "on" command is sent, the device will return to the brightness it was at before being turned off.
 </Label>
 			</Field>
-			<Field id="rate" type="textfield">
+			<Field id="rate" type="textfield"
+				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the light should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -301,11 +310,13 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="dimmer" id="hueLivingColorsBloom">
 		<Name>Color Lights (Aura, Bloom, StoryLight, LivingColors, etc.)</Name>
 		<ConfigUI>
-			<Field id="bulbId" type="menu">
+			<Field id="bulbId" type="menu"
+				tooltip="Select a Hue light to control. This menu shows color lights such as the Bloom, StoryLight and other color lights. It does not include LightStrips or color temperature lights.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbListGenerator"/>
 			</Field>
-			<Field id="defaultBrightness" type="textfield">
+			<Field id="defaultBrightness" type="textfield"
+				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
 				<Label>Default Brightness:</Label>
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -313,7 +324,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 Optionally set a default brightness level used whenever an "on" command is sent to this device.  If no value is entered, when an "on" command is sent, the device will return to the brightness it was at before being turned off.
 </Label>
 			</Field>
-			<Field id="rate" type="textfield">
+			<Field id="rate" type="textfield"
+				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the light should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -397,11 +409,13 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="dimmer" id="hueLivingWhites">
 		<Name>LivingWhites (Hue Lux, Generic Light, etc.)</Name>
 		<ConfigUI>
-			<Field id="bulbId" type="menu">
+			<Field id="bulbId" type="menu"
+				tooltip="Select a Hue light to control. This menu shows basic dimming lights that don't support any color changes.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbListGenerator" filter="hueLivingWhites"/>
 			</Field>
-			<Field id="defaultBrightness" type="textfield">
+			<Field id="defaultBrightness" type="textfield"
+				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
 				<Label>Default Brightness:</Label>
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -409,7 +423,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 Optionally set a default brightness level used whenever an "on" command is sent to this device.  If no value is entered, when an "on" command is sent, the bulb will return to the brightness it was at before being turned off.
 </Label>
 			</Field>
-			<Field id="rate" type="textfield">
+			<Field id="rate" type="textfield"
+				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the light should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -455,11 +470,29 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device may result in
 	<Device type="dimmer" id="hueGroup">
 		<Name>Hue Group</Name>
 		<ConfigUI>
-			<Field id="groupId" type="menu">
+			<Field id="groupId" type="menu"
+				tooltip="Select a Hue Group to control. This menu contains all the groups saved in the Hue hub. Groups can contain any combination of Hue supported lights.">
 				<Label>Hue Group:</Label>
 				<List class="self" method="groupListGenerator"/>
+				<CallbackMethod>groupsListItemSelected</CallbackMethod>
 			</Field>
-			<Field id="defaultBrightness" type="textfield">
+			<Field id="groupLights" type="list" defaultValue="" readonly="true" enabledBindingId="groupLightsDisabler"
+				tooltip="This list shows which lights are affected by the Hue Group selected above. These can only be edited using a 3rd party app such as the Hue app for iOS or Android.">
+				<Label>Lights Affected:</Label>
+				<List class="self" method="groupLightsListGenerator" dynamicReload="true"></List>
+			</Field>
+			<Field id="groupLightsLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>This list shows which lights are affected by the Hue Group selectioned above. These can only be edited using a 3rd party app such as the Hue app for iOS or Android.
+</Label>
+			</Field>
+			<Field id="groupLightsDisabler" type="checkbox" defaultValue="false" hidden="true">
+				<!-- This hidden, static value field is necessary in order to disable the Lights list
+				 field above because using the "readonly" property appears to have no effect with
+				 Indigo 7.0.2 and earlier. -->
+				<Label></Label>
+			</Field>
+			<Field id="defaultBrightness" type="textfield"
+				tooltip="Optionally set a default brightness level used whenever an On command is sent to this group. If no value is entered, when an On command is sent, the group will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
 				<Label>Default Brightness:</Label>
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -467,7 +500,8 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device may result in
 Optionally set a default brightness level used whenever an "on" command is sent to this group.  If no value is entered, when an "on" command is sent, the group will return to the brightness it was last set to.
 </Label>
 			</Field>
-			<Field id="rate" type="textfield">
+			<Field id="rate" type="textfield"
+				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the group should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -482,6 +516,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
 			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
 			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsRGBandWhiteSimultaneously" type="checkbox" hidden="true" defaultValue="false" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
 			<Field id="type" type="textfield" hidden="true" />
 			<Field id="groupClass" type="textfield" hidden="true" />
@@ -563,11 +598,13 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="dimmer" id="hueAttributeController">
 		<Name>Hue Device Attribute Controller</Name>
 		<ConfigUI>
-			<Field id="bulbDeviceId" type="menu">
+			<Field id="bulbDeviceId" type="menu"
+				tooltip="Select a Hue light or group that this attribute controller should control.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbDeviceListGenerator"/>
 			</Field>
-			<Field id="attributeToControl" type="menu" defaultValue="hue">
+			<Field id="attributeToControl" type="menu" defaultValue="hue"
+				tooltip="Select an attribute associated with the Hue Device above that this attribute controller should control. Note that if you select an attribute that the Hue Device doesn't have, this attribute controller will not work.">
 				<Label>Attribute to Control:</Label>
 				<List>
 					<Option value="hue">Hue</Option>
@@ -582,7 +619,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>Select an attribute on the Hue device to be conrolled.
 </Label>
 			</Field>
-			<Field id="rate" type="textfield">
+			<Field id="rate" type="textfield"
+				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the Hue Device selected above should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -591,7 +629,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
-			<Field id="defaultOnLevel" type="textfield">
+			<Field id="defaultOnLevel" type="textfield"
+				tooltip="Optionally set a default On level. When turned on, the Hue Device Attribute Controller will go to the percentage specified here. If no value is specified, the control will always go to 100% when turned on by Indigo. Range is 1 to 100 percent.">
 				<Label>Default On Level:</Label>
 			</Field>
 			<Field id="labelOnLevel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">

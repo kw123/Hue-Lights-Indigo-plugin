@@ -13,7 +13,8 @@
 		<Name>Set Brightness with Ramp Rate</Name>
 		<CallbackMethod>setBrightness</CallbackMethod>
 		<ConfigUI>
-			<Field id="brightnessSource" type="menu" defaultValue="custom">
+			<Field id="brightnessSource" type="menu" defaultValue="custom"
+				tooltip="Select the source for the brightness of this device.">
 				<Label>Brightness Source:</Label>
 				<List>
 					<Option value="custom">Enter Value</Option>
@@ -21,25 +22,31 @@
 					<Option value="dimmer">Other Dimmer Brightness</Option>
 				</List>
 			</Field>
-			<Field id="brightness" type="textfield" visibleBindingId="brightnessSource" visibleBindingValue="custom">
+			<Field id="brightness" type="textfield" visibleBindingId="brightnessSource" visibleBindingValue="custom"
+				tooltip="Enter the brightness level the device should be set to. Range is 0 to 100 percent.">
 				<Label>Brightness (0-100):</Label>
 				<Description>Brightness level the device should be set to.</Description>
 			</Field>
-			<Field id="brightnessVariable" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="variable">
+			<Field id="brightnessVariable" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="variable"
+				tooltip="Select an Indigo variable whose value at the time this action is executed should be used as the brightness level for this device. If the variable contains any text other than a number from 0 to 100, nothing will happen and an error will be displayed in the log.">
 				<Label>Brightness Variable:</Label>
 				<List class="indigo.variables"/>
 			</Field>
-			<Field id="brightnessDevice" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="dimmer">
+			<Field id="brightnessDevice" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="dimmer"
+				tooltip="Select another Indigo dimmer device whose brightness at the time this action is executed should be used to set the brightness of this device.">
 				<Label>Other Dimmer:</Label>
 				<List class="indigo.devices" filter="indigo.dimmer"/>
 			</Field>
-			<Field id="useRateVariable" type="checkbox" defaultValue="false">
+			<Field id="useRateVariable" type="checkbox" defaultValue="false"
+				tooltip="Check this box to select an Indigo variable whose value at the time this action executes should be used as the ramp rate for this device.">
 				<Label>Use Ramp Rate Variable</Label>
 			</Field>
-			<Field id="rate" type="textfield" visibleBindingId="useRateVariable" visibleBindingValue="false">
+			<Field id="rate" type="textfield" visibleBindingId="useRateVariable" visibleBindingValue="false"
+				tooltip="Enter the amount of time, in seconds, it should take for this device to change to the new setting. Precission up to 0.1 seconds is supported.">
 				<Label>Ramp Rate (0-540):</Label>
 			</Field>
-			<Field id="rateVariable" type="menu" visibleBindingId="useRateVariable" visibleBindingValue="true">
+			<Field id="rateVariable" type="menu" visibleBindingId="useRateVariable" visibleBindingValue="true"
+				tooltip="Select an Indigo variable whose value at the time this action executes should be used as the number of seconds for this device to change to the new brightness level.">
 				<Label>Ramp Rate Variable:</Label>
 				<List class="indigo.variables"/>
 			</Field>
@@ -60,14 +67,16 @@
 				<Label>NOTE: Hue light bulbs are not capable of displaying the same full spectrum of light that your computer monitor can display. Thus, when setting Red, Green, and Blue values, the bulb will switch to the closest color it can render to the color you specified.* Other supported color lights (LightStrips, LivingColors, etc.) have a wider color range and may represent certain colors (such as green) better.
 				</Label>
 			</Field>
-			<Field id="rgbColor" type="colorpicker" defaultValue="=">
+			<Field id="rgbColor" type="colorpicker" defaultValue="="
+				tooltip="Click to pick a color.">
 				<Label>Color:</Label>
 				<CallbackMethod>rgbColorPickerUpdated</CallbackMethod>
 			</Field>
 			<Field id="labelRgbColor" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Click to pick a color.</Label>
 			</Field>
-			<Field id="red" type="textfield" defaultValue="255">
+			<Field id="red" type="textfield" defaultValue="255"
+				tooltip="Enter the red component level. Range is 0 to 255.">
 				<Label>Red:</Label>
 				<CallbackMethod>rgbColorFieldUpdated</CallbackMethod>
 			</Field>
@@ -76,7 +85,8 @@
 0 = red LEDs off
 255 = red LEDs on full</Label>
 			</Field>
-			<Field id="green" type="textfield" defaultValue="255">
+			<Field id="green" type="textfield" defaultValue="255"
+				tooltip="Enter the green component level. Range is 0 to 255.">
 				<Label>Green:</Label>
 				<CallbackMethod>rgbColorFieldUpdated</CallbackMethod>
 			</Field>
@@ -85,7 +95,8 @@
 0 = green LEDs off
 255 = green LEDs on full</Label>
 			</Field>
-			<Field id="blue" type="textfield" defaultValue="255">
+			<Field id="blue" type="textfield" defaultValue="255"
+				tooltip="Enter the blue component level. Range is 0 to 255.">
 				<Label>Blue:</Label>
 				<CallbackMethod>rgbColorFieldUpdated</CallbackMethod>
 			</Field>
@@ -94,13 +105,16 @@
 0 = blue LEDs off
 255 = blue LEDs on full</Label>
 			</Field>
-			<Field id="useRateVariable" type="checkbox" defaultValue="false">
+			<Field id="useRateVariable" type="checkbox" defaultValue="false"
+				tooltip="Check this box to select an Indigo variable whose value at the time this action executes should be used as the ramp rate for this device.">
 				<Label>Use Ramp Rate Variable</Label>
 			</Field>
-			<Field id="rate" type="textfield" visibleBindingId="useRateVariable" visibleBindingValue="false">
+			<Field id="rate" type="textfield" visibleBindingId="useRateVariable" visibleBindingValue="false"
+				tooltip="Enter the amount of time, in seconds, it should take for this device to change to the new setting. Precission up to 0.1 seconds is supported.">
 				<Label>Ramp Rate (0-540):</Label>
 			</Field>
-			<Field id="rateVariable" type="menu" visibleBindingId="useRateVariable" visibleBindingValue="true">
+			<Field id="rateVariable" type="menu" visibleBindingId="useRateVariable" visibleBindingValue="true"
+				tooltip="Select an Indigo variable whose value at the time this action executes should be used as the number of seconds for this device to change to the new setting.">
 				<Label>Ramp Rate Variable:</Label>
 				<List class="indigo.variables"/>
 			</Field>
@@ -127,14 +141,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>NOTE: Hue light bulbs are not capable of displaying the same full spectrum of light that your computer monitor can display. Thus, when setting Hue and Saturation values, the bulb will switch to the closest color it can render to the color you specified.* Other supported color lights (LightStrips, LivingColors, etc.) have a wider color range and may represent certain colors (such as green) better.
 				</Label>
 			</Field>
-			<Field id="rgbColor" type="colorpicker" defaultValue="=">
+			<Field id="rgbColor" type="colorpicker" defaultValue="="
+				tooltip="Click to pick a color.">
 				<Label>Color:</Label>
 				<CallbackMethod>rgbColorPickerUpdated</CallbackMethod>
 			</Field>
 			<Field id="labelRgbColor" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Click to pick a color.</Label>
 			</Field>
-			<Field id="hue" type="textfield" defaultValue="230">
+			<Field id="hue" type="textfield" defaultValue="230"
+				tooltip="Enter the hue value. Range is 0 to 360 degrees.">
 				<Label>Hue:</Label>
 				<CallbackMethod>hsbColorFieldUpdated</CallbackMethod>
 			</Field>
@@ -142,7 +158,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>(0 - 360°)
 0 (and 360) = red, 60 = yellow, 120 = green, 180 = cyan, 240 = blue, 300 = magenta.</Label>
 			</Field>
-			<Field id="saturation" type="textfield" defaultValue="100">
+			<Field id="saturation" type="textfield" defaultValue="100"
+				tooltip="Enter the saturation value. Range is 0 to 100 percent.">
 				<Label>Saturation:</Label>
 				<CallbackMethod>hsbColorFieldUpdated</CallbackMethod>
 			</Field>
@@ -151,7 +168,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 0 = white (Hue is meaningless).
 100 = full color (no white mixed in).</Label>
 			</Field>
-			<Field id="brightnessSource" type="menu" defaultValue="custom">
+			<Field id="brightnessSource" type="menu" defaultValue="custom"
+				tooltip="Select the source for the brightness of this device.">
 				<Label>Brightness Source:</Label>
 				<List>
 					<Option value="custom">Enter Value</Option>
@@ -159,17 +177,20 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 					<Option value="dimmer">Other Dimmer Brightness</Option>
 				</List>
 			</Field>
-			<Field id="brightness" type="textfield" visibleBindingId="brightnessSource" visibleBindingValue="custom">
+			<Field id="brightness" type="textfield" visibleBindingId="brightnessSource" visibleBindingValue="custom"
+				tooltip="Enter the brightness level the device should be set to. Range is 0 to 100 percent.">
 				<Label>Brightness (0-100):</Label>
 				<Description>Brightness level the device should be set to.</Description>
 				<CallbackMethod>hsbColorFieldUpdated</CallbackMethod>
 			</Field>
-			<Field id="brightnessVariable" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="variable">
+			<Field id="brightnessVariable" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="variable"
+				tooltip="Select an Indigo variable whose value at the time this action is executed should be used as the brightness level for this device. If the variable contains any text other than a number from 0 to 100, nothing will happen and an error will be displayed in the log.">
 				<Label>Brightness Variable:</Label>
 				<List class="indigo.variables"/>
 				<CallbackMethod>hsbColorFieldUpdated</CallbackMethod>
 			</Field>
-			<Field id="brightnessDevice" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="dimmer">
+			<Field id="brightnessDevice" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="dimmer"
+				tooltip="Select another Indigo dimmer device whose brightness at the time this action is executed should be used to set the brightness of this device.">
 				<Label>Other Dimmer:</Label>
 				<List class="indigo.devices" filter="indigo.dimmer"/>
 				<CallbackMethod>hsbColorFieldUpdated</CallbackMethod>
@@ -179,13 +200,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 0 = off.
 100 = full brightness.</Label>
 			</Field>
-			<Field id="useRateVariable" type="checkbox" defaultValue="false">
+			<Field id="useRateVariable" type="checkbox" defaultValue="false"
+				tooltip="Check this box to select an Indigo variable whose value at the time this action executes should be used as the ramp rate for this device.">
 				<Label>Use Ramp Rate Variable</Label>
 			</Field>
-			<Field id="rate" type="textfield" visibleBindingId="useRateVariable" visibleBindingValue="false">
+			<Field id="rate" type="textfield" visibleBindingId="useRateVariable" visibleBindingValue="false"
+				tooltip="Enter the amount of time, in seconds, it should take for this device to change to the new setting. Precission up to 0.1 seconds is supported.">
 				<Label>Ramp Rate (0-540):</Label>
 			</Field>
-			<Field id="rateVariable" type="menu" visibleBindingId="useRateVariable" visibleBindingValue="true">
+			<Field id="rateVariable" type="menu" visibleBindingId="useRateVariable" visibleBindingValue="true"
+				tooltip="Select an Indigo variable whose value at the time this action executes should be used as the number of seconds for this device to change to the new setting.">
 				<Label>Ramp Rate Variable:</Label>
 				<List class="indigo.variables"/>
 			</Field>
@@ -211,19 +235,22 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>NOTE: Each Hue device has it's own colorimetry range (gamut). Entering values outside a device's range can result in unexpected colors. See the color plot at http://developers.meethue.com/coreconcepts.html
 				</Label>
 			</Field>
-			<Field id="xyy_x" type="textfield" defaultValue="">
+			<Field id="xyy_x" type="textfield" defaultValue=""
+				tooltip="Enter the x chromatisity component value. Range is 0 to 1.0.">
 				<Label>x (X Chromatisety):</Label>
 			</Field>
 			<Field id="labelRed" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 1.0)</Label>
 			</Field>
-			<Field id="xyy_y" type="textfield" defaultValue="">
+			<Field id="xyy_y" type="textfield" defaultValue=""
+				tooltip="Enter the y chromatisity component value. Range is 0 to 1.0.">
 				<Label>y (Y Chromatisety):</Label>
 			</Field>
 			<Field id="labelGreen" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 1.0)</Label>
 			</Field>
-			<Field id="xyy_Y" type="textfield" defaultValue="">
+			<Field id="xyy_Y" type="textfield" defaultValue=""
+				tooltip="Enter the Y luminosity component value. Range is 0 to 1.0.">
 				<Label>Y (Luminosity):</Label>
 			</Field>
 			<Field id="labelBlue" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -231,13 +258,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 0 = off
 1 = full brightness</Label>
 			</Field>
-			<Field id="useRateVariable" type="checkbox" defaultValue="false">
+			<Field id="useRateVariable" type="checkbox" defaultValue="false"
+				tooltip="Check this box to select an Indigo variable whose value at the time this action executes should be used as the ramp rate for this device.">
 				<Label>Use Ramp Rate Variable</Label>
 			</Field>
-			<Field id="rate" type="textfield" visibleBindingId="useRateVariable" visibleBindingValue="false">
+			<Field id="rate" type="textfield" visibleBindingId="useRateVariable" visibleBindingValue="false"
+				tooltip="Enter the amount of time, in seconds, it should take for this device to change to the new setting. Precission up to 0.1 seconds is supported.">
 				<Label>Ramp Rate (0-540):</Label>
 			</Field>
-			<Field id="rateVariable" type="menu" visibleBindingId="useRateVariable" visibleBindingValue="true">
+			<Field id="rateVariable" type="menu" visibleBindingId="useRateVariable" visibleBindingValue="true"
+				tooltip="Select an Indigo variable whose value at the time this action executes should be used as the number of seconds for this device to change to the new setting.">
 				<Label>Ramp Rate Variable:</Label>
 				<List class="indigo.variables"/>
 			</Field>
@@ -260,7 +290,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>Color temperature represents the shade of white being seen. When entering a Custom Temperature, a lower number means a "warmer", or more red shade of white.  A higher number means a "cooler", or more blue shade of white.
 				</Label>
 			</Field>
-			<Field type="menu" id="preset" defaultValue="relax">
+			<Field type="menu" id="preset" defaultValue="relax"
+				tooltip="Select a color temperature preset or select Custom Teperature/Brightness to enter a custom color temperature and brightness value. Presets are based on those provided by Philips for Hue.">
 				<Label>Preset Color Recipes:</Label>
 				<List>
 					<Option value="relax">Relax</Option>
@@ -273,17 +304,20 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="labelPoint" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Select a "Preset Color Recipe" or select "Custom Temperature/Brightness" to specify a specific color temperature (in Kelvin).</Label>
 			</Field>
-			<Field id="temperatureSource" type="menu" defaultValue="custom" visibleBindingId="preset" visibleBindingValue="custom">
+			<Field id="temperatureSource" type="menu" defaultValue="custom" visibleBindingId="preset" visibleBindingValue="custom"
+				tooltip="Select how you'd like to specify a color temperature setting. Either by entering a color temperature or by specifying an Indigo variable that contains the color temperature value.">
 				<Label>Temperature Source:</Label>
 				<List>
 					<Option value="custom">Enter Value</Option>
 					<Option value="variable">Use Variable</Option>
 				</List>
 			</Field>
-			<Field id="temperature" type="textfield" defaultValue="2800" visibleBindingId="temperatureSource" visibleBindingValue="custom">
+			<Field id="temperature" type="textfield" defaultValue="2800" visibleBindingId="temperatureSource" visibleBindingValue="custom"
+				tooltip="Enter a color temperature value in Kelvin. Range is 2000 to 6500, and only applies to Hue devices that support the use of color temperature.">
 				<Label>Color Temperature:</Label>
 			</Field>
-			<Field id="temperatureVariable" type="menu" visibleBindingId="temperatureSource" visibleBindingValue="variable">
+			<Field id="temperatureVariable" type="menu" visibleBindingId="temperatureSource" visibleBindingValue="variable"
+				tooltip="Select an Indigo variable whose value at the time this action is executed will be used as the color temperature setting in Kelvin. The variable must have a value in the range of 2000 to 6500. ">
 				<Label>Color Temperature Variable:</Label>
 				<List class="indigo.variables"/>
 			</Field>
@@ -292,7 +326,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 2000 = very warm (more red).
 6500 = very cool (more blue).</Label>
 			</Field>
-			<Field id="brightnessSource" type="menu" defaultValue="custom" visibleBindingId="preset" visibleBindingValue="custom">
+			<Field id="brightnessSource" type="menu" defaultValue="custom"
+				tooltip="Select the source for the brightness of this device.">
 				<Label>Brightness Source:</Label>
 				<List>
 					<Option value="custom">Enter Value</Option>
@@ -300,30 +335,31 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 					<Option value="dimmer">Other Dimmer Brightness</Option>
 				</List>
 			</Field>
-			<Field id="brightness" type="textfield" visibleBindingId="brightnessSource" visibleBindingValue="custom">
+			<Field id="brightness" type="textfield" visibleBindingId="brightnessSource" visibleBindingValue="custom"
+				tooltip="Enter the brightness level the device should be set to. Range is 0 to 100 percent.">
 				<Label>Brightness (0-100):</Label>
 				<Description>Brightness level the device should be set to.</Description>
 			</Field>
-			<Field id="brightnessVariable" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="variable">
+			<Field id="brightnessVariable" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="variable"
+				tooltip="Select an Indigo variable whose value at the time this action is executed should be used as the brightness level for this device. If the variable contains any text other than a number from 0 to 100, nothing will happen and an error will be displayed in the log.">
 				<Label>Brightness Variable:</Label>
 				<List class="indigo.variables"/>
 			</Field>
-			<Field id="brightnessDevice" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="dimmer">
+			<Field id="brightnessDevice" type="menu" visibleBindingId="brightnessSource" visibleBindingValue="dimmer"
+				tooltip="Select another Indigo dimmer device whose brightness at the time this action is executed should be used to set the brightness of this device.">
 				<Label>Other Dimmer:</Label>
 				<List class="indigo.devices" filter="indigo.dimmer"/>
 			</Field>
-			<Field id="labelBrightness" type="label" visibleBindingId="brightnessSource" visibleBindingValue="custom" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>(0 - 100%)
-0 = off.
-100 = full brightness.</Label>
-			</Field>
-			<Field id="useRateVariable" type="checkbox" defaultValue="false">
+			<Field id="useRateVariable" type="checkbox" defaultValue="false"
+				tooltip="Check this box to select an Indigo variable whose value at the time this action executes should be used as the ramp rate for this device.">
 				<Label>Use Ramp Rate Variable</Label>
 			</Field>
-			<Field id="rate" type="textfield" visibleBindingId="useRateVariable" visibleBindingValue="false">
+			<Field id="rate" type="textfield" visibleBindingId="useRateVariable" visibleBindingValue="false"
+				tooltip="Enter the amount of time, in seconds, it should take for this device to change to the new setting. Precission up to 0.1 seconds is supported.">
 				<Label>Ramp Rate (0-540):</Label>
 			</Field>
-			<Field id="rateVariable" type="menu" visibleBindingId="useRateVariable" visibleBindingValue="true">
+			<Field id="rateVariable" type="menu" visibleBindingId="useRateVariable" visibleBindingValue="true"
+				tooltip="Select an Indigo variable whose value at the time this action executes should be used as the number of seconds for this device to change to the new brightness level.">
 				<Label>Ramp Rate Variable:</Label>
 				<List class="indigo.variables"/>
 			</Field>
@@ -358,7 +394,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Effect</Name>
 		<CallbackMethod>effect</CallbackMethod>
 		<ConfigUI>
-			<Field type="menu" id="effect" defaultValue="none">
+			<Field type="menu" id="effect" defaultValue="none"
+				tooltip="Select a preset effect. Effect presets are built into the Hue hub and defined by Philips. These presets are not the same as Hue Lights presets.">
 				<Label>Presets:</Label>
 				<List>
 					<Option value="none">None</Option>
@@ -378,21 +415,26 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Save Preset</Name>
 		<CallbackMethod>savePreset</CallbackMethod>
 		<ConfigUI>
-			<Field id="presetId" type="menu" defaultValue="">
+			<Field id="presetId" type="menu" defaultValue=""
+				tooltip="Select the Preset in which the device's current settings should be stored. Presets with an asterisk (*) next to them have data already saved in them. Selecting one of these Presets will overwrite the data saved in that Preset.">
 				<Label>Preset:</Label>
 				<List class="self" method="presetListGenerator"></List>
 			</Field>
 			<Field id="presetLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>Select the Preset in which the device's current settings should be stored. Presets with an asterisk (*) next to them have data already saved in them. Selecting one of these Presets will overwrite the data saved in that Preset.</Label>
+				<Label>Select the Preset in which the device's current settings should be stored. Presets with an asterisk (*) next to them have data already saved in them. Selecting one of these Presets will overwrite the data saved in that Preset.
+				</Label>
 			</Field>
-			<Field id="presetName" type="textfield" defaultValue="">
+			<Field id="presetName" type="textfield" defaultValue=""
+				tooltip="Give the Preset a name (or change the current name).">
 				<Label>Preset Name:</Label>
 			</Field>
 			<Field id="nameLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>Optionally assign a name to this Preset.</Label>
+				<Label>Optionally assign a name to this Preset.
+				</Label>
 			</Field>
-			<Field id="rate" type="textfield">
-				<Label>Ramp Rate:</Label>
+			<Field id="rate" type="textfield"
+				tooltip="Enter the amount of time, in seconds, it should take for this device to change to the new setting. Precission up to 0.1 seconds is supported.">
+				<Label>Ramp Rate (0-540):</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 540 seconds)
@@ -408,20 +450,79 @@ Save a Ramp Rate (transition time) to be used when recalling this Preset, accura
 		<Name>Recall Preset</Name>
 		<CallbackMethod>recallPreset</CallbackMethod>
 		<ConfigUI>
-			<Field id="presetId" type="menu" defaultValue="">
+			<Field id="presetId" type="menu" defaultValue=""
+				tooltip="Select the Preset that should be applied to the device. Presets with an asterisk (*) next to them have data saved in them.">
 				<Label>Preset:</Label>
 				<List class="self" method="presetListGenerator"></List>
 			</Field>
 			<Field id="presetLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>Select the Preset that should be applied to the device. Presets with an asterisk (*) next to them have data saved in them.</Label>
+				<Label>Select the Preset that should be applied to the device. Presets with an asterisk (*) next to them have data saved in them.
+				</Label>
 			</Field>
-			<Field id="rate" type="textfield">
-				<Label>Ramp Rate:</Label>
+			<Field id="rate" type="textfield"
+				tooltip="Enter the amount of time, in seconds, it should take for this device to change to the new setting. Precission up to 0.1 seconds is supported.">
+				<Label>Ramp Rate (0-540):</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 540 seconds)
 0 = instant
 Optionally override this Preset's saved Ramp Rate (transition time). This overrides the device's default rate as well. Ramp Rates are accurate to 0.1 seconds.</Label>
+			</Field>
+			<Field id="description" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+		</ConfigUI>
+	</Action>
+	<Action id="recallScene">
+		<Name>Recall Hue Scene</Name>
+		<CallbackMethod>recallScene</CallbackMethod>
+		<ConfigUI>
+			<Field id="instructions1" type="label" fontSize="small">
+				<Label>Hue Scenes are stored on the Hue hub and are organized here by which application created them.</Label>
+			</Field>
+			<Field id="userId" type="menu" defaultValue=""
+				tooltip="Scene Creators are the applications on various devices that have connected to the Hue hub and created Scenes.">
+				<Label>Scene Creator:</Label>
+				<List class="self" method="usersListGenerator"></List>
+				<CallbackMethod>usersListItemSelected</CallbackMethod>
+			</Field>
+			<Field id="userLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Select a Scene Creator from the hub first (or use "All Scene Creators").
+				</Label>
+			</Field>
+			<Field id="sceneId" type="menu" defaultValue=""
+				tooltip="Scenes are stored on the Hue hub along with which application created them. Scenes in this menu were created by the Scene Creator selected above.">
+				<Label>Scene:</Label>
+				<List class="self" method="scenesListGenerator" dynamicReload="true"></List>
+				<CallbackMethod>scenesListItemSelected</CallbackMethod>
+			</Field>
+			<Field id="scemeLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Some Scenes may have the same name because of how the Hue app creates them on the hub. Use the Lights Affected list below to distinguish between Scenes with the same name.
+				</Label>
+			</Field>
+			<Field id="groupId" type="menu" defaultValue=""
+				tooltip="The Hue hub allows you to limit a Scene to just one Group, as long as at least one light in the Scene is part of the Group. Lights that are part of a Scene but NOT part of the selected Group Limit will not be affected.">
+				<Label>Group Limit:</Label>
+				<List class="self" method="groupListGenerator"></List>
+				<CallbackMethod>groupsListItemSelected</CallbackMethod>
+			</Field>
+			<Field id="groupLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Limit the Scene to a specific Hue Group.
+				</Label>
+			</Field>
+			<Field id="sceneLights" type="list" defaultValue="" readonly="true" enabledBindingId="sceneLightsDisabler"
+				tooltip="This list shows all the lights that will be affected by the combination of Scene and Group Limit selections above. These cannot be edited.">
+				<Label>Lights Affected:</Label>
+				<List class="self" method="sceneLightsListGenerator" dynamicReload="true"></List>
+			</Field>
+			<Field id="scemeLightsLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>This list shows which lights are affected by the Scene and Group Limit selections above. This cannot be edited.</Label>
+			</Field>
+			<Field id="sceneLightsDisabler" type="checkbox" defaultValue="false" hidden="true">
+				<!-- This hidden, static value field is necessary in order to disable the Lights list
+				 field above because using the "readonly" property appears to have no effect with
+				 Indigo 7.0.2 and earlier. -->
+				<Label></Label>
 			</Field>
 			<Field id="description" type="textfield" hidden="true">
 				<Label/>

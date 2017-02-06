@@ -1,0 +1,301 @@
+HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
+========================================
+
+1.5.1
+* Added a Recall Hue Scene menu item to Plugins -> Hue Lights menu to easily recall a Hue scene from the Indigo GUI without having to create an Action Group or trigger action.
+* Fixed a UI bug in the Recall Hue Scene action settings window that prevented the Lights Affected list from being populated on initial action creation.
+--
+1.5.0
+* Added limited Hue Scene support with a Recall Hue Scene action which can activate any scene stored on the Hue hub.
+* Added tool tips to all Hue Lights controlled Indigo UI windows.
+* Fixed automated plugin version checking that wasn’t comparing current and latest versions correctly.
+* Improved Hue Groups device setup dialog so you can see a list of all the lights in the selected group from within the device setup window.
+--
+1.4.9
+* Fixed a bug that prevented the plugin from saving light brightness levels when they were changed from sources outside Indigo.
+--
+1.4.8
+* Fixed a bug that would cause an error when editing the Set Hue/Saturation/Brightness action settings.
+* Fixed definition for one model of LivingColors light that was incorrectly placed in the Extended Color/Ambiance bulb group.
+--
+1.4.7
+* Added all Hue Beyond, Entity, Impulse, and Phoenix lights to the appropriate compatible device lists.
+* Added a new Ambiance Ceiling model to the compatible device list.
+* Moved some Hue Phoenix models out of the LivingWhites and into the Ambiance compatible device list. This will require you to re-define or delete and re-create the device in Indigo.
+--
+1.4.6
+* 1.4.6b4 promoted to final release with no changes.
+--
+1.4.6b4 (limited release).
+* Fixed a bug that would cause the plugin to crash when updating Ambiance light white levels.
+--
+1.4.6b3 (limited release).
+* Fixed the device startup bug that warned of old devices. The plugin now automatically detects and updates any old Hue Lights devices and simply puts a notice of this in the Indigo log.
+--
+1.4.6b2 (limited release).
+* Changed light and group status update process to use less CPU in mid to large Hue installations.
+--
+1.4.6b1 (limited release).
+* Fixed a potential bug in the startup code that may have caused an infinite device reload loop, and thus high CPU load.
+* Fixed a bug that caused an error when attempting to edit Hue Groups device settings in the Indigo UI.
+* Added some underlying code needed to support scenes and sensors, as well as other Hue features. Scenes and sensors are not yet supported, but it will now be easier to provide limited support in the future.
+--
+1.4.5
+* Added automatic detection and loading of new lights and groups. No need to manually reload lights with the Reload Hue Device List menu item.
+* Fixed a bug that incorrectly reported some updated devices as being out of date (from an old Hue Lights plugin version).
+* Improved hue device status updating efficiency to reduce the number of Hue hub queries.
+--
+1.4.4
+* Fixed another bug with Ambiance Lights Edit Device Settings dialog that would incorrectly show an error that the device wasn't an Ambiance Light.
+--
+1.4.3
+* Fixed a bug with Ambiance Lights Edit Device Settings dialog that wouldn't allow you to save changes.
+--
+1.4.2
+* Fixed a bug with Ambiance Lights selection list in Edit Device Settings dialog to not appear.
+--
+1.4.1
+* Fixed a bug with LivingColors light update processing that caused the plugin to crash.
+--
+1.4.0
+* Changed Hue Lights to now require Indigo 7 or later.
+* Added support for color picker in light color setting actions.
+* Added support for color and white temperature UI features in Indigo.
+* Added Toggle Debugging menu item in Hue Lights plugin menu.
+* Changed LightStrip Plus handling so it appears with the original Hue LigthStrip model in Edit Device Settings dialog.
+* Updated Hue Group device name to show that it's no longer experimental.
+--
+1.3.30
+* Fixed a bug in 1.3.29 that prevented Hue Lights from recognizing the 2nd generation LightStrips.
+--
+1.3.29
+* Added support for additional Hue light models.
+--
+1.3.28
+* Added support for the Hue bulb v3, Hue White v2 and Hue White v3.
+--
+1.3.27
+* Fixed a bug that caused a plugin crash when updating the status of a bulb that has no hue value associated with ti.
+--
+1.3.26
+* Actually added the 2nd Hue White Ambiance model ID this time.
+--
+1.3.25
+* Added support for 2 Hue White Ambiance bulb models.
+* Fixed bug that caused the plugin to crash if a light had no color information from the Hue hub.
+--
+1.3.24
+* Fixed a bug that caused the plugin to hang then crash after adding a Hue Group device.
+--
+1.3.23
+* Added ability to use an Indigo variable for the ramp rate in all actions that have a ramp rate parameter.
+* Added ability to use Indigo variables and other Indigo dimmers as the brightness source in actions that have a 0 to 100 percent scale brightness parameter (i.e. the "Set Hue/Saturation/Brightness" and "Set Color Temperature" actions. The "Set Brightness with Ramp Rate" action already had this capability).
+* Added ability to use an Indigo variable for color temperature in the "Set Color Temperature" action.
+--
+1.3.22
+* Fixed error when attempting to obtain device status from Osram CLA60 lights.  Light now appears as a Living Whites bulb.
+* Improved light status gathering method to prevent plugin crashes if a light device doesn't have an expected property.
+--
+1.3.21
+* Added support for the Osram Lightify CLA60 Tunable White bulb.
+--
+1.3.20
+* Fixed the pairing process to work with hub firmware from 04-2016.
+* Simplified hub pairing process (much less complicated now).
+* Improved plugin configuration window error checking.
+--
+1.3.19
+* Added support for new Phoenix light model.
+--
+1.3.18
+* Fixed incompatibility with Indigo 6.1.8 that caused every HTTP connection to the Hue hub to generate a "Starting new HTTP connection (1)..." entry in the Indigo log.
+--
+1.3.17
+* Updated Phoenix support so it appears in the LivingWhites device list instead of the color Hue bulbs list.
+--
+1.3.16
+* Added support for the Phoenix wall lights.
+--
+1.3.15
+* Moved supported device lists into a separate Python file for easier maintenance
+* Added support for the Hue White A19 extension bulb.
+--
+1.3.14
+* Added support for the new 800 lumen Hue bulb and the LED LightStrip Plus (temporarily found in the Hue Bulb list).
+--
+1.3.13
+* Added support for the Dresden Elektronik FLS-PP lp LED strip white light segment.
+--
+1.3.12
+* Added support for the Dresden Elektronik FLS-PP lp color LED light strip.
+--
+1.3.11
+* Added Hue Go, Color Light, and Color Temperature modules to compatible device list.
+--
+1.3.10
+* Fixed a bug that caused the plugin to crash when trying to obtain the "effect" state of a Hue Lux light on the hub.
+--
+1.3.9
+* Fixed another bug that caused the plugin to crash if a Hue Group had no color mode defined on the Hue hub (e.g. all the group members were non-color bulbs).
+--
+1.3.8
+* Added support for generic ZigBee lights such as the GE Link.
+* Fixed a bug that caused the plugin to crash if an alert action was taken on a Hue Group device.
+--
+1.3.7
+* Fixed a bug that caused the plugin to crash if there were any Hue groups registered with the Hue hub.
+* Fixed a bug that prevented Hue Group devices from being loaded when the "Reload Hue Device List" plugin menu option was selected within the Indigo client.
+--
+1.3.6
+* Added support for the Hue Lux bulb.
+--
+1.3.5
+* Added support for the LivingColors Iris.
+--
+1.3.4
+* Yet another attempt to fix the same bug found in 1.3.0.
+--
+1.3.3
+* Another attempt to fix the same bug found in 1.3.0.
+--
+1.3.2
+* Fixed a bug introduced in 1.3.1 that causes an error when no ramp rate is provided for Color Temperature and other color change actions are initiated.
+--
+1.3.1
+* Fixed a bug that could cause a plugin crash if a string was passed as the ramp rate in a Python script when executing any action that sets color.
+--
+1.3.0
+* Added limited, experimental support for Hue groups. Support is limited to working with existing groups on the Hue hub. Hue groups are treated like other Hue devices.
+* Minor error message corrections throughout the plugin.
+--
+1.2.11 (29-Apr-2014)
+* Fixed a bug that would cause device edit dialogs to incorrectly report that the hub was not paired after the hub had been unreachable then became reachable again.
+--
+1.2.10 (23-Apr-2014)
+* Fixed a bug that would cause the plugin to crash if a command was sent to the hub while the hub (or the plugin) was in an unstable state that resulted in an invalid pairing status.
+* Updated the error reporting process so that major connection failure errors were actually reported as errors in the log rather than standard log entries.
+* Updated the error reporting process so frequently displayed errors during a network or hub outage are reduced from once every 4 seconds to about once every minute.
+--
+1.2.9 (31-Mar-2014)
+* Added support for the LivingColor Aura available in Europe (model ID LLC014).
+* Updated Hue device types in Indigo device dialog to help clarify which device type to choose based on which Hue device you have.
+--
+1.2.8 (07-Feb-2014)
+* Added support for the European version of the Bloom (model ID LLC011).
+* Audited code to make sure all printable text is explicitly marked as Unicode text.
+--
+1.2.7 (10-Dec-2013)
+* Added support for the Friends of Hue Disney StoryLight.
+--
+1.2.6 (21-Nov-2013)
+* Added support for the Hue GU10 spot light.
+* Increased number of Presets from 10 to 30.
+--
+1.2.5 (05-Nov-2013)
+* Added support for the Hue "Downlight" BR30 bulb.
+--
+1.2.4 (10-Sep-2013)
+* Added optional Ramp Rate to the Save Preset and Recall Preset actions and menu items.
+* Fixed (hopefully) a bug that caused an ASCII translation error when editing an action for a device with non-ASCII characters in the name.
+--
+1.2.3 (04-Sep-2013... later that day.  :-) )
+* Fixed a bug that caused a "typeId 'setBrightness'" error when attempting to create a Set Brightness with Ramp Rate action.
+--
+1.2.2 (04-Sep-2013)
+* Increased the number of connection retries should a connection error be reported by the requests library.  Also disabled the HTTP "keep alive" connection pooling feature.
+--
+1.2.1 (02-Sep-2013)
+* Fixed a bug that could cause the plugin to crash when using the Set Hue/Saturation/Brightness action from an external or embedded script then from an Indigo action.
+* Added ellipses to Plugins menu Preset items to conform to standard menu item naming convention when a dialog results from selecting a menu item.
+--
+1.2.0 (25-Aug-2013)
+* Added Hue device settings Presets option that can save a device's current settings to be recalled (applied) later to any other compatible Hue device.
+* Fixed a bug that would cause Hue devices to not turn off if the requested brightness level was 0 when using the Set RGB, Set HSB, Set Color Temperature, or Set xyY actions.
+--
+1.1.1 (20-Aug-2013)
+* Added code to update device error states if a Hue device's online state changes to false, or there's some other kind of error.
+* Corrected some UI labeling errors.
+--
+1.1.0 (18-Aug-2013)
+* Added support for the following Friends of Hue devices:    - LightStrips    - LivingColors Bloom
+* Added experimental support for LivingWhites devices.
+* Fixed a bug that wouldn't turn off the Hue bulb as quickly if using the standard device Turn Off command as opposed to setting the brightness to 0 method.
+* Updated the Set Red/Green/Blue function to better match Hue device capabilities.
+* Added a Set xyY Chromaticity (Advanced) action that allows one to directly specify the x/y chromaticity and Y luminosity values for devices that can render color.
+--
+1.0.3 (09-Aug-2013)
+* Fixed bug that caused the plugin to crash when using a LightStrip device.
+--
+1.0.2 (09-Aug-2013)
+* Added ability to recognize new LightStrips and "wall washer" strips.
+--
+1.0.1 (30-Jul-2013)
+* Added the indigoPluginUpdateChecker module (code by Travis CooK) to facilitate automatic plugin version checking.
+--
+1.0 (03-Jul-2013)
+* Updated brightness status code to accurately reflect a 1 percent brightness level (rather than rounding up to 2 percent).
+* Added Default Brightness property for Hue Bulbs devices so their features are more consistent with other lighting devices in Indigo (such as SwitchLinc and LampLinc Dimmers).
+* Changed "on", "off", and "toggle" action control functions so that sending an "on" command to a Hue Bulb from within Indigo returns the bulb to its previous brightness level, or its default brightness level (if set).
+* Updated Brightness, HSB, and Color Temperature setting methods so that they properly save the brightness level specified in those actions to the Hue Bulb's device properties for recall should an "on" command be sent to it.
+* Updated the bulb status gathering method so that if the bulb brightness changes outside of the Hue Lights plugin (or the hub updates the bulb brightness during a long transition time), Hue Lights does not save the new brightness to the bulb properties and thus causing an "on" command later to recall an incorrect previous brightness state.
+* Changed the logging slightly to more closely match the log format of native INSTEON device changes.
+--
+0.10.2 (24-Jun-2013)
+* Added more code to work better with LivingWhites bulbs.
+--
+0.10.1 (24-Jun-2013)
+* Modified debugging code so it wouldn't throw errors when the plugin is installed on versions of Indigo Pro earlier than version 5.1.7.
+* Added the LWB003 model ID to the list of recognized Hue models.
+--
+0.10.0 (12-Jun-2013)
+* Added a Hue Bulb Attribute Controller virtual dimmer device which can be created to control a specific attribute (hue, saturation, RGB levels, or color temperature) of an existing Hue Lights bulb device.
+* Added an "Effect" action which allows you to specify an effect to be turned on for a Hue bulb (requires latest firmware on the Hue hub. Currently, only the Color Loop effect is supported by the Hue hub and bulbs).
+* Changed light control methods so that if the current light brightness is below 6% and the requested action is to turn off the bulb, set the ramp rate to 0 regardless of the default or specified ramp rate (transition time) because going from a brightness of 6% or lower to an off state with a dimming rate isn't noticeable.
+--
+0.9.11 (10-Apr-2013)
+* Updated code to more elegantly handle non-Hue devices attached to the Hue hub.
+--
+0.9.10 (02-Apr-2013)
+* Fixed a bug that would cause the plugin to crash if a registered bulb on the Hue hub had no "hue" attribute (which could happen when using "LivingWhites" plugin dimmers found in some European countries).
+--
+0.9.9 (24-Jan-2013)
+* Attempted to make RGB-to-xyY conversions more accurate by changing the illuminant used by the colormath functions from type "a" to type "e".
+--
+0.9.8 (23-Jan-2013)
+* Fixed a bug that would crash the plugin if no device was selected in a start/stopBrightening/Dimming action when the action was executed.
+* Fixed a bug that would cause an error during device creation dialog validation for new Hue Light devices in Indigo 5.x.
+--
+0.9.7 (31-Dec-2012)
+* Fixed a bug that updated the "hue" state of plugin devices with an invalid number when the setHSB action was used.
+--
+0.9.6 (31-Dec-2012)
+* Fixed a divide by zero error in getBulbStatus that could happen if the Hue hub returns no value for a bulb’s color temperature.
+--
+0.9.5 (27-Dec-2012)
+* Fixed bug that would cause the Hue light not to turn off if using RGB mode when Red, Green, and Blue were all zero.
+--
+0.9.4 (27-Nov-2012)
+* Fixed bug that would return an error if no default ramp rate were entered for a Hue bulb device.
+* Added more debug logging.
+* Changed how logging is done to be more consistent with other Indigo device update events. A log entry now appears after the physical device has changed (as was always the case) but now it appears before the Indigo device state is updated.
+* Increased delay between status update requests to about 8 seconds to decrease number of requests per minute sent to the Hue hub.
+--
+0,9.3 (18-Nov-2012)
+* Fixed typo (bug) that caused the plugin to crash when the Hue hub was unreachable within the timeout period.
+* Worked around a colormath bug that would throw a ZeroDivisionError if the "y" component was zero.
+* Added checks in bulb status gathering to prevent unnecessary Indigo device status updates. Added logging for any device brightness updates detected.
+* Added more exception handling for HTTP requests to hub.
+* Slightly tweaked status request timing.
+--
+0.9.2 (17-Nov-2012)
+* Corrected error in actionControlDimmerRelay that prevented setBrightness call from working.
+--
+0.9.1 (16-Nov-2012)
+* Tweaked brightening and dimming timing for Start Brightening and Start Dimming actions so the rate was about the same speed as SmartLabs SwithcLinc Dimmers and LampLinc Dimmers.
+* Removed code that immediately changes the RGB color states for the Indigo device as the values entered by the user are not actual displayed values. Actual values will be updated by the getBulbStatus method later.
+* Added the "Set Brightness with Ramp Rate" action and associated plugin.py code. Renamed multiple methods for easier readability and for easier plugin scripting within Indigo.  Reorganized order in which methods appear in the source code for a more logical layout.
+--
+0.9 (13-Nov-2012)
+* Initial Nathan Sheldon forked beta release.
+* This version removes the use of the "ColorPy" library from Alistair's version and replaces it with the "colormath" library as it includes the ability to specify a target illumination source during color conversion, thus presenting a closer RGB to xyY conversion (and vice-versa).
+* Most of Alistair's original code was rewritten to remain consistent with coding conventions in my other plugins, but some of his code is still in here.
