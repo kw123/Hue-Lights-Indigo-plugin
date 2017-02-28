@@ -1,9 +1,9 @@
 <<<<<<< HEAD
 Hue Lights
 
-(A plugin for Indigo Domotics’ Indigo Pro 5 or later)
+(A plugin for Indigo Domotics’ Indigo Pro 7 or later)
 
-Version 1.3.9
+Version 1.5.1
 
 Hue Lights is a plugin for Indigo Pro which allows you to control your Philips Hue lights and Friends of Hue lights through the Indigo system. It allows you to perform basic operations like turning bulbs on and off, setting brightness, and setting the default dimming ramp rate. It also keeps the status of each bulb updated in Indigo so Indigo always knows the condition of each bulb even when the bulbs are controlled by the Hue iOS or Android apps. Additionally, Hue Lights enables advanced control of the Philips Hue devices, allowing you to set custom colors (using RGB, HSB, or color temperature), and the ability to turn on or off alerts (blinking) and effects (color loop).
 
