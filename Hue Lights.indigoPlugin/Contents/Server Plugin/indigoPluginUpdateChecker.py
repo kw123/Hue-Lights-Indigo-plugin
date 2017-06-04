@@ -138,8 +138,16 @@ class updateChecker(object):
 				latestVersionSplit[component] = "0"
 			
 			try:
-				if int(versionValue) < int(latestVersionSplit[component]):
+				if int(latestVersionSplit[component]) > int(versionValue):
+					# If the latest version component is greater than the current version
+					#   component, then there's a newer version available (includes betas)
 					return True
+				elif int(latestVersionSplit[component]) < int(versionValue):
+					# If the latest version component that's published is lower than the
+					#   currently installed version, we're probably running a beta
+					#   version that hasn't been released yet.  There are no newer
+					#   updates available.
+					return False
 			except IndexError:
 				# This means myVersion has more version components than the
 				#   latestVersion. More components in myVersion likely means

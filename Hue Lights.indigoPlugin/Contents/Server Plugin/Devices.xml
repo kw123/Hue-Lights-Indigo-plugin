@@ -643,4 +643,226 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 			</Field>
 		</ConfigUI>
 	</Device>
+	
+	
+	<!-- SENSOR DEVICES -->
+	<!-- Hue Motion Sensor (multi-sensor) -->
+	<!--   MOTION   -->
+	<Device type="sensor" id="hueMotionSensor">
+		<Name>Hue Motion Sensor (Motion)</Name>
+		<ConfigUI>
+			<Field id="sensorId" type="menu"
+				tooltip="Select a Hue Motion Sensor.">
+				<Label>Hue Sensor:</Label>
+				<List class="self" method="sensorListGenerator" filter="hueMotionSensor" />
+			</Field>
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="enabledOnHub" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="swVersion" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
+			<Field id="productId" type="textfield" hidden="true" />
+			<Field id="SupportsBatteryLevel" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsSensorValue" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsOnState" type="checkbox" hidden="true" defaultValue="true" />
+		</ConfigUI>
+		<States>
+			<State id="alertMode">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Alert Mode</TriggerLabel>
+				<ControlPageLabel>Alert Mode</ControlPageLabel>
+			</State>
+			<State id="sensitivity">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Sensitivity</TriggerLabel>
+				<ControlPageLabel>Sensitivity</ControlPageLabel>
+			</State>
+			<State id="sensitivityMax">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Maximum Sensitivity</TriggerLabel>
+				<ControlPageLabel>Maximum Sensitivity</ControlPageLabel>
+			</State>
+			<State id="online">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Online</TriggerLabel>
+				<ControlPageLabel>Online</ControlPageLabel>
+			</State>
+			<State id="testMode">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Test Mode</TriggerLabel>
+				<ControlPageLabel>Test Mode</ControlPageLabel>
+			</State>
+			<State id="ledEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>LED Enabled</TriggerLabel>
+				<ControlPageLabel>LED Enabled</ControlPageLabel>
+			</State>
+			<State id="lastUpdated">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+	<!--   TEMPERATURE   -->
+	<Device type="sensor" id="hueMotionTemperatureSensor">
+		<Name>Hue Motion Sensor (Temperature)</Name>
+		<ConfigUI>
+			<Field id="sensorId" type="menu"
+				tooltip="Select a Hue Motion Sensor.">
+				<Label>Hue Sensor:</Label>
+				<List class="self" method="sensorListGenerator" filter="hueMotionTemperatureSensor" />
+			</Field>
+			<Field id="temperatureScale" type="menu" defaultValue="c"
+				tooltip="Select a temperature scale to display in Indigo.">
+				<Label>Temperature Scale:</Label>
+				<List>
+					<Option value="c">Celsius</Option>
+					<Option value="f">Fahrenheit</Option>
+				</List>
+			</Field>
+			<Field id="sensorOffset" type="textfield"
+				tooltip="Optionally set a calibration offset if the sensor readings are inaccurate.">
+				<Label>Calibration Offset:</Label>
+			</Field>
+			<Field id="labelSensorOffset" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(-10 to 10 degrees)
+Optionally set a calibration offset if the sensor readings are inaccurate.
+</Label>
+			</Field>
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="enabledOnHub" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="swVersion" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
+			<Field id="productId" type="textfield" hidden="true" />
+			<Field id="SupportsBatteryLevel" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsSensorValue" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsOnState" type="checkbox" hidden="true" defaultValue="false" />
+		</ConfigUI>
+		<States>
+			<State id="alertMode">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Alert Mode</TriggerLabel>
+				<ControlPageLabel>Alert Mode</ControlPageLabel>
+			</State>
+			<State id="online">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Online</TriggerLabel>
+				<ControlPageLabel>Online</ControlPageLabel>
+			</State>
+			<State id="testMode">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Test Mode</TriggerLabel>
+				<ControlPageLabel>Test Mode</ControlPageLabel>
+			</State>
+			<State id="ledEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>LED Enabled</TriggerLabel>
+				<ControlPageLabel>LED Enabled</ControlPageLabel>
+			</State>
+			<State id="lastUpdated">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+			<State id="temperatureC">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Temperature (ºC)</TriggerLabel>
+				<ControlPageLabel>Temperature (ºC)</ControlPageLabel>
+			</State>
+			<State id="temperatureF">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Temperature (ºF)</TriggerLabel>
+				<ControlPageLabel>Temperature (ºF)</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+	<!--   LUMINANCE   -->
+	<Device type="sensor" id="hueMotionLightSensor">
+		<Name>Hue Motion Sensor (Luminance)</Name>
+		<ConfigUI>
+			<Field id="sensorId" type="menu"
+				tooltip="Select a Hue Motion Sensor.">
+				<Label>Hue Sensor:</Label>
+				<List class="self" method="sensorListGenerator" filter="hueMotionLightSensor" />
+			</Field>
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="enabledOnHub" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="swVersion" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
+			<Field id="productId" type="textfield" hidden="true" />
+			<Field id="SupportsBatteryLevel" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsSensorValue" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsOnState" type="checkbox" hidden="true" defaultValue="false" />
+		</ConfigUI>
+		<States>
+			<State id="alertMode">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Alert Mode</TriggerLabel>
+				<ControlPageLabel>Alert Mode</ControlPageLabel>
+			</State>
+			<State id="online">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Online</TriggerLabel>
+				<ControlPageLabel>Online</ControlPageLabel>
+			</State>
+			<State id="testMode">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Test Mode</TriggerLabel>
+				<ControlPageLabel>Test Mode</ControlPageLabel>
+			</State>
+			<State id="ledEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>LED Enabled</TriggerLabel>
+				<ControlPageLabel>LED Enabled</ControlPageLabel>
+			</State>
+			<State id="dark">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Low Light</TriggerLabel>
+				<ControlPageLabel>Low Light</ControlPageLabel>
+			</State>
+			<State id="daylight">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Daylight</TriggerLabel>
+				<ControlPageLabel>Daylight</ControlPageLabel>
+			</State>
+			<State id="lastUpdated">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+			<State id="luminance">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Luminance (lux)</TriggerLabel>
+				<ControlPageLabel>Luminance (lux)</ControlPageLabel>
+			</State>
+			<State id="luminanceRaw">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Luminance (raw value)</TriggerLabel>
+				<ControlPageLabel>Luminance (raw value)</ControlPageLabel>
+			</State>
+			<State id="darkThreshold">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Dark Threshold (lux)</TriggerLabel>
+				<ControlPageLabel>Dark Threshold (lux)</ControlPageLabel>
+			</State>
+			<State id="thresholdOffset">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Dark Threshold Offset (lux)</TriggerLabel>
+				<ControlPageLabel>Dark Threshold Offset (lxu)</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
 </Devices>

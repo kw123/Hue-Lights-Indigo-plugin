@@ -1,6 +1,36 @@
 HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
 ========================================
 
+1.6.1
+* Fixed a bug that caused an error when clicking the Send Status Request button in the Indigo UI for Hue Motion Sensor devices.
+* Added support for another Hue Ambiance bulb (model ID LTC001).
+--
+1.6.0
+(Changes from 1.5.3)
+* Added support for the Hue Motion Sensor, including the motion, temperature and luminance sensors that are part of the Hue Motion Sensor.
+* Reworked device update timing to better support sensor devices.
+* Improved device update efficiency so that states that haven’t changed are repeatedly updated.
+* Fixed a bug that allowed you to pick a Hue Group as a Preset Recall destination then return an error when attempting to execute the Recall Preset action.  Preset Recall does not currently support Hue Groups as a destination device.
+* Fixed a bug in the update check function that would incorrectly notify of updates for older versions if the installed version was a pre-release beta.
+--
+1.6.0b2 (public beta)
+* Fixed a bug that caused repeated errors and high CPU load if a Hue Lights device was duplicated in the Indigo UI then the model was changed to a different type of Hue Lights device.
+* Greatly improved the rewritten device update timing from 1.6.0b1 so all device types are updated on a more consistent basis.
+* Improved device update efficiency so that states that haven’t changed are repeatedly updated.
+--
+1.6.0b1 (private beta)
+* Added support for the Hue Motion Sensor, including the motion, temperature and luminance sensors that are part of the Hue Motion Sensor.
+* Rewrote device update timing to better support sensor devices.
+* Rewrote status update methods for all Hue devices to improve code readability and efficiency.
+* Fixed a bug that allowed you to pick a Hue Group as a Preset Recall destination then return an error when attempting to execute the Recall Preset action.  Preset Recall does not currently support Hue Groups as a destination device.
+* Fixed a bug in the update check function that would incorrectly notify of updates for older versions if the installed version was a pre-release beta.
+--
+1.5.3
+* Added support for the Hue color candle and ambiance candle E14 bulbs.
+--
+1.5.2
+* Added support for another Hue White ambiance bulb (BR13 model).
+--
 1.5.1
 * Added a Recall Hue Scene menu item to Plugins -> Hue Lights menu to easily recall a Hue scene from the Indigo GUI without having to create an Action Group or trigger action.
 * Fixed a UI bug in the Recall Hue Scene action settings window that prevented the Lights Affected list from being populated on initial action creation.
