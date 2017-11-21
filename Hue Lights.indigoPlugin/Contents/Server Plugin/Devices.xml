@@ -48,6 +48,8 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 				   -> SupportsTwoWhiteLevels:				True or False (requires SupportsWhite to be True)
 				   -> SupportsTwoWhiteLevelsSimultaneously:	True or False (requires SupportsTwoWhiteLevels to be True)
 				   -> SupportsWhiteTemperature:				True or False (requires SupportsWhite to be True)
+					  -> WhiteTemperatureMin				Integer (lower limit of usable white point temperature. e.g. 2000)
+					  -> WhiteTemperatureMax				Integer (upper limit of usable white point temperature. e.g. 6500)
 				   -> SupportsRGBandWhiteSimultaneously:	True or False (requires SupportsRGB and SupportsWhite to be True)
 			
 			Plugins can update these properties either in device ConfigUI
@@ -67,6 +69,8 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
 			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
 			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="WhiteTemperatureMin" type="textfield" hidden="true" defaultValue="2000" />
+			<Field id="WhiteTemperatureMax" type="textfield" hidden="true" defaultValue="6500" />
 			<Field id="SupportsRGBandWhiteSimultaneously" type="checkbox" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
@@ -172,6 +176,8 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="false" />
 			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
 			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="WhiteTemperatureMin" type="textfield" hidden="true" defaultValue="2000" />
+			<Field id="WhiteTemperatureMax" type="textfield" hidden="true" defaultValue="6500" />
 		</ConfigUI>
 		<States>
 			<State id="colorTemp">
@@ -241,6 +247,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
 			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
 			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="WhiteTemperatureMin" type="textfield" hidden="true" defaultValue="2000" />
+			<Field id="WhiteTemperatureMax" type="textfield" hidden="true" defaultValue="6500" />
 			<Field id="SupportsRGBandWhiteSimultaneously" type="checkbox" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
@@ -516,6 +524,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
 			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
 			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="WhiteTemperatureMin" type="textfield" hidden="true" defaultValue="2000" />
+			<Field id="WhiteTemperatureMax" type="textfield" hidden="true" defaultValue="6500" />
 			<Field id="SupportsRGBandWhiteSimultaneously" type="checkbox" hidden="true" defaultValue="false" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
 			<Field id="type" type="textfield" hidden="true" />

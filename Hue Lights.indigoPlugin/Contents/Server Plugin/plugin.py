@@ -14,7 +14,7 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.6.1
+#	Version 1.6.10
 #
 #	See the "VERSION_HISTORY.txt" file in the same location as this plugin.py
 #	file for a complete version change history.
@@ -27,7 +27,7 @@ import logging
 import requests
 import socket
 from colormath.color_objects import RGBColor, xyYColor, HSVColor
-from math import ceil, floor, expm1
+from math import ceil, floor, pow
 import simplejson as json
 import indigoPluginUpdateChecker
 from supportedDevices import *
@@ -107,7 +107,7 @@ class Plugin(indigo.PluginBase):
 				# Create a blank sub-list for storing preset name and preset states.
 				preset = list()
 				# Add the preset name.
-				preset.append('Preset ' + str(aNumber))
+				preset.append('Preset ' + unicode(aNumber))
 				# Add the empty preset states Indigo dictionary
 				preset.append(indigo.Dict())
 				# Add the sub-list to the empty presets list.
@@ -119,15 +119,15 @@ class Plugin(indigo.PluginBase):
 		else:
 			presets = self.pluginPrefs.get('presets', "")
 			presetCount = len(presets)
-			self.debugLog(u"pluginPrefs contains " + str(presetCount) + u" presets.")
+			self.debugLog(u"pluginPrefs contains " + unicode(presetCount) + u" presets.")
 			if presetCount < 30:
-				self.debugLog(u"... Adding " + str(30 - presetCount) + u" presets to bring total to 30.")
+				self.debugLog(u"... Adding " + unicode(30 - presetCount) + u" presets to bring total to 30.")
 				for aNumber in range(presetCount + 1,31):
 					# Add ever how many presets are needed to make a total of 30.
 					# Create a blank sub-list for storing preset name and preset states.
 					preset = list()
 					# Add the preset name.
-					preset.append('Preset ' + str(aNumber))
+					preset.append('Preset ' + unicode(aNumber))
 					# Add the empty preset states Indigo dictionary
 					preset.append(indigo.Dict())
 					# Add the sub-list to the empty presets list.
@@ -135,7 +135,7 @@ class Plugin(indigo.PluginBase):
 				# Add the new list of empty presets to the prefs.
 				self.pluginPrefs['presets'] = presets
 				self.debugLog(u"pluginPrefs now contains 30 presets.")
-		self.debugLog(u"pluginPrefs are:\n" + str(self.pluginPrefs))
+		self.debugLog(u"pluginPrefs are:\n" + unicode(self.pluginPrefs))
 
 		# Do we have a unique Hue username (a.k.a. key or host ID)?
 		hueUsername = self.hostId
@@ -163,28 +163,28 @@ class Plugin(indigo.PluginBase):
 		if device.deviceTypeId == "hueAttributeController":
 			if device.id not in self.controlDeviceList:
 				try:
-					self.debugLog(u"Attribute Control device definition:\n" + str(device))
+					self.debugLog(u"Attribute Control device definition:\n" + unicode(device))
 				except Exception, e:
-					self.debugLog(u"Attribute Control device definition cannot be displayed because: " + str(e))
+					self.debugLog(u"Attribute Control device definition cannot be displayed because: " + unicode(e))
 				self.controlDeviceList.append(device.id)
 		# Hue Groups
 		elif device.deviceTypeId in kGroupDeviceTypeIDs:
 			if device.id not in self.deviceList:
 				try:
-					self.debugLog(u"Hue Group device definition:\n" + str(device))
+					self.debugLog(u"Hue Group device definition:\n" + unicode(device))
 				except Exception, e:
-					self.debugLog(u"Hue Group device definition cannot be displayed because: " + str(e))
+					self.debugLog(u"Hue Group device definition cannot be displayed because: " + unicode(e))
 				self.deviceList.append(device.id)
 		# Other Hue Devices
 		else:
 			if device.id not in self.deviceList:
 				try:
-					self.debugLog(u"Hue device definition:\n" + str(device))
+					self.debugLog(u"Hue device definition:\n" + unicode(device))
 				except Exception, e:
 					# With versions of Indigo sometime prior to 6.0, if any device name had
 					#   non-ASCII characters, the above "try" will fail, so we have to show
 					#   this error instead of the actual bulb definition.
-					self.debugLog(u"Hue device definition cannot be displayed because: " + str(e))
+					self.debugLog(u"Hue device definition cannot be displayed because: " + unicode(e))
 				self.deviceList.append(device.id)
 				
 
@@ -249,9 +249,9 @@ class Plugin(indigo.PluginBase):
 							# Increase the brightness level by 10 percent.
 							brightenDevice = indigo.devices[brightenDeviceId]
 							brightness = brightenDevice.states['brightnessLevel']
-							self.debugLog(u"Brightness: " + str(brightness))
+							self.debugLog(u"Brightness: " + unicode(brightness))
 							brightness += 12
-							self.debugLog(u"Updated to: " + str(brightness))
+							self.debugLog(u"Updated to: " + unicode(brightness))
 							if brightness >= 100:
 								brightness = 100
 								# Log the event to Indigo log.
@@ -366,7 +366,7 @@ class Plugin(indigo.PluginBase):
 	# Validate Device Configuration
 	########################################
 	def validateDeviceConfigUi(self, valuesDict, typeId, deviceId):
-		self.debugLog(u"Starting validateDeviceConfigUi.\n  valuesDict: %s\n  typeId: %s\n  deviceId: %s" % (valuesDict, typeId, deviceId))
+		self.debugLog(u"Starting validateDeviceConfigUi.\n  valuesDict: " + unicode(valuesDict) + u"\n  typeId: " + unicode(typeId) + u"\n  deviceId: " + unicode(deviceId))
 		errorsDict = indigo.Dict()
 		errorsDict['showAlertText'] = ""
 		isError = False
@@ -418,7 +418,7 @@ class Plugin(indigo.PluginBase):
 				bulb = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving Hue device data from hub.  Error reported: " + str(e))
+				indigo.server.log(u"Error retrieving Hue device data from hub.  Error reported: " + unicode(e))
 				isError = True
 				errorsDict['bulbId'] = u"Error retrieving Hue device data from hub. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
@@ -453,7 +453,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['defaultBrightness'] + "\n\n"
 				except Exception, e:
 					isError = True
-					errorsDict['defaultBrightness'] = u"The Default Brightness must be a number between 1 and 100. Error: " + str(e)
+					errorsDict['defaultBrightness'] = u"The Default Brightness must be a number between 1 and 100. Error: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['defaultBrightness'] + "\n\n"
 					
 			# Validate the default ramp rate (transition time) is reasonable.
@@ -470,7 +470,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 				except Execption, e:
 					isError = True
-					errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds. Error: " + str(e)
+					errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds. Error: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 					
 			# Show errors if there are any.
@@ -480,7 +480,7 @@ class Plugin(indigo.PluginBase):
 
 			else:
 				# Define the device's address to appear in Indigo.
-				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (ID " + str(valuesDict['bulbId']) + ")"
+				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (ID " + unicode(valuesDict['bulbId']) + ")"
 				return (True, valuesDict)
 				
 		#  -- Ambiance Lights --
@@ -522,7 +522,7 @@ class Plugin(indigo.PluginBase):
 				bulb = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving Hue device data from hub.  Error reported: " + str(e))
+				indigo.server.log(u"Error retrieving Hue device data from hub.  Error reported: " + unicode(e))
 				isError = True
 				errorsDict['bulbId'] = u"Error retrieving Hue device data from hub. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
@@ -557,7 +557,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['defaultBrightness'] + "\n\n"
 				except Exception, e:
 					isError = True
-					errorsDict['defaultBrightness'] = u"The Default Brightness must be a number between 1 and 100. Error: " + str(e)
+					errorsDict['defaultBrightness'] = u"The Default Brightness must be a number between 1 and 100. Error: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['defaultBrightness'] + "\n\n"
 					
 			# Validate the default ramp rate (transition time) is reasonable.
@@ -574,7 +574,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 				except Execption, e:
 					isError = True
-					errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds. Error: " + str(e)
+					errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds. Error: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 					
 			# Show errors if there are any.
@@ -584,7 +584,7 @@ class Plugin(indigo.PluginBase):
 
 			else:
 				# Define the device's address to appear in Indigo.
-				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (ID " + str(valuesDict['bulbId']) + ")"
+				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (ID " + unicode(valuesDict['bulbId']) + ")"
 				return (True, valuesDict)
 				
 		#  -- LightStrips Device --
@@ -626,7 +626,7 @@ class Plugin(indigo.PluginBase):
 				bulb = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving LightStrip data from hub.  Error reported: " + str(e))
+				indigo.server.log(u"Error retrieving LightStrip data from hub.  Error reported: " + unicode(e))
 				isError = True
 				errorsDict['bulbId'] = u"Error retrieving LightStrip data from hub. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
@@ -672,7 +672,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['defaultBrightness'] + "\n\n"
 				except Exception, e:
 					isError = True
-					errorsDict['defaultBrightness'] = u"The Default Brightness must be a number between 1 and 100. Error: " + str(e)
+					errorsDict['defaultBrightness'] = u"The Default Brightness must be a number between 1 and 100. Error: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['defaultBrightness'] + "\n\n"
 					
 			# Validate the default ramp rate (transition time) is reasonable.
@@ -689,7 +689,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 				except Execption, e:
 					isError = True
-					errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds. Error: " + str(e)
+					errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds. Error: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 					
 			# Show errors if there are any.
@@ -699,7 +699,7 @@ class Plugin(indigo.PluginBase):
 
 			else:
 				# Define the device's address to appear in Indigo.
-				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (ID " + str(valuesDict['bulbId']) + ")"
+				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (ID " + unicode(valuesDict['bulbId']) + ")"
 				return (True, valuesDict)
 				
 		#  -- LivingColors Bloom Device --
@@ -741,7 +741,7 @@ class Plugin(indigo.PluginBase):
 				bulb = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving LovingColors Bloom data from hub.  Error reported: " + str(e))
+				indigo.server.log(u"Error retrieving LovingColors Bloom data from hub.  Error reported: " + unicode(e))
 				isError = True
 				errorsDict['bulbId'] = u"Error retrieving LivingColors Bloom data from hub. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
@@ -776,7 +776,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['defaultBrightness'] + "\n\n"
 				except Exception, e:
 					isError = True
-					errorsDict['defaultBrightness'] = u"The Default Brightness must be a number between 1 and 100. Error: " + str(e)
+					errorsDict['defaultBrightness'] = u"The Default Brightness must be a number between 1 and 100. Error: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['defaultBrightness'] + "\n\n"
 					
 			# Validate the default ramp rate (transition time) is reasonable.
@@ -793,7 +793,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 				except Execption, e:
 					isError = True
-					errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds. Error: " + str(e)
+					errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds. Error: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 					
 			# Show errors if there are any.
@@ -803,7 +803,7 @@ class Plugin(indigo.PluginBase):
 
 			else:
 				# Define the device's address to appear in Indigo.
-				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (ID " + str(valuesDict['bulbId']) + ")"
+				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (ID " + unicode(valuesDict['bulbId']) + ")"
 				return (True, valuesDict)
 				
 		#  -- LivingWhites Device --
@@ -845,7 +845,7 @@ class Plugin(indigo.PluginBase):
 				bulb = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving LivingWhites data from hub.  Error reported: " + str(e))
+				indigo.server.log(u"Error retrieving LivingWhites data from hub.  Error reported: " + unicode(e))
 				isError = True
 				errorsDict['bulbId'] = u"Error retrieving LivingWhites data from hub. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
@@ -880,7 +880,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['defaultBrightness'] + "\n\n"
 				except Exception, e:
 					isError = True
-					errorsDict['defaultBrightness'] = u"The Default Brightness must be a number between 1 and 100. Error: " + str(e)
+					errorsDict['defaultBrightness'] = u"The Default Brightness must be a number between 1 and 100. Error: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['defaultBrightness'] + "\n\n"
 					
 			# Validate the default ramp rate (transition time) is reasonable.
@@ -897,7 +897,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 				except Execption, e:
 					isError = True
-					errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds. Error: " + str(e)
+					errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds. Error: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 					
 			# Show errors if there are any.
@@ -907,7 +907,7 @@ class Plugin(indigo.PluginBase):
 
 			else:
 				# Define the device's address to appear in Indigo.
-				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (ID " + str(valuesDict['bulbId']) + ")"
+				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (ID " + unicode(valuesDict['bulbId']) + ")"
 				return (True, valuesDict)
 				
 		#  -- Hue Group --
@@ -949,7 +949,7 @@ class Plugin(indigo.PluginBase):
 				group = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving Hue group data from hub.  Error reported: " + str(e))
+				indigo.server.log(u"Error retrieving Hue group data from hub.  Error reported: " + unicode(e))
 				isError = True
 				errorsDict['groupId'] = u"Error retrieving Hue group data from hub. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['groupId']
@@ -984,7 +984,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['defaultBrightness'] + "\n\n"
 				except Exception, e:
 					isError = True
-					errorsDict['defaultBrightness'] = u"The Default Brightness must be a number between 1 and 100. Error: " + str(e)
+					errorsDict['defaultBrightness'] = u"The Default Brightness must be a number between 1 and 100. Error: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['defaultBrightness'] + "\n\n"
 					
 			# Validate the default ramp rate (transition time) is reasonable.
@@ -1001,7 +1001,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 				except Execption, e:
 					isError = True
-					errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds. Error: " + str(e)
+					errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds. Error: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 					
 			# Show errors if there are any.
@@ -1011,7 +1011,7 @@ class Plugin(indigo.PluginBase):
 
 			else:
 				# Define the device's address to appear in Indigo.
-				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (GID " + str(valuesDict['groupId']) + ")"
+				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (GID " + unicode(valuesDict['groupId']) + ")"
 				return (True, valuesDict)
 				
 		# -- Hue Device Attribute Controller (Virtual Dimmer Device) --
@@ -1042,7 +1042,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 				except Execption, e:
 					isError = True
-					errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds. Error: " + str(e)
+					errorsDict['rate'] = u"The Ramp Rate must be a number between 0 and 540 in increments of 0.1 seconds. Error: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
 					
 			# Validate the default on level.
@@ -1059,7 +1059,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['defaultOnLevel'] + "\n\n"
 				except Execption, e:
 					isError = True
-					errorsDict['defaultOnLevel'] = u"The Default On Level must be a whole number between 1 and 100. Error: " + str(e)
+					errorsDict['defaultOnLevel'] = u"The Default On Level must be a whole number between 1 and 100. Error: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['defaultOnLevel'] + "\n\n"
 					
 			# Show errors if there are any.
@@ -1071,7 +1071,7 @@ class Plugin(indigo.PluginBase):
 				# Define the device's address to appear in Indigo.
 				# The address is the destination Hue device's device ID plus the attribute to control.
 				device = indigo.devices[int(valuesDict.get('bulbDeviceId', 0))]
-				valuesDict['address'] = str(device.id) + u" (" + valuesDict['attributeToControl'] + u")"
+				valuesDict['address'] = unicode(device.id) + u" (" + valuesDict['attributeToControl'] + u")"
 				return (True, valuesDict)
 
 		#  -- Hue Motion Sensor (Motion) --
@@ -1113,7 +1113,7 @@ class Plugin(indigo.PluginBase):
 				sensor = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving Hue device data from hub.  Error reported: " + str(e))
+				indigo.server.log(u"Error retrieving Hue device data from hub.  Error reported: " + unicode(e))
 				isError = True
 				errorsDict['sensorId'] = u"Error retrieving Hue device data from hub. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['sensorId']
@@ -1141,7 +1141,7 @@ class Plugin(indigo.PluginBase):
 
 			else:
 				# Define the device's address to appear in Indigo.
-				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (SID " + str(valuesDict['sensorId']) + ")"
+				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (SID " + unicode(valuesDict['sensorId']) + ")"
 				# If this was a copied device, some properties could
 				#   be invalid for this device type.  Let's make sure they're not.
 				valuesDict['SupportsOnState'] = True
@@ -1199,7 +1199,7 @@ class Plugin(indigo.PluginBase):
 				sensor = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving Hue device data from hub.  Error reported: " + str(e))
+				indigo.server.log(u"Error retrieving Hue device data from hub.  Error reported: " + unicode(e))
 				isError = True
 				errorsDict['sensorId'] = u"Error retrieving Hue device data from hub. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['sensorId']
@@ -1234,7 +1234,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['sensorOffset'] + "\n\n"
 				except Exception, e:
 					isError = True
-					errorsDict['sensorOffset'] = u"The Calibration Offset must be a number between -10 and 10. Error: " + str(e)
+					errorsDict['sensorOffset'] = u"The Calibration Offset must be a number between -10 and 10. Error: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['sensorOffset'] + "\n\n"
 
 			# Validate the temperature scale.
@@ -1243,7 +1243,7 @@ class Plugin(indigo.PluginBase):
 					temperatureScale = valuesDict.get('temperatureScale', "c")
 				except Exception, e:
 					isError = True
-					errorsDict['temperatureScale'] = u"The Temperature Scale must be either Celsius or Fahrenheit. Error: " + str(e)
+					errorsDict['temperatureScale'] = u"The Temperature Scale must be either Celsius or Fahrenheit. Error: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['temperatureScale'] + "\n\n"
 			else:
 				valuesDict['temperatureScale'] = "c"
@@ -1255,7 +1255,7 @@ class Plugin(indigo.PluginBase):
 
 			else:
 				# Define the device's address to appear in Indigo.
-				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (SID " + str(valuesDict['sensorId']) + ")"
+				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (SID " + unicode(valuesDict['sensorId']) + ")"
 				# If this was a copied device, some properties could
 				#   be invalid for this device type.  Let's make sure they're not.
 				valuesDict['SupportsOnState'] = False
@@ -1309,7 +1309,7 @@ class Plugin(indigo.PluginBase):
 				sensor = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving Hue device data from hub.  Error reported: " + str(e))
+				indigo.server.log(u"Error retrieving Hue device data from hub.  Error reported: " + unicode(e))
 				isError = True
 				errorsDict['sensorId'] = u"Error retrieving Hue device data from hub. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['sensorId']
@@ -1337,7 +1337,7 @@ class Plugin(indigo.PluginBase):
 
 			else:
 				# Define the device's address to appear in Indigo.
-				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (SID " + str(valuesDict['sensorId']) + ")"
+				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (SID " + unicode(valuesDict['sensorId']) + ")"
 				# If this was a copied device, some properties could
 				#   be invalid for this device type.  Let's make sure they're not.
 				valuesDict['SupportsOnState'] = False
@@ -1359,7 +1359,7 @@ class Plugin(indigo.PluginBase):
 	# Closed Device Configuration.
 	########################################
 	def closedDeviceConfigUi(self, valuesDict, userCancelled, typeId, deviceId):
-		self.debugLog(u"Starting closedDeviceConfigUi.  valuesDict: " + str(valuesDict) + u", userCancelled: " + str(userCancelled) + u", typeId: " + str(typeId) + u", deviceId: " + str(deviceId))
+		self.debugLog(u"Starting closedDeviceConfigUi.  valuesDict: " + unicode(valuesDict) + u", userCancelled: " + unicode(userCancelled) + u", typeId: " + unicode(typeId) + u", deviceId: " + unicode(deviceId))
 		# If the user didn't cancel the changes, take any needed actions as a result of the changes made.
 		if not userCancelled:
 			# Configuration was saved.  Rebuild the device if needed.
@@ -1370,7 +1370,7 @@ class Plugin(indigo.PluginBase):
 	# Validate Action Configuration.
 	########################################
 	def validateActionConfigUi(self, valuesDict, typeId, deviceId):
-		self.debugLog(u"Starting validateActionConfigUi.  valuesDict: " + str(valuesDict) + u", typeId: " + str(typeId) + u", deviceId: " + str(deviceId))
+		self.debugLog(u"Starting validateActionConfigUi.  valuesDict: " + unicode(valuesDict) + u", typeId: " + unicode(typeId) + u", deviceId: " + unicode(deviceId))
 		if deviceId == 0:
 			device = None
 			modelId = 0
@@ -1476,7 +1476,7 @@ class Plugin(indigo.PluginBase):
 						isError = True
 						errorsDict['brightness'] = u"Brightness levels must be a number between 0 and 100."
 						errorsDict['showAlertText'] += errorsDict['brightness'] + "\n\n"
-				descString += u"set brightness of \"" + device.name + "\" to " + str(brightness) + "%"
+				descString += u"set brightness of \"" + device.name + "\" to " + unicode(brightness) + "%"
 			elif brightnessSource == "variable":
 				if not brightnessVarId:
 					isError = True
@@ -1524,7 +1524,7 @@ class Plugin(indigo.PluginBase):
 						isError = True
 						errorsDict['rate'] = u"Ramp Rates must be between 0 and 540 seconds and cannot contain non-numeric characters."
 						errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
-				descString += u" using ramp rate " + str(rate) + " sec"
+				descString += u" using ramp rate " + unicode(rate) + " sec"
 			else:
 				if not rateVarId:
 					isError = True
@@ -1583,7 +1583,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['red'] + "\n\n"
 			except Exception, e:
 				isError = True
-				errorsDict['red'] = "Invalid Red value: " + str(e)
+				errorsDict['red'] = "Invalid Red value: " + unicode(e)
 				errorsDict['showAlertText'] += errorsDict['red'] + "\n\n"
 				
 			# Validate green value.
@@ -1599,7 +1599,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['green'] + "\n\n"
 			except Exception, e:
 				isError = True
-				errorsDict['green'] = "Invalid Green value: " + str(e)
+				errorsDict['green'] = "Invalid Green value: " + unicode(e)
 				errorsDict['showAlertText'] += errorsDict['green'] + "\n\n"
 				
 			# Validate blue value.
@@ -1615,7 +1615,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['blue'] + "\n\n"
 			except Exception, e:
 				isError = True
-				errorsDict['blue'] = "Invalid Blue value: " + str(e)
+				errorsDict['blue'] = "Invalid Blue value: " + unicode(e)
 				errorsDict['showAlertText'] += errorsDict['blue'] + "\n\n"
 			
 			# Validate Ramp Rate.
@@ -1634,7 +1634,7 @@ class Plugin(indigo.PluginBase):
 						errorsDict['showAlertText'] += errorsDict['rate'] + u"\n\n"
 					except Exception, e:
 						isError = True
-						errorsDict['rate'] = u"Invalid Ramp Rate value: " + str(e)
+						errorsDict['rate'] = u"Invalid Ramp Rate value: " + unicode(e)
 						errorsDict['showAlertText'] += errorsDict['rate'] + u"\n\n"
 			else:
 				# User specified that they'd select a variable as the ramp rate source.
@@ -1648,12 +1648,12 @@ class Plugin(indigo.PluginBase):
 					rateVariable = int(rateVariable)
 
 			if not isError:
-				descString += u"set hue device RGB levels to " + str(red) + ", " + str(green) + ", " + str(blue)
+				descString += u"set hue device RGB levels to " + unicode(red) + ", " + unicode(green) + ", " + unicode(blue)
 				if useRateVariable == True:
 					descString += u" using ramp rate in variable \"" + indigo.variables[rateVariable].name + u"\"."
 				else:
 					if len(valuesDict.get('rate', "")) > 0:
-						descString += u" with ramp rate " + str(rampRate) + u" sec"
+						descString += u" with ramp rate " + unicode(rampRate) + u" sec"
 					
 		### SET HSB ###
 		elif typeId == "setHSB":
@@ -1705,7 +1705,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['hue'] + "\n\n"
 			except Exception, e:
 				isError = True
-				errorsDict['hue'] = "Invalid Hue value: " + str(e)
+				errorsDict['hue'] = "Invalid Hue value: " + unicode(e)
 				errorsDict['showAlertText'] += errorsDict['hue'] + "\n\n"
 
 			# Validate saturation value.
@@ -1721,7 +1721,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['saturation'] + "\n\n"
 			except Exception, e:
 				isError = True
-				errorsDict['saturation'] = "Invalid Saturation value: " + str(e)
+				errorsDict['saturation'] = "Invalid Saturation value: " + unicode(e)
 				errorsDict['showAlertText'] += errorsDict['saturation'] + "\n\n"
 
 			# Validate the brightness value.
@@ -1738,7 +1738,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['brightness'] + u"\n\n"
 				except Exception, e:
 					isError = True
-					errorsDict['brightness'] = u"Invalid Brightness value: " + str(e)
+					errorsDict['brightness'] = u"Invalid Brightness value: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['brightness'] + u"\n\n"
 			elif brightnessSource == "variable":
 				# Make sure the variable selection is valid.
@@ -1775,7 +1775,7 @@ class Plugin(indigo.PluginBase):
 						errorsDict['showAlertText'] += errorsDict['rate'] + u"\n\n"
 					except Exception, e:
 						isError = True
-						errorsDict['rate'] = u"Invalid Ramp Rate value: " + str(e)
+						errorsDict['rate'] = u"Invalid Ramp Rate value: " + unicode(e)
 						errorsDict['showAlertText'] += errorsDict['rate'] + u"\n\n"
 			else:
 				# User specified that they'd select a variable as the ramp rate source.
@@ -1789,9 +1789,9 @@ class Plugin(indigo.PluginBase):
 					rateVariable = int(rateVariable)
 
 			if not isError:
-				descString += u"set hue device hue to " + str(hue) + u", saturation to " + str(saturation) + u" and brightness to"
+				descString += u"set hue device hue to " + unicode(hue) + u", saturation to " + unicode(saturation) + u" and brightness to"
 				if brightnessSource == "custom":
-					descString += str(brightness)
+					descString += unicode(brightness)
 				elif brightnessSource == "variable":
 					descString += u" value in variable \"" + indigo.variables[brightnessVariable].name + u"\""
 				elif brightnessSource == "dimmer":
@@ -1801,7 +1801,7 @@ class Plugin(indigo.PluginBase):
 					descString += u" using ramp rate in variable \"" + indigo.variables[rateVariable].name + u"\"."
 				else:
 					if len(valuesDict.get('rate', "")) > 0:
-						descString += u" with ramp rate " + str(rampRate) + u" sec"
+						descString += u" with ramp rate " + unicode(rampRate) + u" sec"
 					
 		### SET xyY ###
 		elif typeId == "setXYY":
@@ -1847,7 +1847,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['xyy_x'] + "\n\n"
 			except Exception, e:
 				isError = True
-				errorsDict['xyy_x'] = "Invalid x Chromatisety value: " + str(e)
+				errorsDict['xyy_x'] = "Invalid x Chromatisety value: " + unicode(e)
 				errorsDict['showAlertText'] += errorsDict['xyy_x'] + "\n\n"
 				
 			# Validate y chromatisity value.
@@ -1863,7 +1863,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['xyy_y'] + "\n\n"
 			except Exception, e:
 				isError = True
-				errorsDict['xyy_y'] = "Invalid y Chromatisety value: " + str(e)
+				errorsDict['xyy_y'] = "Invalid y Chromatisety value: " + unicode(e)
 				errorsDict['showAlertText'] += errorsDict['xyy_y'] + "\n\n"
 
 			# Validate Y luminosity value.
@@ -1879,7 +1879,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['xyy_Y'] + "\n\n"
 			except Exception, e:
 				isError = True
-				errorsDict['xyy_Y'] = "Invalid Y Luminosity value: " + str(e)
+				errorsDict['xyy_Y'] = "Invalid Y Luminosity value: " + unicode(e)
 				errorsDict['showAlertText'] += errorsDict['xyy_Y'] + "\n\n"
 
 			# Validate Ramp Rate.
@@ -1898,7 +1898,7 @@ class Plugin(indigo.PluginBase):
 						errorsDict['showAlertText'] += errorsDict['rate'] + u"\n\n"
 					except Exception, e:
 						isError = True
-						errorsDict['rate'] = u"Invalid Ramp Rate value: " + str(e)
+						errorsDict['rate'] = u"Invalid Ramp Rate value: " + unicode(e)
 						errorsDict['showAlertText'] += errorsDict['rate'] + u"\n\n"
 			else:
 				# User specified that they'd select a variable as the ramp rate source.
@@ -1912,12 +1912,12 @@ class Plugin(indigo.PluginBase):
 					rateVariable = int(rateVariable)
 
 			if not isError:
-				descString += u"set hue device xyY chromatisety to " + str(colorX) + ", " + str(colorY) + ", " + str(brightness)
+				descString += u"set hue device xyY chromatisety to " + unicode(colorX) + ", " + unicode(colorY) + ", " + unicode(brightness)
 				if useRateVariable == True:
 					descString += u" using ramp rate in variable \"" + indigo.variables[rateVariable].name + u"\"."
 				else:
 					if len(valuesDict.get('rate', "")) > 0:
-						descString += u" with ramp rate " + str(rampRate) + u" sec"
+						descString += u" with ramp rate " + unicode(rampRate) + u" sec"
 					
 		### SET COLOR TEMPERATURE ###
 		elif typeId == "setCT":
@@ -1983,7 +1983,7 @@ class Plugin(indigo.PluginBase):
 						errorsDict['showAlertText'] += errorsDict['temperature'] + u"\n\n"
 					except Exception, e:
 						isError = True
-						errorsDict['temperature'] = u"Invalid Color Temperature value: " + str(e)
+						errorsDict['temperature'] = u"Invalid Color Temperature value: " + unicode(e)
 						errorsDict['showAlertText'] += errorsDict['temperature'] + u"\n\n"
 				elif temperatureSource == "variable":
 					# Make sure the variable selection is valid.
@@ -2008,7 +2008,7 @@ class Plugin(indigo.PluginBase):
 						errorsDict['showAlertText'] += errorsDict['brightness'] + u"\n\n"
 					except Exception, e:
 						isError = True
-						errorsDict['brightness'] = u"Invalid Brightness value: " + str(e)
+						errorsDict['brightness'] = u"Invalid Brightness value: " + unicode(e)
 						errorsDict['showAlertText'] += errorsDict['brightness'] + u"\n\n"
 				elif brightnessSource == "variable":
 					# Make sure the variable selection is valid.
@@ -2044,7 +2044,7 @@ class Plugin(indigo.PluginBase):
 						errorsDict['showAlertText'] += errorsDict['rate'] + u"\n\n"
 					except Exception, e:
 						isError = True
-						errorsDict['rate'] = u"Invalid Ramp Rate value: " + str(e)
+						errorsDict['rate'] = u"Invalid Ramp Rate value: " + unicode(e)
 						errorsDict['showAlertText'] += errorsDict['rate'] + u"\n\n"
 			else:
 				# User specified that they'd select a variable as the ramp rate source.
@@ -2064,12 +2064,12 @@ class Plugin(indigo.PluginBase):
 					descString += u" preset color recipe \"" + preset + u"\""
 				else:
 					if temperatureSource == "custom":
-						descString += u" custom value " + str(temperature) + u" K"
+						descString += u" custom value " + unicode(temperature) + u" K"
 					elif temperatureSource == "variable":
 						descString += u" value in variable \"" + indigo.variables[temperatureVariable].name + u"\""
 
 					if brightnessSource == "custom":
-						descString += u" at " + str(brightness) + u"% brightness"
+						descString += u" at " + unicode(brightness) + u"% brightness"
 					elif brightnessSource == "variable":
 						descString += u" using brightness value in variable \"" + indigo.variables[brightnessVariable].name + u"\""
 					elif brightnessSource == "dimmer":
@@ -2079,7 +2079,7 @@ class Plugin(indigo.PluginBase):
 					descString += u" using ramp rate in variable \"" + indigo.variables[rateVariable].name + u"\"."
 				else:
 					if len(valuesDict.get('rate', "")) > 0:
-						descString += u" with ramp rate " + str(rampRate) + u" sec"
+						descString += u" with ramp rate " + unicode(rampRate) + u" sec"
 					
 		### EFFECT ###
 		elif typeId == "effect":
@@ -2131,7 +2131,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['presetId'] = u"No Preset was selected."
 				errorsDict['showAlertText'] += errorsDict['presetId'] + u"\n\n"
 			else:
-				descString = u"save hue device settings to preset " + str(presetId)
+				descString = u"save hue device settings to preset " + unicode(presetId)
 			
 			# Validate Ramp Rate.
 			rampRate = valuesDict.get('rate', "")
@@ -2148,7 +2148,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['rate'] + u"\n\n"
 				except Exception, e:
 					isError = True
-					errorsDict['rate'] = u"Invalid Ramp Rate value: " + str(e)
+					errorsDict['rate'] = u"Invalid Ramp Rate value: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['rate'] + u"\n\n"
 				
 		### RECALL PRESET ###
@@ -2182,7 +2182,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['presetId'] = u"This Preset is empty. Please choose a Preset with data already saved to it (one with an asterisk (*) next to the number)."
 					errorsDict['showAlertText'] += errorsDict['presetId'] + u"\n\n"
 				else:
-					descString = u"recall hue device settings from preset " + str(presetId)
+					descString = u"recall hue device settings from preset " + unicode(presetId)
 					
 			# Validate Ramp Rate.
 			rampRate = valuesDict.get('rate', "")
@@ -2199,13 +2199,13 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['rate'] + u"\n\n"
 				except Exception, e:
 					isError = True
-					errorsDict['rate'] = u"Invalid Ramp Rate value: " + str(e)
+					errorsDict['rate'] = u"Invalid Ramp Rate value: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['rate'] + u"\n\n"
 
 		### CATCH ALL ###
 		else:
 			isError = True
-			errorsDict['presetId'] = u"The typeId \"" + str(typeId) + "\" wasn't recognized."
+			errorsDict['presetId'] = u"The typeId \"" + unicode(typeId) + "\" wasn't recognized."
 			errorsDict['showAlertText'] += errorsDict['presetId'] + u"\n\n"
 			
 		# Define the description value.
@@ -2283,7 +2283,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 				
 			except Exception, e:
-				self.debugLog(u"Connection error. " + str(e))
+				self.debugLog(u"Connection error. " + unicode(e))
 				isError = True
 				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue hub are connected to the network."
 				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
@@ -2376,9 +2376,9 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def actionControlDimmerRelay(self, action, device):
 		try:
-			self.debugLog(u"Starting actionControlDimmerRelay for device " + device.name + u". action: " + str(action) + u"\n\ndevice: " + str(device))
+			self.debugLog(u"Starting actionControlDimmerRelay for device " + device.name + u". action: " + unicode(action) + u"\n\ndevice: " + unicode(device))
 		except Exception, e:
-			self.debugLog(u"Starting actionControlDimmerRelay for device " + device.name + u". (Unable to display action or device data due to error: " + str(e) + u")")
+			self.debugLog(u"Starting actionControlDimmerRelay for device " + device.name + u". (Unable to display action or device data due to error: " + unicode(e) + u")")
 		# Get the current brightness and on-state of the device.
 		currentBrightness = device.states['brightnessLevel']
 		currentOnState = device.states['onOffState']
@@ -2400,7 +2400,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device on:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device on: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device on: (Unable to display action data due to error: " + unicode(e) + u")")
 				# Turn it on.
 				self.doOnOff(device, True)
 				
@@ -2409,7 +2409,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device off:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device off: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device off: (Unable to display action data due to error: " + unicode(e) + u")")
 				# Turn it off by setting the brightness to minimum.
 				self.doOnOff(device, False)
 
@@ -2418,7 +2418,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device toggle:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device toggle: (Unable to display action due to error: " + str(e) + u")")
+					self.debugLog(u"device toggle: (Unable to display action due to error: " + unicode(e) + u")")
 				if currentOnState == True:
 					# It's on. Turn it off.
 					self.doOnOff(device, False)
@@ -2431,7 +2431,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device set brightness:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device set brightness: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device set brightness: (Unable to display action data due to error: " + unicode(e) + u")")
 				brightnessLevel = int(round(action.actionValue / 100.0 * 255.0))
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
@@ -2445,7 +2445,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device increase brightness by:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device increase brightness by: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device increase brightness by: (Unable to display action data due to error: " + unicode(e) + u")")
 				brightnessLevel = currentBrightness + action.actionValue
 				if brightnessLevel > 100:
 					brightnessLevel = 100
@@ -2461,7 +2461,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device decrease brightness by:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device decrease brightness by: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device decrease brightness by: (Unable to display action data due to error: " + unicode(e) + u")")
 				brightnessLevel = currentBrightness - action.actionValue
 				if brightnessLevel < 0:
 					brightnessLevel = 0
@@ -2477,7 +2477,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device request status:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device request status: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device request status: (Unable to display action data due to error: " + unicode(e) + u")")
 				
 				actionColorVals = action.actionValue
 
@@ -2588,10 +2588,10 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device request status:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device request status: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device request status: (Unable to display action data due to error: " + unicode(e) + u")")
 				self.getBulbStatus(device.id)
 				# Log the new brightnss.
-				indigo.server.log(u"\"" + device.name + u"\" status request (received: " + str(device.states['brightnessLevel']) + u")", 'Sent Hue Lights')
+				indigo.server.log(u"\"" + device.name + u"\" status request (received: " + unicode(device.states['brightnessLevel']) + u")", 'Sent Hue Lights')
 
 			#### CATCH ALL #####
 			else:
@@ -2612,7 +2612,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device on:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device on: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device on: (Unable to display action data due to error: " + unicode(e) + u")")
 				# Turn it on.
 				self.doOnOff(device, True)
 				
@@ -2621,7 +2621,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device off:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device off: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device off: (Unable to display action data due to error: " + unicode(e) + u")")
 				# Turn it off by setting the brightness to minimum.
 				self.doOnOff(device, False)
 
@@ -2630,7 +2630,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device toggle:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device toggle: (Unable to display action due to error: " + str(e) + u")")
+					self.debugLog(u"device toggle: (Unable to display action due to error: " + unicode(e) + u")")
 				if currentOnState == True:
 					# It's on. Turn it off.
 					self.doOnOff(device, False)
@@ -2643,7 +2643,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device set brightness:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device set brightness: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device set brightness: (Unable to display action data due to error: " + unicode(e) + u")")
 				brightnessLevel = int(round(action.actionValue / 100.0 * 255.0))
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
@@ -2657,7 +2657,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device increase brightness by:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device increase brightness by: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device increase brightness by: (Unable to display action data due to error: " + unicode(e) + u")")
 				brightnessLevel = currentBrightness + action.actionValue
 				if brightnessLevel > 100:
 					brightnessLevel = 100
@@ -2673,7 +2673,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device decrease brightness by:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device decrease brightness by: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device decrease brightness by: (Unable to display action data due to error: " + unicode(e) + u")")
 				brightnessLevel = currentBrightness - action.actionValue
 				if brightnessLevel < 0:
 					brightnessLevel = 0
@@ -2689,7 +2689,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device request status:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device request status: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device request status: (Unable to display action data due to error: " + unicode(e) + u")")
 				
 				actionColorVals = action.actionValue
 
@@ -2773,10 +2773,10 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device request status:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device request status: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device request status: (Unable to display action data due to error: " + unicode(e) + u")")
 				self.getBulbStatus(device.id)
 				# Log the new brightnss.
-				indigo.server.log(u"\"" + device.name + u"\" status request (received: " + str(device.states['brightnessLevel']) + u")", 'Sent Hue Lights')
+				indigo.server.log(u"\"" + device.name + u"\" status request (received: " + unicode(device.states['brightnessLevel']) + u")", 'Sent Hue Lights')
 
 			#### CATCH ALL #####
 			else:
@@ -2797,7 +2797,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device on:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device on: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device on: (Unable to display action data due to error: " + unicode(e) + u")")
 				# Turn it on.
 				self.doOnOff(device, True)
 				
@@ -2806,7 +2806,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device off:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device off: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device off: (Unable to display action data due to error: " + unicode(e) + u")")
 				# Turn it off by setting the brightness to minimum.
 				self.doOnOff(device, False)
 
@@ -2815,7 +2815,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device toggle:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device toggle: (Unable to display action due to error: " + str(e) + u")")
+					self.debugLog(u"device toggle: (Unable to display action due to error: " + unicode(e) + u")")
 				if currentOnState == True:
 					# It's on. Turn it off.
 					self.doOnOff(device, False)
@@ -2828,7 +2828,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device set brightness:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device set brightness: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device set brightness: (Unable to display action data due to error: " + unicode(e) + u")")
 				brightnessLevel = int(round(action.actionValue / 100.0 * 255.0))
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
@@ -2842,7 +2842,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device increase brightness by:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device increase brightness by: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device increase brightness by: (Unable to display action data due to error: " + unicode(e) + u")")
 				brightnessLevel = currentBrightness + action.actionValue
 				if brightnessLevel > 100:
 					brightnessLevel = 100
@@ -2858,7 +2858,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device decrease brightness by:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device decrease brightness by: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device decrease brightness by: (Unable to display action data due to error: " + unicode(e) + u")")
 				brightnessLevel = currentBrightness - action.actionValue
 				if brightnessLevel < 0:
 					brightnessLevel = 0
@@ -2874,7 +2874,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device request status:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device request status: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device request status: (Unable to display action data due to error: " + unicode(e) + u")")
 				
 				actionColorVals = action.actionValue
 
@@ -2958,10 +2958,10 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device request status:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device request status: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device request status: (Unable to display action data due to error: " + unicode(e) + u")")
 				self.getBulbStatus(device.id)
 				# Log the new brightnss.
-				indigo.server.log(u"\"" + device.name + u"\" status request (received: " + str(device.states['brightnessLevel']) + u")", 'Sent Hue Lights')
+				indigo.server.log(u"\"" + device.name + u"\" status request (received: " + unicode(device.states['brightnessLevel']) + u")", 'Sent Hue Lights')
 
 			#### CATCH ALL #####
 			else:
@@ -2982,7 +2982,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device on:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device on: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device on: (Unable to display action data due to error: " + unicode(e) + u")")
 				# Turn it on.
 				self.doOnOff(device, True)
 				
@@ -2991,7 +2991,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device off:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device off: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device off: (Unable to display action data due to error: " + unicode(e) + u")")
 				# Turn it off by setting the brightness to minimum.
 				self.doOnOff(device, False)
 
@@ -3000,7 +3000,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device toggle:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device toggle: (Unable to display action due to error: " + str(e) + u")")
+					self.debugLog(u"device toggle: (Unable to display action due to error: " + unicode(e) + u")")
 				if currentOnState == True:
 					# It's on. Turn it off.
 					self.doOnOff(device, False)
@@ -3013,7 +3013,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device set brightness:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device set brightness: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device set brightness: (Unable to display action data due to error: " + unicode(e) + u")")
 				brightnessLevel = int(round(action.actionValue / 100.0 * 255.0))
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
@@ -3027,7 +3027,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device increase brightness by:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device increase brightness by: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device increase brightness by: (Unable to display action data due to error: " + unicode(e) + u")")
 				brightnessLevel = currentBrightness + action.actionValue
 				if brightnessLevel > 100:
 					brightnessLevel = 100
@@ -3043,7 +3043,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device decrease brightness by:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device decrease brightness by: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device decrease brightness by: (Unable to display action data due to error: " + unicode(e) + u")")
 				brightnessLevel = currentBrightness - action.actionValue
 				if brightnessLevel < 0:
 					brightnessLevel = 0
@@ -3059,7 +3059,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device request status:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device request status: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device request status: (Unable to display action data due to error: " + unicode(e) + u")")
 				
 				actionColorVals = action.actionValue
 
@@ -3143,10 +3143,10 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device request status:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device request status: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device request status: (Unable to display action data due to error: " + unicode(e) + u")")
 				self.getBulbStatus(device.id)
 				# Log the new brightnss.
-				indigo.server.log(u"\"" + device.name + u"\" status request (received: " + str(device.states['brightnessLevel']) + u")", 'Sent Hue Lights')
+				indigo.server.log(u"\"" + device.name + u"\" status request (received: " + unicode(device.states['brightnessLevel']) + u")", 'Sent Hue Lights')
 
 			#### CATCH ALL #####
 			else:
@@ -3167,7 +3167,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device on:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device on: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device on: (Unable to display action data due to error: " + unicode(e) + u")")
 				# Turn it on.
 				self.doOnOff(device, True)
 				
@@ -3176,7 +3176,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device off:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device off: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device off: (Unable to display action data due to error: " + unicode(e) + u")")
 				# Turn it off by setting the brightness to minimum.
 				self.doOnOff(device, False)
 
@@ -3185,7 +3185,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device toggle:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device toggle: (Unable to display action due to error: " + str(e) + u")")
+					self.debugLog(u"device toggle: (Unable to display action due to error: " + unicode(e) + u")")
 				if currentOnState == True:
 					# It's on. Turn it off.
 					self.doOnOff(device, False)
@@ -3198,7 +3198,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device set brightness:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device set brightness: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device set brightness: (Unable to display action data due to error: " + unicode(e) + u")")
 				brightnessLevel = int(round(action.actionValue / 100.0 * 255.0))
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
@@ -3212,7 +3212,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device increase brightness by:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device increase brightness by: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device increase brightness by: (Unable to display action data due to error: " + unicode(e) + u")")
 				brightnessLevel = currentBrightness + action.actionValue
 				if brightnessLevel > 100:
 					brightnessLevel = 100
@@ -3228,7 +3228,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device decrease brightness by:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device decrease brightness by: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device decrease brightness by: (Unable to display action data due to error: " + unicode(e) + u")")
 				brightnessLevel = currentBrightness - action.actionValue
 				if brightnessLevel < 0:
 					brightnessLevel = 0
@@ -3248,7 +3248,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device request status:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device request status: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device request status: (Unable to display action data due to error: " + unicode(e) + u")")
 
 				actionColorVals = action.actionValue
 
@@ -3332,10 +3332,10 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device request status:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device request status: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device request status: (Unable to display action data due to error: " + unicode(e) + u")")
 				self.getBulbStatus(device.id)
 				# Log the new brightnss.
-				indigo.server.log(u"\"" + device.name + u"\" status request (received: " + str(device.states['brightnessLevel']) + u")", 'Sent Hue Lights')
+				indigo.server.log(u"\"" + device.name + u"\" status request (received: " + unicode(device.states['brightnessLevel']) + u")", 'Sent Hue Lights')
 
 			#### CATCH ALL #####
 			else:
@@ -3356,7 +3356,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device on:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device on: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device on: (Unable to display action data due to error: " + unicode(e) + u")")
 				# Turn it on.
 				self.doOnOff(device, True)
 				
@@ -3365,7 +3365,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device off:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device off: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device off: (Unable to display action data due to error: " + unicode(e) + u")")
 				# Turn it off by setting the brightness to minimum.
 				self.doOnOff(device, False)
 
@@ -3374,7 +3374,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device toggle:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device toggle: (Unable to display action due to error: " + str(e) + u")")
+					self.debugLog(u"device toggle: (Unable to display action due to error: " + unicode(e) + u")")
 				if currentOnState == True:
 					# It's on. Turn it off.
 					self.doOnOff(device, False)
@@ -3387,7 +3387,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device set brightness:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device set brightness: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device set brightness: (Unable to display action data due to error: " + unicode(e) + u")")
 				brightnessLevel = int(round(action.actionValue / 100.0 * 255.0))
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
@@ -3401,7 +3401,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device increase brightness by:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device increase brightness by: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device increase brightness by: (Unable to display action data due to error: " + unicode(e) + u")")
 				brightnessLevel = currentBrightness + action.actionValue
 				if brightnessLevel > 100:
 					brightnessLevel = 100
@@ -3417,7 +3417,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device decrease brightness by:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device decrease brightness by: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device decrease brightness by: (Unable to display action data due to error: " + unicode(e) + u")")
 				brightnessLevel = currentBrightness - action.actionValue
 				if brightnessLevel < 0:
 					brightnessLevel = 0
@@ -3433,7 +3433,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device request status:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device request status: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device request status: (Unable to display action data due to error: " + unicode(e) + u")")
 				
 				actionColorVals = action.actionValue
 
@@ -3517,10 +3517,10 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device request status:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device request status: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device request status: (Unable to display action data due to error: " + unicode(e) + u")")
 				self.getGroupStatus(device.id)
 				# Log the new brightnss.
-				indigo.server.log(u"\"" + device.name + u"\" status request (received: " + str(device.states['brightnessLevel']) + u")", 'Sent Hue Lights')
+				indigo.server.log(u"\"" + device.name + u"\" status request (received: " + unicode(device.states['brightnessLevel']) + u")", 'Sent Hue Lights')
 
 			#### CATCH ALL #####
 			else:
@@ -3573,7 +3573,7 @@ class Plugin(indigo.PluginBase):
 						# If the rate is less than 0 or greater than 540, that's an invalid value. Use default.
 						rate = -1
 				except Exception, e:
-					self.debugLog(u"Invalid rate value. Error: " + str(e))
+					self.debugLog(u"Invalid rate value. Error: " + unicode(e))
 					rate = -1
 					
 			if onLevel == "":
@@ -3597,7 +3597,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device on:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device on: (Unable to display action data due to error: " + str(e) + ")")
+					self.debugLog(u"device on: (Unable to display action data due to error: " + unicode(e) + ")")
 				# Set the destination attribute to maximum.
 				if attributeToControl == "hue":
 					# Hue
@@ -3643,7 +3643,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device off:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device off: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device off: (Unable to display action data due to error: " + unicode(e) + u")")
 				# Set the destination attribute to minimum.
 				if attributeToControl == "hue":
 					# Hue
@@ -3677,7 +3677,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device toggle:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device toggle: (Unable to display action due to error: " + str(e) + u")")
+					self.debugLog(u"device toggle: (Unable to display action due to error: " + unicode(e) + u")")
 				# Set the destination attribute to either maximum or minimum.
 				if attributeToControl == "hue":
 					# Hue
@@ -3756,7 +3756,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device set brightness:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device set brightness: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device set brightness: (Unable to display action data due to error: " + unicode(e) + u")")
 				# Set the destination attribute to maximum.
 				if attributeToControl == "hue":
 					# Hue
@@ -3790,7 +3790,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device increase brightness by:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device increase brightness by: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device increase brightness by: (Unable to display action data due to error: " + unicode(e) + u")")
 				# Calculate the new brightness.
 				newValue = currentBrightness + action.actionValue
 				if newValue > 100:
@@ -3828,7 +3828,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device decrease brightness by:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device decrease brightness by: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device decrease brightness by: (Unable to display action data due to error: " + unicode(e) + u")")
 				# Calculate the new brightness.
 				newValue = currentBrightness - action.actionValue
 				if newValue < 0:
@@ -3866,13 +3866,13 @@ class Plugin(indigo.PluginBase):
 				try:
 					self.debugLog(u"device request status:\n%s" % action)
 				except Exception, e:
-					self.debugLog(u"device request status: (Unable to display action data due to error: " + str(e) + u")")
+					self.debugLog(u"device request status: (Unable to display action data due to error: " + unicode(e) + u")")
 				# This actually requests the status of the virtual dimmer device's destination Hue device/group.
 				self.getBulbStatus(bulbDeviceId)
 				# Show the current virtual dimmer level in the log.  There will likely be a delay for
 				#   the destination Hue device status, so we're not going to wait for that status update.
 				#   We'll just return the current virtual device brightness level in the log.
-				indigo.server.log(u"\"" + device.name + u"\" status request (currently: " + str(currentBrightness) + u")")
+				indigo.server.log(u"\"" + device.name + u"\" status request (currently: " + unicode(currentBrightness) + u")")
 
 			#### CATCH ALL #####
 			else:
@@ -3883,9 +3883,9 @@ class Plugin(indigo.PluginBase):
 	######################
 	def actionControlSensor(self, action, device):
 		try:
-			self.debugLog(u"Starting actionControlSensor for device " + device.name + u". action: " + str(action) + u"\n\ndevice: " + str(device))
+			self.debugLog(u"Starting actionControlSensor for device " + device.name + u". action: " + unicode(action) + u"\n\ndevice: " + unicode(device))
 		except Exception, e:
-			self.debugLog(u"Starting actionControlSensor for device " + device.name + u". (Unable to display action or device data due to error: " + str(e) + u")")
+			self.debugLog(u"Starting actionControlSensor for device " + device.name + u". (Unable to display action or device data due to error: " + unicode(e) + u")")
 		# Get the current sensor value and on-state of the device.
 		sensorValue = device.states.get('sensorValue', None)
 		sensorOnState = device.states.get('onOffState', None)
@@ -3967,7 +3967,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def isIntCompat(self, someValue):
 		self.debugLog(u"Starting isIntCompat.")
-		self.debugLog(u"someValue: " + str(someValue))
+		self.debugLog(u"someValue: " + unicode(someValue))
 		# Check if a value is an integer or not.
 		try:
 			if type(someValue) == int:
@@ -3983,7 +3983,7 @@ class Plugin(indigo.PluginBase):
 
 	def calcRgbHexValsFromRgbLevels(self, valuesDict):
 		self.debugLog(u"Starting calcRgbHexValsFromRgbLevels.")
-		self.debugLog(u"valuesDict: " + str(valuesDict))
+		self.debugLog(u"valuesDict: " + unicode(valuesDict))
 		# Convert RGB integer values to RGB hex values.
 		rgbHexVals = []
 		for channel in ['red', 'green', 'blue']:
@@ -4003,7 +4003,7 @@ class Plugin(indigo.PluginBase):
 
 	def calcRgbHexValsFromHsbLevels(self, valuesDict):
 		self.debugLog(u"Starting calcRgbHexValsFromHsbLevels.")
-		self.debugLog(u"valuesDict: " + str(valuesDict))
+		self.debugLog(u"valuesDict: " + unicode(valuesDict))
 		# Convert HSB integer values to RGB hex values.
 		rgbHexVals = []
 		hue = 0
@@ -4064,7 +4064,7 @@ class Plugin(indigo.PluginBase):
 
 	def rgbColorPickerUpdated(self, valuesDict, typeId, devId):
 		self.debugLog(u"Starting rgbColorPickerUpdated.")
-		self.debugLog(u"typeId: " + typeId + "\ndevId: " + str(devId) + "\nvaluesDict: " + str(valuesDict))
+		self.debugLog(u"typeId: " + typeId + "\ndevId: " + unicode(devId) + "\nvaluesDict: " + unicode(valuesDict))
 		# Get the raw 3 byte, space-separated hex string from the color picker.
 		rgbHexList = valuesDict['rgbColor'].split()
 		# Assign the RGB values.
@@ -4094,7 +4094,7 @@ class Plugin(indigo.PluginBase):
 
 	def rgbColorFieldUpdated(self, valuesDict, typeId, devId):
 		self.debugLog(u"Starting rgbColorFieldUpdated.")
-		self.debugLog(u"typeId: " + typeId + "\ndevId: " + str(devId) + "\nvaluesDict: " + str(valuesDict))
+		self.debugLog(u"typeId: " + typeId + "\ndevId: " + unicode(devId) + "\nvaluesDict: " + unicode(valuesDict))
 		valuesDict['rgbColor'] = self.calcRgbHexValsFromRgbLevels(valuesDict)
 
 		# Can send a live update to the hardware here:
@@ -4107,7 +4107,7 @@ class Plugin(indigo.PluginBase):
 
 	def hsbColorFieldUpdated(self, valuesDict, typeId, devId):
 		self.debugLog(u"Starting hsbColorFieldUpdated.")
-		self.debugLog(u"typeId: " + typeId + "\ndevId: " + str(devId) + "\nvaluesDict: " + str(valuesDict))
+		self.debugLog(u"typeId: " + typeId + "\ndevId: " + unicode(devId) + "\nvaluesDict: " + unicode(valuesDict))
 		valuesDict['rgbColor'] = self.calcRgbHexValsFromHsbLevels(valuesDict)
 
 		# Can send a live update to the hardware here:
@@ -4126,7 +4126,7 @@ class Plugin(indigo.PluginBase):
 	# Users List Item Selected (callback from action UI)
 	########################################
 	def usersListItemSelected(self, valuesDict=None, typeId="", deviceId=0):
-		self.debugLog(u"Starting usersListItemSelected.  valuesDict: " + str(valuesDict) + u", typeId: " + str(typeId) + u", targetId: " + str(deviceId))
+		self.debugLog(u"Starting usersListItemSelected.  valuesDict: " + unicode(valuesDict) + u", typeId: " + unicode(typeId) + u", targetId: " + unicode(deviceId))
 		
 		self.usersListSelection = valuesDict['userId']
 		# Clear these dictionary elements so the sceneLights list will be blank if the sceneId is blank.
@@ -4138,7 +4138,7 @@ class Plugin(indigo.PluginBase):
 	# Scenes List Item Selected (callback from action UI)
 	########################################
 	def scenesListItemSelected(self, valuesDict=None, typeId="", deviceId=0):
-		self.debugLog(u"Starting scenesListItemSelected.  valuesDict: " + str(valuesDict) + u", typeId: " + str(typeId) + u", targetId: " + str(deviceId))
+		self.debugLog(u"Starting scenesListItemSelected.  valuesDict: " + unicode(valuesDict) + u", typeId: " + unicode(typeId) + u", targetId: " + unicode(deviceId))
 		
 		self.sceneListSelection = valuesDict['sceneId']
 		
@@ -4147,7 +4147,7 @@ class Plugin(indigo.PluginBase):
 	# Groups List Item Selected (callback from action UI)
 	########################################
 	def groupsListItemSelected(self, valuesDict=None, typeId="", deviceId=0):
-		self.debugLog(u"Starting groupsListItemSelected.  valuesDict: " + str(valuesDict) + u", typeId: " + str(typeId) + u", targetId: " + str(deviceId))
+		self.debugLog(u"Starting groupsListItemSelected.  valuesDict: " + unicode(valuesDict) + u", typeId: " + unicode(typeId) + u", targetId: " + unicode(deviceId))
 		
 		self.groupListSelection = valuesDict['groupId']
 		
@@ -4158,7 +4158,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def bulbListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
 		# Used in actions that need a list of Hue hub devices.
-		self.debugLog(u"Starting bulbListGenerator.\n  filter: %s\n  valuesDict: %s\n  typeId: %s\n  targetId: %s" % (filter, valuesDict, typeId, targetId))
+		self.debugLog(u"Starting bulbListGenerator.\n  filter: " + unicode(filter) + u"\n  valuesDict: " + unicode(valuesDict) + u"\n  typeId: " + unicode(typeId) + u"\n  targetId: " + unicode(targetId))
 		
 		returnBulbList = list()
 		
@@ -4187,7 +4187,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def groupListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
 		# Used in actions that need a list of Hue hub groups.
-		self.debugLog(u"Starting groupListGenerator.\n  filter: %s\n  valuesDict: %s\n  typeId: %s\n  targetId: %s" % (filter, valuesDict, typeId, targetId))
+		self.debugLog(u"Starting groupListGenerator.\n  filter: " + unicode(filter) + u"\n  valuesDict: " + unicode(valuesDict) + u"\n  typeId: " + unicode(typeId) + u"\n  targetId: " + unicode(targetId))
 		
 		returnGroupList = list()
 		
@@ -4197,7 +4197,7 @@ class Plugin(indigo.PluginBase):
 		# Iterate over our groups, and return the available list in Indigo's format
 		for groupId, groupDetails in sorted(self.groupsDict.items()):
 			
-			returnGroupList.append([groupId, str(groupId) + ": " + groupDetails['name']])
+			returnGroupList.append([groupId, unicode(groupId) + ": " + groupDetails['name']])
 			
 		# Debug
 		self.debugLog(u"groupListGenerator: Return group list is %s" % returnGroupList)
@@ -4209,7 +4209,7 @@ class Plugin(indigo.PluginBase):
 	def bulbDeviceListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
 		# Used in actions that need a list of Hue Lights plugin devices that aren't
 		#   attribute controllers or groups.
-		self.debugLog(u"Starting bulbDeviceListGenerator.\n  filter: %s\n  valuesDict: %s\n  typeId: %s\n  targetId: %s" % (filter, valuesDict, typeId, targetId))
+		self.debugLog(u"Starting bulbDeviceListGenerator.\n  filter: " + unicode(filter) + u"\n  valuesDict: " + unicode(valuesDict) + u"\n  typeId: " + unicode(typeId) + u"\n  targetId: " + unicode(targetId))
 		
 		returnDeviceList = list()
 		
@@ -4228,12 +4228,12 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def presetListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
 		# Used by action dialogs to generate a list of Presets saved in the Hue Lights plugin prefs.
-		self.debugLog(u"Starting presetListGenerator.\n  filter: %s\n  valuesDict: %s\n  typeId: %s\n  targetId: %s" % (filter, valuesDict, typeId, deviceId))
+		self.debugLog(u"Starting presetListGenerator.\n  filter: " + unicode(filter) + u"\n  valuesDict: " + unicode(valuesDict) + u"\n  typeId: " + unicode(typeId) + u"\n  deviceId: " + unicode(deviceId))
 		
 		theList = list()	# Menu item list.
 		
 		presets = self.pluginPrefs.get('presets', None)
-		self.debugLog(u"presetListGenerator: Presets in plugin prefs:\n" + str(presets))
+		self.debugLog(u"presetListGenerator: Presets in plugin prefs:\n" + unicode(presets))
 		
 		if presets != None:
 			presetNumber = 0
@@ -4246,7 +4246,7 @@ class Plugin(indigo.PluginBase):
 					
 				presetNumber += 1
 				presetName = preset[0]
-				theList.append((presetNumber, hasData + str(presetNumber) + ": " + presetName))
+				theList.append((presetNumber, hasData + unicode(presetNumber) + ": " + presetName))
 		else:
 			theList.append((0, "-- no presets --"))
 			
@@ -4256,7 +4256,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def usersListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
 		# Used by action dialogs to generate a list of Hue scene "owner" devices or "Creators".
-		self.debugLog(u"Starting usersListGenerator.\n  filter: %s\n  valuesDict: %s\n  typeId: %s\n  targetId: %s" % (filter, valuesDict, typeId, deviceId))
+		self.debugLog(u"Starting usersListGenerator.\n  filter: " + unicode(filter) + u"\n  valuesDict: " + unicode(valuesDict) + u"\n  typeId: " + unicode(typeId) + u"\n  deviceId: " + unicode(deviceId))
 		
 		theList = list()	# Menu item list.
 		
@@ -4272,7 +4272,7 @@ class Plugin(indigo.PluginBase):
 				#   is to name the "user" as <app name>#<device name>.  We'll translate that
 				#   here to something more readable and descriptive for the list.
 				userName = userName.replace("#", " app on ")
-				self.debugLog(u"usersListGenerator: usersListSelection value: " + str(self.usersListSelection) + u", userId: " + str(userId) + u", userData: " + json.dumps(userData, indent=2))
+				self.debugLog(u"usersListGenerator: usersListSelection value: " + unicode(self.usersListSelection) + u", userId: " + unicode(userId) + u", userData: " + json.dumps(userData, indent=2))
 				# Don't display the "Indigo Hue Lights" user as that's this plugin which
 				#   won't have any scenes associated with it, which could be confusing.
 				if userName != "Indigo Hue Lights":
@@ -4284,7 +4284,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def scenesListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
 		# Used by action dialogs to list Hue scenes on the Hue hub for a particular "owner" device.
-		self.debugLog(u"Starting scenesListGenerator.\n  filter: %s\n  valuesDict: %s\n  typeId: %s\n  targetId: %s" % (filter, valuesDict, typeId, deviceId))
+		self.debugLog(u"Starting scenesListGenerator.\n  filter: " + unicode(filter) + u"\n  valuesDict: " + unicode(valuesDict) + u"\n  typeId: " + unicode(typeId) + u"\n  deviceId: " + unicode(deviceId))
 		
 		theList = list()	# Menu item list.
 		
@@ -4300,7 +4300,7 @@ class Plugin(indigo.PluginBase):
 					# Don't add the "(from ... app on ...)" string to the scene name if that Scene Creator was selected.
 					sceneDisplayName = sceneName
 				sceneLights = sceneData.get('lights', list())
-				self.debugLog(u"scenesListGenerator: usersListSelection value: " + str(self.usersListSelection) + u", sceneId: " + str(sceneId) + u", sceneOwner: " + sceneOwner + u", sceneName: " + sceneName + u", sceneData: " + json.dumps(sceneData, indent=2))
+				self.debugLog(u"scenesListGenerator: usersListSelection value: " + unicode(self.usersListSelection) + u", sceneId: " + unicode(sceneId) + u", sceneOwner: " + sceneOwner + u", sceneName: " + sceneName + u", sceneData: " + json.dumps(sceneData, indent=2))
 				# Filter the list based on which Hue user (scene owner) is selected.
 				if sceneOwner == self.usersListSelection or self.usersListSelection == "all" or self.usersListSelection == "":
 					theList.append((sceneId, sceneDisplayName))
@@ -4321,7 +4321,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def sceneLightsListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
 		# Used by action dialogs to generate a list of lights in a Hue scene, limited by Hue group.
-		self.debugLog(u"Starting sceneLightsListGenerator.\n  filter: %s\n  valuesDict: %s\n  typeId: %s\n  targetId: %s" % (filter, valuesDict, typeId, deviceId))
+		self.debugLog(u"Starting sceneLightsListGenerator.\n  filter: " + unicode(filter) + u"\n  valuesDict: " + unicode(valuesDict) + u"\n  typeId: " + unicode(typeId) + u"\n  deviceId: " + unicode(deviceId))
 		
 		theList = list()	# List item list.
 		
@@ -4349,19 +4349,19 @@ class Plugin(indigo.PluginBase):
 		if sceneId != "":
 			# Get the list of lights in the scene.
 			sceneLights = self.scenesDict[sceneId]['lights']
-			self.debugLog(u"sceneLightsListGenerator: sceneLights value: " + str(sceneLights))
+			self.debugLog(u"sceneLightsListGenerator: sceneLights value: " + unicode(sceneLights))
 			# Get the list of lights in the group.
 			# If the groupId is 0, then the all lights group was selected.
 			if groupId != "0":
 				groupLights = self.groupsDict[groupId]['lights']
-				self.debugLog(u"sceneLightsListGenerator: groupLights value: " + str(groupLights))
+				self.debugLog(u"sceneLightsListGenerator: groupLights value: " + unicode(groupLights))
 				# Get the intersection of scene lights and group lights.
 				intersectingLights = list(set(sceneLights) & set(groupLights))
 			else:
 				# Since no group limit was selected, all lights in the scene
 				#   should appear in the list.
 				intersectingLights = sceneLights
-			self.debugLog(u"sceneLightsListGenerator: intersectingLights value: " + str(intersectingLights))
+			self.debugLog(u"sceneLightsListGenerator: intersectingLights value: " + unicode(intersectingLights))
 			
 			# Get the name on the Hue hub for each light.
 			for lightId in intersectingLights:
@@ -4374,7 +4374,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def groupLightsListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
 		# Used by action dialogs to generate lists of lights in a Hue group.
-		self.debugLog(u"Starting groupLightsListGenerator.\n  filter: %s\n  valuesDict: %s\n  typeId: %s\n  targetId: %s" % (filter, valuesDict, typeId, deviceId))
+		self.debugLog(u"Starting groupLightsListGenerator.\n  filter: " + unicode(filter) + u"\n  valuesDict: " + unicode(valuesDict) + u"\n  typeId: " + unicode(typeId) + u"\n  deviceId: " + unicode(deviceId))
 		
 		theList = list()	# List item list.
 		
@@ -4386,10 +4386,10 @@ class Plugin(indigo.PluginBase):
 			# If the groupId is 0, then the all lights group was selected.
 			if groupId == "0":
 				groupLights = self.lightsDict.keys()
-				self.debugLog(u"groupLightsListGenerator: groupLights value: " + str(groupLights))
+				self.debugLog(u"groupLightsListGenerator: groupLights value: " + unicode(groupLights))
 			else:
 				groupLights = self.groupsDict[groupId]['lights']
-				self.debugLog(u"groupLightsListGenerator: groupLights value: " + str(groupLights))
+				self.debugLog(u"groupLightsListGenerator: groupLights value: " + unicode(groupLights))
 			
 			# Get the name on the Hue hub for each light.
 			for lightId in groupLights:
@@ -4402,7 +4402,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def sensorListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
 		# Used in actions and device configuration windows that need a list of sensor dvices.
-		self.debugLog(u"Starting sensorListGenerator.\n  filter: %s\n  valuesDict: %s\n  typeId: %s\n  targetId: %s" % (filter, valuesDict, typeId, targetId))
+		self.debugLog(u"Starting sensorListGenerator.\n  filter: " + unicode(filter) + u"\n  valuesDict: " + unicode(valuesDict) + u"\n  typeId: " + unicode(typeId) + u"\n  targetId: " + unicode(targetId))
 		
 		returnSensorList = list()
 		
@@ -4454,7 +4454,7 @@ class Plugin(indigo.PluginBase):
 		
 		# Set the initial UI Value to the same raw value in newValue.
 		if newUiValue == None:
-			newUiValue = str(newValue)
+			newUiValue = unicode(newValue)
 
 		# First, if the state doesn't even exist on the device, force a reload
 		#   of the device configuration to try to add the new state.
@@ -4481,9 +4481,9 @@ class Plugin(indigo.PluginBase):
 		# Now update the state if the new value (rounded if needed) is different.
 		if (newValue != device.states.get(state, None)):
 			try:
-				self.debugLog(u"updateDeviceState: Updating device " + device.name + u" state: " + str(state) + u". Old value = " + str(device.states.get(state, "")) + u". New value = " + str(newValue))
+				self.debugLog(u"updateDeviceState: Updating device " + device.name + u" state: " + unicode(state) + u". Old value = " + unicode(device.states.get(state, "")) + u". New value = " + unicode(newValue))
 			except Exception, e:
-				self.debugLog(u"updateDeviceState: Updating device " + device.name + u" state: (Unable to display state due to error: " + str(e) + u")")
+				self.debugLog(u"updateDeviceState: Updating device " + device.name + u" state: (Unable to display state due to error: " + unicode(e) + u")")
 			
 			# Actually update the device state now.
 			device.updateStateOnServer(key=state, value=newValue, decimalPlaces=decimals, uiValue=newUiValue)
@@ -4503,13 +4503,16 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def rebuildDevice(self, device):
 		self.debugLog(u"Starting rebuildDevice.")
+		
+		# Copy the current device properties.
+		newProps = device.pluginProps
+
 		# Check the device for missing states and properties and fix as needed.
 		
 		# Prior to version 1.1.0, the "modelId" property did not exist in lighting devices.
 		#   If that property does not exist, force an update.
 		if device.deviceTypeId in kLightDeviceTypeIDs and not device.pluginProps.get('modelId', False):
 			self.debugLog(u"The " + device.name + u" Hue light device doesn't have a modelId attribute.  Adding it.")
-			newProps = device.pluginProps
 			newProps['modelId'] = ""
 			device.replacePluginPropsOnServer(newProps)
 		
@@ -4525,26 +4528,27 @@ class Plugin(indigo.PluginBase):
 			self.debugLog(u"The " + device.name + u" device is a Hue light device and it's configured.")
 			if device.pluginProps['modelId'] in kHueBulbDeviceIDs and device.pluginProps.get('SupportsColor', "") == "":
 				self.debugLog(u"The \"" + device.name + u"\" Color/Ambiance light device doesn't have color properties.  Adding them.")
-				newProps = device.pluginProps
 				newProps['SupportsColor'] = True
 				newProps['SupportsRGB'] = True
 				newProps['SupportsWhite'] = True
 				newProps['SupportsWhiteTemperature'] = True
+				newProps['WhiteTemperatureMin'] = "2000"
+				newProps['WhiteTemperatureMax'] = "6500"
 				newProps['SupportsRGBandWhiteSimultaneously'] = False
 				device.replacePluginPropsOnServer(newProps)
 				indigo.server.log(u"The \"" + device.name + u"\" Color/Ambiance light device is from an old Hue Lights version. It's properties have been updated.")
 			elif device.pluginProps['modelId'] in kAmbianceDeviceIDs and not device.supportsColor:
 				self.debugLog(u"The \"" + device.name + u"\" Ambiance light device doesn't have color temperature properties.  Adding them.")
-				newProps = device.pluginProps
 				newProps['SupportsColor'] = True
 				newProps['SupportsRGB'] = False
 				newProps['SupportsWhite'] = True
 				newProps['SupportsWhiteTemperature'] = True
+				newProps['WhiteTemperatureMin'] = "2000"
+				newProps['WhiteTemperatureMax'] = "6500"
 				device.replacePluginPropsOnServer(newProps)
 				indigo.server.log(u"The \"" + device.name + u"\" Ambiance light device is from old an Hue Lights version. It's properties have been updated.")
 			elif device.pluginProps['modelId'] in kLivingColorsDeviceIDs and device.pluginProps.get('SupportsColor', "") == "":
 				self.debugLog(u"The \"" + device.name + u"\" Color light device doesn't have color properties.  Adding them.")
-				newProps = device.pluginProps
 				newProps['SupportsColor'] = True
 				newProps['SupportsRGB'] = True
 				newProps['SupportsWhite'] = False
@@ -4553,13 +4557,14 @@ class Plugin(indigo.PluginBase):
 				indigo.server.log(u"The \"" + device.name + u"\" Color light device is from old an Hue Lights version. It's properties have been updated.")
 			elif device.pluginProps['modelId'] in kLightStripsDeviceIDs and device.pluginProps.get('SupportsColor', "") == "":
 				self.debugLog(u"The \"" + device.name + u"\" LightStrip device doesn't have color properties.  Adding them.")
-				newProps = device.pluginProps
 				newProps['SupportsColor'] = True
 				newProps['SupportsRGB'] = True
-				# If this is version 2 of the LightStrip, add color temperature support.
-				if device.pluginProps['modelId'] == "LST002":
+				# If this is anything but version 1 of the LightStrip, add color temperature support.
+				if device.pluginProps['modelId'] != "LST001":
 					newProps['SupportsWhite'] = True
 					newProps['SupportsWhiteTemperature'] = True
+					newProps['WhiteTemperatureMin'] = "2000"
+					newProps['WhiteTemperatureMax'] = "6500"
 					newProps['SupportsRGBandWhiteSimultaneously'] = False
 				else:
 					newProps['SupportsWhite'] = False
@@ -4567,7 +4572,6 @@ class Plugin(indigo.PluginBase):
 				indigo.server.log(u"The \"" + device.name + u"\" LightStrip device is from an old Hue Lights version. It's properties have been updated.")
 			elif device.pluginProps['modelId'] in kLivingWhitesDeviceIDs and device.pluginProps.get('SupportsColor', "") == "":
 				self.debugLog(u"The \"" + device.name + u"\" LivingWhites type light device doesn't have the necessary Indigo 7 properties.  Adding them.")
-				newProps = device.pluginProps
 				newProps['SupportsColor'] = False
 				device.replacePluginPropsOnServer(newProps)
 				indigo.server.log(u"The \"" + device.name + u"\" LivingWhites type light device is from an old Hue Lights version. It's properties have been updated.")
@@ -4575,11 +4579,12 @@ class Plugin(indigo.PluginBase):
 			self.debugLog(u"Ths " + device.name + u" device is a Hue group and is configured.")
 			if device.pluginProps.get('SupportsColor', "") == "":
 				self.debugLog(u"The \"" + device.name + u"\" Hue group device doesn't have color properties.  Adding them.")
-				newProps = device.pluginProps
 				newProps['SupportsColor'] = True
 				newProps['SupportsRGB'] = True
 				newProps['SupportsWhite'] = True
 				newProps['SupportsWhiteTemperature'] = True
+				newProps['WhiteTemperatureMin'] = "2000"
+				newProps['WhiteTemperatureMax'] = "6500"
 				newProps['SupportsRGBandWhiteSimultaneously'] = False
 				device.replacePluginPropsOnServer(newProps)
 				indigo.server.log(u"The \"" + device.name + u"\" Hue group device is from an old Hue Lights version. It's properties have been updated.")
@@ -4588,7 +4593,6 @@ class Plugin(indigo.PluginBase):
 			# If the device doesn't have the SupportsOnState set to True, then set it.
 			if device.pluginProps.get('SupportsOnState', False) == False:
 				self.debugLog(u"The \"" + device.name + u"\" sensor device doesn't have an on/off state.  Adding it.")
-				newProps = device.pluginProps
 				newProps['SupportsOnState'] = True
 				newProps['SupportsSensorValue'] = False
 				if newProps.get('sensorOffset', False):
@@ -4602,7 +4606,6 @@ class Plugin(indigo.PluginBase):
 			# If the device doesn't have the SupportsOnState set to True, then set it.
 			if device.pluginProps.get('SupportsSensorValue', False) == False:
 				self.debugLog(u"The \"" + device.name + u"\" sensor device doesn't have a sensorValue state.  Adding it.")
-				newProps = device.pluginProps
 				newProps['SupportsOnState'] = False
 				newProps['SupportsSensorValue'] = True
 				device.replacePluginPropsOnServer(newProps)
@@ -4612,7 +4615,6 @@ class Plugin(indigo.PluginBase):
 			# If the device doesn't have the SupportsSensorValue set to True, then set it.
 			if device.pluginProps.get('SupportsSensorValue', False) == False:
 				self.debugLog(u"The \"" + device.name + u"\" sensor device doesn't have a sensorValue state.  Adding it.")
-				newProps = device.pluginProps
 				newProps['SupportsOnState'] = False
 				newProps['SupportsSensorValue'] = True
 				if newProps.get('sensorOffset', False):
@@ -4620,7 +4622,8 @@ class Plugin(indigo.PluginBase):
 				if newProps.get('temperatureScale', False):
 					del newProps['temperatureScale']
 				device.replacePluginPropsOnServer(newProps)
-				device.stateListOrDisplayStateIdChanged()
+
+		device.stateListOrDisplayStateIdChanged()
 
 
 
@@ -4676,7 +4679,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			bulb = json.loads(r.content)
 		except Exception, e:
-			indigo.server.log(u"Error retrieving Hue bulb status: " + str(e))
+			indigo.server.log(u"Error retrieving Hue bulb status: " + unicode(e))
 			return False
 			
 		### Parse Data
@@ -4737,7 +4740,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			group = json.loads(r.content)
 		except Exception, e:
-			indigo.server.log(u"Error retrieving Hue group status: " + str(e))
+			indigo.server.log(u"Error retrieving Hue group status: " + unicode(e))
 			return
 		
 		### Parse Data
@@ -4799,7 +4802,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			sensor = json.loads(r.content)
 		except Exception, e:
-			indigo.server.log(u"Error retrieving Hue sensor status: " + str(e))
+			indigo.server.log(u"Error retrieving Hue sensor status: " + unicode(e))
 			return False
 			
 		### Parse Data
@@ -4918,7 +4921,7 @@ class Plugin(indigo.PluginBase):
 			return
 			
 		except Exception, e:
-			self.errorLog(u"Unable to obtain the configuration from the Hue hub." + str(e))
+			self.errorLog(u"Unable to obtain the configuration from the Hue hub." + unicode(e))
 	
 	# Update Lights List
 	########################################
@@ -5018,7 +5021,7 @@ class Plugin(indigo.PluginBase):
 			return
 			
 		except Exception, e:
-			errorText = u"Unable to obtain list of Hue lights from the hub." + str(e)
+			errorText = u"Unable to obtain list of Hue lights from the hub." + unicode(e)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -5122,7 +5125,7 @@ class Plugin(indigo.PluginBase):
 			return
 			
 		except Exception, e:
-			self.errorLog(u"Unable to obtain list of Hue groups from the hub." + str(e))
+			self.errorLog(u"Unable to obtain list of Hue groups from the hub." + unicode(e))
 	
 	# Update Sensors List
 	########################################
@@ -5221,7 +5224,7 @@ class Plugin(indigo.PluginBase):
 			return
 			
 		except Exception, e:
-			self.errorLog(u"Unable to obtain list of Hue sensors from the hub." + str(e))
+			self.errorLog(u"Unable to obtain list of Hue sensors from the hub." + unicode(e))
 
 
 	# Parse All Hue Lights Data
@@ -5376,7 +5379,7 @@ class Plugin(indigo.PluginBase):
 				# Update the brightness level if it's different.
 				if device.states['brightnessLevel'] != brightnessLevel:
 					# Log the update.
-					indigo.server.log(u"\"" + device.name + "\" on to " + str(brightnessLevel), 'Updated')
+					indigo.server.log(u"\"" + device.name + "\" on to " + unicode(brightnessLevel), 'Updated')
 					self.updateDeviceState(device, 'brightnessLevel', brightnessLevel)
 				# Hue Degrees (0-360).
 				self.updateDeviceState(device, 'hue', hue)
@@ -5440,7 +5443,7 @@ class Plugin(indigo.PluginBase):
 					self.updateDeviceState(device, 'blueLevel', 0)
 			else:
 				# Unrecognized on state, but not important enough to mention in regular log.
-				self.debugLog(u"Hue bulb unrecognized on state given by hub: " + str(bulb['state']['on']))
+				self.debugLog(u"Hue bulb unrecognized on state given by hub: " + unicode(bulb['state']['on']))
 			
 			# Update the effect state (regardless of onState).
 			self.updateDeviceState(device, 'effect', effect)
@@ -5497,7 +5500,7 @@ class Plugin(indigo.PluginBase):
 				# Update the brightness level if it's different.
 				if device.states['brightnessLevel'] != brightnessLevel:
 					# Log the update.
-					indigo.server.log(u"\"" + device.name + "\" on to " + str(brightnessLevel), 'Updated')
+					indigo.server.log(u"\"" + device.name + "\" on to " + unicode(brightnessLevel), 'Updated')
 					self.updateDeviceState(device, 'brightnessLevel', brightnessLevel)
 				# Color Temperature (converted from 154-500 mireds to 6494-2000 K).
 				self.updateDeviceState(device, 'colorTemp', colorTemp)
@@ -5530,7 +5533,7 @@ class Plugin(indigo.PluginBase):
 					self.updateDeviceState(device, 'whiteTemperature', colorTemp)
 			else:
 				# Unrecognized on state, but not important enough to mention in regular log.
-				self.debugLog(u"Ambiance light unrecognized \"on\" state given by hub: " + str(bulb['state']['on']))
+				self.debugLog(u"Ambiance light unrecognized \"on\" state given by hub: " + unicode(bulb['state']['on']))
 			
 			# Update the effect state (regardless of onState).
 			self.updateDeviceState(device, 'effect', effect)
@@ -5563,8 +5566,8 @@ class Plugin(indigo.PluginBase):
 			colorRed = 255		# Initialize for later
 			colorGreen = 255	# Initialize for later
 			colorBlue = 255		# Initialize for later
-			# Handle LightStrip Plus color temperature values.
-			if bulb['modelid'] == "LST002":
+			# Handle color temperature values for anything but the original LightStrip.
+			if bulb['modelid'] != "LST001":
 				colorTemp = bulb['state'].get('ct', 0)
 			colorMode = bulb['state'].get('colormode', "ct")
 			effect = bulb['state'].get('effect', "none")
@@ -5582,7 +5585,7 @@ class Plugin(indigo.PluginBase):
 			# Convert hue from 0-65535 scale to 0-360 scale.
 			hue = int(round(hue / 182.0))
 			# Must first test color temp value. If it's zero, the formula throws a divide by zero execption.
-			if bulb['modelid'] == "LST002":
+			if bulb['modelid'] != "LST001":
 				if colorTemp > 0:
 					# Converting from mireds to Kelvin.
 					colorTemp = int(round(1000000.0/colorTemp))
@@ -5595,7 +5598,7 @@ class Plugin(indigo.PluginBase):
 				# Update the brightness level if it's different.
 				if device.states['brightnessLevel'] != brightnessLevel:
 					# Log the update.
-					indigo.server.log(u"\"" + device.name + "\" on to " + str(brightnessLevel), 'Updated')
+					indigo.server.log(u"\"" + device.name + "\" on to " + unicode(brightnessLevel), 'Updated')
 					self.updateDeviceState(device, 'brightnessLevel', brightnessLevel)
 				# Hue Degrees (0-360).
 				self.updateDeviceState(device, 'hue', hue)
@@ -5605,7 +5608,7 @@ class Plugin(indigo.PluginBase):
 				self.updateDeviceState(device, 'colorX', colorX, 4)
 				self.updateDeviceState(device, 'colorY', colorY, 4)
 				# Color Temperature (converted from 154-500 mireds to 6494-2000 K).
-				if bulb['modelid'] == "LST002":
+				if bulb['modelid'] != "LST001":
 					self.updateDeviceState(device, 'colorTemp', colorTemp)
 				# Color Mode.
 				self.updateDeviceState(device, 'colorMode', colorMode)
@@ -5616,8 +5619,8 @@ class Plugin(indigo.PluginBase):
 				
 				### Update inherited states for Indigo 7+ devices.
 				if "whiteLevel" in device.states or "redLevel" in device.states:
-					# For LightStrip Plus only...
-					if bulb['modelid'] == "LST002":
+					# For everything but the original LightStrip...
+					if bulb['modelid'] != "LST001":
 						# White Level (negative saturation, 0-100).
 						self.updateDeviceState(device, 'whiteLevel', 100 - saturation)
 						# White Temperature (0-100).
@@ -5641,7 +5644,7 @@ class Plugin(indigo.PluginBase):
 				self.updateDeviceState(device, 'colorX', colorX, 4)
 				self.updateDeviceState(device, 'colorY', colorY, 4)
 				# Color Temperature (convert from 154-500 mireds to 6494-2000 K).
-				if bulb['modelid'] == "LST002":
+				if bulb['modelid'] != "LST001":
 					self.updateDeviceState(device, 'colorTemp', colorTemp)
 				# Color Mode.
 				self.updateDeviceState(device, 'colorMode', colorMode)
@@ -5653,8 +5656,8 @@ class Plugin(indigo.PluginBase):
 				
 				### Update inherited states for Indigo 7+ devices.
 				if "whiteLevel" in device.states or "redLevel" in device.states:
-					# For LightStrip Plus only...
-					if bulb['modelid'] == "LST002":
+					# For everything but the original LightStrip...
+					if bulb['modelid'] != "LST001":
 						# White Level (negative saturation, 0-100).
 						self.updateDeviceState(device, 'whiteLevel', 100 - saturation)
 						# White Temperature (0-100).
@@ -5665,7 +5668,7 @@ class Plugin(indigo.PluginBase):
 					self.updateDeviceState(device, 'blueLevel', 0)
 			else:
 				# Unrecognized on state, but not important enough to mention in regular log.
-				self.debugLog(u"LightStrip unrecognized on state given by hub: " + str(bulb['state']['on']))
+				self.debugLog(u"LightStrip unrecognized on state given by hub: " + unicode(bulb['state']['on']))
 			
 			# Update the effect state (regardless of onState).
 			self.updateDeviceState(device, 'effect', effect)
@@ -5695,7 +5698,7 @@ class Plugin(indigo.PluginBase):
 						elif attributeToControl == "colorBlue":
 							# Convert RGB scale from 0-255 to 0-100.
 							self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorBlue / 255.0 * 100.0)))
-						elif attributeToControl == "colorTemp" and bulb['modelid'] == "LST002":
+						elif attributeToControl == "colorTemp" and bulb['modelid'] != "LST001":
 							# Convert color temperature scale from 2000-6500 to 0-100.
 							self.updateDeviceState(controlDevice, 'brightnessLevel', int(round((colorTemp - 2000.0) / 4500.0 * 100.0)))
 					else:
@@ -5732,7 +5735,7 @@ class Plugin(indigo.PluginBase):
 				# Update the brightness level if it's different.
 				if device.states['brightnessLevel'] != brightnessLevel:
 					# Log the update.
-					indigo.server.log(u"\"" + device.name + "\" on to " + str(brightnessLevel), 'Updated')
+					indigo.server.log(u"\"" + device.name + "\" on to " + unicode(brightnessLevel), 'Updated')
 					self.updateDeviceState(device, 'brightnessLevel', brightnessLevel)
 				# Hue Degrees (0-360).
 				self.updateDeviceState(device, 'hue', hue)
@@ -5784,7 +5787,7 @@ class Plugin(indigo.PluginBase):
 					self.updateDeviceState(device, 'blueLevel', int(round(colorBlue / 255.0 * 100.0)))
 			else:
 				# Unrecognized on state, but not important enough to mention in regular log.
-				self.debugLog(u"LivingColors unrecognized on state given by hub: " + str(bulb['state']['on']))
+				self.debugLog(u"LivingColors unrecognized on state given by hub: " + unicode(bulb['state']['on']))
 
 			# Update the effect state (regardless of onState).
 			self.updateDeviceState(device, 'effect', effect)
@@ -5825,7 +5828,7 @@ class Plugin(indigo.PluginBase):
 				# Update the brightness level if it's different.
 				if device.states['brightnessLevel'] != brightnessLevel:
 					# Log the update.
-					indigo.server.log(u"\"" + device.name + "\" on to " + str(brightnessLevel), 'Updated')
+					indigo.server.log(u"\"" + device.name + "\" on to " + unicode(brightnessLevel), 'Updated')
 					self.updateDeviceState(device, 'brightnessLevel', brightnessLevel)
 			elif onState == False:
 				# Hue device is off. Set brightness to zero.
@@ -5835,7 +5838,7 @@ class Plugin(indigo.PluginBase):
 					self.updateDeviceState(device, 'brightnessLevel', 0)
 			else:
 				# Unrecognized on state, but not important enough to mention in regular log.
-				self.debugLog(u"LivingWhites unrecognized on state given by hub: " + str(bulb['state']['on']))
+				self.debugLog(u"LivingWhites unrecognized on state given by hub: " + unicode(bulb['state']['on']))
 				
 			# Update any Hue Device Attribute Controller virtual dimmers associated with this bulb.
 			for controlDeviceId in self.controlDeviceList:
@@ -5930,7 +5933,7 @@ class Plugin(indigo.PluginBase):
 		nameOnHub = group.get('name', "")
 		groupType = group.get('type', "")
 		groupClass = group.get('class', "")
-		brightness = group['action'].get('bri', "0")
+		brightness = group['action'].get('bri', 0)
 		onState = group['action'].get('on', False)
 		allOn = group['state'].get('all_on', False)
 		anyOn = group['state'].get('any_on', False)
@@ -5955,7 +5958,7 @@ class Plugin(indigo.PluginBase):
 		i = 0		# To count members in group.
 		for tempMemberID in group['lights']:
 			if i > 0:
-				groupMemberIDs = groupMemberIDs + ", " + str(tempMemberID)
+				groupMemberIDs = groupMemberIDs + ", " + unicode(tempMemberID)
 			else:
 				groupMemberIDs = tempMemberID
 			i += 1
@@ -6019,7 +6022,7 @@ class Plugin(indigo.PluginBase):
 			# Update the brightness level if it's different.
 			if device.states['brightnessLevel'] != brightnessLevel:
 				# Log the update.
-				indigo.server.log(u"\"" + device.name + "\" on to " + str(brightnessLevel), 'Updated')
+				indigo.server.log(u"\"" + device.name + "\" on to " + unicode(brightnessLevel), 'Updated')
 				self.updateDeviceState(device, 'brightnessLevel', brightnessLevel)
 			# Hue Degrees (0-360).
 			self.updateDeviceState(device, 'hue', hue)
@@ -6087,7 +6090,7 @@ class Plugin(indigo.PluginBase):
 				self.updateDeviceState(device, 'blueLevel', int(round(colorBlue / 255.0 * 100.0)))
 		else:
 			# Unrecognized on state, but not important enough to mention in regular log.
-			self.debugLog(u"Hue group unrecognized on state given by hub: " + str(group['action']['on']))
+			self.debugLog(u"Hue group unrecognized on state given by hub: " + unicode(group['action']['on']))
 			
 		# Update any Hue Device Attribute Controller virtual dimmers associated with this group.
 		for controlDeviceId in self.controlDeviceList:
@@ -6330,10 +6333,10 @@ class Plugin(indigo.PluginBase):
 			# Set the sensor value based on the device temperature scale prefs.
 			if temperatureScale == "f":
 				sensorValue = temperatureF
-				sensorUiValue = str(sensorValue) + u" \xbaF"
+				sensorUiValue = unicode(sensorValue) + u" \xbaF"
 			else:
 				sensorValue = temperatureC
-				sensorUiValue = str(sensorValue) + u" \xbaC"
+				sensorUiValue = unicode(sensorValue) + u" \xbaC"
 			
 			sensorIcon = indigo.kStateImageSel.TemperatureSensor
 			sensorPrecision = 1
@@ -6393,22 +6396,63 @@ class Plugin(indigo.PluginBase):
 			self.updateDeviceProps(device, tempProps)
 			
 			# Convert raw luminance reading to lux.
-			luminance = expm1(luminanceRaw / 10000.0)
-			darkThreshold = expm1(darkThreshold / 10000.0)
-			thresholdOffset = expm1(thresholdOffset / 10000.0)
+			try:
+				luminance = pow(10.0, (luminanceRaw - 1.0) / 10000.0)
+				darkThreshold = pow(10.0, (darkThreshold - 1.0) / 10000.0)
+				thresholdOffset = pow(10.0, (thresholdOffset - 1.0) / 10000.0)
+			except TypeError:
+				# In rare circumstances, the value returned from the Hue hub for
+				# luminanceRaw might not be a number.  Rather than throw a Python
+				# error in the Indigo log, let's just ignore the error and set
+				# the lux value and the thresholds to 0 for now.
+				luminance = 0.0
+				darkThreshold = 0.0
+				thresholdOffset = 0.0
+			
+			# If the luminanceRaw value is 0, that means the light level is blow
+			# detectable levels, which should be reported as a light level of 0 lux.
+			if luminanceRaw == 0:
+				luminance = 0.0
+				
 			# Determine to how many decimal places the sensor value should be
 			# rounded based on how much luminance there is.
-			if luminance < 10:
+			if 0 < luminance and luminance < 10:
 				sensorPrecision = 2
-			elif luminance < 100:
+			elif 10 <= luminance and luminance < 100:
 				sensorPrecision = 1
 			else:
 				sensorPrecision = 0
+			# Now round and set the sensorValue.
 			if sensorPrecision > 0:
 				sensorValue = round(luminance, sensorPrecision)
 			else:
 				sensorValue = int(round(luminance, 0))
-			sensorUiValue = str(sensorValue) + u" lux"
+			sensorUiValue = unicode(sensorValue) + u" lux"
+			
+			# Now do the same for the darkThreshold and thresholdOffset values.
+			if 0 < darkThreshold and darkThreshold < 10:
+				thresholdPrecision = 2
+			elif 10 <= darkThreshold and darkThreshold < 100:
+				thresholdPrecision = 1
+			else:
+				thresholdPrecision = 0
+			if thresholdPrecision > 0:
+				darkThreshold = round(darkThreshold, thresholdPrecision)
+			else:
+				darkThreshold = int(round(darkThreshold, 0))
+
+			if 0 < thresholdOffset and thresholdOffset < 10:
+				offsetPrecision = 2
+			elif 10 <= thresholdOffset and thresholdOffset < 100:
+				offsetPrecision = 1
+			else:
+				offsetPrecision = 0
+			# Now round and set the sensorValue.
+			if offsetPrecision > 0:
+				thresholdOffset = round(thresholdOffset, offsetPrecision)
+			else:
+				thresholdOffset = int(round(thresholdOffset, 0))
+
 			# Set the sensor on state based on whether it's daylight or not.
 			if daylight:
 				sensorIcon = indigo.kStateImageSel.LightSensorOn
@@ -6420,8 +6464,8 @@ class Plugin(indigo.PluginBase):
 			self.updateDeviceState(device, 'luminance', luminance, sensorPrecision)
 			self.updateDeviceState(device, 'luminanceRaw', luminanceRaw)
 			self.updateDeviceState(device, 'dark', dark)
-			self.updateDeviceState(device, 'darkThreshold', darkThreshold, 4)
-			self.updateDeviceState(device, 'thresholdOffset', thresholdOffset, 4)
+			self.updateDeviceState(device, 'darkThreshold', darkThreshold, thresholdPrecision)
+			self.updateDeviceState(device, 'thresholdOffset', thresholdOffset, offsetPrecision)
 			self.updateDeviceState(device, 'daylight', daylight)
 			self.updateDeviceState(device, 'online', online)
 			self.updateDeviceState(device, 'testMode', testMode)
@@ -6457,7 +6501,7 @@ class Plugin(indigo.PluginBase):
 					#   it must be converted to 10th seconds here.
 					rampRate = int(round(float(device.pluginProps['rate']) * 10))
 			except Exception, e:
-				errorText = u"Default ramp rate could not be obtained: " + str(e)
+				errorText = u"Default ramp rate could not be obtained: " + unicode(e)
 				self.errorLog(errorText)
 				# Remember the error.
 				self.lastErrorMessage = errorText
@@ -6559,7 +6603,7 @@ class Plugin(indigo.PluginBase):
 			# Compensate for rounding to zero.
 			if tempBrightness == 0:
 				tempBrightness = 1
-			indigo.server.log(u"\"" + device.name + u"\" on to " + str(tempBrightness) + u" at ramp rate " + str(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
+			indigo.server.log(u"\"" + device.name + u"\" on to " + unicode(tempBrightness) + u" at ramp rate " + unicode(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
 			# Update the Indigo device.
 			self.updateDeviceState(device, 'brightnessLevel', tempBrightness)
 		else:
@@ -6596,7 +6640,7 @@ class Plugin(indigo.PluginBase):
 				return
 			self.debugLog(u"Got response - %s" % r.content)
 			# Log the change.
-			indigo.server.log(u"\"" + device.name + u"\" off at ramp rate " + str(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
+			indigo.server.log(u"\"" + device.name + u"\" off at ramp rate " + unicode(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
 			# Update the Indigo device.
 			self.updateDeviceState(device, 'brightnessLevel', 0)
 	
@@ -6623,7 +6667,7 @@ class Plugin(indigo.PluginBase):
 					#   it must be converted to 10th seconds here.
 					rampRate = int(round(float(device.pluginProps['rate']) * 10))
 			except Exception, e:
-				errorText = u"Default ramp rate could not be obtained: " + str(e)
+				errorText = u"Default ramp rate could not be obtained: " + unicode(e)
 				self.errorLog(errorText)
 				# Remember the error.
 				self.lastErrorMessage = errorText
@@ -6698,7 +6742,7 @@ class Plugin(indigo.PluginBase):
 				tempBrightness = 1
 			# Only log changes if we're supposed to.
 			if showLog:
-				indigo.server.log(u"\"" + device.name + u"\" on to " + str(tempBrightness) + u" at ramp rate " + str(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
+				indigo.server.log(u"\"" + device.name + u"\" on to " + unicode(tempBrightness) + u" at ramp rate " + unicode(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
 			# Update the device brightness (which automatically changes on state).
 			self.updateDeviceState(device, 'brightnessLevel', int(tempBrightness))
 		else:
@@ -6736,7 +6780,7 @@ class Plugin(indigo.PluginBase):
 			self.debugLog(u"Got response - %s" % r.content)
 			# Log the change.
 			if showLog:
-				indigo.server.log(u"\"" + device.name + u"\" off at ramp rate " + str(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
+				indigo.server.log(u"\"" + device.name + u"\" off at ramp rate " + unicode(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
 			# Update the device brightness (which automatically changes on state).
 			self.updateDeviceState(device, 'brightnessLevel', 0)
 	
@@ -6768,7 +6812,7 @@ class Plugin(indigo.PluginBase):
 					#   it must be converted to 10th seconds here.
 					rampRate = int(round(float(device.pluginProps['rate']) * 10))
 			except Exception, e:
-				errorText = u"Default ramp rate could not be obtained: " + str(e)
+				errorText = u"Default ramp rate could not be obtained: " + unicode(e)
 				self.errorLog(errorText)
 				# Remember the error.
 				self.lastErrorMessage = errorText
@@ -6843,7 +6887,7 @@ class Plugin(indigo.PluginBase):
 			command = "http://%s/api/%s/groups/%s/action" % (self.ipAddress, self.hostId, groupId)
 		else:
 			command = "http://%s/api/%s/lights/%s/state" % (self.ipAddress, self.hostId, bulbId)
-		self.debugLog(u"Data: " + str(requestData) + u", URL: " + command)
+		self.debugLog(u"Data: " + unicode(requestData) + u", URL: " + command)
 		try:
 			r = requests.put(command, data=requestData, timeout=kTimeout)
 		except requests.exceptions.Timeout:
@@ -6869,12 +6913,12 @@ class Plugin(indigo.PluginBase):
 			# Convert brightness to a percentage.
 			brightness = int(round(brightness / 255.0 * 100.0))
 			# Log the change.
-			indigo.server.log(u"\"" + device.name + u"\" on to " + str(brightness) + u" with RGB values " + str(red) + u", " + str(green) + u" and " + str(blue) + u" at ramp rate " + str(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
+			indigo.server.log(u"\"" + device.name + u"\" on to " + unicode(brightness) + u" with RGB values " + unicode(red) + u", " + unicode(green) + u" and " + unicode(blue) + u" at ramp rate " + unicode(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
 			# Update the device state.
 			self.updateDeviceState(device, 'brightnessLevel', brightness)
 		else:
 			# Log the change.
-			indigo.server.log(u"\"" + device.name + u"\" off at ramp rate " + str(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
+			indigo.server.log(u"\"" + device.name + u"\" off at ramp rate " + unicode(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
 			# Update the device state.
 			self.updateDeviceState(device, 'brightnessLevel', 0)
 		# Update the other device states.
@@ -6911,7 +6955,7 @@ class Plugin(indigo.PluginBase):
 					#   it must be converted to 10th seconds here.
 					rampRate = int(round(float(device.pluginProps['rate']) * 10))
 			except Exception, e:
-				errorText = u"Default ramp rate could not be obtained: " + str(e)
+				errorText = u"Default ramp rate could not be obtained: " + unicode(e)
 				self.errorLog(errorText)
 				# Remember the error.
 				self.lastErrorMessage = errorText
@@ -7000,12 +7044,12 @@ class Plugin(indigo.PluginBase):
 		# Update on Indigo
 		if int(round(brightness/255.0*100.0)) > 0:
 			# Log the change.
-			indigo.server.log(u"\"" + device.name + u"\" on to " + str(int(round(brightness / 255.0 * 100.0))) + u" with hue " + str(int(round(hue / 182.0))) + u"° saturation " + str(int(round(saturation / 255.0 * 100.0))) + u"% at ramp rate " + str(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
+			indigo.server.log(u"\"" + device.name + u"\" on to " + unicode(int(round(brightness / 255.0 * 100.0))) + u" with hue " + unicode(int(round(hue / 182.0))) + u"° saturation " + unicode(int(round(saturation / 255.0 * 100.0))) + u"% at ramp rate " + unicode(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
 			# Change the Indigo device.
 			self.updateDeviceState(device, 'brightnessLevel', int(round(brightness / 255.0 * 100.0)))
 		else:
 			# Log the change.
-			indigo.server.log(u"\"" + device.name + u"\" off at ramp rate " + str(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
+			indigo.server.log(u"\"" + device.name + u"\" off at ramp rate " + unicode(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
 			# Change the Indigo device.
 			self.updateDeviceState(device, 'brightnessLevel', 0)
 		# Update the other device states.
@@ -7037,7 +7081,7 @@ class Plugin(indigo.PluginBase):
 					#   it must be converted to 10th seconds here.
 					rampRate = int(round(float(device.pluginProps['rate']) * 10))
 			except Exception, e:
-				errorText = u"Default ramp rate could not be obtained: " + str(e)
+				errorText = u"Default ramp rate could not be obtained: " + unicode(e)
 				self.errorLog(errorText)
 				# Remember the error.
 				self.lastErrorMessage = errorText
@@ -7140,12 +7184,12 @@ class Plugin(indigo.PluginBase):
 		# Update on Indigo
 		if int(round(brightness/255.0*100.0)) > 0:
 			# Log the change.
-			indigo.server.log(u"\"" + device.name + u"\" on to " + str(int(round(brightness / 255.0 * 100.0))) + u" with x/y chromatisety values of " + str(round(colorX, 4)) + u"/" + str(round(colorY, 4)) + u" at ramp rate " + str(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
+			indigo.server.log(u"\"" + device.name + u"\" on to " + unicode(int(round(brightness / 255.0 * 100.0))) + u" with x/y chromatisety values of " + unicode(round(colorX, 4)) + u"/" + unicode(round(colorY, 4)) + u" at ramp rate " + unicode(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
 			# Change the Indigo device.
 			self.updateDeviceState(device, 'brightnessLevel', int(round(brightness / 255.0 * 100.0)))
 		else:
 			# Log the change.
-			indigo.server.log(u"\"" + device.name + u"\" off at ramp rate " + str(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
+			indigo.server.log(u"\"" + device.name + u"\" off at ramp rate " + unicode(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
 			# Change the Indigo device.
 			self.updateDeviceState(device, 'brightnessLevel', 0)
 		# Update the other device states.
@@ -7176,7 +7220,7 @@ class Plugin(indigo.PluginBase):
 					#   it must be converted to 10th seconds here.
 					rampRate = int(round(float(device.pluginProps['rate']) * 10))
 			except Exception, e:
-				errorText = u"Default ramp rate could not be obtained: " + str(e)
+				errorText = u"Default ramp rate could not be obtained: " + unicode(e)
 				self.errorLog(errorText)
 				# Remember the error.
 				self.lastErrorMessage = errorText
@@ -7286,11 +7330,11 @@ class Plugin(indigo.PluginBase):
 			if tempBrightness == 0 and brightness > 0:
 				tempBrightness = 1
 			# Use originally submitted color temperature in the log version.
-			indigo.server.log(u"\"" + device.name + u"\" on to " + str(tempBrightness) + u" using color temperature " + str(colorTemp) + u" K at ramp rate " + str(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
+			indigo.server.log(u"\"" + device.name + u"\" on to " + unicode(tempBrightness) + u" using color temperature " + unicode(colorTemp) + u" K at ramp rate " + unicode(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
 			self.updateDeviceState(device, 'brightnessLevel', int(round(brightness / 255.0 * 100.0)))
 		else:
 			# Log the change.
-			indigo.server.log(u"\"" + device.name + u"\" off at ramp rate " + str(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
+			indigo.server.log(u"\"" + device.name + u"\" off at ramp rate " + unicode(rampRate / 10.0) + u" sec.", 'Sent Hue Lights')
 			self.updateDeviceState(device, 'brightnessLevel', 0)
 		# Update the color mode state.
 		self.updateDeviceState(device, 'colorMode', "ct")
@@ -7657,7 +7701,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 				
 			except Exception, e:
-				errorText = u"Connection error. " + str(e)
+				errorText = u"Connection error. " + unicode(e)
 				self.errorLog(errorText)
 				isError = True
 				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue hub are connected to the network."
@@ -7751,7 +7795,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
 				
 			except Exception, e:
-				errorText = u"Connection error. " + str(e)
+				errorText = u"Connection error. " + unicode(e)
 				self.errorLog(errorText)
 				isError = True
 				errorsDict['startPairingButton'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue hub are connected to the network."
@@ -7784,7 +7828,7 @@ class Plugin(indigo.PluginBase):
 			self.lastErrorMessage = errorText
 			return
 			
-		self.debugLog(u"startStopBrightening: device: " + device.name + u", action:\n" + str(action))
+		self.debugLog(u"startStopBrightening: device: " + device.name + u", action:\n" + unicode(action))
 		# Make sure the device is in the deviceList.
 		if device.id in self.deviceList:
 			
@@ -7804,7 +7848,7 @@ class Plugin(indigo.PluginBase):
 				# Get the bulb status
 				self.getBulbStatus(device.id)
 				# Log the new brightnss.
-				indigo.server.log(u"\"" + device.name + u"\" status request (received: " + str(device.states['brightnessLevel']) + u")", 'Sent Hue Lights')
+				indigo.server.log(u"\"" + device.name + u"\" status request (received: " + unicode(device.states['brightnessLevel']) + u")", 'Sent Hue Lights')
 			else:
 				# Only begin brightening if current brightness is less than 100%.
 				if device.states['brightnessLevel'] < 100:
@@ -7826,7 +7870,7 @@ class Plugin(indigo.PluginBase):
 			self.lastErrorMessage = errorText
 			return
 			
-		self.debugLog(u"startStopDimming: device: " + device.name + ", action:\n" + str(action))
+		self.debugLog(u"startStopDimming: device: " + device.name + ", action:\n" + unicode(action))
 		# Make sure the device is in the deviceList.
 		if device.id in self.deviceList:
 			# First, remove from brighteningList if it's there.
@@ -7845,7 +7889,7 @@ class Plugin(indigo.PluginBase):
 				# Get the bulb status
 				self.getBulbStatus(device.id)
 				# Log the new brightnss.
-				indigo.server.log(u"\"" + device.name + u"\" status request (received: " + str(device.states['brightnessLevel']) + ")", 'Sent Hue Lights')
+				indigo.server.log(u"\"" + device.name + u"\" status request (received: " + unicode(device.states['brightnessLevel']) + ")", 'Sent Hue Lights')
 			else:
 				# Only begin dimming if current brightness is greater than 0%.
 				if device.states['brightnessLevel'] > 0:
@@ -7859,7 +7903,7 @@ class Plugin(indigo.PluginBase):
 	# Set Brightness
 	########################################
 	def setBrightness(self, action, device):
-		self.debugLog(u"setBrightness: device: " + device.name + u", action:\n" + str(action))
+		self.debugLog(u"setBrightness: device: " + device.name + u", action:\n" + unicode(action))
 		
 		brightnessSource = action.props.get('brightnessSource', False)
 		brightness = action.props.get('brightness', False)
@@ -7917,18 +7961,18 @@ class Plugin(indigo.PluginBase):
 				try:
 					brightness = int(brightness)
 					if brightness < 0 or brightness > 100:
-						errorText = u"Brightness level " + str(brightness) + u" is outside the acceptable range of 0 to 100."
+						errorText = u"Brightness level " + unicode(brightness) + u" is outside the acceptable range of 0 to 100."
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
 						return None
 				except ValueError:
-					errorText = u"Brightness level \"" + str(brightness) + u"\" is invalid. Brightness values can only contain numbers."
+					errorText = u"Brightness level \"" + unicode(brightness) + u"\" is invalid. Brightness values can only contain numbers."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 					return None
-			self.debugLog(u"Brightness (source: custom): " + str(brightness) + u", class: " + str(brightness.__class__))
+			self.debugLog(u"Brightness (source: custom): " + unicode(brightness) + u", class: " + unicode(brightness.__class__))
 		
 		elif brightnessSource == "variable":
 			if not brightnessVarId:
@@ -7944,24 +7988,24 @@ class Plugin(indigo.PluginBase):
 					#   data but just drops everything after the decimal.
 					brightness = int(float(brightnessVar.value))
 					if brightness < 0 or brightness > 100:
-						errorText = u"Brightness level " + str(brightness) + u" found in variable \"" + brightnessVar.name + u"\" is outside the acceptable range of 0 to 100."
+						errorText = u"Brightness level " + unicode(brightness) + u" found in variable \"" + brightnessVar.name + u"\" is outside the acceptable range of 0 to 100."
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
 						return None
 				except ValueError:
-					errorText = u"Brightness level \"" + str(brightnessVar.value) + u"\" found in variable \"" + brightnessVar.name + u"\" is invalid. Brightness values can only contain numbers."
+					errorText = u"Brightness level \"" + unicode(brightnessVar.value) + u"\" found in variable \"" + brightnessVar.name + u"\" is invalid. Brightness values can only contain numbers."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 					return None
 				except IndexError:
-					errorText = u"The specified variable (ID " + str(brightnessVarId) + u") does not exist in the Indigo database."
+					errorText = u"The specified variable (ID " + unicode(brightnessVarId) + u") does not exist in the Indigo database."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 					return None
-			self.debugLog(u"Brightness (source: variable): " + str(brightness) + u", class: " + str(brightness.__class__))
+			self.debugLog(u"Brightness (source: variable): " + unicode(brightness) + u", class: " + unicode(brightness.__class__))
 		
 		elif brightnessSource == "dimmer":
 			if not brightnessDevId:
@@ -7980,7 +8024,7 @@ class Plugin(indigo.PluginBase):
 						brightnessDevId = indigo.devices[brightnessDevId].name
 						# Value is a device name.
 					except KeyError:
-						errorText = u"No device with the name \"" + str(brightnessDevId) + u"\" could be found in the Indigo database."
+						errorText = u"No device with the name \"" + unicode(brightnessDevId) + u"\" could be found in the Indigo database."
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
@@ -7996,7 +8040,7 @@ class Plugin(indigo.PluginBase):
 						self.lastErrorMessage = errorText
 						return None
 					elif brightness < 0 or brightness > 100:
-						errorText = u"Brightness level " + str(brightness) + u" of device \"" + brightnessDev.name + u"\" is outside the acceptable range of 0 to 100."
+						errorText = u"Brightness level " + unicode(brightness) + u" of device \"" + brightnessDev.name + u"\" is outside the acceptable range of 0 to 100."
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
@@ -8008,15 +8052,15 @@ class Plugin(indigo.PluginBase):
 					self.lastErrorMessage = errorText
 					return None
 				except KeyError:
-					errorText = u"The specified device (ID " + str(brightnessDevId) + u") does not exist in the Indigo database."
+					errorText = u"The specified device (ID " + unicode(brightnessDevId) + u") does not exist in the Indigo database."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 					return None
-			self.debugLog(u"Brightness (source: other dimmer): " + str(brightness) + u", class: " + str(brightness.__class__))
+			self.debugLog(u"Brightness (source: other dimmer): " + unicode(brightness) + u", class: " + unicode(brightness.__class__))
 		
 		else:
-			errorText = u"Unrecognized brightness source \"" + str(brightnessSource) + u"\". Valid brightness sources are \"custom\", \"variable\", and \"dimmer\"."
+			errorText = u"Unrecognized brightness source \"" + unicode(brightnessSource) + u"\". Valid brightness sources are \"custom\", \"variable\", and \"dimmer\"."
 			self.errorLog(errorText)
 			# Remember the error.
 			self.lastErrorMessage = errorText
@@ -8033,18 +8077,18 @@ class Plugin(indigo.PluginBase):
 				try:
 					rate = float(rate)
 					if rate < 0 or rate > 540:
-						errorText = u"Ramp rate value " + str(rate) + u" is outside the acceptible range of 0 to 540."
+						errorText = u"Ramp rate value " + unicode(rate) + u" is outside the acceptible range of 0 to 540."
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
 						return None
 				except ValueError:
-					errorText = u"Ramp rate value \"" + str(rate) + u" is an invalid value. Ramp rate values can only contain numbers."
+					errorText = u"Ramp rate value \"" + unicode(rate) + u" is an invalid value. Ramp rate values can only contain numbers."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 					return None
-			self.debugLog(u"Rate: " + str(rate))
+			self.debugLog(u"Rate: " + unicode(rate))
 		
 		else:
 			if not rateVarId:
@@ -8060,23 +8104,23 @@ class Plugin(indigo.PluginBase):
 					rateVar = indigo.variables[int(rateVarId)]
 					rate = float(rateVar.value)
 					if rate < 0 or rate > 540:
-						errorText = u"Ramp rate value \"" + str(rate) + u"\" found in variable \"" + rateVar.name + u"\" is outside the acceptible range of 0 to 540."
+						errorText = u"Ramp rate value \"" + unicode(rate) + u"\" found in variable \"" + rateVar.name + u"\" is outside the acceptible range of 0 to 540."
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
 						return None
 				except ValueError:
-					errorText = u"Ramp rate value \"" + str(rate) + u"\" found in variable \"" + rateVar.name + u"\" is an invalid value. Ramp rate values can only contain numbers."
+					errorText = u"Ramp rate value \"" + unicode(rate) + u"\" found in variable \"" + rateVar.name + u"\" is an invalid value. Ramp rate values can only contain numbers."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 					return None
 				except IndexError:
-					errorText = u"The specified variable (ID " + str(brightnessVarId) + u") does not exist in the Indigo database."
+					errorText = u"The specified variable (ID " + unicode(brightnessVarId) + u") does not exist in the Indigo database."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
-			self.debugLog(u"Rate: " + str(rate))
+			self.debugLog(u"Rate: " + unicode(rate))
 		
 		# Save the new brightness level into the device properties.
 		if brightness > 0:
@@ -8090,7 +8134,7 @@ class Plugin(indigo.PluginBase):
 	# Set RGB Level Action
 	########################################
 	def setRGB(self, action, device):
-		self.debugLog(u"setRGB: device: " + device.name + ", action:\n" + str(action))
+		self.debugLog(u"setRGB: device: " + device.name + ", action:\n" + unicode(action))
 
 		red = action.props.get('red', 0)
 		green = action.props.get('green', 0)
@@ -8159,18 +8203,18 @@ class Plugin(indigo.PluginBase):
 			try:
 				rampRate = float(rampRate)
 				if rampRate < 0 or rampRate > 540:
-					errorText = u"Ramp rate value " + str(rampRate) + u"\" is outside the acceptible range of 0 to 540."
+					errorText = u"Ramp rate value " + unicode(rampRate) + u"\" is outside the acceptible range of 0 to 540."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 					return None
 			except ValueError:
-				errorText = u"Ramp rate value \"" + str(rampRate) + u"\" is an invalid value. Ramp rate values can only contain numbers."
+				errorText = u"Ramp rate value \"" + unicode(rampRate) + u"\" is an invalid value. Ramp rate values can only contain numbers."
 				self.errorLog(errorText)
 				# Remember the error.
 				self.lastErrorMessage = errorText
 				return None
-			self.debugLog(u"Rate: " + str(rampRate))
+			self.debugLog(u"Rate: " + unicode(rampRate))
 		
 		else:
 			# We're using a ramp rate variable.
@@ -8188,24 +8232,24 @@ class Plugin(indigo.PluginBase):
 					rampRate = rateVar.value
 					rampRate = float(rampRate)
 					if rampRate < 0 or rampRate > 540:
-						errorText = u"Ramp rate value \"" + str(rampRate) + u"\" found in variable \"" + rateVar.name + u"\" is outside the acceptible range of 0 to 540."
+						errorText = u"Ramp rate value \"" + unicode(rampRate) + u"\" found in variable \"" + rateVar.name + u"\" is outside the acceptible range of 0 to 540."
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
 						return
 				except ValueError:
-					errorText = u"Ramp rate value \"" + str(rampRate) + u"\" found in variable \"" + rateVar.name + u"\" is an invalid value. Ramp rate values can only contain numbers."
+					errorText = u"Ramp rate value \"" + unicode(rampRate) + u"\" found in variable \"" + rateVar.name + u"\" is an invalid value. Ramp rate values can only contain numbers."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 					return
 				except IndexError:
-					errorText = u"The specified variable (ID " + str(brightnessVarId) + u") does not exist in the Indigo database."
+					errorText = u"The specified variable (ID " + unicode(brightnessVarId) + u") does not exist in the Indigo database."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 					return
-			self.debugLog(u"Rate: " + str(rampRate))
+			self.debugLog(u"Rate: " + unicode(rampRate))
 		
 		# Determine the brightness based on the highest RGB value (to save in device props).
 		brightness = red
@@ -8226,7 +8270,7 @@ class Plugin(indigo.PluginBase):
 	# Set HSB Action
 	########################################
 	def setHSB(self, action, device):
-		self.debugLog(u"setHSB: device: " + device.name + u", action:\n" + str(action))
+		self.debugLog(u"setHSB: device: " + device.name + u", action:\n" + unicode(action))
 
 		hue = action.props.get('hue', 0)
 		saturation = action.props.get('saturation', 0)
@@ -8292,7 +8336,7 @@ class Plugin(indigo.PluginBase):
 				
 				# Make sure the brightness specified in the variable is sane.
 				if brightness < 0 or brightness > 100:
-					errorText = u"Brightness value \"" + str(brightness) + u"\" for device \"%s\" is outside the acceptible range of 0 to 100." % (device.name)
+					errorText = u"Brightness value \"" + unicode(brightness) + u"\" for device \"%s\" is outside the acceptible range of 0 to 100." % (device.name)
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
@@ -8313,7 +8357,7 @@ class Plugin(indigo.PluginBase):
 					self.lastErrorMessage = errorText
 					return
 				except IndexError:
-					errorText = u"The brightness source variable (ID " + str(brightnessVariable) + u") does not exist in the Indigo database."
+					errorText = u"The brightness source variable (ID " + unicode(brightnessVariable) + u") does not exist in the Indigo database."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
@@ -8321,7 +8365,7 @@ class Plugin(indigo.PluginBase):
 				
 				# Make sure the brightness specified in the variable is sane.
 				if brightness < 0 or brightness > 100:
-					errorText = u"Brightness value \"" + str(brightness) + u"\" specified in variable \"" + indigo.variables[brightnessVariable].name + u"\" is outside the acceptible range of 0 to 100."
+					errorText = u"Brightness value \"" + unicode(brightness) + u"\" specified in variable \"" + indigo.variables[brightnessVariable].name + u"\" is outside the acceptible range of 0 to 100."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
@@ -8342,7 +8386,7 @@ class Plugin(indigo.PluginBase):
 					self.lastErrorMessage = errorText
 					return
 				except IndexError:
-					errorText = u"The brightness source device (ID " + str(brightnessDevice) + u") does not exist in the Indigo database."
+					errorText = u"The brightness source device (ID " + unicode(brightnessDevice) + u") does not exist in the Indigo database."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
@@ -8363,18 +8407,18 @@ class Plugin(indigo.PluginBase):
 			try:
 				rampRate = float(rampRate)
 				if rampRate < 0 or rampRate > 540:
-					errorText = u"Ramp rate value " + str(rampRate) + u"\" is outside the acceptible range of 0 to 540."
+					errorText = u"Ramp rate value " + unicode(rampRate) + u"\" is outside the acceptible range of 0 to 540."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 					return None
 			except ValueError:
-				errorText = u"Ramp rate value \"" + str(rampRate) + u"\" is an invalid value. Ramp rate values can only contain numbers."
+				errorText = u"Ramp rate value \"" + unicode(rampRate) + u"\" is an invalid value. Ramp rate values can only contain numbers."
 				self.errorLog(errorText)
 				# Remember the error.
 				self.lastErrorMessage = errorText
 				return None
-			self.debugLog(u"Rate: " + str(rampRate))
+			self.debugLog(u"Rate: " + unicode(rampRate))
 		
 		else:
 			# We're using a ramp rate variable.
@@ -8392,24 +8436,24 @@ class Plugin(indigo.PluginBase):
 					rampRate = rateVar.value
 					rampRate = float(rampRate)
 					if rampRate < 0 or rampRate > 540:
-						errorText = u"Ramp rate value \"" + str(rampRate) + u"\" found in variable \"" + rateVar.name + u"\" is outside the acceptible range of 0 to 540."
+						errorText = u"Ramp rate value \"" + unicode(rampRate) + u"\" found in variable \"" + rateVar.name + u"\" is outside the acceptible range of 0 to 540."
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
 						return
 				except ValueError:
-					errorText = u"Ramp rate value \"" + str(rampRate) + u"\" found in variable \"" + rateVar.name + u"\" is an invalid value. Ramp rate values can only contain numbers."
+					errorText = u"Ramp rate value \"" + unicode(rampRate) + u"\" found in variable \"" + rateVar.name + u"\" is an invalid value. Ramp rate values can only contain numbers."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 					return
 				except IndexError:
-					errorText = u"The specified variable (ID " + str(brightnessVarId) + u") does not exist in the Indigo database."
+					errorText = u"The specified variable (ID " + unicode(brightnessVarId) + u") does not exist in the Indigo database."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 					return
-			self.debugLog(u"Rate: " + str(rampRate))
+			self.debugLog(u"Rate: " + unicode(rampRate))
 
 		# Scale these values to match Hue
 		brightness = int(ceil(brightness / 100.0 * 255.0))
@@ -8428,7 +8472,7 @@ class Plugin(indigo.PluginBase):
 	# Set xyY Action
 	########################################
 	def setXYY(self, action, device):
-		self.debugLog(u"setXYY calld. device: " + device.name + u", action:\n" + str(action))
+		self.debugLog(u"setXYY calld. device: " + device.name + u", action:\n" + unicode(action))
 
 		colorX = action.props.get('xyy_x', 0.0)
 		colorY = action.props.get('xyy_y', 0.0)
@@ -8481,7 +8525,7 @@ class Plugin(indigo.PluginBase):
 			brightness = float(brightness)
 		except ValueError:
 			# The float() cast above might fail if the user didn't enter a number:
-			errorText = u"Set chromatisety x, y, and Y values for the device \"" + device.name + u"\" -- invalid Y value of \"" + str(brightness) + u"\" (must be in the range of 0.0-1.0)"
+			errorText = u"Set chromatisety x, y, and Y values for the device \"" + device.name + u"\" -- invalid Y value of \"" + unicode(brightness) + u"\" (must be in the range of 0.0-1.0)"
 			self.errorLog(errorText)
 			# Remember the error.
 			self.lastErrorMessage = errorText
@@ -8500,18 +8544,18 @@ class Plugin(indigo.PluginBase):
 			try:
 				rampRate = float(rampRate)
 				if rampRate < 0 or rampRate > 540:
-					errorText = u"Ramp rate value " + str(rampRate) + u"\" is outside the acceptible range of 0 to 540."
+					errorText = u"Ramp rate value " + unicode(rampRate) + u"\" is outside the acceptible range of 0 to 540."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 					return None
 			except ValueError:
-				errorText = u"Ramp rate value \"" + str(rampRate) + u"\" is an invalid value. Ramp rate values can only contain numbers."
+				errorText = u"Ramp rate value \"" + unicode(rampRate) + u"\" is an invalid value. Ramp rate values can only contain numbers."
 				self.errorLog(errorText)
 				# Remember the error.
 				self.lastErrorMessage = errorText
 				return None
-			self.debugLog(u"Rate: " + str(rampRate))
+			self.debugLog(u"Rate: " + unicode(rampRate))
 		
 		else:
 			# We're using a ramp rate variable.
@@ -8529,24 +8573,24 @@ class Plugin(indigo.PluginBase):
 					rampRate = rateVar.value
 					rampRate = float(rampRate)
 					if rampRate < 0 or rampRate > 540:
-						errorText = u"Ramp rate value \"" + str(rampRate) + u"\" found in variable \"" + rateVar.name + u"\" is outside the acceptible range of 0 to 540."
+						errorText = u"Ramp rate value \"" + unicode(rampRate) + u"\" found in variable \"" + rateVar.name + u"\" is outside the acceptible range of 0 to 540."
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
 						return
 				except ValueError:
-					errorText = u"Ramp rate value \"" + str(rampRate) + u"\" found in variable \"" + rateVar.name + u"\" is an invalid value. Ramp rate values can only contain numbers."
+					errorText = u"Ramp rate value \"" + unicode(rampRate) + u"\" found in variable \"" + rateVar.name + u"\" is an invalid value. Ramp rate values can only contain numbers."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 					return
 				except IndexError:
-					errorText = u"The specified variable (ID " + str(brightnessVarId) + u") does not exist in the Indigo database."
+					errorText = u"The specified variable (ID " + unicode(brightnessVarId) + u") does not exist in the Indigo database."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 					return
-			self.debugLog(u"Rate: " + str(rampRate))
+			self.debugLog(u"Rate: " + unicode(rampRate))
 		
 		# Scale the brightness values to match Hue system requirements.
 		brightness = int(ceil(brightness * 255.0))
@@ -8563,7 +8607,7 @@ class Plugin(indigo.PluginBase):
 	# Set Color Temperature Action
 	########################################
 	def setColorTemperature(self, action, device):
-		self.debugLog(u"setColorTemperature: device: " + device.name + ", action:\n" + str(action))
+		self.debugLog(u"setColorTemperature: device: " + device.name + ", action:\n" + unicode(action))
 
 		bulbId = device.pluginProps.get('bulbId', None)
 		groupId = device.pluginProps.get('groupId', None)
@@ -8632,7 +8676,7 @@ class Plugin(indigo.PluginBase):
 					
 					# Make sure the color temperature specified in the variable is sane.
 					if temperature < 2000 or temperature > 6500:
-						errorText = u"Color temperature value \"" + str(temperature) + u"\" found in source variable \"" + indigo.variables[temperatureVariable].name + u"\" for device \"%s\" is outside the acceptible range of 2000 to 6500." % (device.name)
+						errorText = u"Color temperature value \"" + unicode(temperature) + u"\" found in source variable \"" + indigo.variables[temperatureVariable].name + u"\" for device \"%s\" is outside the acceptible range of 2000 to 6500." % (device.name)
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
@@ -8654,7 +8698,7 @@ class Plugin(indigo.PluginBase):
 					
 					# Make sure the brightness specified in the variable is sane.
 					if brightness < 0 or brightness > 100:
-						errorText = u"Brightness value \"" + str(brightness) + u"\" for device \"%s\" is outside the acceptible range of 0 to 100." % (device.name)
+						errorText = u"Brightness value \"" + unicode(brightness) + u"\" for device \"%s\" is outside the acceptible range of 0 to 100." % (device.name)
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
@@ -8675,7 +8719,7 @@ class Plugin(indigo.PluginBase):
 						self.lastErrorMessage = errorText
 						return
 					except IndexError:
-						errorText = u"The brightness source variable (ID " + str(brightnessVariable) + u") does not exist in the Indigo database."
+						errorText = u"The brightness source variable (ID " + unicode(brightnessVariable) + u") does not exist in the Indigo database."
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
@@ -8683,7 +8727,7 @@ class Plugin(indigo.PluginBase):
 					
 					# Make sure the brightness specified in the variable is sane.
 					if brightness < 0 or brightness > 100:
-						errorText = u"Brightness value \"" + str(brightness) + u"\" specified in variable \"" + indigo.variables[brightnessVariable].name + u"\" is outside the acceptible range of 0 to 100."
+						errorText = u"Brightness value \"" + unicode(brightness) + u"\" specified in variable \"" + indigo.variables[brightnessVariable].name + u"\" is outside the acceptible range of 0 to 100."
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
@@ -8704,7 +8748,7 @@ class Plugin(indigo.PluginBase):
 						self.lastErrorMessage = errorText
 						return
 					except IndexError:
-						errorText = u"The brightness source device (ID " + str(brightnessDevice) + u") does not exist in the Indigo database."
+						errorText = u"The brightness source device (ID " + unicode(brightnessDevice) + u") does not exist in the Indigo database."
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
@@ -8728,18 +8772,18 @@ class Plugin(indigo.PluginBase):
 			try:
 				rampRate = float(rampRate)
 				if rampRate < 0 or rampRate > 540:
-					errorText = u"Ramp rate value " + str(rampRate) + u"\" is outside the acceptible range of 0 to 540."
+					errorText = u"Ramp rate value " + unicode(rampRate) + u"\" is outside the acceptible range of 0 to 540."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 					return None
 			except ValueError:
-				errorText = u"Ramp rate value \"" + str(rampRate) + u"\" is an invalid value. Ramp rate values can only contain numbers."
+				errorText = u"Ramp rate value \"" + unicode(rampRate) + u"\" is an invalid value. Ramp rate values can only contain numbers."
 				self.errorLog(errorText)
 				# Remember the error.
 				self.lastErrorMessage = errorText
 				return None
-			self.debugLog(u"Rate: " + str(rampRate))
+			self.debugLog(u"Rate: " + unicode(rampRate))
 		
 		else:
 			# We're using a ramp rate variable.
@@ -8757,24 +8801,24 @@ class Plugin(indigo.PluginBase):
 					rampRate = rateVar.value
 					rampRate = float(rampRate)
 					if rampRate < 0 or rampRate > 540:
-						errorText = u"Ramp rate value \"" + str(rampRate) + u"\" found in variable \"" + rateVar.name + u"\" is outside the acceptible range of 0 to 540."
+						errorText = u"Ramp rate value \"" + unicode(rampRate) + u"\" found in variable \"" + rateVar.name + u"\" is outside the acceptible range of 0 to 540."
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
 						return
 				except ValueError:
-					errorText = u"Ramp rate value \"" + str(rampRate) + u"\" found in variable \"" + rateVar.name + u"\" is an invalid value. Ramp rate values can only contain numbers."
+					errorText = u"Ramp rate value \"" + unicode(rampRate) + u"\" found in variable \"" + rateVar.name + u"\" is an invalid value. Ramp rate values can only contain numbers."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 					return
 				except IndexError:
-					errorText = u"The specified variable (ID " + str(brightnessVarId) + u") does not exist in the Indigo database."
+					errorText = u"The specified variable (ID " + unicode(brightnessVarId) + u") does not exist in the Indigo database."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 					return
-			self.debugLog(u"Rate: " + str(rampRate))
+			self.debugLog(u"Rate: " + unicode(rampRate))
 		
 		# Configure presets
 		if preset == "concentrate":
@@ -8802,7 +8846,7 @@ class Plugin(indigo.PluginBase):
 	# Set Single Alert Action
 	########################################
 	def alertOnce(self, action, device):
-		self.debugLog(u"alertOnce: device: " + device.name + u", action:\n" + str(action))
+		self.debugLog(u"alertOnce: device: " + device.name + u", action:\n" + unicode(action))
 		
 		# Act based on device type.
 		if device.deviceTypeId == "hueGroup":
@@ -8829,7 +8873,7 @@ class Plugin(indigo.PluginBase):
 	# Set Long Alert Action
 	########################################
 	def longAlert(self, action, device):
-		self.debugLog(u"longAlert: device: " + device.name + u", action:\n" + str(action))
+		self.debugLog(u"longAlert: device: " + device.name + u", action:\n" + unicode(action))
 		
 		# Act based on device type.
 		if device.deviceTypeId == "hueGroup":
@@ -8856,7 +8900,7 @@ class Plugin(indigo.PluginBase):
 	# Stop Alert Action
 	########################################
 	def stopAlert(self, action, device):
-		self.debugLog(u"stopAlert: device: " + device.name + u", action:\n" + str(action))
+		self.debugLog(u"stopAlert: device: " + device.name + u", action:\n" + unicode(action))
 		
 		# Act based on device type.
 		if device.deviceTypeId == "hueGroup":
@@ -8883,7 +8927,7 @@ class Plugin(indigo.PluginBase):
 	# Set Effect Action
 	########################################
 	def effect(self, action, device):
-		self.debugLog(u"effect: device: " + device.name + u", action:\n" + str(action))
+		self.debugLog(u"effect: device: " + device.name + u", action:\n" + unicode(action))
 		
 		# Act based on device type.
 		if device.deviceTypeId == "hueGroup":
@@ -8918,7 +8962,7 @@ class Plugin(indigo.PluginBase):
 	# Save Preset Action
 	########################################
 	def savePreset(self, action, device):
-		self.debugLog(u"Starting savePreset. action values:\n" + str(action) + u"\nDevice/Type ID:\n" + str(device) + "\n")
+		self.debugLog(u"Starting savePreset. action values:\n" + unicode(action) + u"\nDevice/Type ID:\n" + unicode(device) + "\n")
 		errorsDict = indigo.Dict()
 		errorsDict['showAlertText'] = u""
 		actionType = "action"
@@ -8973,7 +9017,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['rate']
 					return (False, action, errorsDict)
 				except Exception, e:
-					errorsDict['rate'] = u"Invalid Ramp Rate value: " + str(e)
+					errorsDict['rate'] = u"Invalid Ramp Rate value: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['rate']
 					return (False, action, errorsDict)
 		else:
@@ -9028,19 +9072,19 @@ class Plugin(indigo.PluginBase):
 			try:
 				rampRate = float(rampRate)
 				if (rampRate < 0) or (rampRate > 540):
-					errorText = u"Ramp Rate must be a number between 0 and 540 seconds and can be in increments of 0.1 seconds. Value \"" + str(rampRate) + u"\" ignored."
+					errorText = u"Ramp Rate must be a number between 0 and 540 seconds and can be in increments of 0.1 seconds. Value \"" + unicode(rampRate) + u"\" ignored."
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 					rampRate = -1
 			except ValueError:
-				errorText = u"Ramp Rate must be a number between 0 and 540 seconds and can be in increments of 0.1 seconds. Value \"" + str(rampRate) + u"\" ignored."
+				errorText = u"Ramp Rate must be a number between 0 and 540 seconds and can be in increments of 0.1 seconds. Value \"" + unicode(rampRate) + u"\" ignored."
 				self.errorLog(errorText)
 				# Remember the error.
 				self.lastErrorMessage = errorText
 				rampRate = -1
 			except Exception, e:
-				errorText = u"Invalid Ramp Rate value \"" + str(rampRate) + u"\". Error was: " + str(e)
+				errorText = u"Invalid Ramp Rate value \"" + unicode(rampRate) + u"\". Error was: " + unicode(e)
 				self.errorLog(errorText)
 				# Remember the error.
 				self.lastErrorMessage = errorText
@@ -9056,9 +9100,9 @@ class Plugin(indigo.PluginBase):
 		
 		# Log the action.
 		if rampRate == -1:
-			indigo.server.log(u"\"" + device.name + u"\" states saved to Preset " + str(presetId + 1) + u" (" + presetName + u")")
+			indigo.server.log(u"\"" + device.name + u"\" states saved to Preset " + unicode(presetId + 1) + u" (" + presetName + u")")
 		else:
-			indigo.server.log(u"\"" + device.name + u"\" states saved to Preset " + str(presetId + 1) + u" (" + presetName + u") with ramp rate " + str(rampRate) + u" sec.")
+			indigo.server.log(u"\"" + device.name + u"\" states saved to Preset " + unicode(presetId + 1) + u" (" + presetName + u") with ramp rate " + unicode(rampRate) + u" sec.")
 			
 		# Return a tuple if this is a menu item action.
 		if actionType == "menu":
@@ -9067,7 +9111,7 @@ class Plugin(indigo.PluginBase):
 	# Recall Preset Action
 	########################################
 	def recallPreset(self, action, device):
-		self.debugLog(u"Starting recallPreset. action values:\n" + str(action) + u"\nDevice/Type ID:\n" + str(device) + u"\n")
+		self.debugLog(u"Starting recallPreset. action values:\n" + unicode(action) + u"\nDevice/Type ID:\n" + unicode(device) + u"\n")
 		errorsDict = indigo.Dict()
 		errorsDict['showAlertText'] = u""
 		actionType = "action"
@@ -9124,7 +9168,7 @@ class Plugin(indigo.PluginBase):
 					errorsDict['showAlertText'] += errorsDict['rate']
 					return (False, action, errorsDict)
 				except Exception, e:
-					errorsDict['rate'] = u"Invalid Ramp Rate value: " + str(e)
+					errorsDict['rate'] = u"Invalid Ramp Rate value: " + unicode(e)
 					errorsDict['showAlertText'] += errorsDict['rate']
 					return (False, action, errorsDict)
 		else:
@@ -9176,7 +9220,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['presetId']
 				return (False, action, errorsDict)
 			else:
-				errorText = u"Preset " + str(presetId + 1) + u" (" + presetName + u") is empty. The \"" + device.name + u"\" device was not chnaged."
+				errorText = u"Preset " + unicode(presetId + 1) + u" (" + presetName + u") is empty. The \"" + device.name + u"\" device was not chnaged."
 				self.errorLog(errorText)
 				# Remember the error.
 				self.lastErrorMessage = errorText
@@ -9272,9 +9316,9 @@ class Plugin(indigo.PluginBase):
 			
 		# Log the action.
 		if rampRate == -1:
-			indigo.server.log(u"\"" + device.name + u"\" states set to Preset " + str(presetId + 1) + u" (" + presetName + u")")
+			indigo.server.log(u"\"" + device.name + u"\" states set to Preset " + unicode(presetId + 1) + u" (" + presetName + u")")
 		else:
-			indigo.server.log(u"\"" + device.name + u"\" states set to Preset " + str(presetId + 1) + u" (" + presetName + u") at ramp rate " + str(rampRate) + u" sec.")
+			indigo.server.log(u"\"" + device.name + u"\" states set to Preset " + unicode(presetId + 1) + u" (" + presetName + u") at ramp rate " + unicode(rampRate) + u" sec.")
 
 		# Return a tuple if this is a menu item action.
 		if actionType == "menu":
@@ -9283,7 +9327,7 @@ class Plugin(indigo.PluginBase):
 	# Display Preset Menu Action
 	########################################
 	def displayPreset(self, valuesDict, typeId):
-		self.debugLog(u"Starting displayPreset. action values:\n" + str(valuesDict) + u"\nType ID:\n" + str(typeId) + "\n")
+		self.debugLog(u"Starting displayPreset. action values:\n" + unicode(valuesDict) + u"\nType ID:\n" + unicode(typeId) + "\n")
 		errorsDict = indigo.Dict()
 		errorsDict['showAlertText'] = u""
 		
@@ -9321,10 +9365,10 @@ class Plugin(indigo.PluginBase):
 			return (False, valuesDict, errorsDict)
 		
 		# Display the Preset data in the Indigo log.
-		logRampRate = str(presetRate) + u" sec."
+		logRampRate = unicode(presetRate) + u" sec."
 		if presetRate == -1:
 			logRampRate = u"(none specified)"
-		indigo.server.log(u"Displaying Preset " + str(presetId + 1) + u" (" + presetName + u") stored data:\nRamp Rate: " + logRampRate + u"\n" + str(presetData))
+		indigo.server.log(u"Displaying Preset " + unicode(presetId + 1) + u" (" + presetName + u") stored data:\nRamp Rate: " + logRampRate + u"\n" + unicode(presetData))
 
 		# Return a tuple to dismiss the menu item dialog.
 		return (True, valuesDict)
@@ -9332,7 +9376,7 @@ class Plugin(indigo.PluginBase):
 	# Recall Hue Scene Action
 	########################################
 	def recallScene(self, action, device):
-		self.debugLog(u"Starting recallScene. action values:\n" + str(action) + u"\nDevice/Type ID:\n" + str(device) + u"\n")
+		self.debugLog(u"Starting recallScene. action values:\n" + unicode(action) + u"\nDevice/Type ID:\n" + unicode(device) + u"\n")
 		errorsDict = indigo.Dict()
 		errorsDict['showAlertText'] = u""
 		actionType = "action"

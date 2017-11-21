@@ -1,6 +1,38 @@
 HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
 ========================================
 
+1.6.10
+* Added support for all the latest Philips Hue light models listed in Hue API.
+--
+1.6.9
+* Fixed various Unicode decoding issues that could cause the plugin to crash if Hue hub scenes or other objects contained non-ASCII characters.
+* Added support for the Innr RS-128T GU10 color temperature lights.
+--
+1.6.8
+* Added support for another IKEA dimmable light model.
+--
+1.6.7
+* Added support for another Hue GU10 bulb model (LTW015).
+* Added support for minimum and maximum color temperature ranges of color temperature lights in Indigo 7.1.
+--
+1.6.6
+* Added support for the Osram Classic A60 RGBW color bulb.
+* Added support for the Osram PAR16 50 TW color temperature bulb.
+* Added support for the Osram Flex RGBW light strip.
+* Updated the supported features of the Osram Classic A60 TW color temperature bulb to correctly reflect its color temperature support.
+--
+1.6.5
+* Added support for the IKEA dimmable light identified by “TRADFRI bulb E27 opal 1000lm” when paired to the Hue hub.
+--
+1.6.4
+* Fixed incorrect Hue Motion Sensor light level calculations.  The correct lux value is now shown for the light sensor on the Hue Motion Sensor.
+--
+1.6.3
+* Fixed a bug that caused the plugin to crash if a Hue Group had no brightness value.
+--
+1.6.2
+* Fixed a rare bug that caused an error when updating the status of the Hue Motion Sensor luminance setting after the Hue hub became unreachable, then became reachable again.
+--
 1.6.1
 * Fixed a bug that caused an error when clicking the Send Status Request button in the Indigo UI for Hue Motion Sensor devices.
 * Added support for another Hue Ambiance bulb (model ID LTC001).

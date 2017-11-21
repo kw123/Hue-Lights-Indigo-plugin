@@ -1,4 +1,4 @@
-Hue Lights 1.6.1
+Hue Lights 1.6.10
 
 (FREE Indigo 7 plugin)
 
