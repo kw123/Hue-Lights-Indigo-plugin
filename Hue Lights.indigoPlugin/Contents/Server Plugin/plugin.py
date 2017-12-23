@@ -14,7 +14,7 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.6.10
+#	Version 1.6.11
 #
 #	See the "VERSION_HISTORY.txt" file in the same location as this plugin.py
 #	file for a complete version change history.
@@ -78,6 +78,7 @@ class Plugin(indigo.PluginBase):
 		self.usersListSelection = ""	# String. The Hue whilelist user ID selected in action UIs.
 		self.sceneListSelection = ""	# String. The Hue scene ID selected in action UIs.
 		self.groupListSelection = ""	# String. The Hue group ID selected in action UIs.
+		self.maxPresetCount = int(pluginPrefs.get('maxPresetCount', "30"))	# Integer. The maximum number of Presets to use and store.
 		# Load the update checker module.
 		self.updater = indigoPluginUpdateChecker.updateChecker(self, 'http://www.nathansheldon.com/files/PluginVersions/Hue-Lights.html')
 	
@@ -96,34 +97,37 @@ class Plugin(indigo.PluginBase):
 		
 		# Prior to version 1.2.0, the "presets" property did not exist in the plugin preferences.
 		#   If that property does not exist, add it.
-		# As of version 1.2.6, there are now 30 presets instead of 10.
+		# As of version 1.2.6, there were 30 presets instead of 10.
+		# As of 1.6.11, the maximum number of presets is now a global variable that can be changed later.
 		if not self.pluginPrefs.get('presets', False):
 			self.debugLog(u"pluginPrefs lacks presets.  Adding.")
 			# Add the empty presets list to the prefs.
 			self.pluginPrefs['presets'] = list()
 			# Start a new list of empty presets.
 			presets = list()
-			for aNumber in range(1,31):
+			for aNumber in range(1,self.maxPresetCount + 1):
 				# Create a blank sub-list for storing preset name and preset states.
 				preset = list()
 				# Add the preset name.
-				preset.append('Preset ' + unicode(aNumber))
+				preset.append(u"Preset " + unicode(aNumber))
 				# Add the empty preset states Indigo dictionary
 				preset.append(indigo.Dict())
 				# Add the sub-list to the empty presets list.
 				presets.append(preset)
 			# Add the new list of empty presets to the prefs.
 			self.pluginPrefs['presets'] = presets
-			self.debugLog(u"pluginPrefs now contains 30 presets.")
-		# If presets exist, make sure there are 30 of them.
+			self.debugLog(u"pluginPrefs now contains " + unicode(self.maxPresetCount) + u" Presets.")
+		# If presets exist, make sure there are the correct number of them.
 		else:
 			presets = self.pluginPrefs.get('presets', "")
 			presetCount = len(presets)
 			self.debugLog(u"pluginPrefs contains " + unicode(presetCount) + u" presets.")
-			if presetCount < 30:
-				self.debugLog(u"... Adding " + unicode(30 - presetCount) + u" presets to bring total to 30.")
-				for aNumber in range(presetCount + 1,31):
-					# Add ever how many presets are needed to make a total of 30.
+			# If there are fewer Presets in the prefs than the maxPresetCount, add the reset.
+			if presetCount < self.maxPresetCount:
+				indigo.server.log(u"Preset Memories number increased to " + unicode(self.maxPresetCount) + u".")
+				self.debugLog(u"... Adding " + unicode(self.maxPresetCount - presetCount) + u" presets to bring total to " + unicode(self.maxPresetCount) + u".")
+				for aNumber in range(presetCount + 1,self.maxPresetCount + 1):
+					# Add ever how many presets are needed to make a total of the maximum presets allowed.
 					# Create a blank sub-list for storing preset name and preset states.
 					preset = list()
 					# Add the preset name.
@@ -132,9 +136,40 @@ class Plugin(indigo.PluginBase):
 					preset.append(indigo.Dict())
 					# Add the sub-list to the empty presets list.
 					presets.append(preset)
-				# Add the new list of empty presets to the prefs.
+				# Replace the list of Presets in the prefs with the new list.
 				self.pluginPrefs['presets'] = presets
-				self.debugLog(u"pluginPrefs now contains 30 presets.")
+				indigo.server.log(u"... " + unicode(self.maxPresetCount - presetCount) + u" Presets added.  There are now " + unicode(self.maxPresetCount) + u" Presets.")
+			# If there are more presets than are allowed by maxPresetCount, remove the extra Presets.
+			elif presetCount > self.maxPresetCount:
+				self.debugLog(u"... Deleting the last " + unicode(presetCount - self.maxPresetCount) + u" Presets to bring the total to " + unicode(self.maxPresetCount) + u".")
+				indigo.server.log(u"WARNING:  You've decreased the number of Preset Memories, so we're deleting the last " + unicode(presetCount - self.maxPresetCount) + u" Presets to bring the total to " + unicode(self.maxPresetCount) + u".  This cannot be undone.")
+				for aNumber in range(presetCount - 1,self.maxPresetCount - 1,-1):
+					# Remove every Preset after the maxPresetCount limit, starting from the last Preset and moving backward up the list of Presets.
+					# If this Preset has data in it, log it in the Indigo log before deleting it.
+					preset = presets[aNumber]
+					presetName = preset[0]
+					presetData = preset[1]
+					if len(presetData) > 0:
+						# Preset has data in it.
+						try:
+							# Prior to version 1.2.4, this key did not exist in the presets.
+							presetRate = self.pluginPrefs['presets'][presetId][2]
+							# Round the saved preset ramp rate to the nearest 10th.
+							presetRate = round(presetRate, 1)
+						except Exception, e:
+							# Key probably doesn't exist. Proceed as if no rate was saved.
+							presetRate = -1
+							pass
+						
+						# Display the Preset data in the Indigo log.
+						logRampRate = unicode(presetRate) + u" sec."
+						if presetRate == -1:
+							logRampRate = u"(none specified)"
+						indigo.server.log(u"... Preset " + unicode(aNumber + 1) + u" (" + presetName + u") has data. The following data will be deleted:\nRamp Rate: " + logRampRate + u"\n" + unicode(presetData))
+					# Now delete the Preset.
+					del presets[aNumber]
+					indigo.server.log(u"... Preset " + unicode(aNumber + 1) + u" deleted.")
+					
 		self.debugLog(u"pluginPrefs are:\n" + unicode(self.pluginPrefs))
 
 		# Do we have a unique Hue username (a.k.a. key or host ID)?
@@ -2221,15 +2256,17 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def validatePrefsConfigUi(self, valuesDict):
 		self.debugLog(u"Starting validatePrefsConfigUi.")
-		self.debugLog(u"Values passed:\n%s" % valuesDict)
+		self.debugLog(u"validatePrefsConfigUi: Values passed:\n" + unicode(valuesDict))
 		isError = False
 		errorsDict = indigo.Dict()
 		errorsDict['showAlertText'] = ""
 		
+		maxPresetCount = valuesDict.get('maxPresetCount', "")
+		
 		# Validate the IP Address field.
 		if valuesDict.get('address', "") == "":
 			# The field was left blank.
-			self.debugLog(u"IP address \"%s\" is blank." % valuesDict['address'])
+			self.debugLog(u"validatePrefsConfigUi: IP address \"%s\" is blank." % valuesDict['address'])
 			isError = True
 			errorsDict['address'] = u"The IP Address field is blank. Please enter an IP Address for the Hue hub."
 			errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
@@ -2238,65 +2275,78 @@ class Plugin(indigo.PluginBase):
 			# The field wasn't blank. Check to see if the format is valid.
 			try:
 				# Try to format the IP Address as a 32-bit binary value. If this fails, the format was invalid.
-				self.debugLog(u"Validating IP address \"%s\"." % valuesDict['address'])
+				self.debugLog(u"validatePrefsConfigUi: Validating IP address \"%s\"." % valuesDict['address'])
 				socket.inet_aton(valuesDict['address'])
 			
 			except socket.error:
 				# IP Address format was invalid.
-				self.debugLog(u"IP address format is invalid.")
+				self.debugLog(u"validatePrefsConfigUi: IP address format is invalid.")
 				isError = True
 				errorsDict['address'] = u"The IP Address is not valid. Please enter a valid IP address."
 				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
+		
+		if maxPresetCount == "":
+			# The field was left blank.
+			self.debugLog(u"validatePrefsConfigUi: maxPresetCount was left blank. Setting value to 30.")
+			maxPresetCount = "30"
+			valuesDict['maxPresetCount'] = maxPresetCount
+		else:
+			# Make sure this is a valid number.
+			try:
+				maxPresetCount = int(maxPresetCount)
+				if maxPresetCount < 1 or maxPresetCount > 100:
+					isError = True
+					errorsDict['maxPresetCount'] = u"Preset Memories must be a number between 1 and 100."
+					errorsDict['showAlertText'] += errorsDict['maxPresetCount'] + "\n\n"
+			except ValueError:
+				isError = True
+				errorsDict['maxPresetCount'] = u"The Preset Memories must be a number between 1 and 100."
+				errorsDict['showAlertText'] += errorsDict['maxPresetCount'] + "\n\n"
+			except Exception, e:
+				isError = True
+				errorsDict['maxPresetCount'] = u"The Preset Memories must be a number between 1 and 100. Error: " + unicode(e)
+				errorsDict['showAlertText'] += errorsDict['maxPresetCount'] + "\n\n"
 		
 		# If there haven't been any errors so far, try to connect to the Hue hub to see
 		#   if it's actually a Hue hub.
 		if not isError:
 			try:
-				self.debugLog(u"Verifying that a Hue hub exists at IP address \"%s\"." %valuesDict['address'])
+				self.debugLog(u"validatePrefsConfigUi: Verifying that a Hue hub exists at IP address \"%s\"." %valuesDict['address'])
 				command = "http://%s/description.xml" % valuesDict['address']
-				self.debugLog(u"Accessing URL: %s" % command)
+				self.debugLog(u"validatePrefsConfigUi: Accessing URL: %s" % command)
 				r = requests.get(command, timeout=kTimeout)
-				self.debugLog(u"Got response:\n%s" % r.content)
+				self.debugLog(u"validatePrefsConfigUi: Got response:\n%s" % r.content)
 				
 				# Quick and dirty check to see if this is a Philips Hue hub.
 				if "Philips hue bridge" not in r.content:
 					# If "Philips hue bridge" doesn't exist in the response, it's not a Hue hub.
-					self.debugLog(u"No \"Philips hue bridge\" string found in response. This isn't a Hue hub.")
+					self.debugLog(u"validatePrefsConfigUi: No \"Philips hue bridge\" string found in response. This isn't a Hue hub.")
 					isError = True
 					errorsDict['address'] = u"This doesn't appear to be a Philips Hue hub.  Please verify the IP address."
 					errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 				
 				else:
 					# This is likely a Hue hub.
-					self.debugLog(u"Verified that this is a Hue hub.")
+					self.debugLog(u"validatePrefsConfigUi: Verified that this is a Hue hub.")
 					
 			except requests.exceptions.Timeout:
-				self.debugLog(u"Connection to %s timed out after %i seconds." % (valuesDict['address'], kTimeout))
+				self.debugLog(u"validatePrefsConfigUi: Connection to %s timed out after %i seconds." % (valuesDict['address'], kTimeout))
 				isError = True
 				errorsDict['address'] = u"Unable to reach the hub. Please check the IP address and ensure that the Indigo server and Hue hub are connected to the network."
 				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 			
 			except requests.exceptions.ConnectionError:
-				self.debugLog(u"Connection to %s failed. There was a connection error." % valuesDict['address'])
+				self.debugLog(u"validatePrefsConfigUi: Connection to %s failed. There was a connection error." % valuesDict['address'])
 				isError = True
 				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue hub are connected to the network."
 				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 				
 			except Exception, e:
-				self.debugLog(u"Connection error. " + unicode(e))
+				self.debugLog(u"validatePrefsConfigUi: Connection error. " + unicode(e))
 				isError = True
 				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue hub are connected to the network."
 				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 
-		# Because the hostId (a.k.a. username or key) used to authenticate to the Hue hub
-		#   is assigned when the "Pair Now" button is clicked, before the prefs dialog is
-		#   saved, we're setting the hostId value returend from the UI (which is old)
-		#   to the (more recently updated) plugin preferences version of the hostId value.
-		#if self.hostId is not None and valuesDict.get('hostId', "") != self.hostId:
-		#	self.debugLog(u"Existing Hue username \"%s\" already in prefs. and different from submitted value." % self.hostId)
-		#	valuesDict['hostId'] = self.hostId
-		#	self.debugLog(u"valuesDict['hostId'] now set to existing prefs value. Updated values being sent to plugin:\n%s" % valuesDict)
-		
 		# Return an error if one exists.
 		if isError:
 			errorsDict['showAlertText'] = errorsDict['showAlertText'].strip()
@@ -2307,12 +2357,69 @@ class Plugin(indigo.PluginBase):
 	# Plugin Configuration Dialog Closed
 	########################################
 	def closedPrefsConfigUi(self, valuesDict, userCancelled):
-		self.debugLog(u"Starting closedPrefsConfigUi.")
+		self.debugLog(u"closedPrefsConfigUi: Starting closedPrefsConfigUi.")
 		
 		# If the user didn't cancel the changes, take any needed actions as a result of the changes made.
 		if not userCancelled:
 			# Configuration was saved.
 			
+			# If the number of Preset Memories was changed, add or remove Presets as needed.
+			self.maxPresetCount = int(valuesDict.get('maxPresetCount', "30"))
+			presets = self.pluginPrefs.get('presets', "")
+			presetCount = len(presets)
+			self.debugLog(u"closedPrefsConfigUi: pluginPrefs contains " + unicode(presetCount) + u" presets.")
+			# If there are fewer Presets in the prefs than the maxPresetCount, add the reset.
+			if presetCount < self.maxPresetCount:
+				indigo.server.log(u"Preset Memories number increased to " + unicode(self.maxPresetCount) + u".")
+				self.debugLog(u"closedPrefsConfigUi: ... Adding " + unicode(self.maxPresetCount - presetCount) + u" presets to bring total to " + unicode(self.maxPresetCount) + u".")
+				for aNumber in range(presetCount + 1,self.maxPresetCount + 1):
+					# Add ever how many presets are needed to make a total of the maximum presets allowed.
+					# Create a blank sub-list for storing preset name and preset states.
+					preset = list()
+					# Add the preset name.
+					preset.append('Preset ' + unicode(aNumber))
+					# Add the empty preset states Indigo dictionary
+					preset.append(indigo.Dict())
+					# Add the sub-list to the empty presets list.
+					presets.append(preset)
+				# Replace the list of Presets in the prefs with the new list.
+				self.pluginPrefs['presets'] = presets
+				indigo.server.log(u"... " + unicode(self.maxPresetCount - presetCount) + u" Presets added.  There are now " + unicode(self.maxPresetCount) + u" Presets.")
+			# If there are more presets than are allowed by maxPresetCount, remove the extra Presets.
+			elif presetCount > self.maxPresetCount:
+				self.debugLog(u"closedPrefsConfigUi: ... Deleting the last " + unicode(presetCount - self.maxPresetCount) + u" Presets to bring the total to " + unicode(self.maxPresetCount) + u".")
+				indigo.server.log(u"WARNING:  You've decreased the number of Preset Memories, so we're deleting the last " + unicode(presetCount - self.maxPresetCount) + u" Presets to bring the total to " + unicode(self.maxPresetCount) + u".  This cannot be undone.")
+				for aNumber in range(presetCount - 1,self.maxPresetCount - 1,-1):
+					# Remove every Preset after the maxPresetCount limit, starting from the last Preset and moving backward up the list of Presets.
+					# If this Preset has data in it, log it in the Indigo log before deleting it.
+					preset = presets[aNumber]
+					presetName = preset[0]
+					presetData = preset[1]
+					if len(presetData) > 0:
+						# Preset has data in it.
+						try:
+							# Prior to version 1.2.4, this key did not exist in the presets.
+							presetRate = self.pluginPrefs['presets'][presetId][2]
+							# Round the saved preset ramp rate to the nearest 10th.
+							presetRate = round(presetRate, 1)
+						except Exception, e:
+							# Key probably doesn't exist. Proceed as if no rate was saved.
+							presetRate = -1
+							pass
+						
+						# Display the Preset data in the Indigo log.
+						logRampRate = unicode(presetRate) + u" sec."
+						if presetRate == -1:
+							logRampRate = u"(none specified)"
+						indigo.server.log(u"... Preset " + unicode(aNumber + 1) + u" (" + presetName + u") has data. The following data will be deleted:\nRamp Rate: " + logRampRate + u"\n" + unicode(presetData))
+					# Now delete the Preset.
+					del presets[aNumber]
+					indigo.server.log(u"... Preset " + unicode(aNumber + 1) + u" deleted.")
+
+				# Replace the list of Presets in the prefs with the new list.
+				self.pluginPrefs['presets'] = presets
+				self.debugLog(u"closedPrefsConfigUi: pluginPrefs now contains " + unicode(self.maxPresetCount) + u" Presets.")
+
 			# Update debug logging state.
 			self.debug = valuesDict.get('showDebugInfo', False)
 			# Make a note of what changed in the Indigo log.
@@ -4240,15 +4347,15 @@ class Plugin(indigo.PluginBase):
 				
 			for preset in presets:
 				# Determine whether the Preset has saved data or not.
-				hasData = ""
+				hasData = u""
 				if len(presets[presetNumber][1]) > 0:
-					hasData = "*"
+					hasData = u"*"
 					
 				presetNumber += 1
 				presetName = preset[0]
-				theList.append((presetNumber, hasData + unicode(presetNumber) + ": " + presetName))
+				theList.append((presetNumber, hasData + unicode(presetNumber) + u": " + unicode(presetName)))
 		else:
-			theList.append((0, "-- no presets --"))
+			theList.append((0, u"-- no presets --"))
 			
 		return theList
 		
@@ -9193,10 +9300,26 @@ class Plugin(indigo.PluginBase):
 			# Remember the error.
 			self.lastErrorMessage = errorText
 			return
-			
+		
+		# Sanity check on preset ID.
+		try:
+			preset = self.pluginPrefs['presets'][presetId]
+		except IndexError:
+			errorText = u"Preset number " + unicode(presetId + 1) + u" does not exist. Please select a Preset that exists."
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
+		except Exception, e:
+			errorText = u"Preset number " + unicode(presetId + 1) + u" couldn't be recalled. The error was \"" + unicode(e) + u"\""
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
+
 		# Get the data from the preset in the plugin prefs.
-		presetName = self.pluginPrefs['presets'][presetId][0]
-		presetData = self.pluginPrefs['presets'][presetId][1]
+		presetName = preset[0]
+		presetData = preset[1]
 		try:
 			# Prior to version 1.2.4, this key did not exist in the presets.
 			presetRate = self.pluginPrefs['presets'][presetId][2]

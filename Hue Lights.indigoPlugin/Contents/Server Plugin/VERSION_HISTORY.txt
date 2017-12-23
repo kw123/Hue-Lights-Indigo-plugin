@@ -1,6 +1,10 @@
 HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
 ========================================
 
+1.6.11
+* Added the ability to set the total number of Presets from within the Hue Lights plugin configuration window.
+* Added custom plugin icon to plugin bundle.
+--
 1.6.10
 * Added support for all the latest Philips Hue light models listed in Hue API.
 --

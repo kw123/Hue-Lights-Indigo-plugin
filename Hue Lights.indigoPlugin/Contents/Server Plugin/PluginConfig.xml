@@ -25,6 +25,17 @@
 		<Title>Pair Now</Title>
 		<CallbackMethod>restartPairing</CallbackMethod>
     </Field>
+	<Field id="sep00" type="separator"/>
+	<Field id="maxPresetCount" type="textfield"
+		tooltip="Enter how many Preset memories you'd like Hue Lights to keep saved (a number from 1 to 100). See warning below.">
+		<Label>Preset Memories:</Label>
+	</Field>
+	<Field id="maxPresetCountLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+		<Label>Enter how many Preset memories you'd like Hue Lights to keep saved (a number from 1 to 100). See warning below.</Label>
+	</Field>
+	<Field id="noticeLabel0" type="label" fontSize="small" fontColor="darkgray">
+		<Label>WARNING: Lowering the Preset Memories number will cause the highest Preset memory spaces to be permanently deleted. All actions that reference deleted Presets will result in Indigo errors when attempting to recall those Presets. Don't lower the number unless you're sure nothing uses the Presets that will be deleted.</Label>
+	</Field>
 	<Field id="sep0" type="separator"/>
 	<Field id="updaterEmailsEnabled" type="checkbox" defaultValue="true"
 		tooltip="If you'd like to be notified via email when new versions of the Hue Lights plugin become available, enable this option.">
