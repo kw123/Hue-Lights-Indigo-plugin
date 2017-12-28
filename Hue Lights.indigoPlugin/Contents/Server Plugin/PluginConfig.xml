@@ -4,13 +4,15 @@
 	<Field id="title" type="label" alignText="center" fontColor="blue">
 		<Label>Hue Lights Configuration</Label>
 	</Field>
-	<Field id="address" type="textfield" defaultValue="">
+	<Field id="address" type="textfield" defaultValue=""
+		tooltip="IP address of the Hue hub (e.g. 192.168.1.15. If the Hub is given a different IP address by your router later on, you'll need to enter the new address here each time it changes.">
 		<Label>IP Address:</Label>
 	</Field>
 	<Field id="labelAddress" type="label" alignWithControl="true" fontColor="darkgray" fontSize="small">
 		<Label>IP address of Hue hub (e.g. 192.168.1.15)</Label>
 	</Field>
-	<Field id="hostId" type="textfield" defaultValue="" readonly="true">
+	<Field id="hostId" type="textfield" defaultValue="" readonly="true"
+		tooltip="(read-only). Generated host ID assigned by the Hue hub to Hue Lights plugin. Provided here for troubleshooting purposes only.">
 		<Label>Host ID:</Label>
 	</Field>
 	<Field id="labelHostId" type="label" alignWithControl="true" fontColor="darkgray" fontSize="small">
@@ -23,14 +25,27 @@
 		<Title>Pair Now</Title>
 		<CallbackMethod>restartPairing</CallbackMethod>
     </Field>
+	<Field id="sep00" type="separator"/>
+	<Field id="maxPresetCount" type="textfield"
+		tooltip="Enter how many Preset memories you'd like Hue Lights to keep saved (a number from 1 to 100). See warning below.">
+		<Label>Preset Memories:</Label>
+	</Field>
+	<Field id="maxPresetCountLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+		<Label>Enter how many Preset memories you'd like Hue Lights to keep saved (a number from 1 to 100). See warning below.</Label>
+	</Field>
+	<Field id="noticeLabel0" type="label" fontSize="small" fontColor="darkgray">
+		<Label>WARNING: Lowering the Preset Memories number will cause the highest Preset memory spaces to be permanently deleted. All actions that reference deleted Presets will result in Indigo errors when attempting to recall those Presets. Don't lower the number unless you're sure nothing uses the Presets that will be deleted.</Label>
+	</Field>
 	<Field id="sep0" type="separator"/>
-	<Field id="updaterEmailsEnabled" type="checkbox" defaultValue="true">
+	<Field id="updaterEmailsEnabled" type="checkbox" defaultValue="true"
+		tooltip="If you'd like to be notified via email when new versions of the Hue Lights plugin become available, enable this option.">
 		<Label>Enable Plugin Update Notifications:</Label>
 	</Field>
 	<Field id="noticeLabel" type="label" fontSize="small" fontColor="darkgray">
 		<Label>If you'd like to be notified via email when new versions of the Hue Lights plugin become available, enable this option.</Label>
 	</Field>
-	<Field id="updaterEmail" type="textfield" visibleBindingId="updaterEmailsEnabled" visibleBindingValue="true">
+	<Field id="updaterEmail" type="textfield" visibleBindingId="updaterEmailsEnabled" visibleBindingValue="true"
+		tooltip="Enter the email address at which you'd like to be notified of plugin version updates.">
 		<Label>Email Address:</Label>
 	</Field>
 	<Field id="emailLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray" visibleBindingId="updaterEmailsEnabled" visibleBindingValue="true">
@@ -41,7 +56,8 @@
 		<Label>If you are having problems with the plugin (or you are instructed by support), you can enable extra logging in the Event Log window by checking this button. Use with caution.
 		</Label>
 	</Field>
-	<Field id="showDebugInfo" type="checkbox">
+	<Field id="showDebugInfo" type="checkbox"
+		tooltip="Enable debug logging in the Indigo log to view low level Hue Lights activity or if required for technical support. WARNING: There will be a lot of data. Don't leave debug logging enabled for too long.">
 		<Label>Enable debugging:</Label>
 		<Description>(not recommended)</Description>
 	</Field>

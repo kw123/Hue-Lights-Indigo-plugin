@@ -1,22 +1,25 @@
 <?xml version="1.0"?>
 <Devices>
-    <!-- Bulb Device -->
+    <!-- Extended Color Device -->
 	<Device type="dimmer" id="hueBulb">
-		<Name>Hue Bulb (Original, Downlight, Spotlight, LightStrip Plus)</Name>
+		<Name>Hue Color/Ambiance (Original, Downlight, Spotlight, etc.)</Name>
 		<ConfigUI>
-			<Field id="bulbId" type="menu">
+			<Field id="bulbId" type="menu"
+				tooltip="Select a Hue light to control. This menu only shows lights that support both full color and color temperature (a.k.a. Ambiance) features, except for the LightStrips.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbListGenerator"/>
 			</Field>
-			<Field id="defaultBrightness" type="textfield">
+			<Field id="defaultBrightness" type="textfield"
+				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
 				<Label>Default Brightness:</Label>
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an "on" command is sent to this bulb.  If no value is entered, when an "on" command is sent, the bulb will return to the brightness it was at before being turned off.
+Optionally set a default brightness level used whenever an "on" command is sent to this light.  If no value is entered, when an "on" command is sent, the light will return to the brightness it was at before being turned off.
 </Label>
 			</Field>
-			<Field id="rate" type="textfield">
+			<Field id="rate" type="textfield"
+				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the light should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -27,18 +30,48 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 NOTE: Ramp Rates greater than 60 seconds when turning off a device will result in the device abruptly turning off after dimming for about 60 seconds. This is a bug in the Philips Hue system specific to the Hue bulb.  This does not affect Ramp Rates when turning on or changing brightness, only when turning a device off.
 </Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="nameOnHub" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="savedBrightness" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="modelId" type="textfield" hidden="true">
-				<Label/>
-			</Field>
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="savedBrightness" type="textfield" hidden="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="swVersion" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
+			<!-- By default dimmer type devices automatically inherit these
+			device properties which describe the characteristics of a specific
+			dimmer instance:
+
+				SupportsColor:								True or False
+				-> SupportsRGB:								True or False (requires SupportsColor to be True)
+				-> SupportsWhite:							True or False (requires SupportsColor to be True)
+				   -> SupportsTwoWhiteLevels:				True or False (requires SupportsWhite to be True)
+				   -> SupportsTwoWhiteLevelsSimultaneously:	True or False (requires SupportsTwoWhiteLevels to be True)
+				   -> SupportsWhiteTemperature:				True or False (requires SupportsWhite to be True)
+					  -> WhiteTemperatureMin				Integer (lower limit of usable white point temperature. e.g. 2000)
+					  -> WhiteTemperatureMax				Integer (upper limit of usable white point temperature. e.g. 6500)
+				   -> SupportsRGBandWhiteSimultaneously:	True or False (requires SupportsRGB and SupportsWhite to be True)
+			
+			Plugins can update these properties either in device ConfigUI
+			(like below), or can update them from python by using the
+			dev.replacePluginPropsOnServer() method, most likely inside your
+			deviceStartComm method. Both will trigger the Indigo Server to
+			automatically rebuild the device's states list based on the needed
+			changes.
+
+			Two white level fields (SupportsTwoWhiteLevels) is used by some hardware
+			to mix cool and warm white levels. Other hardware provides this capability
+			by using a white temperature value (SupportsWhiteTemperature). The two
+			techniques are mutually exlcusive, so choosing to enable two white levels
+			will override (and not show) the white temperature UI.
+			-->
+			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="WhiteTemperatureMin" type="textfield" hidden="true" defaultValue="2000" />
+			<Field id="WhiteTemperatureMax" type="textfield" hidden="true" defaultValue="6500" />
+			<Field id="SupportsRGBandWhiteSimultaneously" type="checkbox" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
 			<State id="hue">
@@ -103,15 +136,88 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 			</State>
 		</States>
 	</Device>
-    <!-- LightStrips Device -->
-	<Device type="dimmer" id="hueLightStrips">
-		<Name>LightStrips</Name>
+	<!-- Ambiance Device -->
+	<Device type="dimmer" id="hueAmbiance">
+		<Name>Ambiance Lights</Name>
 		<ConfigUI>
-			<Field id="bulbId" type="menu">
+			<Field id="bulbId" type="menu"
+				tooltip="Select a Hue light to control. This menu only shows color temperature (a.k.a. Ambiance) lights. Lights that also support full color will appear in the Hue Color/Ambiance device list.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbListGenerator"/>
 			</Field>
-			<Field id="defaultBrightness" type="textfield">
+			<Field id="defaultBrightness" type="textfield"
+				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
+				<Label>Default Brightness:</Label>
+			</Field>
+			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(1 - 100 percent)
+					Optionally set a default brightness level used whenever an "on" command is sent to this light. If no value is entered, when an "on" command is sent, the light will return to the brightness it was at before being turned off.
+				</Label>
+			</Field>
+			<Field id="rate" type="textfield"
+				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the light should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
+				<Label>Ramp Rate:</Label>
+			</Field>
+			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 540 seconds)
+					0 = instant.
+					Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+				</Label>
+			</Field>
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="savedBrightness" type="textfield" hidden="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="swVersion" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
+			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="WhiteTemperatureMin" type="textfield" hidden="true" defaultValue="2000" />
+			<Field id="WhiteTemperatureMax" type="textfield" hidden="true" defaultValue="6500" />
+		</ConfigUI>
+		<States>
+			<State id="colorTemp">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Color Temperature (K)</TriggerLabel>
+				<ControlPageLabel>Color Temperature (K)</ControlPageLabel>
+			</State>
+			<State id="colorMode">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Color Mode</TriggerLabel>
+				<ControlPageLabel>Color Mode</ControlPageLabel>
+			</State>
+			<State id="alertMode">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Alert Mode</TriggerLabel>
+				<ControlPageLabel>Alert Mode</ControlPageLabel>
+			</State>
+			<State id="effect">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Effect</TriggerLabel>
+				<ControlPageLabel>Effect</ControlPageLabel>
+			</State>
+			<State id="online">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Online</TriggerLabel>
+				<ControlPageLabel>Online</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+    <!-- LightStrips Device -->
+	<Device type="dimmer" id="hueLightStrips">
+		<Name>Hue LightStrips</Name>
+		<ConfigUI>
+			<Field id="bulbId" type="menu"
+				tooltip="Select a Hue light to control. This menu only shows Hue LightStrips.">
+				<Label>Hue Device:</Label>
+				<List class="self" method="bulbListGenerator"/>
+			</Field>
+			<Field id="defaultBrightness" type="textfield"
+				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
 				<Label>Default Brightness:</Label>
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -119,7 +225,8 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 Optionally set a default brightness level used whenever an "on" command is sent to this device.  If no value is entered, when an "on" command is sent, the device will return to the brightness it was at before being turned off.
 </Label>
 			</Field>
-			<Field id="rate" type="textfield">
+			<Field id="rate" type="textfield"
+				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the light should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -128,18 +235,21 @@ Optionally set a default brightness level used whenever an "on" command is sent 
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="nameOnHub" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="savedBrightness" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="modelId" type="textfield" hidden="true">
-				<Label/>
-			</Field>
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="savedBrightness" type="textfield" hidden="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="swVersion" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
+			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="WhiteTemperatureMin" type="textfield" hidden="true" defaultValue="2000" />
+			<Field id="WhiteTemperatureMax" type="textfield" hidden="true" defaultValue="6500" />
+			<Field id="SupportsRGBandWhiteSimultaneously" type="checkbox" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
 			<State id="hue">
@@ -177,6 +287,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>Y Color Chromaticity</TriggerLabel>
 				<ControlPageLabel>Y Color Chromaticity (CIE 1931)</ControlPageLabel>
 			</State>
+			<State id="colorTemp">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Color Temperature (K)</TriggerLabel>
+				<ControlPageLabel>Color Temperature (K)</ControlPageLabel>
+			</State>
 			<State id="colorMode">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Color Mode</TriggerLabel>
@@ -201,13 +316,15 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	</Device>
     <!-- LivingColors Bloom Device -->
 	<Device type="dimmer" id="hueLivingColorsBloom">
-		<Name>LivingColors (Aura, Bloom, StoryLight, etc.)</Name>
+		<Name>Color Lights (Aura, Bloom, StoryLight, LivingColors, etc.)</Name>
 		<ConfigUI>
-			<Field id="bulbId" type="menu">
+			<Field id="bulbId" type="menu"
+				tooltip="Select a Hue light to control. This menu shows color lights such as the Bloom, StoryLight and other color lights. It does not include LightStrips or color temperature lights.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbListGenerator"/>
 			</Field>
-			<Field id="defaultBrightness" type="textfield">
+			<Field id="defaultBrightness" type="textfield"
+				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
 				<Label>Default Brightness:</Label>
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -215,7 +332,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 Optionally set a default brightness level used whenever an "on" command is sent to this device.  If no value is entered, when an "on" command is sent, the device will return to the brightness it was at before being turned off.
 </Label>
 			</Field>
-			<Field id="rate" type="textfield">
+			<Field id="rate" type="textfield"
+				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the light should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -224,18 +342,18 @@ Optionally set a default brightness level used whenever an "on" command is sent 
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="nameOnHub" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="savedBrightness" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="modelId" type="textfield" hidden="true">
-				<Label/>
-			</Field>
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="savedBrightness" type="textfield" hidden="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="swVersion" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
+			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
 			<State id="hue">
@@ -299,11 +417,13 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="dimmer" id="hueLivingWhites">
 		<Name>LivingWhites (Hue Lux, Generic Light, etc.)</Name>
 		<ConfigUI>
-			<Field id="bulbId" type="menu">
+			<Field id="bulbId" type="menu"
+				tooltip="Select a Hue light to control. This menu shows basic dimming lights that don't support any color changes.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbListGenerator" filter="hueLivingWhites"/>
 			</Field>
-			<Field id="defaultBrightness" type="textfield">
+			<Field id="defaultBrightness" type="textfield"
+				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
 				<Label>Default Brightness:</Label>
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -311,7 +431,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 Optionally set a default brightness level used whenever an "on" command is sent to this device.  If no value is entered, when an "on" command is sent, the bulb will return to the brightness it was at before being turned off.
 </Label>
 			</Field>
-			<Field id="rate" type="textfield">
+			<Field id="rate" type="textfield"
+				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the light should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -322,18 +443,18 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 NOTE: Ramp Rates greater than 60 seconds when turning off a device may result in the device abruptly turning off after dimming for about 60 seconds. This is a bug in the Philips Hue system.  This does not affect Ramp Rates when turning on or changing brightness, only when turning a device off.
 </Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="nameOnHub" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="savedBrightness" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="modelId" type="textfield" hidden="true">
-				<Label/>
-			</Field>
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="savedBrightness" type="textfield" hidden="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="swVersion" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
+			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
 			<State id="alertMode">
@@ -355,13 +476,31 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device may result in
 	</Device>
     <!-- Hue Group Device -->
 	<Device type="dimmer" id="hueGroup">
-		<Name>Hue Group (Experimental)</Name>
+		<Name>Hue Group</Name>
 		<ConfigUI>
-			<Field id="groupId" type="menu">
+			<Field id="groupId" type="menu"
+				tooltip="Select a Hue Group to control. This menu contains all the groups saved in the Hue hub. Groups can contain any combination of Hue supported lights.">
 				<Label>Hue Group:</Label>
 				<List class="self" method="groupListGenerator"/>
+				<CallbackMethod>groupsListItemSelected</CallbackMethod>
 			</Field>
-			<Field id="defaultBrightness" type="textfield">
+			<Field id="groupLights" type="list" defaultValue="" readonly="true" enabledBindingId="groupLightsDisabler"
+				tooltip="This list shows which lights are affected by the Hue Group selected above. These can only be edited using a 3rd party app such as the Hue app for iOS or Android.">
+				<Label>Lights Affected:</Label>
+				<List class="self" method="groupLightsListGenerator" dynamicReload="true"></List>
+			</Field>
+			<Field id="groupLightsLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>This list shows which lights are affected by the Hue Group selectioned above. These can only be edited using a 3rd party app such as the Hue app for iOS or Android.
+</Label>
+			</Field>
+			<Field id="groupLightsDisabler" type="checkbox" defaultValue="false" hidden="true">
+				<!-- This hidden, static value field is necessary in order to disable the Lights list
+				 field above because using the "readonly" property appears to have no effect with
+				 Indigo 7.0.2 and earlier. -->
+				<Label></Label>
+			</Field>
+			<Field id="defaultBrightness" type="textfield"
+				tooltip="Optionally set a default brightness level used whenever an On command is sent to this group. If no value is entered, when an On command is sent, the group will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
 				<Label>Default Brightness:</Label>
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -369,7 +508,8 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device may result in
 Optionally set a default brightness level used whenever an "on" command is sent to this group.  If no value is entered, when an "on" command is sent, the group will return to the brightness it was last set to.
 </Label>
 			</Field>
-			<Field id="rate" type="textfield">
+			<Field id="rate" type="textfield"
+				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the group should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -378,18 +518,18 @@ Optionally set a default brightness level used whenever an "on" command is sent 
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="nameOnHub" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="savedBrightness" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-			<Field id="modelId" type="textfield" hidden="true">
-				<Label/>
-			</Field>
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="savedBrightness" type="textfield" hidden="true" />
+			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="WhiteTemperatureMin" type="textfield" hidden="true" defaultValue="2000" />
+			<Field id="WhiteTemperatureMax" type="textfield" hidden="true" defaultValue="6500" />
+			<Field id="SupportsRGBandWhiteSimultaneously" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="groupClass" type="textfield" hidden="true" />
 		</ConfigUI>
 		<States>
 			<State id="hue">
@@ -452,17 +592,29 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>Group Member IDs</TriggerLabel>
 				<ControlPageLabel>Group Members IDs</ControlPageLabel>
 			</State>
+			<State id="allOn">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>All Group Members On</TriggerLabel>
+				<ControlPageLabel>All Group Memebers On</ControlPageLabel>
+			</State>
+			<State id="anyOn">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Any Group Members On</TriggerLabel>
+				<ControlPageLabel>Any Group Memebers On</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- Hue Device Attribute Controller (Virtual Dimmer Device) -->
 	<Device type="dimmer" id="hueAttributeController">
 		<Name>Hue Device Attribute Controller</Name>
 		<ConfigUI>
-			<Field id="bulbDeviceId" type="menu">
+			<Field id="bulbDeviceId" type="menu"
+				tooltip="Select a Hue light or group that this attribute controller should control.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbDeviceListGenerator"/>
 			</Field>
-			<Field id="attributeToControl" type="menu" defaultValue="hue">
+			<Field id="attributeToControl" type="menu" defaultValue="hue"
+				tooltip="Select an attribute associated with the Hue Device above that this attribute controller should control. Note that if you select an attribute that the Hue Device doesn't have, this attribute controller will not work.">
 				<Label>Attribute to Control:</Label>
 				<List>
 					<Option value="hue">Hue</Option>
@@ -477,7 +629,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>Select an attribute on the Hue device to be conrolled.
 </Label>
 			</Field>
-			<Field id="rate" type="textfield">
+			<Field id="rate" type="textfield"
+				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the Hue Device selected above should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -486,7 +639,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
-			<Field id="defaultOnLevel" type="textfield">
+			<Field id="defaultOnLevel" type="textfield"
+				tooltip="Optionally set a default On level. When turned on, the Hue Device Attribute Controller will go to the percentage specified here. If no value is specified, the control will always go to 100% when turned on by Indigo. Range is 1 to 100 percent.">
 				<Label>Default On Level:</Label>
 			</Field>
 			<Field id="labelOnLevel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -499,4 +653,226 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 			</Field>
 		</ConfigUI>
 	</Device>
+	
+	
+	<!-- SENSOR DEVICES -->
+	<!-- Hue Motion Sensor (multi-sensor) -->
+	<!--   MOTION   -->
+	<Device type="sensor" id="hueMotionSensor">
+		<Name>Hue Motion Sensor (Motion)</Name>
+		<ConfigUI>
+			<Field id="sensorId" type="menu"
+				tooltip="Select a Hue Motion Sensor.">
+				<Label>Hue Sensor:</Label>
+				<List class="self" method="sensorListGenerator" filter="hueMotionSensor" />
+			</Field>
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="enabledOnHub" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="swVersion" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
+			<Field id="productId" type="textfield" hidden="true" />
+			<Field id="SupportsBatteryLevel" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsSensorValue" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsOnState" type="checkbox" hidden="true" defaultValue="true" />
+		</ConfigUI>
+		<States>
+			<State id="alertMode">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Alert Mode</TriggerLabel>
+				<ControlPageLabel>Alert Mode</ControlPageLabel>
+			</State>
+			<State id="sensitivity">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Sensitivity</TriggerLabel>
+				<ControlPageLabel>Sensitivity</ControlPageLabel>
+			</State>
+			<State id="sensitivityMax">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Maximum Sensitivity</TriggerLabel>
+				<ControlPageLabel>Maximum Sensitivity</ControlPageLabel>
+			</State>
+			<State id="online">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Online</TriggerLabel>
+				<ControlPageLabel>Online</ControlPageLabel>
+			</State>
+			<State id="testMode">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Test Mode</TriggerLabel>
+				<ControlPageLabel>Test Mode</ControlPageLabel>
+			</State>
+			<State id="ledEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>LED Enabled</TriggerLabel>
+				<ControlPageLabel>LED Enabled</ControlPageLabel>
+			</State>
+			<State id="lastUpdated">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+	<!--   TEMPERATURE   -->
+	<Device type="sensor" id="hueMotionTemperatureSensor">
+		<Name>Hue Motion Sensor (Temperature)</Name>
+		<ConfigUI>
+			<Field id="sensorId" type="menu"
+				tooltip="Select a Hue Motion Sensor.">
+				<Label>Hue Sensor:</Label>
+				<List class="self" method="sensorListGenerator" filter="hueMotionTemperatureSensor" />
+			</Field>
+			<Field id="temperatureScale" type="menu" defaultValue="c"
+				tooltip="Select a temperature scale to display in Indigo.">
+				<Label>Temperature Scale:</Label>
+				<List>
+					<Option value="c">Celsius</Option>
+					<Option value="f">Fahrenheit</Option>
+				</List>
+			</Field>
+			<Field id="sensorOffset" type="textfield"
+				tooltip="Optionally set a calibration offset if the sensor readings are inaccurate.">
+				<Label>Calibration Offset:</Label>
+			</Field>
+			<Field id="labelSensorOffset" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(-10 to 10 degrees)
+Optionally set a calibration offset if the sensor readings are inaccurate.
+</Label>
+			</Field>
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="enabledOnHub" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="swVersion" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
+			<Field id="productId" type="textfield" hidden="true" />
+			<Field id="SupportsBatteryLevel" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsSensorValue" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsOnState" type="checkbox" hidden="true" defaultValue="false" />
+		</ConfigUI>
+		<States>
+			<State id="alertMode">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Alert Mode</TriggerLabel>
+				<ControlPageLabel>Alert Mode</ControlPageLabel>
+			</State>
+			<State id="online">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Online</TriggerLabel>
+				<ControlPageLabel>Online</ControlPageLabel>
+			</State>
+			<State id="testMode">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Test Mode</TriggerLabel>
+				<ControlPageLabel>Test Mode</ControlPageLabel>
+			</State>
+			<State id="ledEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>LED Enabled</TriggerLabel>
+				<ControlPageLabel>LED Enabled</ControlPageLabel>
+			</State>
+			<State id="lastUpdated">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+			<State id="temperatureC">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Temperature (ºC)</TriggerLabel>
+				<ControlPageLabel>Temperature (ºC)</ControlPageLabel>
+			</State>
+			<State id="temperatureF">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Temperature (ºF)</TriggerLabel>
+				<ControlPageLabel>Temperature (ºF)</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+	<!--   LUMINANCE   -->
+	<Device type="sensor" id="hueMotionLightSensor">
+		<Name>Hue Motion Sensor (Luminance)</Name>
+		<ConfigUI>
+			<Field id="sensorId" type="menu"
+				tooltip="Select a Hue Motion Sensor.">
+				<Label>Hue Sensor:</Label>
+				<List class="self" method="sensorListGenerator" filter="hueMotionLightSensor" />
+			</Field>
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="enabledOnHub" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="swVersion" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
+			<Field id="productId" type="textfield" hidden="true" />
+			<Field id="SupportsBatteryLevel" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsSensorValue" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="SupportsOnState" type="checkbox" hidden="true" defaultValue="false" />
+		</ConfigUI>
+		<States>
+			<State id="alertMode">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Alert Mode</TriggerLabel>
+				<ControlPageLabel>Alert Mode</ControlPageLabel>
+			</State>
+			<State id="online">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Online</TriggerLabel>
+				<ControlPageLabel>Online</ControlPageLabel>
+			</State>
+			<State id="testMode">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Test Mode</TriggerLabel>
+				<ControlPageLabel>Test Mode</ControlPageLabel>
+			</State>
+			<State id="ledEnabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>LED Enabled</TriggerLabel>
+				<ControlPageLabel>LED Enabled</ControlPageLabel>
+			</State>
+			<State id="dark">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Low Light</TriggerLabel>
+				<ControlPageLabel>Low Light</ControlPageLabel>
+			</State>
+			<State id="daylight">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Daylight</TriggerLabel>
+				<ControlPageLabel>Daylight</ControlPageLabel>
+			</State>
+			<State id="lastUpdated">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+			<State id="luminance">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Luminance (lux)</TriggerLabel>
+				<ControlPageLabel>Luminance (lux)</ControlPageLabel>
+			</State>
+			<State id="luminanceRaw">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Luminance (raw value)</TriggerLabel>
+				<ControlPageLabel>Luminance (raw value)</ControlPageLabel>
+			</State>
+			<State id="darkThreshold">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Dark Threshold (lux)</TriggerLabel>
+				<ControlPageLabel>Dark Threshold (lux)</ControlPageLabel>
+			</State>
+			<State id="thresholdOffset">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Dark Threshold Offset (lux)</TriggerLabel>
+				<ControlPageLabel>Dark Threshold Offset (lxu)</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
 </Devices>

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <MenuItems>
     <MenuItem id="menu1">
-        <Name>Reload Hue Device List</Name>
-        <CallbackMethod>updateLightsGroupsList</CallbackMethod>
+        <Name>Reload Hue Hub Config</Name>
+        <CallbackMethod>updateAllHueLists</CallbackMethod>
     </MenuItem>
 	<MenuItem id="sep1" />
 	<MenuItem id="savePreset">
@@ -79,5 +79,67 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 				<Label>Select the Preset whose data you'd like to view in the Indigo log. Presets with an asterisk (*) next to them have data saved in them.</Label>
 			</Field>
 		</ConfigUI>
+	</MenuItem>
+	<MenuItem id="sep2" />
+	<MenuItem id="recallScene">
+		<Name>Recall Hue Scene...</Name>
+		<CallbackMethod>recallScene</CallbackMethod>
+		<ConfigUI>
+			<Field id="instructions1" type="label" fontSize="small">
+				<Label>Hue Scenes are stored on the Hue hub and are organized here by which application created them.</Label>
+			</Field>
+			<Field id="userId" type="menu" defaultValue=""
+				tooltip="Scene Creators are the applications on various devices that have connected to the Hue hub and created Scenes.">
+				<Label>Scene Creator:</Label>
+				<List class="self" method="usersListGenerator"></List>
+				<CallbackMethod>usersListItemSelected</CallbackMethod>
+			</Field>
+			<Field id="userLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Select a Scene Creator from the hub first (or use "All Scene Creators").
+				</Label>
+			</Field>
+			<Field id="sceneId" type="menu" defaultValue=""
+				tooltip="Scenes are stored on the Hue hub along with which application created them. Scenes in this menu were created by the Scene Creator selected above.">
+				<Label>Scene:</Label>
+				<List class="self" method="scenesListGenerator" dynamicReload="true"></List>
+				<CallbackMethod>scenesListItemSelected</CallbackMethod>
+			</Field>
+			<Field id="scemeLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Some Scenes may have the same name because of how the Hue app creates them on the hub. Use the Lights Affected list below to distinguish between Scenes with the same name.
+				</Label>
+			</Field>
+			<Field id="groupId" type="menu" defaultValue=""
+				tooltip="The Hue hub allows you to limit a Scene to just one Group, as long as at least one light in the Scene is part of the Group. Lights that are part of a Scene but NOT part of the selected Group Limit will not be affected.">
+				<Label>Group Limit:</Label>
+				<List class="self" method="groupListGenerator"></List>
+				<CallbackMethod>groupsListItemSelected</CallbackMethod>
+			</Field>
+			<Field id="groupLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Limit the Scene to a specific Hue Group.
+				</Label>
+			</Field>
+			<Field id="sceneLights" type="list" defaultValue="" readonly="true" enabledBindingId="sceneLightsDisabler"
+				tooltip="This list shows all the lights that will be affected by the combination of Scene and Group Limit selections above. These cannot be edited.">
+				<Label>Lights Affected:</Label>
+				<List class="self" method="sceneLightsListGenerator" dynamicReload="true"></List>
+			</Field>
+			<Field id="scemeLightsLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>This list shows which lights are affected by the Scene and Group Limit selections above. This cannot be edited.</Label>
+			</Field>
+			<Field id="sceneLightsDisabler" type="checkbox" defaultValue="false" hidden="true">
+				<!-- This hidden, static value field is necessary in order to disable the Lights list
+				 field above because using the "readonly" property appears to have no effect with
+				 Indigo 7.0.2 and earlier. -->
+				<Label></Label>
+			</Field>
+			<Field id="description" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+		</ConfigUI>
+	</MenuItem>
+	<MenuItem id="sep3" />
+	<MenuItem id="toggleDebug">
+		<Name>Toggle Debugging</Name>
+        <CallbackMethod>toggleDebugging</CallbackMethod>
 	</MenuItem>
 </MenuItems>

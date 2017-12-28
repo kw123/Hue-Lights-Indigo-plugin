@@ -109,6 +109,63 @@ class updateChecker(object):
 			self.checkVersionNow()
 
 
+	def compareVersions(self, myVersion, latestVersion):
+		# (by Nathan Sheldon)
+		#
+		# Convert the 2 version strings to hierarchical version numbers of any length
+		# and compare them.
+		#
+		# Expects:
+		#	myVersion:      String. Version numbers separated by any non-numeral.
+		#	latestVersion:	String. Version numbers separated by any non-numeral.
+		# Returns:          Boolean. True if latestVersion is newer. False otherwise.
+		
+		# Remove any whitespace characters from the versions and split version
+		#   components into a list by non-numeral character.
+		myVersionSplit = re.split("\D+", re.sub("\s", "", myVersion))
+		latestVersionSplit = re.split("\D+", re.sub("\s", "", latestVersion))
+		
+		# Go through the version component list and compare each component until
+		#   either a component of the latestVersion from the remote file is newer
+		#   or all components have been compared without any remote comonnent
+		#   being newer.
+		component = 0
+		for versionValue in myVersionSplit:
+			# Check for empty versionValues. If empty, set to "0"
+			if len(versionValue) < 1:
+				versionValue = "0"
+			if len(latestVersionSplit[component]) < 1:
+				latestVersionSplit[component] = "0"
+			
+			try:
+				if int(latestVersionSplit[component]) > int(versionValue):
+					# If the latest version component is greater than the current version
+					#   component, then there's a newer version available (includes betas)
+					return True
+				elif int(latestVersionSplit[component]) < int(versionValue):
+					# If the latest version component that's published is lower than the
+					#   currently installed version, we're probably running a beta
+					#   version that hasn't been released yet.  There are no newer
+					#   updates available.
+					return False
+			except IndexError:
+				# This means myVersion has more version components than the
+				#   latestVersion. More components in myVersion likely means
+				#   myVersion is an alpha or beta while the latestVersion is
+				#   a final. Return True since myVersion is not a final release.
+				return True
+			component += 1
+		
+		# None of the latestVersion components are newer. However, if the
+		#   latestVersion has more components than myVersion, the latestVersion
+		#   must have received a patch update. Check for this.
+		if len(myVersionSplit) < len(latestVersionSplit):
+			return True
+		
+		# The remote version was not newer.  Return False.
+		return False
+		
+	
 	def checkVersionNow(self):
 
 		self.plugin.debugLog(u"versionCheck: Started")
@@ -122,6 +179,8 @@ class updateChecker(object):
 		myVersion = str(self.plugin.pluginVersion)
 		self.plugin.debugLog('versionCheck: Version Server Url:%s' % self.fileUrl)
 		socket.setdefaulttimeout(3)
+		
+		# Convert the version string into a version number list
 
 		# Try to grab the version file
 		try:
@@ -145,7 +204,7 @@ class updateChecker(object):
 
 
 		# Compare the version in the server file to ours
-		if myVersion < latestVersion:
+		if self.compareVersions(myVersion, latestVersion):
 			self.errorLog(u"You are running v%s. A newer version, v%s is available." % (myVersion, latestVersion))
 		else:
 			indigo.server.log(u'Your plugin version, v%s, is current.' % myVersion)
