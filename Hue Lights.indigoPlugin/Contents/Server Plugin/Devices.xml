@@ -600,7 +600,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<State id="anyOn">
 				<ValueType>Boolean</ValueType>
 				<TriggerLabel>Any Group Members On</TriggerLabel>
-				<ControlPageLabel>Any Group Memebers On</ControlPageLabel>
+				<ControlPageLabel>Any Group Members On</ControlPageLabel>
+			</State>
+			<State id="lastScene">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Scene Advanced</TriggerLabel>
+				<ControlPageLabel>Last Scene Advanced</ControlPageLabel>
 			</State>
 		</States>
 	</Device>

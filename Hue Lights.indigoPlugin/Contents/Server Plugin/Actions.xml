@@ -411,6 +411,15 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		</ConfigUI>
 	</Action>
 	<Action id="sep3" uiPath="DeviceActions" />
+	<Action id="advanceGroupScene" deviceFilter="self.hueGroup" uiPath="DeviceActions">
+		<Name>Advance Group Scene</Name>
+		<CallbackMethod>advanceGroupScene</CallbackMethod>
+	</Action>
+	<Action id="retreatGroupScene" deviceFilter="self.hueGroup" uiPath="DeviceActions">
+		<Name>Retreat Group Scene</Name>
+		<CallbackMethod>retreatGroupScene</CallbackMethod>
+	</Action>
+	<Action id="sep4" uiPath="DeviceActions" />
 	<Action id="savePreset" deviceFilter="self" uiPath="DeviceActions">
 		<Name>Save Preset</Name>
 		<CallbackMethod>savePreset</CallbackMethod>

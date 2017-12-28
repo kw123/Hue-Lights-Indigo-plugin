@@ -4543,7 +4543,93 @@ class Plugin(indigo.PluginBase):
 		self.debugLog(u"sensorListGenerator: Return sensor list is %s" % returnSensorList)
 		
 		return returnSensorList
+	
+	# Get next item in dict (wrap first)
+	########################################
+	def getNextKeyForDict(self, dict={}, key=""):
+		if not key in dict:
+			i = 0
+		else:
+			i = dict.keys().index( key ) + 1
+			if i >= len( dict.keys() ):
+				i = 0
+
+		return dict.keys()[i]
+
+	# Get previous item in dict (wrap last)
+	########################################
+	def getPrevKeyForDict(self, dict={}, key=""):
+		if not key in dict:
+			i = 0
+		else:
+			i = dict.keys().index( key ) - 1
+			if i < 0:
+				i = len( dict.keys() ) - 1
+
+		return dict.keys()[i]
+
+	# Get the next sceneId for advancing
+	########################################
+	def setNextSceneId(self, action, device, direction="next"):
+	
+		# Sanity check on group ID
+		groupId = device.pluginProps.get('groupId', None)
+		if groupId is None or groupId == 0:
+			errorText = u"No group ID selected for device \"%s\". Check settings for this device and select a Hue Group to control." % (device.name)
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
+			
+		# Get the "lights" for the selected group, to use as a filter against
+		# all of the available scenes in the Hub
+		groupId = unicode(groupId)
+		if groupId in self.groupsDict:
+			groupContent = self.groupsDict[groupId]["lights"]
+		else:
+			errorText = u"The Hue Hub has no Hue Group \"%s\". This is something that you have to program into your Hue Hub." % ( groupId )
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
 		
+		# Build a list of scenes that match the given group, and use name as key
+		scenes = {}
+		for key in self.scenesDict:
+			# Make sure all of the "lights" match
+			if set(groupContent) == set( self.scenesDict[key]["lights"] ):
+				date = self.scenesDict[key]["lastupdated"]
+				name = self.scenesDict[key]["name"]
+				if (not name in scenes) or ( name in scenes and scenes[name]["lastupdated"] < date ):
+					scenes[name] = self.scenesDict[key]
+					scenes[name]["sceneId"] = key
+					
+		# Ensure that we have some scenes to work with
+		if not scenes:
+			errorText = u"The Hue Hub has no scenes that apply to Hue Group \"%s\". This is something that you have to program into your Hue Hub." % ( groupId )
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
+		
+		# Figure out the next scene, based on the current scene
+		lastScene = device.pluginProps.get('lastScene', None)
+		
+		if direction == "next":
+			nextScene = self.getNextKeyForDict(scenes, lastScene)
+		else:
+			nextScene = self.getPrevKeyForDict(scenes, lastScene)
+			
+		nextSceneId = scenes[nextScene]["sceneId"]
+		self.debugLog(u"Previous scene was {}, changing to {} ({}).".format( lastScene, nextScene, nextSceneId ))
+
+		# Update the properties
+		props = device.pluginProps
+		props.update( { 'lastScene' : nextScene } )
+		device.replacePluginPropsOnServer( props )
+		
+		self.doScene(groupId, nextSceneId)
+
 
 	########################################
 	# Device Update Methods
@@ -9065,7 +9151,37 @@ class Plugin(indigo.PluginBase):
 			return False
 		else:
 			self.doEffect(device, effect)
-			
+
+	# Advance Group Scene Action
+	########################################
+	def	advanceGroupScene(self, action, device):
+
+		# Sanity check device
+		if not device or device is None:
+			errorText = u"No device was configured in the action."
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
+
+		self.debugLog(u"advanceGroupScene: device: " + device.name + u", action:\n" + unicode(action))
+		self.setNextSceneId( action, device, direction="next" )		
+
+	# Retreat Group Scene Action
+	########################################
+	def	retreatGroupScene(self, action, device):
+
+		# Sanity check device
+		if not device or device is None:
+			errorText = u"No device was configured in the action."
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
+
+		self.debugLog(u"retreatGroupScene: device: " + device.name + u", action:\n" + unicode(action))
+		self.setNextSceneId( action, device, direction="previous" )		
+		
 	# Save Preset Action
 	########################################
 	def savePreset(self, action, device):
