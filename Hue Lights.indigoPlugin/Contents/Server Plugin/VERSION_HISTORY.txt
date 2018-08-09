@@ -1,6 +1,19 @@
 HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
 ========================================
 
+1.6.15
+* Added support for the Hue calla pathway bollard light.
+--
+1.6.14
+* Added support for the Osram Gardenpole Mini RGBW light.
+--
+1.6.13
+* Added support for the Innr SP 120 On/Off Plugin module.
+* Added support for the IKEA 30x90 color temperature LED panel.
+--
+1.6.12
+* Added support for the IKEA 30 Watt dimmable LED transformer.
+--
 1.6.11
 * Added the ability to set the total number of Presets from within the Hue Lights plugin configuration window.
 * Added custom plugin icon to plugin bundle.
