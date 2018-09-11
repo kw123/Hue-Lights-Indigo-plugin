@@ -14,7 +14,7 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.6.15
+#	Version 1.6.17
 #
 #	See the "VERSION_HISTORY.txt" file in the same location as this plugin.py
 #	file for a complete version change history.
@@ -4580,6 +4580,9 @@ class Plugin(indigo.PluginBase):
 					newValue = int(round(newValue, decimals))
 			except ValueError:
 				# This isn't a number, don't try to make it one.
+				pass
+			except TypeError:
+				# This also isn't a number and we don't need to make it one.
 				pass
 		# If no precision was specified, default to zero decimals.
 		else:

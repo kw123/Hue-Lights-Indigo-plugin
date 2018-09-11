@@ -1,6 +1,12 @@
 HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
 ========================================
 
+1.6.17
+* Fixed a bug in the sensor device update function that could cause errors when updating motion sensor status in some situations.
+--
+1.6.16
+* Added support for the Hue outdoor lily spotlight and Hue outdoor pedestal light.
+
 1.6.15
 * Added support for the Hue calla pathway bollard light.
 --

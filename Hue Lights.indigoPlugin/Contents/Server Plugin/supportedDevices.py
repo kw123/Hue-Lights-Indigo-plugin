@@ -19,7 +19,9 @@
 # LCT014	=	Hue bulb (alternate A19 version 3, color gamut C)
 # LCT015	=	Hue bulb (alternate A19 version 3, color gamut C)
 # LCT016	=	Hue bulb (alternate A19 version 3, color gamut C)
-# LCF001	=	Hue calla pathway bollard (color gamut C)
+# LCS001	=	Hue outdoor lily spotlight (color gamut C)
+# LCF001	=	Hue outdoor calla pathway bollard (color gamut C)
+# LCF002	=	Hue outdoor pedestal light (color gamut C)
 #
 # Philips LivingColors and Other Color Lights (color gamut A)
 # LLC001	=	LivingColors light (generic)
@@ -127,7 +129,7 @@
 ### LIGHTS ###
 ##############
 # Compatible Hue bulb devices (Color and Color Temperature)
-kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LCT007', 'LCT010', 'LCT011', 'LCT012', 'LCT014', 'LCT015', 'LCT016', 'LCF001', 'LLM001', 'HBL001', 'HBL002', 'HBL003', 'HEL001', 'HEL002,' 'HIL001', 'HIL002', 'FLS-PP3', 'Classic A60 RGBW', 'Gardenpole Mini RGBW OSRAM']
+kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LCT007', 'LCT010', 'LCT011', 'LCT012', 'LCT014', 'LCT015', 'LCT016', 'LCS001', 'LCF001', 'LCF002', 'LLM001', 'HBL001', 'HBL002', 'HBL003', 'HEL001', 'HEL002,' 'HIL001', 'HIL002', 'FLS-PP3', 'Classic A60 RGBW', 'Gardenpole Mini RGBW OSRAM']
 # Compatible LivingColors devices (Color only)
 kLivingColorsDeviceIDs = ['LLC001', 'LLC005', 'LLC006', 'LLC007', 'LLC010', 'LLC011', 'LLC012', 'LLC013', 'LLC014', 'LLC020']
 # Compatible Ambiance devices (Color Temperature only)
