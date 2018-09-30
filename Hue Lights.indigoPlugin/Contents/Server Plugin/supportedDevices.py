@@ -42,8 +42,9 @@
 # LLM012	=	Hue Color Temperature Module (2200K - 6500K)
 #
 # Philips LightStrips
-# LST001	=	LED LightStrip (color gamut A)
-# LST002	=	LED LightStrip Plus (color gamut C)
+# LST001	=	LED LightStrips (color gamut A)
+# LST002	=	LED LightStrips Plus (color gamut C)
+# LST003	=	LED LightStrips Outdoor (color gamut C)
 #
 # Philips Ambiance Lights (color temperature only)
 # LTW001	=	Hue A19 White Ambiance bulb
@@ -135,7 +136,7 @@ kLivingColorsDeviceIDs = ['LLC001', 'LLC005', 'LLC006', 'LLC007', 'LLC010', 'LLC
 # Compatible Ambiance devices (Color Temperature only)
 kAmbianceDeviceIDs = ['LLM010', 'LLM011', 'LLM012', 'LTW001', 'LTC001', 'LTC003', 'LTC002', 'LTC003', 'LTW004', 'LTW010', 'LTW011', 'LTW012', 'LTW013', 'LTW014', 'LTW015', 'LTF001', 'LTF002', 'LTD001', 'LTD002', 'LTP001', 'LTP002', 'LTP003', 'LTP004', 'LTP005', 'LTD003', 'LFF001', 'LTT001', 'LDT001', 'HML001', 'HML002', 'HML003', 'HML004', 'HML005', 'HML006', 'Classic A60 TW', 'PAR16 50 TW', 'RS 128 T', 'FLOALT panel WS 30x90']
 # Compatible LightStrips devices. (Color only on LST001. Color and Color Temperature on others)
-kLightStripsDeviceIDs = ['LST001', 'LST002', 'Flex RGBW']
+kLightStripsDeviceIDs = ['LST001', 'LST002', 'LST003', 'Flex RGBW']
 # Compatible LivingWhites devices. (Dimming only.  No color change of any kind)
 kLivingWhitesDeviceIDs = ['LWB001', 'LWB003', 'LWB004', 'LWB006', 'LWB007', 'LWB010', 'LWB014', 'LWL001', 'LDF001', 'LDF002', 'LDD001', 'LDD002', 'MWM001', 'ZLL Light', 'FLS-PP3 White', 'TRADFRI bulb E26 opal 1000lm', 'TRADFRI bulb E27 opal 1000lm', 'TRADFRI transformer 30W', 'SP 120']
 # All compatible light devices

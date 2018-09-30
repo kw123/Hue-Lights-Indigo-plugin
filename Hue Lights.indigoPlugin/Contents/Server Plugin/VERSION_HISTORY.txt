@@ -1,6 +1,9 @@
 HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
 ========================================
 
+1.6.18
+* Added support for the Hue LightStrips Outdoor.
+--
 1.6.17
 * Fixed a bug in the sensor device update function that could cause errors when updating motion sensor status in some situations.
 --
