@@ -1,6 +1,34 @@
 HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
 ========================================
 
+1.6.26
+* Added support for another Hue Ambiance Ceiling light variant.
+--
+1.6.25
+* Added support for the IKEA dimmable 980 lumen E27 color temperature bulb.
+--
+1.6.24
+* Added support for the Feibit Inc. LED strip controller.
+--
+1.6.23
+* Added support for the GLEDOPTO color/color temperature light strip.
+* Added support for the Hue Play color/color temperature light.
+* Fixed bug with existing support for GLEDOPTO generic ZigBee color temperature only light strip. It was previously part of the full color device group. It's now part of the Ambiance device group. This will require users to re-define the device in Indigo.
+--
+1.6.22
+* Added support for the IKEA dimmable 600 lumen E26 color LED bulb.
+* Fixed a bug (hopefully) that prevented Indigo from displaying color temperature sliders in the UI for Ambiance type Hue devices.
+--
+1.6.21
+* Added support for the Dredesn Elektronik FLS-CT lp LED color temperature light.
+* Added support for a Generic ZigBee WW/CW light strip.
+--
+1.6.20
+* Added support for the ShenZhen Homa white and color LED light strip controller.
+--
+1.6.19
+* Added support for the Osram PAR-16 GU10 Lightify light color light, Osram On/Off Plug and a second Hue outdoor Lightstrip.
+--
 1.6.18
 * Added support for the Hue LightStrips Outdoor.
 --

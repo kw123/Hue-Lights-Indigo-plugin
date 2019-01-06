@@ -151,7 +151,7 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(1 - 100 percent)
-					Optionally set a default brightness level used whenever an "on" command is sent to this light. If no value is entered, when an "on" command is sent, the light will return to the brightness it was at before being turned off.
+Optionally set a default brightness level used whenever an "on" command is sent to this light. If no value is entered, when an "on" command is sent, the light will return to the brightness it was at before being turned off.
 				</Label>
 			</Field>
 			<Field id="rate" type="textfield"
@@ -160,8 +160,8 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 540 seconds)
-					0 = instant.
-					Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+0 = instant.
+Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 				</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
@@ -172,7 +172,7 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 			<Field id="swVersion" type="textfield" hidden="true" />
 			<Field id="type" type="textfield" hidden="true" />
 			<Field id="uniqueId" type="textfield" hidden="true" />
-			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true" />
 			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="false" />
 			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
 			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />

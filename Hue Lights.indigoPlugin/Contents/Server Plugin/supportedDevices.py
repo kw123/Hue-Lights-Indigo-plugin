@@ -19,6 +19,7 @@
 # LCT014	=	Hue bulb (alternate A19 version 3, color gamut C)
 # LCT015	=	Hue bulb (alternate A19 version 3, color gamut C)
 # LCT016	=	Hue bulb (alternate A19 version 3, color gamut C)
+# LCT024	=	Hue Play light (color gamut C)
 # LCS001	=	Hue outdoor lily spotlight (color gamut C)
 # LCF001	=	Hue outdoor calla pathway bollard (color gamut C)
 # LCF002	=	Hue outdoor pedestal light (color gamut C)
@@ -44,7 +45,8 @@
 # Philips LightStrips
 # LST001	=	LED LightStrips (color gamut A)
 # LST002	=	LED LightStrips Plus (color gamut C)
-# LST003	=	LED LightStrips Outdoor (color gamut C)
+# LST003	=	LED LightStrips Outdoor - short (color gamut C)
+# LST004	=	LED LightStrips Outdoor - long (color gamut C)
 #
 # Philips Ambiance Lights (color temperature only)
 # LTW001	=	Hue A19 White Ambiance bulb
@@ -52,13 +54,14 @@
 # LTC002	=	Hue Ambiance Ceiling
 # LTC003	=	Hue Ambiance Ceiling
 # LTC004	=	Hue Ambiance Ceiling
+# LTC011    =   Hue Ambiance Ceiling
 # LTF001	=	Hue Ambiance Ceiling
 # LTF002	=	Hue Ambiance Ceiling
 # LTD001	=	Hue Ambiance Ceiling
 # LTD002	=	Hue Ambiance Ceiling
 # LTW004	=	Hue A19 White Ambiance bulb
 # LTW010	=	Hue A19 White Ambiance bulb
-# LTW011	=	Hue BR13 White Ambiance bulb
+# LTW011	=	Hue BR30 White Ambiance bulb
 # LTW012	=	Hue Ambiance Candle E14 bulb
 # LTW013	=	Hue Ambiance Spot GU10 spotlight bulb
 # LTW014	=	Hue Ambiance Spot GU10 spotlight bulb
@@ -111,34 +114,43 @@
 # SML001	=	Hue Motion Sensor (multi-sensor with presense, illumination and temperature)
 #
 # 3rd Party (Non-Philips) ZigBee Lights
-# ZLL Light	=	Generic ZigBee Light (e.g. GE Link LEDs)
-# FLS-PP3	=	Dresden Elektronik FLS-PP lp LED light strip, color LED segment
-# FLS-PP3 White	=	Dresden Elektronik FLS-PP lp LED light strip, white light segment
-# Classic A60 TW	=	Osram Lightify A60 Tunable White bulb (color temp. only)
-# Classic A60 RGBW	=	Osram Lightify A60 RGBW bulb (extended color bulb)
-# Flex RGBW	=	Osram Lightify Flex RGBW light strip (extended color light)
-# PAR16 50 TW	=	Osram PAR-16 50W equivalent Tunable White bulb (color temp. only)
-# Gardenpole Mini RGBW OSRAM	=	Osram Gardenpole Mini RGBW light (extended color light)
-# TRADFRI bulb E26 opal 1000lm	=	IKEA dimmable 1000 lumen E26 light
-# TRADFRI bulb E27 opal 1000lm	=	IKEA dimmable 1000 lumen E27 light
-# TRADFRI transformer 30W	=	IKEA dimmable 30 Watt LED transformer.
-# FLOALT panel WS 30x90	=	IKEA color temperature LED panel
-# RS 128 T	=	Innr RS-128T GU10 color temperature lights
-# SP 120	=	Innr On/Off Plugin-in module
+# ZLL Light							=	Generic ZigBee Light (e.g. GE Link LEDs)
+# GLEDOPTO							=	Generic ZigBee WW/CW light strip (color temp. only)
+# GL-C-007							=	Generic ZigBee color light strip (color and color temp).
+# FLS-PP3							=	Dresden Elektronik FLS-PP lp LED light strip, color LED segment
+# FLS-PP3 White						=	Dresden Elektronik FLS-PP lp LED light strip, white light segment
+# FLS-CT							=	Dredesn Elektronik FLS-CT lp LED color temperature light
+# HOMA1001							=	ShenZhen Homa LED light strip controller (extended color light)
+# Classic A60 TW					=	Osram Lightify A60 Tunable White bulb (color temp. only)
+# Classic A60 RGBW					=	Osram Lightify A60 RGBW bulb (extended color bulb)
+# Flex RGBW							=	Osram Lightify Flex RGBW light strip (extended color light)
+# PAR16 50 TW						=	Osram PAR-16 50W equivalent Tunable White bulb (color temp. only)
+# Gardenpole Mini RGBW OSRAM		=	Osram Gardenpole Mini RGBW light (extended color light)
+# PAR 16 50 RGBW - LIGHTIFY			=	Osram PAR-16 GU10 Lightify light (extended color light)
+# Plug 01							=	Osram On/Off Plug
+# TRADFRI bulb E26 opal 1000lm		=	IKEA dimmable 1000 lumen E26 light
+# TRADFRI bulb E26 CWS opal 600lm	=	IKEA dimmable 600 lumen E26 color LED bulb (no color temp.)
+# TRADFRI bulb E27 opal 1000lm		=	IKEA dimmable 1000 lumen E27 light
+# TRADFRI bulb E27 WS opal 980lm    =   IKEA dimmable 980 lumen E27 color temperature bulb
+# TRADFRI transformer 30W			=	IKEA dimmable 30 Watt LED transformer.
+# FLOALT panel WS 30x90				=	IKEA color temperature LED panel
+# RS 128 T							=	Innr RS-128T GU10 color temperature lights
+# SP 120							=	Innr On/Off Plugin-in module
+# FB56-ZCW08KU1.1                   =   Feibit Inc. LED strip controller
 
 
 ### LIGHTS ###
 ##############
 # Compatible Hue bulb devices (Color and Color Temperature)
-kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LCT007', 'LCT010', 'LCT011', 'LCT012', 'LCT014', 'LCT015', 'LCT016', 'LCS001', 'LCF001', 'LCF002', 'LLM001', 'HBL001', 'HBL002', 'HBL003', 'HEL001', 'HEL002,' 'HIL001', 'HIL002', 'FLS-PP3', 'Classic A60 RGBW', 'Gardenpole Mini RGBW OSRAM']
+kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LCT007', 'LCT010', 'LCT011', 'LCT012', 'LCT014', 'LCT015', 'LCT016', 'LCT024', 'LCS001', 'LCF001', 'LCF002', 'LLM001', 'HBL001', 'HBL002', 'HBL003', 'HEL001', 'HEL002,' 'HIL001', 'HIL002', 'FLS-PP3', 'Classic A60 RGBW', 'Gardenpole Mini RGBW OSRAM', 'PAR 16 50 RGBW - LIGHTIFY']
 # Compatible LivingColors devices (Color only)
-kLivingColorsDeviceIDs = ['LLC001', 'LLC005', 'LLC006', 'LLC007', 'LLC010', 'LLC011', 'LLC012', 'LLC013', 'LLC014', 'LLC020']
+kLivingColorsDeviceIDs = ['LLC001', 'LLC005', 'LLC006', 'LLC007', 'LLC010', 'LLC011', 'LLC012', 'LLC013', 'LLC014', 'LLC020', 'TRADFRI bulb E26 CWS opal 600lm']
 # Compatible Ambiance devices (Color Temperature only)
-kAmbianceDeviceIDs = ['LLM010', 'LLM011', 'LLM012', 'LTW001', 'LTC001', 'LTC003', 'LTC002', 'LTC003', 'LTW004', 'LTW010', 'LTW011', 'LTW012', 'LTW013', 'LTW014', 'LTW015', 'LTF001', 'LTF002', 'LTD001', 'LTD002', 'LTP001', 'LTP002', 'LTP003', 'LTP004', 'LTP005', 'LTD003', 'LFF001', 'LTT001', 'LDT001', 'HML001', 'HML002', 'HML003', 'HML004', 'HML005', 'HML006', 'Classic A60 TW', 'PAR16 50 TW', 'RS 128 T', 'FLOALT panel WS 30x90']
+kAmbianceDeviceIDs = ['LLM010', 'LLM011', 'LLM012', 'LTW001', 'LTC001', 'LTC003', 'LTC002', 'LTC003', 'LTW004', 'LTC011', 'LTW010', 'LTW011', 'LTW012', 'LTW013', 'LTW014', 'LTW015', 'LTF001', 'LTF002', 'LTD001', 'LTD002', 'LTP001', 'LTP002', 'LTP003', 'LTP004', 'LTP005', 'LTD003', 'LFF001', 'LTT001', 'LDT001', 'HML001', 'HML002', 'HML003', 'HML004', 'HML005', 'HML006', 'Classic A60 TW', 'PAR16 50 TW', 'RS 128 T', 'FLOALT panel WS 30x90', 'FLS-CT', 'GLEDOPTO', 'TRADFRI bulb E27 WS opal 980lm']
 # Compatible LightStrips devices. (Color only on LST001. Color and Color Temperature on others)
-kLightStripsDeviceIDs = ['LST001', 'LST002', 'LST003', 'Flex RGBW']
+kLightStripsDeviceIDs = ['LST001', 'LST002', 'LST003', 'LST004', 'Flex RGBW', 'HOMA1001', 'GL-C-007', 'FB56-ZCW08KU1.1']
 # Compatible LivingWhites devices. (Dimming only.  No color change of any kind)
-kLivingWhitesDeviceIDs = ['LWB001', 'LWB003', 'LWB004', 'LWB006', 'LWB007', 'LWB010', 'LWB014', 'LWL001', 'LDF001', 'LDF002', 'LDD001', 'LDD002', 'MWM001', 'ZLL Light', 'FLS-PP3 White', 'TRADFRI bulb E26 opal 1000lm', 'TRADFRI bulb E27 opal 1000lm', 'TRADFRI transformer 30W', 'SP 120']
+kLivingWhitesDeviceIDs = ['LWB001', 'LWB003', 'LWB004', 'LWB006', 'LWB007', 'LWB010', 'LWB014', 'LWL001', 'LDF001', 'LDF002', 'LDD001', 'LDD002', 'MWM001', 'ZLL Light', 'FLS-PP3 White', 'TRADFRI bulb E26 opal 1000lm', 'TRADFRI bulb E27 opal 1000lm', 'TRADFRI transformer 30W', 'SP 120', 'Plug 01']
 # All compatible light devices
 kCompatibleDeviceIDs = kHueBulbDeviceIDs + kAmbianceDeviceIDs + kLivingColorsDeviceIDs + kLightStripsDeviceIDs + kLivingWhitesDeviceIDs
 

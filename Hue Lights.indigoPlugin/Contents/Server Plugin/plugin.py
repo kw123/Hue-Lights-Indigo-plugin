@@ -14,7 +14,7 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.6.18
+#	Version 1.6.26
 #
 #	See the "VERSION_HISTORY.txt" file in the same location as this plugin.py
 #	file for a complete version change history.
@@ -4623,7 +4623,7 @@ class Plugin(indigo.PluginBase):
 		#   If that property does not exist, force an update.
 		if device.deviceTypeId in kLightDeviceTypeIDs and not device.pluginProps.get('modelId', False):
 			self.debugLog(u"The " + device.name + u" Hue light device doesn't have a modelId attribute.  Adding it.")
-			newProps['modelId'] = ""
+			newProps['modelId'] = u""
 			device.replacePluginPropsOnServer(newProps)
 		
 		# Prior to version 1.3.8, the "alertMode" state didn't exist in Hue Group devices.
