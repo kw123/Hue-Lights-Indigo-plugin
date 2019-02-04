@@ -14,7 +14,7 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.6.26
+#	Version 1.6.28
 #
 #	See the "VERSION_HISTORY.txt" file in the same location as this plugin.py
 #	file for a complete version change history.
@@ -6436,6 +6436,7 @@ class Plugin(indigo.PluginBase):
 			if temperatureScale == "c":
 				temperatureC = temperatureC + sensorOffset
 				temperatureF = round(float(temperatureC * 9.0 / 5.0 + 32.0 ), 1)
+				temperatureC = round(temperatureC, 1)
 			else:
 				temperatureF = float((temperatureRaw / 100.0) * 9.0 / 5.0 + 32.0 + sensorOffset)
 				temperatureC = round(float((temperatureF - 32.0) * 5.0 / 9.0), 1)

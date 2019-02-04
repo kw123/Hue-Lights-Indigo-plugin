@@ -1,6 +1,13 @@
 HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
 ========================================
 
+1.6.28
+* Added support for the Innr RB-185C color and color temperature light.
+* Fixed a bug with the Hue Motion Sensor's Celsius temperature calculation that could cause constant "received ... sensor update" messages in the Indigo Event Log.
+--
+1.6.27
+* Added support for a GLEDOPTO dimmable LED controller.
+--
 1.6.26
 * Added support for another Hue Ambiance Ceiling light variant.
 --
