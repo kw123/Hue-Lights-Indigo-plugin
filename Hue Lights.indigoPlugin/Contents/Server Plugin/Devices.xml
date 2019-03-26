@@ -874,5 +874,190 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 		</States>
 	</Device>
+    
+	<!-- Hue Tap Switch -->
+	<Device type="sensor" id="hueTapSwitch">
+		<Name>Hue Tap Switch</Name>
+		<ConfigUI>
+			<Field id="sensorId" type="menu"
+				tooltip="Select a Hue Tap Switch.">
+				<Label>Hue Tap Switch:</Label>
+				<List class="self" method="sensorListGenerator" filter="hueTapSwitch" />
+			</Field>
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="enabledOnHub" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
+			<Field id="SupportsBatteryLevel" type="checkbox" hidden="true" defaultValue="false" />
+            <Field id="SupportsSensorValue" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsOnState" type="checkbox" hidden="true" defaultValue="true" />
+		</ConfigUI>
+		<States>
+            <State id="button1On">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Button 1 Press</TriggerLabel>
+                <ControlPageLabel>Button 1 Press</ControlPageLabel>
+            </State>
+            <State id="button2On">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Button 2 Press</TriggerLabel>
+                <ControlPageLabel>Button 2 Press</ControlPageLabel>
+            </State>
+            <State id="button3On">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Button 3 Press</TriggerLabel>
+                <ControlPageLabel>Button 3 Press</ControlPageLabel>
+            </State>
+            <State id="button4On">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Button 4 Press</TriggerLabel>
+                <ControlPageLabel>Button 4 Press</ControlPageLabel>
+            </State>
+            <State id="lastButtonPressed">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Last Button Pressed</TriggerLabel>
+                <ControlPageLabel>Last Button Pressed</ControlPageLabel>
+            </State>
+            <State id="buttonEventID">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Last Button Event ID</TriggerLabel>
+                <ControlPageLabel>Last Button Event ID</ControlPageLabel>
+            </State>
+			<State id="lastUpdated">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
+	<!-- Hue Dimmer Switch -->
+	<Device type="sensor" id="hueDimmerSwitch">
+		<Name>Hue Dimmer Switch</Name>
+		<ConfigUI>
+			<Field id="sensorId" type="menu"
+				tooltip="Select a Hue Dimmer Switch.">
+				<Label>Hue Dimmer Switch:</Label>
+				<List class="self" method="sensorListGenerator" filter="hueDimmerSwitch" />
+			</Field>
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="enabledOnHub" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="swVersion" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
+			<Field id="productId" type="textfield" hidden="true" />
+			<Field id="SupportsBatteryLevel" type="checkbox" hidden="true" defaultValue="true" />
+            <Field id="SupportsSensorValue" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsOnState" type="checkbox" hidden="true" defaultValue="true" />
+		</ConfigUI>
+		<States>
+            <State id="button1On">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>ON Button Press</TriggerLabel>
+                <ControlPageLabel>ON Button Press</ControlPageLabel>
+            </State>
+			<State id="button1Hold">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>ON Button Press and Hold</TriggerLabel>
+				<ControlPageLabel>ON Button Press and Hold</ControlPageLabel>
+			</State>
+            <State id="button1ReleaseShort">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>ON Button Short Release</TriggerLabel>
+                <ControlPageLabel>ON Button Short Release</ControlPageLabel>
+            </State>
+            <State id="button1ReleaseLong">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>ON Button Long Release</TriggerLabel>
+                <ControlPageLabel>ON Button Long Release</ControlPageLabel>
+            </State>
+            <State id="button2On">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>DIM UP Button Press</TriggerLabel>
+                <ControlPageLabel>DIM UP Button Press</ControlPageLabel>
+            </State>
+            <State id="button2Hold">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>DIM UP Button Press and Hold</TriggerLabel>
+                <ControlPageLabel>DIM UP Button Press and Hold</ControlPageLabel>
+            </State>
+            <State id="button2ReleaseShort">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>DIM UP Button Short Release</TriggerLabel>
+                <ControlPageLabel>DIM UP Button Short Release</ControlPageLabel>
+            </State>
+            <State id="button2ReleaseLong">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>DIM UP Button Long Release</TriggerLabel>
+                <ControlPageLabel>DIM UP Button Long Release</ControlPageLabel>
+            </State>
+            <State id="button3On">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>DIM DOWN Button Press</TriggerLabel>
+                <ControlPageLabel>DIM DOWN Button Press</ControlPageLabel>
+            </State>
+            <State id="button3Hold">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>DIM DOWN Button Press and Hold</TriggerLabel>
+                <ControlPageLabel>DIM DOWN Button Press and Hold</ControlPageLabel>
+            </State>
+            <State id="button3ReleaseShort">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>DIM DOWN Button Short Release</TriggerLabel>
+                <ControlPageLabel>DIM DOWN Button Short Release</ControlPageLabel>
+            </State>
+            <State id="button3ReleaseLong">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>DIM DOWN Button Long Release</TriggerLabel>
+                <ControlPageLabel>DIM DOWN Button Long Release</ControlPageLabel>
+            </State>
+            <State id="button4On">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>OFF Button Press</TriggerLabel>
+                <ControlPageLabel>OFF Button Press</ControlPageLabel>
+            </State>
+            <State id="button4Hold">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>OFF Button Press and Hold</TriggerLabel>
+                <ControlPageLabel>OFF Button Press and Hold</ControlPageLabel>
+            </State>
+            <State id="button4ReleaseShort">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>OFF Button Short Release</TriggerLabel>
+                <ControlPageLabel>OFF Button Short Release</ControlPageLabel>
+            </State>
+            <State id="button4ReleaseLong">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>OFF Button Long Release</TriggerLabel>
+                <ControlPageLabel>OFF Button Long Release</ControlPageLabel>
+            </State>
+			<State id="online">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Online</TriggerLabel>
+				<ControlPageLabel>Online</ControlPageLabel>
+			</State>
+            <State id="buttonEventID">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Last Button Event ID</TriggerLabel>
+                <ControlPageLabel>Last Button Event ID</ControlPageLabel>
+            </State>
+            <State id="lastButtonPressed">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Last Button Pressed</TriggerLabel>
+                <ControlPageLabel>Last Button Pressed</ControlPageLabel>
+            </State>
+			<State id="lastUpdated">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
 
 </Devices>

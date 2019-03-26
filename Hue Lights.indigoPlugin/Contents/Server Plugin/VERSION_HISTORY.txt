@@ -1,6 +1,14 @@
 HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
 ========================================
 
+1.7.0
+* Added support for the Hue Tap and Hue Dimmer Switches.
+* Changed all references to the "Hue hub" to "Hue bridge".
+--
+1.6.29
+* Added support for Hue Outdoor Motion Sensor.
+* Added support for another GLEDOPTO color LED light strip controller.
+--
 1.6.28
 * Added support for the Innr RB-185C color and color temperature light.
 * Fixed a bug with the Hue Motion Sensor's Celsius temperature calculation that could cause constant "received ... sensor update" messages in the Indigo Event Log.

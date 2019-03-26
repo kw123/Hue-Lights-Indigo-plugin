@@ -2,19 +2,19 @@
 # -*- coding: utf-8 -*-
 ####################
 # Some code borrowed from the "Hue.indigoPlugin" (Hue Lighting Control) plugin
-#   originally developed by Alistair Galbraith (alistairg on GitHub,
-#   https://github.com/alistairg ).
+#   originally developed by Alistair Galbraith (alistairg on Gitbridge,
+#   https://gitbridge.com/alistairg ).
 #
 #   His comment:
 #   "This is UNSUPPORTED, AS-IS, open source code - do with it as you wish. Don't
 #   blame me if it breaks! :)"
 #
-# His code base was forked on GitHub and completely rewritten by Nathan Sheldon
+# His code base was forked on Gitbridge and completely rewritten by Nathan Sheldon
 #   (nathan@nathansheldon.com)
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.6.28
+#	Version 1.7.0
 #
 #	See the "VERSION_HISTORY.txt" file in the same location as this plugin.py
 #	file for a complete version change history.
@@ -40,7 +40,7 @@ requests.defaults.defaults['max_retries'] = 3
 requests.defaults.defaults['keep_alive'] = False
 # Set the Python logging level to "WARNING" to override the Requests library
 #   default of "INFO", which causes a log entry in Indigo 6.1.8+ for every
-#   HTTP connection made to the Hue hub.
+#   HTTP connection made to the Hue bridge.
 logging.getLogger("requests").setLevel(logging.WARNING)
 
 
@@ -56,15 +56,15 @@ class Plugin(indigo.PluginBase):
 		super(Plugin, self).__init__(pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
 		self.debug = pluginPrefs.get('showDebugInfo', False)
 		self.debugLog(u"Initializing Plugin.")
-		self.hostId = pluginPrefs.get('hostId', None)	# Username/key used to access Hue hub.
+		self.hostId = pluginPrefs.get('hostId', None)	# Username/key used to access Hue bridge.
 		self.threadsList = []		# list of threads used for various processes outside runConcurrentThread.
 		self.deviceList = []		# list of device IDs to monitor
 		self.controlDeviceList = []	# list of virtual dimmer device IDs that control bulb devices
 		self.brighteningList = []	# list of device IDs being brightened
 		self.dimmingList = []		# list of device IDs being dimmed
-		self.paired = False			# if paired with Hue hub or not
+		self.paired = False			# if paired with Hue bridge or not
 		self.lastErrorMessage = u""	# last error message displayed in log
-		self.hueConfigDict = dict()	# Entire Hue hub configuration dictionary.
+		self.hueConfigDict = dict()	# Entire Hue bridge configuration dictionary.
 		self.lightsDict = dict()	# Hue devices dict.
 		self.groupsDict = dict()	# Hue groups dict.
 		self.resourcesDict = dict()	# Hue resource links dict.
@@ -73,7 +73,7 @@ class Plugin(indigo.PluginBase):
 		self.scenesDict = dict()	# Hue scenes dict.
 		self.rulesDict = dict()		# Hue trigger rules dict.
 		self.schedulesDict = dict()	# Hue schedules dict.
-		self.ipAddress = ""			# Hue hub IP address
+		self.ipAddress = ""			# Hue bridge IP address
 		self.unsupportedDeviceWarned = False	# Boolean. Was user warned this device isn't supported?
 		self.usersListSelection = ""	# String. The Hue whilelist user ID selected in action UIs.
 		self.sceneListSelection = ""	# String. The Hue scene ID selected in action UIs.
@@ -175,11 +175,11 @@ class Plugin(indigo.PluginBase):
 		# Do we have a unique Hue username (a.k.a. key or host ID)?
 		hueUsername = self.hostId
 		if hueUsername is None:
-			self.debugLog(u"Hue Lights doesn't appear to be paired with the Hue hub.")
+			self.debugLog(u"Hue Lights doesn't appear to be paired with the Hue bridge.")
 		else:
-			self.debugLog(u"The username Hue Lights uses to connect to the Hue hub is %s" % hueUsername)
+			self.debugLog(u"The username Hue Lights uses to connect to the Hue bridge is %s" % hueUsername)
 		
-		# Get the entire Hue hub configuration and report the results.
+		# Get the entire Hue bridge configuration and report the results.
 		self.updateAllHueLists()
 		
 			
@@ -292,13 +292,13 @@ class Plugin(indigo.PluginBase):
 								# Log the event to Indigo log.
 								indigo.server.log(u"\"" + brightenDevice.name + "\" stop brightening", 'Sent Hue Lights')
 								self.brighteningList.remove(brightenDeviceId)
-								# Get the bulb status (but only if paired with the hub).
+								# Get the bulb status (but only if paired with the bridge).
 								if self.paired == True:
 									self.getBulbStatus(brightenDeviceId)
 									# Log the new brightnss.
 									indigo.server.log(u"\"" + brightenDevice.name + "\" status request (received: 100)", 'Sent Hue Lights')
 								else:
-									self.debugLog(u"Not currently paired with Hue hub. Status update skipped.")
+									self.debugLog(u"Not currently paired with Hue bridge. Status update skipped.")
 							# Convert percent-based brightness to 255-based brightness.
 							brightness = int(round(brightness / 100.0 * 255.0))
 							# Set brightness to new value, with 0.5 sec ramp rate and no logging.
@@ -319,13 +319,13 @@ class Plugin(indigo.PluginBase):
 								# Log the event to Indigo log.
 								indigo.server.log(u"\"" + dimDevice.name + u"\" stop dimming", 'Sent Hue Lights')
 								self.dimmingList.remove(dimDeviceId)
-								# Get the bulb status (but only if we're paired with the hub).
+								# Get the bulb status (but only if we're paired with the bridge).
 								if self.paired == True:
 									self.getBulbStatus(dimDeviceId)
 									# Log the new brightnss.
 									indigo.server.log(u"\"" + dimDevice.name + u"\" status request (received: 0)", 'Sent Hue Lights')
 								else:
-									self.debugLog(u"Not currently paired with Hue hub. Status update skipped.")
+									self.debugLog(u"Not currently paired with Hue bridge. Status update skipped.")
 							# Convert percent-based brightness to 255-based brightness.
 							brightness = int(round(brightness / 100.0 * 255.0))
 							# Set brightness to new value, with 0.5 sec ramp rate and no logging.
@@ -406,10 +406,10 @@ class Plugin(indigo.PluginBase):
 		errorsDict['showAlertText'] = ""
 		isError = False
 		
-		# Make sure we're still paired with the Hue hub.
+		# Make sure we're still paired with the Hue bridge.
 		if self.paired == False:
 			isError = True
-			errorsDict['bulbId'] = u"Not currently paired with the Hue hub. Close this window and use the Configure... option in the Plugins -> Hue Lights menu to pair Hue Lights with the Hue hub first."
+			errorsDict['bulbId'] = u"Not currently paired with the Hue bridge. Close this window and use the Configure... option in the Plugins -> Hue Lights menu to pair Hue Lights with the Hue bridge first."
 			errorsDict['showAlertText'] += errorsDict['bulbId']
 			return (False, valuesDict, errorsDict)
 			
@@ -426,13 +426,13 @@ class Plugin(indigo.PluginBase):
 			bulbId = valuesDict['bulbId']
 			
 			# Make sure the device selected is a Hue device.
-			#   Get the device info directly from the hub.
+			#   Get the device info directly from the bridge.
 			command = "http://%s/api/%s/lights/%s" % (self.ipAddress, self.hostId, bulbId)
 			self.debugLog(u"Sending URL request: " + command)
 			try:
 				r = requests.get(command, timeout=kTimeout)
 			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -440,22 +440,22 @@ class Plugin(indigo.PluginBase):
 					self.lastErrorMessage = errorText
 				return
 			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 				return
-			self.debugLog(u"Data from hub: " + r.content)
+			self.debugLog(u"Data from bridge: " + r.content)
 			# Convert the response to a Python object.
 			try:
 				bulb = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving Hue device data from hub.  Error reported: " + unicode(e))
+				indigo.server.log(u"Error retrieving Hue device data from bridge.  Error reported: " + unicode(e))
 				isError = True
-				errorsDict['bulbId'] = u"Error retrieving Hue device data from hub. See Indigo log."
+				errorsDict['bulbId'] = u"Error retrieving Hue device data from bridge. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
 				return (False, valuesDict, errorsDict)
 			if bulb.get('modelid', "") not in kHueBulbDeviceIDs:
@@ -530,13 +530,13 @@ class Plugin(indigo.PluginBase):
 			bulbId = valuesDict['bulbId']
 			
 			# Make sure the device selected is a Hue device.
-			#   Get the device info directly from the hub.
+			#   Get the device info directly from the bridge.
 			command = "http://%s/api/%s/lights/%s" % (self.ipAddress, self.hostId, bulbId)
 			self.debugLog(u"Sending URL request: " + command)
 			try:
 				r = requests.get(command, timeout=kTimeout)
 			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -544,22 +544,22 @@ class Plugin(indigo.PluginBase):
 					self.lastErrorMessage = errorText
 				return
 			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 				return
-			self.debugLog(u"Data from hub: " + r.content)
+			self.debugLog(u"Data from bridge: " + r.content)
 			# Convert the response to a Python object.
 			try:
 				bulb = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving Hue device data from hub.  Error reported: " + unicode(e))
+				indigo.server.log(u"Error retrieving Hue device data from bridge.  Error reported: " + unicode(e))
 				isError = True
-				errorsDict['bulbId'] = u"Error retrieving Hue device data from hub. See Indigo log."
+				errorsDict['bulbId'] = u"Error retrieving Hue device data from bridge. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
 				return (False, valuesDict, errorsDict)
 			if bulb.get('modelid', "") not in kAmbianceDeviceIDs:
@@ -634,13 +634,13 @@ class Plugin(indigo.PluginBase):
 			bulbId = valuesDict['bulbId']
 			
 			# Make sure the device selected is a LightStrips device.
-			#   Get the device info directly from the hub.
+			#   Get the device info directly from the bridge.
 			command = "http://%s/api/%s/lights/%s" % (self.ipAddress, self.hostId, bulbId)
 			self.debugLog(u"Sending URL request: " + command)
 			try:
 				r = requests.get(command, timeout=kTimeout)
 			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -648,22 +648,22 @@ class Plugin(indigo.PluginBase):
 					self.lastErrorMessage = errorText
 				return
 			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 				return
-			self.debugLog(u"Data from hub: " + r.content)
+			self.debugLog(u"Data from bridge: " + r.content)
 			# Convert the response to a Python object.
 			try:
 				bulb = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving LightStrip data from hub.  Error reported: " + unicode(e))
+				indigo.server.log(u"Error retrieving LightStrip data from bridge.  Error reported: " + unicode(e))
 				isError = True
-				errorsDict['bulbId'] = u"Error retrieving LightStrip data from hub. See Indigo log."
+				errorsDict['bulbId'] = u"Error retrieving LightStrip data from bridge. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
 				return (False, valuesDict, errorsDict)
 			# Make sure it's a LightStrip device.
@@ -749,13 +749,13 @@ class Plugin(indigo.PluginBase):
 			bulbId = valuesDict['bulbId']
 			
 			# Make sure the device selected is a LivingColors device.
-			#   Get the device info directly from the hub.
+			#   Get the device info directly from the bridge.
 			command = "http://%s/api/%s/lights/%s" % (self.ipAddress, self.hostId, bulbId)
 			self.debugLog(u"Sending URL request: " + command)
 			try:
 				r = requests.get(command, timeout=kTimeout)
 			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -763,22 +763,22 @@ class Plugin(indigo.PluginBase):
 					self.lastErrorMessage = errorText
 				return
 			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 				return
-			self.debugLog(u"Data from hub: " + r.content)
+			self.debugLog(u"Data from bridge: " + r.content)
 			# Convert the response to a Python object.
 			try:
 				bulb = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving LovingColors Bloom data from hub.  Error reported: " + unicode(e))
+				indigo.server.log(u"Error retrieving LovingColors Bloom data from bridge.  Error reported: " + unicode(e))
 				isError = True
-				errorsDict['bulbId'] = u"Error retrieving LivingColors Bloom data from hub. See Indigo log."
+				errorsDict['bulbId'] = u"Error retrieving LivingColors Bloom data from bridge. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
 				return (False, valuesDict, errorsDict)
 			if bulb.get('modelid', "") not in kLivingColorsDeviceIDs:
@@ -853,13 +853,13 @@ class Plugin(indigo.PluginBase):
 			bulbId = valuesDict['bulbId']
 			
 			# Make sure the device selected is a LightStrips device.
-			#   Get the device info directly from the hub.
+			#   Get the device info directly from the bridge.
 			command = "http://%s/api/%s/lights/%s" % (self.ipAddress, self.hostId, bulbId)
 			self.debugLog(u"Sending URL request: " + command)
 			try:
 				r = requests.get(command, timeout=kTimeout)
 			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -867,22 +867,22 @@ class Plugin(indigo.PluginBase):
 					self.lastErrorMessage = errorText
 				return
 			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 				return
-			self.debugLog(u"Data from hub: " + r.content)
+			self.debugLog(u"Data from bridge: " + r.content)
 			# Convert the response to a Python object.
 			try:
 				bulb = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving LivingWhites data from hub.  Error reported: " + unicode(e))
+				indigo.server.log(u"Error retrieving LivingWhites data from bridge.  Error reported: " + unicode(e))
 				isError = True
-				errorsDict['bulbId'] = u"Error retrieving LivingWhites data from hub. See Indigo log."
+				errorsDict['bulbId'] = u"Error retrieving LivingWhites data from bridge. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
 				return (False, valuesDict, errorsDict)
 			if bulb.get('modelid', "") not in kLivingWhitesDeviceIDs:
@@ -957,13 +957,13 @@ class Plugin(indigo.PluginBase):
 			groupId = valuesDict['groupId']
 			
 			# Make sure the device selected is a Hue group.
-			#   Get the group info directly from the hub.
+			#   Get the group info directly from the bridge.
 			command = "http://%s/api/%s/groups/%s" % (self.ipAddress, self.hostId, groupId)
 			self.debugLog(u"Sending URL request: " + command)
 			try:
 				r = requests.get(command, timeout=kTimeout)
 			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -971,22 +971,22 @@ class Plugin(indigo.PluginBase):
 					self.lastErrorMessage = errorText
 				return
 			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 				return
-			self.debugLog(u"Data from hub: " + r.content)
+			self.debugLog(u"Data from bridge: " + r.content)
 			# Convert the response to a Python object.
 			try:
 				group = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving Hue group data from hub.  Error reported: " + unicode(e))
+				indigo.server.log(u"Error retrieving Hue group data from bridge.  Error reported: " + unicode(e))
 				isError = True
-				errorsDict['groupId'] = u"Error retrieving Hue group data from hub. See Indigo log."
+				errorsDict['groupId'] = u"Error retrieving Hue group data from bridge. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['groupId']
 				return (False, valuesDict, errorsDict)
 			if group.get('lights', "") == "":
@@ -1121,13 +1121,13 @@ class Plugin(indigo.PluginBase):
 			sensorId = valuesDict['sensorId']
 			
 			# Make sure the device selected is a Hue sensor device.
-			#   Get the device info directly from the hub.
+			#   Get the device info directly from the bridge.
 			command = "http://%s/api/%s/sensors/%s" % (self.ipAddress, self.hostId, sensorId)
 			self.debugLog(u"Sending URL request: " + command)
 			try:
 				r = requests.get(command, timeout=kTimeout)
 			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -1135,22 +1135,22 @@ class Plugin(indigo.PluginBase):
 					self.lastErrorMessage = errorText
 				return
 			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 				return
-			self.debugLog(u"Data from hub: " + r.content)
+			self.debugLog(u"Data from bridge: " + r.content)
 			# Convert the response to a Python object.
 			try:
 				sensor = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving Hue device data from hub.  Error reported: " + unicode(e))
+				indigo.server.log(u"Error retrieving Hue device data from bridge.  Error reported: " + unicode(e))
 				isError = True
-				errorsDict['sensorId'] = u"Error retrieving Hue device data from hub. See Indigo log."
+				errorsDict['sensorId'] = u"Error retrieving Hue device data from bridge. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['sensorId']
 				return (False, valuesDict, errorsDict)
 			if sensor.get('modelid', "") not in kMotionSensorDeviceIDs:
@@ -1181,10 +1181,10 @@ class Plugin(indigo.PluginBase):
 				#   be invalid for this device type.  Let's make sure they're not.
 				valuesDict['SupportsOnState'] = True
 				valuesDict['SupportsSensorValue'] = False
-				valuesDict['enabledOnHub'] = True
+				valuesDict['enabledOnbridge'] = True
 				valuesDict['manufacturerName'] = ""
 				valuesDict['modelId'] = ""
-				valuesDict['nameOnHub'] = ""
+				valuesDict['nameOnbridge'] = ""
 				valuesDict['productId'] = ""
 				valuesDict['swVersion'] = ""
 				valuesDict['type'] = ""
@@ -1207,13 +1207,13 @@ class Plugin(indigo.PluginBase):
 			sensorId = valuesDict.get('sensorId', "0")
 			
 			# Make sure the device selected is a Hue sensor device.
-			#   Get the device info directly from the hub.
+			#   Get the device info directly from the bridge.
 			command = "http://%s/api/%s/sensors/%s" % (self.ipAddress, self.hostId, sensorId)
 			self.debugLog(u"Sending URL request: " + command)
 			try:
 				r = requests.get(command, timeout=kTimeout)
 			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -1221,22 +1221,22 @@ class Plugin(indigo.PluginBase):
 					self.lastErrorMessage = errorText
 				return
 			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 				return
-			self.debugLog(u"Data from hub: " + r.content)
+			self.debugLog(u"Data from bridge: " + r.content)
 			# Convert the response to a Python object.
 			try:
 				sensor = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving Hue device data from hub.  Error reported: " + unicode(e))
+				indigo.server.log(u"Error retrieving Hue device data from bridge.  Error reported: " + unicode(e))
 				isError = True
-				errorsDict['sensorId'] = u"Error retrieving Hue device data from hub. See Indigo log."
+				errorsDict['sensorId'] = u"Error retrieving Hue device data from bridge. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['sensorId']
 				return (False, valuesDict, errorsDict)
 			if sensor.get('modelid', "") not in kMotionSensorDeviceIDs:
@@ -1295,10 +1295,10 @@ class Plugin(indigo.PluginBase):
 				#   be invalid for this device type.  Let's make sure they're not.
 				valuesDict['SupportsOnState'] = False
 				valuesDict['SupportsSensorValue'] = True
-				valuesDict['enabledOnHub'] = True
+				valuesDict['enabledOnbridge'] = True
 				valuesDict['manufacturerName'] = ""
 				valuesDict['modelId'] = ""
-				valuesDict['nameOnHub'] = ""
+				valuesDict['nameOnbridge'] = ""
 				valuesDict['productId'] = ""
 				valuesDict['swVersion'] = ""
 				valuesDict['type'] = ""
@@ -1317,13 +1317,13 @@ class Plugin(indigo.PluginBase):
 			sensorId = valuesDict['sensorId']
 			
 			# Make sure the device selected is a Hue sensor device.
-			#   Get the device info directly from the hub.
+			#   Get the device info directly from the bridge.
 			command = "http://%s/api/%s/sensors/%s" % (self.ipAddress, self.hostId, sensorId)
 			self.debugLog(u"Sending URL request: " + command)
 			try:
 				r = requests.get(command, timeout=kTimeout)
 			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -1331,22 +1331,22 @@ class Plugin(indigo.PluginBase):
 					self.lastErrorMessage = errorText
 				return
 			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 				return
-			self.debugLog(u"Data from hub: " + r.content)
+			self.debugLog(u"Data from bridge: " + r.content)
 			# Convert the response to a Python object.
 			try:
 				sensor = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving Hue device data from hub.  Error reported: " + unicode(e))
+				indigo.server.log(u"Error retrieving Hue device data from bridge.  Error reported: " + unicode(e))
 				isError = True
-				errorsDict['sensorId'] = u"Error retrieving Hue device data from hub. See Indigo log."
+				errorsDict['sensorId'] = u"Error retrieving Hue device data from bridge. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['sensorId']
 				return (False, valuesDict, errorsDict)
 			if sensor.get('modelid', "") not in kMotionSensorDeviceIDs:
@@ -1377,10 +1377,10 @@ class Plugin(indigo.PluginBase):
 				#   be invalid for this device type.  Let's make sure they're not.
 				valuesDict['SupportsOnState'] = False
 				valuesDict['SupportsSensorValue'] = True
-				valuesDict['enabledOnHub'] = True
+				valuesDict['enabledOnbridge'] = True
 				valuesDict['manufacturerName'] = ""
 				valuesDict['modelId'] = ""
-				valuesDict['nameOnHub'] = ""
+				valuesDict['nameOnbridge'] = ""
 				valuesDict['productId'] = ""
 				valuesDict['swVersion'] = ""
 				valuesDict['type'] = ""
@@ -1390,6 +1390,173 @@ class Plugin(indigo.PluginBase):
 				if valuesDict.get('temperatureScale', False):
 					valuesDict['temperatureScale'] = ""
 				return (True, valuesDict)
+
+		#  -- Hue Tap Switch --
+		if typeId == "hueTapSwitch":
+			# Make sure a tap switch was selected.
+			if valuesDict.get('sensorId', "") == "":
+				isError = True
+				errorsDict['sensorId'] = u"Please select a Hue Tap Switch."
+				errorsDict['showAlertText'] += errorsDict['sensorId']
+				return (False, valuesDict, errorsDict)
+			
+			sensorId = valuesDict['sensorId']
+			
+			# Make sure the device selected is a Hue sensor device.
+			#   Get the device info directly from the bridge.
+			command = "http://%s/api/%s/sensors/%s" % (self.ipAddress, self.hostId, sensorId)
+			self.debugLog(u"Sending URL request: " + command)
+			try:
+				r = requests.get(command, timeout=kTimeout)
+			except requests.exceptions.Timeout:
+				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
+				# Don't display the error if it's been displayed already.
+				if errorText != self.lastErrorMessage:
+					self.errorLog(errorText)
+					# Remember the error.
+					self.lastErrorMessage = errorText
+				return
+			except requests.exceptions.ConnectionError:
+				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
+				# Don't display the error if it's been displayed already.
+				if errorText != self.lastErrorMessage:
+					self.errorLog(errorText)
+					# Remember the error.
+					self.lastErrorMessage = errorText
+				return
+			self.debugLog(u"Data from bridge: " + r.content)
+			# Convert the response to a Python object.
+			try:
+				sensor = json.loads(r.content)
+			except Exception, e:
+				# There was an error in the returned data.
+				indigo.server.log(u"Error retrieving Hue device data from bridge.  Error reported: " + unicode(e))
+				isError = True
+				errorsDict['sensorId'] = u"Error retrieving Hue device data from bridge. See Indigo log."
+				errorsDict['showAlertText'] += errorsDict['sensorId']
+				return (False, valuesDict, errorsDict)
+			if sensor.get('modelid', "") not in kSwitchDeviceIDs:
+				isError = True
+				errorsDict['sensorId'] = u"The selected device is not a Hue Tap Switch. Plesea select a Hue Tap Switch device."
+				errorsDict['showAlertText'] += errorsDict['sensorId']
+				return (False, valuesDict, errorsDict)
+			
+			# Make sure the sensor ID isn't used by another device.
+			for otherDeviceId in self.deviceList:
+				if otherDeviceId != deviceId:
+					otherDevice = indigo.devices[otherDeviceId]
+					if sensorId == otherDevice.pluginProps.get('sensorId', 0):
+						otherDevice = indigo.devices[otherDeviceId]
+						isError = True
+						errorsDict['sensorId'] = u"This Hue device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different Hue Tap Switch."
+						errorsDict['showAlertText'] += errorsDict['sensorId'] + "\n\n"
+
+			# Show errors if there are any.
+			if isError:
+				errorsDict['showAlertText'] = errorsDict['showAlertText'].strip()
+				return (False, valuesDict, errorsDict)
+
+			else:
+				# Define the device's address to appear in Indigo.
+				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (SID " + unicode(valuesDict['sensorId']) + ")"
+				# If this was a copied device, some properties could
+				#   be invalid for this device type.  Let's make sure they're not.
+				valuesDict['SupportsOnState'] = True
+				valuesDict['SupportsSensorValue'] = False
+				valuesDict['SupportsBatteryLevel'] = False
+				valuesDict['enabledOnbridge'] = True
+				valuesDict['manufacturerName'] = ""
+				valuesDict['modelId'] = ""
+				valuesDict['nameOnbridge'] = ""
+				valuesDict['type'] = ""
+				valuesDict['uniqueId'] = ""
+
+				return (True, valuesDict)
+
+		#  -- Hue Dimmer Switch --
+		if typeId == "hueDimmerSwitch":
+			# Make sure a dimmer switch was selected.
+			if valuesDict.get('sensorId', "") == "":
+				isError = True
+				errorsDict['sensorId'] = u"Please select a Hue Dimmer Switch."
+				errorsDict['showAlertText'] += errorsDict['sensorId']
+				return (False, valuesDict, errorsDict)
+			
+			sensorId = valuesDict['sensorId']
+			
+			# Make sure the device selected is a Hue sensor device.
+			#   Get the device info directly from the bridge.
+			command = "http://%s/api/%s/sensors/%s" % (self.ipAddress, self.hostId, sensorId)
+			self.debugLog(u"Sending URL request: " + command)
+			try:
+				r = requests.get(command, timeout=kTimeout)
+			except requests.exceptions.Timeout:
+				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
+				# Don't display the error if it's been displayed already.
+				if errorText != self.lastErrorMessage:
+					self.errorLog(errorText)
+					# Remember the error.
+					self.lastErrorMessage = errorText
+				return
+			except requests.exceptions.ConnectionError:
+				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
+				# Don't display the error if it's been displayed already.
+				if errorText != self.lastErrorMessage:
+					self.errorLog(errorText)
+					# Remember the error.
+					self.lastErrorMessage = errorText
+				return
+			self.debugLog(u"Data from bridge: " + r.content)
+			# Convert the response to a Python object.
+			try:
+				sensor = json.loads(r.content)
+			except Exception, e:
+				# There was an error in the returned data.
+				indigo.server.log(u"Error retrieving Hue device data from bridge.  Error reported: " + unicode(e))
+				isError = True
+				errorsDict['sensorId'] = u"Error retrieving Hue device data from bridge. See Indigo log."
+				errorsDict['showAlertText'] += errorsDict['sensorId']
+				return (False, valuesDict, errorsDict)
+			if sensor.get('modelid', "") not in kSwitchDeviceIDs:
+				isError = True
+				errorsDict['sensorId'] = u"The selected device is not a Hue Dimmer Switch. Plesea select a Hue Dimmer Switch device."
+				errorsDict['showAlertText'] += errorsDict['sensorId']
+				return (False, valuesDict, errorsDict)
+				
+			# Make sure the sensor ID isn't used by another device.
+			for otherDeviceId in self.deviceList:
+				if otherDeviceId != deviceId:
+					otherDevice = indigo.devices[otherDeviceId]
+					if sensorId == otherDevice.pluginProps.get('sensorId', 0):
+						otherDevice = indigo.devices[otherDeviceId]
+						isError = True
+						errorsDict['sensorId'] = u"This Hue device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different Hue Dimmer Switch."
+						errorsDict['showAlertText'] += errorsDict['sensorId'] + "\n\n"
+
+			# Show errors if there are any.
+			if isError:
+				errorsDict['showAlertText'] = errorsDict['showAlertText'].strip()
+				return (False, valuesDict, errorsDict)
+
+			else:
+				# Define the device's address to appear in Indigo.
+				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (SID " + unicode(valuesDict['sensorId']) + ")"
+				# If this was a copied device, some properties could
+				#   be invalid for this device type.  Let's make sure they're not.
+				valuesDict['SupportsOnState'] = True
+				valuesDict['SupportsSensorValue'] = False
+				valuesDict['SupportsBatteryLevel'] = True
+				valuesDict['enabledOnbridge'] = True
+				valuesDict['manufacturerName'] = ""
+				valuesDict['modelId'] = ""
+				valuesDict['nameOnbridge'] = ""
+				valuesDict['productId'] = ""
+				valuesDict['swVersion'] = ""
+				valuesDict['type'] = ""
+				valuesDict['uniqueId'] = ""
+
+				return (True, valuesDict)
+
 
 	# Closed Device Configuration.
 	########################################
@@ -1417,10 +1584,10 @@ class Plugin(indigo.PluginBase):
 		errorsDict['showAlertText'] = ""
 		descString = u""
 		
-		# Make sure we're still paired with the Hue hub.
+		# Make sure we're still paired with the Hue bridge.
 		if self.paired == False:
 			isError = True
-			errorsDict['device'] = u"Not currently paired with the Hue hub. Use the Configure... option in the Plugins -> Hue Lights menu to pair Hue Lights with the Hue hub first."
+			errorsDict['device'] = u"Not currently paired with the Hue bridge. Use the Configure... option in the Plugins -> Hue Lights menu to pair Hue Lights with the Hue bridge first."
 			errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
 			return (False, valuesDict, errorsDict)
 			
@@ -2268,7 +2435,7 @@ class Plugin(indigo.PluginBase):
 			# The field was left blank.
 			self.debugLog(u"validatePrefsConfigUi: IP address \"%s\" is blank." % valuesDict['address'])
 			isError = True
-			errorsDict['address'] = u"The IP Address field is blank. Please enter an IP Address for the Hue hub."
+			errorsDict['address'] = u"The IP Address field is blank. Please enter an IP Address for the Hue bridge."
 			errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 		
 		else:
@@ -2307,44 +2474,44 @@ class Plugin(indigo.PluginBase):
 				errorsDict['maxPresetCount'] = u"The Preset Memories must be a number between 1 and 100. Error: " + unicode(e)
 				errorsDict['showAlertText'] += errorsDict['maxPresetCount'] + "\n\n"
 		
-		# If there haven't been any errors so far, try to connect to the Hue hub to see
-		#   if it's actually a Hue hub.
+		# If there haven't been any errors so far, try to connect to the Hue bridge to see
+		#   if it's actually a Hue bridge.
 		if not isError:
 			try:
-				self.debugLog(u"validatePrefsConfigUi: Verifying that a Hue hub exists at IP address \"%s\"." %valuesDict['address'])
+				self.debugLog(u"validatePrefsConfigUi: Verifying that a Hue bridge exists at IP address \"%s\"." %valuesDict['address'])
 				command = "http://%s/description.xml" % valuesDict['address']
 				self.debugLog(u"validatePrefsConfigUi: Accessing URL: %s" % command)
 				r = requests.get(command, timeout=kTimeout)
 				self.debugLog(u"validatePrefsConfigUi: Got response:\n%s" % r.content)
 				
-				# Quick and dirty check to see if this is a Philips Hue hub.
+				# Quick and dirty check to see if this is a Philips Hue bridge.
 				if "Philips hue bridge" not in r.content:
-					# If "Philips hue bridge" doesn't exist in the response, it's not a Hue hub.
-					self.debugLog(u"validatePrefsConfigUi: No \"Philips hue bridge\" string found in response. This isn't a Hue hub.")
+					# If "Philips hue bridge" doesn't exist in the response, it's not a Hue bridge.
+					self.debugLog(u"validatePrefsConfigUi: No \"Philips hue bridge\" string found in response. This isn't a Hue bridge.")
 					isError = True
-					errorsDict['address'] = u"This doesn't appear to be a Philips Hue hub.  Please verify the IP address."
+					errorsDict['address'] = u"This doesn't appear to be a Philips Hue bridge.  Please verify the IP address."
 					errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 				
 				else:
-					# This is likely a Hue hub.
-					self.debugLog(u"validatePrefsConfigUi: Verified that this is a Hue hub.")
+					# This is likely a Hue bridge.
+					self.debugLog(u"validatePrefsConfigUi: Verified that this is a Hue bridge.")
 					
 			except requests.exceptions.Timeout:
 				self.debugLog(u"validatePrefsConfigUi: Connection to %s timed out after %i seconds." % (valuesDict['address'], kTimeout))
 				isError = True
-				errorsDict['address'] = u"Unable to reach the hub. Please check the IP address and ensure that the Indigo server and Hue hub are connected to the network."
+				errorsDict['address'] = u"Unable to reach the bridge. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
 				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 			
 			except requests.exceptions.ConnectionError:
 				self.debugLog(u"validatePrefsConfigUi: Connection to %s failed. There was a connection error." % valuesDict['address'])
 				isError = True
-				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue hub are connected to the network."
+				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
 				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 				
 			except Exception, e:
 				self.debugLog(u"validatePrefsConfigUi: Connection error. " + unicode(e))
 				isError = True
-				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue hub are connected to the network."
+				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
 				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 
 		# Return an error if one exists.
@@ -2428,7 +2595,7 @@ class Plugin(indigo.PluginBase):
 			else:
 				indigo.server.log(u"Debug logging disabled")
 	
-			# Update the IP address and Hue hub username (hostId) as well.
+			# Update the IP address and Hue bridge username (hostId) as well.
 			self.ipAddress = valuesDict.get('address', self.pluginPrefs['address'])
 			self.hostId = valuesDict.get('hostId', self.pluginPrefs['hostId'])
 
@@ -2467,8 +2634,13 @@ class Plugin(indigo.PluginBase):
 			if origDev.pluginProps['sensorId'] != newDev.pluginProps['sensorId']:
 				return True
 			return False
+		# For switches...
+		elif origDev.deviceTypeId in kSwitchTypeIDs:
+			if origDev.pluginProps['sensorId'] != newDev.pluginProps['sensorId']:
+				return True
+			return False
 		else:
-			# This is some device type other than a Hue bulb, so do the
+			# This is some device type other than a supported device type, so do the
 			#   default action of returning True if anything has changed.
 			if origDev.pluginProps != newDev.pluginProps:
 				return True
@@ -3999,9 +4171,9 @@ class Plugin(indigo.PluginBase):
 		
 		# Act based on the type of device.
 		#
-		# -- Hue Motion Sensor (Motion, Temperature and Luminance) --
+		# -- Hue Sensor (Motion, Temperature, Luminance, Dimmer Switch) --
 		#
-		if device.deviceTypeId in ['hueMotionSensor', 'hueMotionTemperatureSensor', 'hueMotionLightSensor']:
+		if device.deviceTypeId in ['hueMotionSensor', 'hueMotionTemperatureSensor', 'hueMotionLightSensor', 'hueDimmerSwitch']:
 			sensorId = device.pluginProps.get('sensorId', False)
 			hostId = self.hostId
 			self.ipAddress = self.pluginPrefs.get('address', False)
@@ -4264,7 +4436,7 @@ class Plugin(indigo.PluginBase):
 	# Bulb List Generator
 	########################################
 	def bulbListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
-		# Used in actions that need a list of Hue hub devices.
+		# Used in actions that need a list of Hue bridge devices.
 		self.debugLog(u"Starting bulbListGenerator.\n  filter: " + unicode(filter) + u"\n  valuesDict: " + unicode(valuesDict) + u"\n  typeId: " + unicode(typeId) + u"\n  targetId: " + unicode(targetId))
 		
 		returnBulbList = list()
@@ -4293,7 +4465,7 @@ class Plugin(indigo.PluginBase):
 	# Group List Generator
 	########################################
 	def groupListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
-		# Used in actions that need a list of Hue hub groups.
+		# Used in actions that need a list of Hue bridge groups.
 		self.debugLog(u"Starting groupListGenerator.\n  filter: " + unicode(filter) + u"\n  valuesDict: " + unicode(valuesDict) + u"\n  typeId: " + unicode(typeId) + u"\n  targetId: " + unicode(targetId))
 		
 		returnGroupList = list()
@@ -4390,7 +4562,7 @@ class Plugin(indigo.PluginBase):
 	# Generate Scenes List
 	########################################
 	def scenesListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
-		# Used by action dialogs to list Hue scenes on the Hue hub for a particular "owner" device.
+		# Used by action dialogs to list Hue scenes on the Hue bridge for a particular "owner" device.
 		self.debugLog(u"Starting scenesListGenerator.\n  filter: " + unicode(filter) + u"\n  valuesDict: " + unicode(valuesDict) + u"\n  typeId: " + unicode(typeId) + u"\n  deviceId: " + unicode(deviceId))
 		
 		theList = list()	# Menu item list.
@@ -4442,7 +4614,7 @@ class Plugin(indigo.PluginBase):
 			#   in the action/menu dialog, set the sceneId based on that assumption.
 			try:
 				# We're using "try" here because it's possible there are 0 scenes
-				#   on the hub.  If so, this will throw an exception.
+				#   on the bridge.  If so, this will throw an exception.
 				sceneId = self.scenesDict.items()[0][0]
 				if groupId == "":
 					# If the groupId is blank as well (likely), set it to "0" so the
@@ -4470,7 +4642,7 @@ class Plugin(indigo.PluginBase):
 				intersectingLights = sceneLights
 			self.debugLog(u"sceneLightsListGenerator: intersectingLights value: " + unicode(intersectingLights))
 			
-			# Get the name on the Hue hub for each light.
+			# Get the name on the Hue bridge for each light.
 			for lightId in intersectingLights:
 				lightName = self.lightsDict[lightId]['name']
 				theList.append((lightId, lightName))
@@ -4498,7 +4670,7 @@ class Plugin(indigo.PluginBase):
 				groupLights = self.groupsDict[groupId]['lights']
 				self.debugLog(u"groupLightsListGenerator: groupLights value: " + unicode(groupLights))
 			
-			# Get the name on the Hue hub for each light.
+			# Get the name on the Hue bridge for each light.
 			for lightId in groupLights:
 				lightName = self.lightsDict[lightId]['name']
 				theList.append((lightId, lightName))
@@ -4521,7 +4693,7 @@ class Plugin(indigo.PluginBase):
 			elif filter == "hueMotionSensor" and sensorDetails['type'] == "ZLLPresence" and sensorDetails['modelid'] in kMotionSensorDeviceIDs:
 				returnSensorList.append([sensorId, sensorDetails['name']])
 			elif filter == "hueMotionTemperatureSensor" and sensorDetails['type'] == "ZLLTemperature" and sensorDetails['modelid'] in kMotionSensorDeviceIDs:
-				# The sensor name on the hub is going to be generic.  Find the "parent"
+				# The sensor name on the bridge is going to be generic.  Find the "parent"
 				# motion sensor name by extracting the MAC address from the uniqueid value
 				# and searching for other sensors with the same MAC address in the uniqueid.
 				uniqueId = sensorDetails['uniqueid'].split("-")[0]
@@ -4530,7 +4702,7 @@ class Plugin(indigo.PluginBase):
 						if uniqueId in value['uniqueid'] and value['type'] == "ZLLPresence":
 							returnSensorList.append([sensorId, value['name']])
 			elif filter == "hueMotionLightSensor" and sensorDetails['type'] == "ZLLLightLevel" and sensorDetails['modelid'] in kMotionSensorDeviceIDs:
-				# The sensor name on the hub is going to be generic.  Find the "parent"
+				# The sensor name on the bridge is going to be generic.  Find the "parent"
 				# motion sensor name by extracting the MAC address from the uniqueid value
 				# and searching for other sensors with the same MAC address in the uniqueid.
 				uniqueId = sensorDetails['uniqueid'].split("-")[0]
@@ -4538,6 +4710,8 @@ class Plugin(indigo.PluginBase):
 					if value.get('uniqueid', False) and value.get('type', False):
 						if uniqueId in value['uniqueid'] and value['type'] == "ZLLPresence":
 							returnSensorList.append([sensorId, value['name']])
+			elif filter == "hueDimmerSwitch" and sensorDetails['type'] == "ZLLSwitch" and sensorDetails['modelid'] in kSwitchDeviceIDs:
+				returnSensorList.append([sensorId, sensorDetails['name']])
 
 		# Debug
 		self.debugLog(u"sensorListGenerator: Return sensor list is %s" % returnSensorList)
@@ -4705,10 +4879,7 @@ class Plugin(indigo.PluginBase):
 				self.debugLog(u"The \"" + device.name + u"\" sensor device doesn't have an on/off state.  Adding it.")
 				newProps['SupportsOnState'] = True
 				newProps['SupportsSensorValue'] = False
-				if newProps.get('sensorOffset', False):
-					del newProps['sensorOffset']
-				if newProps.get('temperatureScale', False):
-					del newProps['temperatureScale']
+				newProps['SupportsBatteryLevel'] = True
 				device.replacePluginPropsOnServer(newProps)
 				device.stateListOrDisplayStateIdChanged()
 		elif device.deviceTypeId in kTemperatureSensorTypeIDs and device.configured:
@@ -4718,6 +4889,11 @@ class Plugin(indigo.PluginBase):
 				self.debugLog(u"The \"" + device.name + u"\" sensor device doesn't have a sensorValue state.  Adding it.")
 				newProps['SupportsOnState'] = False
 				newProps['SupportsSensorValue'] = True
+				newProps['SupportsBatteryLevel'] = True
+				if newProps.get('sensorOffset', False):
+					del newProps['sensorOffset']
+				if newProps.get('temperatureScale', False):
+					del newProps['temperatureScale']
 				device.replacePluginPropsOnServer(newProps)
 				device.stateListOrDisplayStateIdChanged()
 		elif device.deviceTypeId in kLightSensorTypeIDs and device.configured:
@@ -4727,11 +4903,23 @@ class Plugin(indigo.PluginBase):
 				self.debugLog(u"The \"" + device.name + u"\" sensor device doesn't have a sensorValue state.  Adding it.")
 				newProps['SupportsOnState'] = False
 				newProps['SupportsSensorValue'] = True
-				if newProps.get('sensorOffset', False):
-					del newProps['sensorOffset']
-				if newProps.get('temperatureScale', False):
-					del newProps['temperatureScale']
+				newProps['SupportsBatteryLevel'] = True
 				device.replacePluginPropsOnServer(newProps)
+				device.stateListOrDisplayStateIdChanged()
+		elif device.deviceTypeId in kSwitchTypeIDs and device.configured:
+			self.debugLog(u"The " + device.name + u" device is a switch and is configured.")
+			# If the device doesn't have the SupportsOnState set to True, then set it.
+			if device.pluginProps.get('SupportsOnState', False) == False:
+				self.debugLog(u"The \"" + device.name + u"\" sensor device doesn't have an on/off state.  Adding it.")
+				newProps['SupportsOnState'] = True
+				newProps['SupportsSensorValue'] = False
+				# The Hue Tap doesn't have a battery so doesn't support battery level.
+				if device.pluginProps['modelId'] in ['ZGPSWITCH', 'SWT001']:
+					newProps['SupportsBatteryLevel'] = False
+				else:
+					newProps['SupportsBatteryLevel'] = True
+				device.replacePluginPropsOnServer(newProps)
+				device.stateListOrDisplayStateIdChanged()
 
 		device.stateListOrDisplayStateIdChanged()
 
@@ -4763,7 +4951,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					r = requests.get(command, timeout=kTimeout)
 				except requests.exceptions.Timeout:
-					errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+					errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 					# Don't display the error if it's been displayed already.
 					if errorText != self.lastErrorMessage:
 						self.errorLog(errorText)
@@ -4771,7 +4959,7 @@ class Plugin(indigo.PluginBase):
 						self.lastErrorMessage = errorText
 					return
 				except requests.exceptions.ConnectionError:
-					errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+					errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 					# Don't display the error if it's been displayed already.
 					if errorText != self.lastErrorMessage:
 						self.errorLog(errorText)
@@ -4784,7 +4972,7 @@ class Plugin(indigo.PluginBase):
 				self.debugLog(u"No bulbId exists in the \"%s\" device. New device perhaps." % (device.name))
 				return
 			
-		self.debugLog(u"Data from hub: " + r.content)
+		self.debugLog(u"Data from bridge: " + r.content)
 		# Convert the response to a Python object.
 		try:
 			bulb = json.loads(r.content)
@@ -4824,7 +5012,7 @@ class Plugin(indigo.PluginBase):
 			try:
 				r = requests.get(command, timeout=kTimeout)
 			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -4832,7 +5020,7 @@ class Plugin(indigo.PluginBase):
 					self.lastErrorMessage = errorText
 				return
 			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -4844,7 +5032,7 @@ class Plugin(indigo.PluginBase):
 			self.debugLog(u"No group ID was provided.")
 			return
 		
-		self.debugLog(u"Data from hub: " + r.content)
+		self.debugLog(u"Data from bridge: " + r.content)
 		
 		# Convert the response to a Python object.
 		try:
@@ -4885,7 +5073,7 @@ class Plugin(indigo.PluginBase):
 			try:
 				r = requests.get(command, timeout=kTimeout)
 			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -4893,21 +5081,21 @@ class Plugin(indigo.PluginBase):
 					self.lastErrorMessage = errorText
 				return
 			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
 				return
-			# End try to get data from hub.
+			# End try to get data from bridge.
 		else:
 			# The Indigo device must not yet be configured. Just return gracefully.
 			self.debugLog(u"No sensorId exists in the \"%s\" device. New device perhaps." % (device.name))
 			return
 		# End if sensorId is defined.
 		
-		self.debugLog(u"Data from hub: " + r.content)
+		self.debugLog(u"Data from bridge: " + r.content)
 		# Convert the response to a Python object.
 		try:
 			sensor = json.loads(r.content)
@@ -4932,19 +5120,19 @@ class Plugin(indigo.PluginBase):
 		self.parseOneHueSensorData(sensor, device)
 
 	
-	# Get Entire Hue Hub Config
+	# Get Entire Hue bridge Config
 	########################################
 	def getHueConfig(self):
-		# This method obtains the entire configuration object from the Hue hub.  That
-		#   object contains various Hue hub settings along with every paired light,
-		#   sensor device, group, scene, trigger rule, and schedule on the hub.
+		# This method obtains the entire configuration object from the Hue bridge.  That
+		#   object contains various Hue bridge settings along with every paired light,
+		#   sensor device, group, scene, trigger rule, and schedule on the bridge.
 		#   For this reason, this method should not be called frequently to avoid
-		#   causing Hue hub performacne degredation.
+		#   causing Hue bridge performacne degredation.
 		self.debugLog(u"Starting getHueConfig.")
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
 		if self.ipAddress is None:
-			errorText = u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com."
+			errorText = u"No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com."
 			self.errorLog(errorText)
 			# Remember the error.
 			self.lastErrorMessage = errorText
@@ -4956,14 +5144,14 @@ class Plugin(indigo.PluginBase):
 		try:
 			# Send the command and parse the response
 			command = "http://%s/api/%s/" % (self.ipAddress, self.hostId)
-			self.debugLog(u"Sending command to hub: %s" % command)
+			self.debugLog(u"Sending command to bridge: %s" % command)
 			r = requests.get(command, timeout=kTimeout)
 			hueConfigResponseData = json.loads(r.content)
 			self.debugLog(u"Got response %s" % hueConfigResponseData)
 			
 			# We should have a dictionary. If so, it's a Hue configuration response.
 			if isinstance(hueConfigResponseData, dict):
-				self.debugLog(u"Loaded entire Hue hub configuration - %s" % (hueConfigResponseData))
+				self.debugLog(u"Loaded entire Hue bridge configuration - %s" % (hueConfigResponseData))
 				
 				# Load the entire configuration into one big dictionary object.
 				self.hueConfigDict = hueConfigResponseData
@@ -4994,27 +5182,27 @@ class Plugin(indigo.PluginBase):
 					
 					# Is this a link button not pressed error?
 					if errorCode == 1:
-						errorText = u"Not paired with the Hue hub. Press the middle button on the Hue hub, then press the Pair Now button in the Hue Lights Configuration window (Plugins menu)."
+						errorText = u"Not paired with the Hue bridge. Press the middle button on the Hue bridge, then press the Pair Now button in the Hue Lights Configuration window (Plugins menu)."
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
 						self.paired = False
 						
 					else:
-						errorText = u"Error #%i from Hue hub when getting the Hue hub configuraiton. Description is \"%s\"." % (errorCode, errorDict.get('description', u"(no description"))
+						errorText = u"Error #%i from Hue bridge when getting the Hue bridge configuraiton. Description is \"%s\"." % (errorCode, errorDict.get('description', u"(no description"))
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
 						self.paired = False
 					
 				else:
-					indigo.server.log(u"Unexpected response from Hue hub (%s) when getting the Hue hub configuration!" % (hueConfigResponseData))
+					indigo.server.log(u"Unexpected response from Hue bridge (%s) when getting the Hue bridge configuration!" % (hueConfigResponseData))
 					
 			else:
-				indigo.server.log(u"Unexpected response from Hue hub (%s) when getting the Hue hub configuration!" % (hueConfigResponseData))
+				indigo.server.log(u"Unexpected response from Hue bridge (%s) when getting the Hue bridge configuration!" % (hueConfigResponseData))
 			
 		except requests.exceptions.Timeout:
-			errorText = u"Failed to load the configuration from the Hue hub at %s after %i seconds - check settings and retry." % (self.ipAddress, kTimeout)
+			errorText = u"Failed to load the configuration from the Hue bridge at %s after %i seconds - check settings and retry." % (self.ipAddress, kTimeout)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -5022,7 +5210,7 @@ class Plugin(indigo.PluginBase):
 				self.lastErrorMessage = errorText
 			
 		except requests.exceptions.ConnectionError:
-			errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected, turned on and the network settings are correct." % (self.ipAddress)
+			errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected, turned on and the network settings are correct." % (self.ipAddress)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -5031,7 +5219,7 @@ class Plugin(indigo.PluginBase):
 			return
 			
 		except Exception, e:
-			self.errorLog(u"Unable to obtain the configuration from the Hue hub." + unicode(e))
+			self.errorLog(u"Unable to obtain the configuration from the Hue bridge." + unicode(e))
 	
 	# Update Lights List
 	########################################
@@ -5040,7 +5228,7 @@ class Plugin(indigo.PluginBase):
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
 		if self.ipAddress is None:
-			errorText = u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com."
+			errorText = u"No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com."
 			self.errorLog(errorText)
 			# Remember the error.
 			self.lastErrorMessage = errorText
@@ -5055,7 +5243,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			# Parse the response
 			command = "http://%s/api/%s/lights" % (self.ipAddress, self.hostId)
-			self.debugLog(u"Sending command to hub: %s" % command)
+			self.debugLog(u"Sending command to bridge: %s" % command)
 			r = requests.get(command, timeout=kTimeout)
 			lightsListResponseData = json.loads(r.content)
 			self.debugLog(u"Got response %s" % lightsListResponseData)
@@ -5075,9 +5263,9 @@ class Plugin(indigo.PluginBase):
 				elif len(self.lightsDict) < lastLightsCount:
 					lightsCountChange = lastLightsCount - len(self.lightsDict)
 					if lightsCountChange == 1:
-						indigo.server.log(u"%i Hue light removal was detected from the Hue hub. Check your Hue Lights Indigo devices. One of them may have been controlling the missing Hue lights." % lightsCountChange)
+						indigo.server.log(u"%i Hue light removal was detected from the Hue bridge. Check your Hue Lights Indigo devices. One of them may have been controlling the missing Hue lights." % lightsCountChange)
 					else:
-						indigo.server.log(u"%i Hue light removals were detected on the Hue hub. Check your Hue Lights Indigo devices. Some of them may have been controlling the missing Hue lights." % lightsCountChange)
+						indigo.server.log(u"%i Hue light removals were detected on the Hue bridge. Check your Hue Lights Indigo devices. Some of them may have been controlling the missing Hue lights." % lightsCountChange)
 					
 				# Make sure the plugin knows it's actually paired now.
 				self.paired = True
@@ -5094,27 +5282,27 @@ class Plugin(indigo.PluginBase):
 					
 					# Is this a link button not pressed error?
 					if errorCode == 1:
-						errorText = u"Not paired with the Hue hub. Press the middle button on the Hue hub, then press the Pair Now button in the Hue Lights Configuration window (Plugins menu)."
+						errorText = u"Not paired with the Hue bridge. Press the middle button on the Hue bridge, then press the Pair Now button in the Hue Lights Configuration window (Plugins menu)."
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
 						self.paired = False
 						
 					else:
-						errorText = u"Error #%i from Hue hub when loading available devices. Description is \"%s\"." % (errorCode, errorDict.get('description', u"(no description"))
+						errorText = u"Error #%i from Hue bridge when loading available devices. Description is \"%s\"." % (errorCode, errorDict.get('description', u"(no description"))
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
 						self.paired = False
 					
 				else:
-					indigo.server.log(u"Unexpected response from Hue hub (%s) when loading available devices!" % (lightsListResponseData))
+					indigo.server.log(u"Unexpected response from Hue bridge (%s) when loading available devices!" % (lightsListResponseData))
 					
 			else:
-				indigo.server.log(u"Unexpected response from Hue hub (%s) when loading available devices!" % (lightsListResponseData))
+				indigo.server.log(u"Unexpected response from Hue bridge (%s) when loading available devices!" % (lightsListResponseData))
 			
 		except requests.exceptions.Timeout:
-			errorText = u"Failed to load lights list from the Hue hub at %s after %i seconds - check settings and retry." % (self.ipAddress, kTimeout)
+			errorText = u"Failed to load lights list from the Hue bridge at %s after %i seconds - check settings and retry." % (self.ipAddress, kTimeout)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -5122,7 +5310,7 @@ class Plugin(indigo.PluginBase):
 				self.lastErrorMessage = errorText
 			
 		except requests.exceptions.ConnectionError:
-			errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected, turned on and the network settings are correct." % (self.ipAddress)
+			errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected, turned on and the network settings are correct." % (self.ipAddress)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -5131,7 +5319,7 @@ class Plugin(indigo.PluginBase):
 			return
 			
 		except Exception, e:
-			errorText = u"Unable to obtain list of Hue lights from the hub." + unicode(e)
+			errorText = u"Unable to obtain list of Hue lights from the bridge." + unicode(e)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -5145,7 +5333,7 @@ class Plugin(indigo.PluginBase):
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
 		if self.ipAddress is None:
-			errorText = u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com."
+			errorText = u"No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com."
 			self.errorLog(errorText)
 			# Remember the error.
 			self.lastErrorMessage = errorText
@@ -5160,7 +5348,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			# Parse the response
 			command = "http://%s/api/%s/groups" % (self.ipAddress, self.hostId)
-			self.debugLog(u"Sending command to hub: %s" % command)
+			self.debugLog(u"Sending command to bridge: %s" % command)
 			r = requests.get(command, timeout=kTimeout)
 			groupsListResponseData = json.loads(r.content)
 			self.debugLog(u"Got response %s" % groupsListResponseData)
@@ -5180,9 +5368,9 @@ class Plugin(indigo.PluginBase):
 				elif len(self.groupsDict) < lastGroupsCount:
 					groupsCountChange = lastGroupsCount - len(self.groupsDict)
 					if groupsCountChange == 1:
-						indigo.server.log(u"%i less Hue group was found on the Hue hub. Check your Hue Lights Indigo devices. One of them may have been controlling the missing Hue group." % groupsCountChange)
+						indigo.server.log(u"%i less Hue group was found on the Hue bridge. Check your Hue Lights Indigo devices. One of them may have been controlling the missing Hue group." % groupsCountChange)
 					else:
-						indigo.server.log(u"%i fewer Hue groups were found on the Hue hub. Check your Hue Lights Indigo devices. Some of them may have been controlling the missing Hue groups." % groupsCountChange)
+						indigo.server.log(u"%i fewer Hue groups were found on the Hue bridge. Check your Hue Lights Indigo devices. Some of them may have been controlling the missing Hue groups." % groupsCountChange)
 				# Make sure the plugin knows it's actually paired now.
 				self.paired = True
 				
@@ -5198,27 +5386,27 @@ class Plugin(indigo.PluginBase):
 					
 					# Is this a link button not pressed error?
 					if errorCode == 1:
-						errorText = u"Not paired with the Hue hub. Press the middle button on the Hue hub, then press the Pair Now button in the Hue Lights Configuration window (Plugins menu)."
+						errorText = u"Not paired with the Hue bridge. Press the middle button on the Hue bridge, then press the Pair Now button in the Hue Lights Configuration window (Plugins menu)."
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
 						self.paired = False
 						
 					else:
-						errorText = u"Error #%i from Hue hub when loading available groups. Description is \"%s\"." % (errorCode, errorDict.get('description', u"(no description"))
+						errorText = u"Error #%i from Hue bridge when loading available groups. Description is \"%s\"." % (errorCode, errorDict.get('description', u"(no description"))
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
 						self.paired = False
 					
 				else:
-					indigo.server.log(u"Unexpected response from Hue hub (%s) when loading available groups!" % (groupsListResponseData))
+					indigo.server.log(u"Unexpected response from Hue bridge (%s) when loading available groups!" % (groupsListResponseData))
 					
 			else:
-				indigo.server.log(u"Unexpected response from Hue hub (%s) when loading available groups!" % (groupsListResponseData))
+				indigo.server.log(u"Unexpected response from Hue bridge (%s) when loading available groups!" % (groupsListResponseData))
 			
 		except requests.exceptions.Timeout:
-			errorText = u"Failed to load groups list from the Hue hub at %s after %i seconds - check settings and retry." % (self.ipAddress, kTimeout)
+			errorText = u"Failed to load groups list from the Hue bridge at %s after %i seconds - check settings and retry." % (self.ipAddress, kTimeout)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -5226,7 +5414,7 @@ class Plugin(indigo.PluginBase):
 				self.lastErrorMessage = errorText
 			
 		except requests.exceptions.ConnectionError:
-			errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected, turned on and the network settings are correct." % (self.ipAddress)
+			errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected, turned on and the network settings are correct." % (self.ipAddress)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -5235,7 +5423,7 @@ class Plugin(indigo.PluginBase):
 			return
 			
 		except Exception, e:
-			self.errorLog(u"Unable to obtain list of Hue groups from the hub." + unicode(e))
+			self.errorLog(u"Unable to obtain list of Hue groups from the bridge." + unicode(e))
 	
 	# Update Sensors List
 	########################################
@@ -5244,7 +5432,7 @@ class Plugin(indigo.PluginBase):
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
 		if self.ipAddress is None:
-			errorText = u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com."
+			errorText = u"No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com."
 			self.errorLog(errorText)
 			# Remember the error.
 			self.lastErrorMessage = errorText
@@ -5259,7 +5447,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			# Parse the response
 			command = "http://%s/api/%s/sensors" % (self.ipAddress, self.hostId)
-			## self.debugLog(u"Sending command to hub: %s" % command)
+			## self.debugLog(u"Sending command to bridge: %s" % command)
 			r = requests.get(command, timeout=kTimeout)
 			sensorsListResponseData = json.loads(r.content)
 			## self.debugLog(u"Got response %s" % sensorsListResponseData)
@@ -5279,9 +5467,9 @@ class Plugin(indigo.PluginBase):
 				elif len(self.sensorsDict) < lastSensorsCount:
 					sensorsCountChange = lastSensorsCount - len(self.sensorsDict)
 					if sensorsCountChange == 1:
-						indigo.server.log(u"%i less Hue sensor was found on the Hue hub. Check your Hue Lights Indigo devices. One of them may have been controlling the missing Hue sensor." % sensorsCountChange)
+						indigo.server.log(u"%i less Hue sensor was found on the Hue bridge. Check your Hue Lights Indigo devices. One of them may have been controlling the missing Hue sensor." % sensorsCountChange)
 					else:
-						indigo.server.log(u"%i fewer Hue sensors were found on the Hue hub. Check your Hue Lights Indigo devices. Some of them may have been controlling the missing Hue sensors." % sensorsCountChange)
+						indigo.server.log(u"%i fewer Hue sensors were found on the Hue bridge. Check your Hue Lights Indigo devices. Some of them may have been controlling the missing Hue sensors." % sensorsCountChange)
 				# Make sure the plugin knows it's actually paired now.
 				self.paired = True
 				
@@ -5297,27 +5485,27 @@ class Plugin(indigo.PluginBase):
 					
 					# Is this a link button not pressed error?
 					if errorCode == 1:
-						errorText = u"Not paired with the Hue hub. Press the middle button on the Hue hub, then press the Pair Now button in the Hue Lights Configuration window (Plugins menu)."
+						errorText = u"Not paired with the Hue bridge. Press the middle button on the Hue bridge, then press the Pair Now button in the Hue Lights Configuration window (Plugins menu)."
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
 						self.paired = False
 						
 					else:
-						errorText = u"Error #%i from Hue hub when loading available sensors. Description is \"%s\"." % (errorCode, errorDict.get('description', u"(no description"))
+						errorText = u"Error #%i from Hue bridge when loading available sensors. Description is \"%s\"." % (errorCode, errorDict.get('description', u"(no description"))
 						self.errorLog(errorText)
 						# Remember the error.
 						self.lastErrorMessage = errorText
 						self.paired = False
 					
 				else:
-					indigo.server.log(u"Unexpected response from Hue hub (%s) when loading available sensors!" % (sensorsListResponseData))
+					indigo.server.log(u"Unexpected response from Hue bridge (%s) when loading available sensors!" % (sensorsListResponseData))
 					
 			else:
-				indigo.server.log(u"Unexpected response from Hue hub (%s) when loading available sensors!" % (sensorsListResponseData))
+				indigo.server.log(u"Unexpected response from Hue bridge (%s) when loading available sensors!" % (sensorsListResponseData))
 			
 		except requests.exceptions.Timeout:
-			errorText = u"Failed to load sensors list from the Hue hub at %s after %i seconds - check settings and retry." % (self.ipAddress, kTimeout)
+			errorText = u"Failed to load sensors list from the Hue bridge at %s after %i seconds - check settings and retry." % (self.ipAddress, kTimeout)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -5325,7 +5513,7 @@ class Plugin(indigo.PluginBase):
 				self.lastErrorMessage = errorText
 			
 		except requests.exceptions.ConnectionError:
-			errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected, turned on and the network settings are correct." % (self.ipAddress)
+			errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected, turned on and the network settings are correct." % (self.ipAddress)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -5334,7 +5522,7 @@ class Plugin(indigo.PluginBase):
 			return
 			
 		except Exception, e:
-			self.errorLog(u"Unable to obtain list of Hue sensors from the hub." + unicode(e))
+			self.errorLog(u"Unable to obtain list of Hue sensors from the bridge." + unicode(e))
 
 
 	# Parse All Hue Lights Data
@@ -5344,7 +5532,7 @@ class Plugin(indigo.PluginBase):
 		
 		# Itterate through all the Indigo devices and look for Hue light changes in the
 		#   self.lightsDict that changed, then update the Indigo device states and properties
-		#   as needed.  This method does no actual Hue hub communication.  It just updates
+		#   as needed.  This method does no actual Hue bridge communication.  It just updates
 		#   Indigo devices with information already obtained through the use of the
 		#   self.updateLightsList.
 		
@@ -5382,8 +5570,8 @@ class Plugin(indigo.PluginBase):
 	def parseOneHueLightData(self, bulb, device):
 		## self.debugLog(u"Starting parseOneHueLightData.")
 		
-		# Take the bulb passed to this method, look up the data already obtained from the Hue hub
-		# and parse the hub data for this bulb, making changes to the Indigo device as needed.
+		# Take the bulb passed to this method, look up the data already obtained from the Hue bridge
+		# and parse the bridge data for this bulb, making changes to the Indigo device as needed.
 		
 		deviceId = device.id
 		
@@ -5394,7 +5582,7 @@ class Plugin(indigo.PluginBase):
 		onState = bulb['state'].get('on', False)
 		alert = bulb['state'].get('alert', "")
 		online = bulb['state'].get('reachable', False)
-		nameOnHub = bulb.get('name', "no name")
+		nameOnbridge = bulb.get('name', "no name")
 		modelId = bulb.get('modelid', "")
 		manufacturerName = bulb.get('manufacturername', "")
 		swVersion = bulb.get('swversion', "")
@@ -5407,7 +5595,7 @@ class Plugin(indigo.PluginBase):
 		# Compensate for incorrect rounding to zero if original brightness is not zero.
 		if brightnessLevel == 0 and brightness > 0:
 			brightnessLevel = 1
-		# If the "on" state is False, it doesn't matter what brightness the hub
+		# If the "on" state is False, it doesn't matter what brightness the bridge
 		#   is reporting, the effective brightness is zero.
 		if onState == False:
 			brightnessLevel = 0
@@ -5415,15 +5603,15 @@ class Plugin(indigo.PluginBase):
 		#   Update Indigo states and properties common to all Hue devices.	
 		tempProps = device.pluginProps
 		# Update the Hue device name.
-		if nameOnHub != device.pluginProps.get('nameOnHub', False):
-			tempProps['nameOnHub'] = nameOnHub
+		if nameOnbridge != device.pluginProps.get('nameOnbridge', False):
+			tempProps['nameOnbridge'] = nameOnbridge
 		# Update the modelId.
 		if modelId != device.pluginProps.get('modelId', ""):
 			tempProps['modelId'] = modelId
 		# Update the manufacturer name.
 		if manufacturerName != device.pluginProps.get('manufacturerName', ""):
 			tempProps['manufacturerName'] = manufacturerName
-		# Update the software version for the device on the Hue hub.
+		# Update the software version for the device on the Hue bridge.
 		if swVersion != device.pluginProps.get('swVersion', ""):
 			tempProps['swVersion'] = swVersion
 		# Update the type as defined by Hue.
@@ -5553,7 +5741,7 @@ class Plugin(indigo.PluginBase):
 					self.updateDeviceState(device, 'blueLevel', 0)
 			else:
 				# Unrecognized on state, but not important enough to mention in regular log.
-				self.debugLog(u"Hue bulb unrecognized on state given by hub: " + unicode(bulb['state']['on']))
+				self.debugLog(u"Hue bulb unrecognized on state given by bridge: " + unicode(bulb['state']['on']))
 			
 			# Update the effect state (regardless of onState).
 			self.updateDeviceState(device, 'effect', effect)
@@ -5643,7 +5831,7 @@ class Plugin(indigo.PluginBase):
 					self.updateDeviceState(device, 'whiteTemperature', colorTemp)
 			else:
 				# Unrecognized on state, but not important enough to mention in regular log.
-				self.debugLog(u"Ambiance light unrecognized \"on\" state given by hub: " + unicode(bulb['state']['on']))
+				self.debugLog(u"Ambiance light unrecognized \"on\" state given by bridge: " + unicode(bulb['state']['on']))
 			
 			# Update the effect state (regardless of onState).
 			self.updateDeviceState(device, 'effect', effect)
@@ -5778,7 +5966,7 @@ class Plugin(indigo.PluginBase):
 					self.updateDeviceState(device, 'blueLevel', 0)
 			else:
 				# Unrecognized on state, but not important enough to mention in regular log.
-				self.debugLog(u"LightStrip unrecognized on state given by hub: " + unicode(bulb['state']['on']))
+				self.debugLog(u"LightStrip unrecognized on state given by bridge: " + unicode(bulb['state']['on']))
 			
 			# Update the effect state (regardless of onState).
 			self.updateDeviceState(device, 'effect', effect)
@@ -5897,7 +6085,7 @@ class Plugin(indigo.PluginBase):
 					self.updateDeviceState(device, 'blueLevel', int(round(colorBlue / 255.0 * 100.0)))
 			else:
 				# Unrecognized on state, but not important enough to mention in regular log.
-				self.debugLog(u"LivingColors unrecognized on state given by hub: " + unicode(bulb['state']['on']))
+				self.debugLog(u"LivingColors unrecognized on state given by bridge: " + unicode(bulb['state']['on']))
 
 			# Update the effect state (regardless of onState).
 			self.updateDeviceState(device, 'effect', effect)
@@ -5948,7 +6136,7 @@ class Plugin(indigo.PluginBase):
 					self.updateDeviceState(device, 'brightnessLevel', 0)
 			else:
 				# Unrecognized on state, but not important enough to mention in regular log.
-				self.debugLog(u"LivingWhites unrecognized on state given by hub: " + unicode(bulb['state']['on']))
+				self.debugLog(u"LivingWhites unrecognized on state given by bridge: " + unicode(bulb['state']['on']))
 				
 			# Update any Hue Device Attribute Controller virtual dimmers associated with this bulb.
 			for controlDeviceId in self.controlDeviceList:
@@ -5997,7 +6185,7 @@ class Plugin(indigo.PluginBase):
 		
 		# Itterate through all the Indigo devices and look for Hue group changes in the
 		#   self.groupsDict that changed, then update the Indigo device states and properties
-		#   as needed.  This method does no actual Hue hub communication.  It just updates
+		#   as needed.  This method does no actual Hue bridge communication.  It just updates
 		#   Indigo devices with information already obtained through the use of the
 		#   self.updateGroupsList.
 		
@@ -6034,13 +6222,13 @@ class Plugin(indigo.PluginBase):
 	def parseOneHueGroupData(self, group, device):
 		self.debugLog(u"Starting parseOneHueGroupData.")
 
-		# Take the groupId and device passed to this method, look up the data already obtained from the Hue hub
-		# and parse the hub data for this group, making changes to the Indigo device as needed.
+		# Take the groupId and device passed to this method, look up the data already obtained from the Hue bridge
+		# and parse the bridge data for this group, making changes to the Indigo device as needed.
 		
 		deviceId = device.id
 		
 		# Separate out the specific Hue group data.
-		nameOnHub = group.get('name', "")
+		nameOnbridge = group.get('name', "")
 		groupType = group.get('type', "")
 		groupClass = group.get('class', "")
 		brightness = group['action'].get('bri', 0)
@@ -6081,7 +6269,7 @@ class Plugin(indigo.PluginBase):
 		# Compensate for incorrect rounding to zero if original brightness is not zero.
 		if brightnessLevel == 0 and brightness > 0:
 			brightnessLevel = 1
-		# If the "on" state is False, it doesn't matter what brightness the hub
+		# If the "on" state is False, it doesn't matter what brightness the bridge
 		#   is reporting, the effective brightness is zero.
 		if onState == False:
 			brightnessLevel = 0
@@ -6105,8 +6293,8 @@ class Plugin(indigo.PluginBase):
 		#   Update Indigo states and properties common to all Hue devices.	
 		tempProps = device.pluginProps
 		# Update the Hue group name.
-		if nameOnHub != tempProps.get('nameOnHub', False):
-			tempProps['nameOnHub'] = nameOnHub
+		if nameOnbridge != tempProps.get('nameOnbridge', False):
+			tempProps['nameOnbridge'] = nameOnbridge
 			self.updateDeviceProps(device, tempProps)
 		# Update the group type.
 		if groupType != tempProps.get('type', False):
@@ -6200,7 +6388,7 @@ class Plugin(indigo.PluginBase):
 				self.updateDeviceState(device, 'blueLevel', int(round(colorBlue / 255.0 * 100.0)))
 		else:
 			# Unrecognized on state, but not important enough to mention in regular log.
-			self.debugLog(u"Hue group unrecognized on state given by hub: " + unicode(group['action']['on']))
+			self.debugLog(u"Hue group unrecognized on state given by bridge: " + unicode(group['action']['on']))
 			
 		# Update any Hue Device Attribute Controller virtual dimmers associated with this group.
 		for controlDeviceId in self.controlDeviceList:
@@ -6256,7 +6444,7 @@ class Plugin(indigo.PluginBase):
 		
 		# Itterate through all the Indigo devices and look for Hue sensor changes in the
 		#   self.sensorsDict that changed, then update the Indigo device states and properties
-		#   as needed.  This method does no actual Hue hub communication.  It just updates
+		#   as needed.  This method does no actual Hue bridge communication.  It just updates
 		#   Indigo devices with information already obtained through the use of the
 		#   self.updateSensorsList.
 		
@@ -6320,6 +6508,43 @@ class Plugin(indigo.PluginBase):
 					# End check if this Hue Sensor device is the one associated with the Indigo device.
 				# End loop through self.sensorsDict.
 			# End check if this is a Hue Motion Sensor (Luminance) device.
+
+			# -- Hue Tap Switch --
+			if device.deviceTypeId == "hueTapSwitch":
+				## self.debugLog(u"parseAllHueSensorsData: Indigo device \"%s\" is for a Hue Tap Switch sensor. Proceeing." % (device.name))
+				# Go through each Hue sensor device and see if it is controlled by this Indigo device.
+				for sensorId in self.sensorsDict:
+					sensor = self.sensorsDict[sensorId]
+					## self.debugLog(u"parseAllHueSensorsData: Parsing Hue sensor ID %s (\"%s\")." % (sensorId, sensor.get('name', "no name")))
+					# Is this Hue sensor ID the one associated with this Indigo device?
+					if sensorId == device.pluginProps['sensorId']:
+						## self.debugLog(u"parseAllHueSensorsData: Indigo device \"%s\" is controlling Hue sensor ID \"%s\" (\"%s\"). Updating Indigo device properties and states." % (device.name, sensorId, sensor.get('name', "no name")))
+						
+						# It is, so call the method that assigns sensor data to the Indigo device.
+						self.parseOneHueSensorData(sensor, device)
+			
+					# End check if this Hue Sensor device is the one associated with the Indigo device.
+				# End loop through self.sensorsDict.
+			# End check if this is a Hue Tap Switch device.
+
+			# -- Hue Dimmer Switch --
+			if device.deviceTypeId == "hueDimmerSwitch":
+				## self.debugLog(u"parseAllHueSensorsData: Indigo device \"%s\" is for a Hue Dimmer Switch sensor. Proceeing." % (device.name))
+				# Go through each Hue sensor device and see if it is controlled by this Indigo device.
+				for sensorId in self.sensorsDict:
+					sensor = self.sensorsDict[sensorId]
+					## self.debugLog(u"parseAllHueSensorsData: Parsing Hue sensor ID %s (\"%s\")." % (sensorId, sensor.get('name', "no name")))
+					# Is this Hue sensor ID the one associated with this Indigo device?
+					if sensorId == device.pluginProps['sensorId']:
+						## self.debugLog(u"parseAllHueSensorsData: Indigo device \"%s\" is controlling Hue sensor ID \"%s\" (\"%s\"). Updating Indigo device properties and states." % (device.name, sensorId, sensor.get('name', "no name")))
+						
+						# It is, so call the method that assigns sensor data to the Indigo device.
+						self.parseOneHueSensorData(sensor, device)
+						
+					# End check if this Hue Sensor device is the one associated with the Indigo device.
+				# End loop through self.sensorsDict.
+			# End check if this is a Hue Dimmer Switch device.
+
 		# End loop through self.deviceList.
 
 	# Parse One Hue Sensor Data
@@ -6332,14 +6557,14 @@ class Plugin(indigo.PluginBase):
 			## self.debugLog(u"parseOneHueSensorData: Parsing Hue sensor ID %s (\"%s\")." % (device.pluginProps.get('sensorId', ""), sensor.get('name', "no name")))
 			
 			# Separate out the specific Hue sensor data.
-			nameOnHub = sensor.get('name', "")
+			nameOnbridge = sensor.get('name', "")
 			uniqueId = sensor.get('uniqueid', "")
 			productId = sensor.get('productid', "")
 			swVersion = sensor.get('swversion', "")
 			manufacturerName = sensor.get('manufacturername', "")
 			sensorType = sensor.get('type', "")
 			modelId = sensor.get('modelid', "")
-			enabledOnHub = sensor['config'].get('on', True)
+			enabledOnbridge = sensor['config'].get('on', True)
 			batteryLevel = sensor['config'].get('battery', 0)
 			sensitivity = sensor['config'].get('sensitivity', 0)
 			sensitivityMax = sensor['config'].get('sensitivitymax', 0)
@@ -6360,14 +6585,14 @@ class Plugin(indigo.PluginBase):
 			#   Update Indigo states and properties.
 			tempProps = device.pluginProps
 			# Update the device properties.
-			tempProps['nameOnHub'] = nameOnHub
+			tempProps['nameOnbridge'] = nameOnbridge
 			tempProps['uniqueId'] = uniqueId
 			tempProps['productId'] = productId
 			tempProps['swVersion'] = swVersion
 			tempProps['manufacturerName'] = manufacturerName
 			tempProps['type'] = sensorType
 			tempProps['modelId'] = modelId
-			tempProps['enabledOnHub'] = enabledOnHub
+			tempProps['enabledOnbridge'] = enabledOnbridge
 			self.updateDeviceProps(device, tempProps)
 			
 			# Update the states on the device.
@@ -6391,15 +6616,15 @@ class Plugin(indigo.PluginBase):
 			## self.debugLog(u"parseOneHueSensorData: Parsing Hue sensor ID %s (\"%s\")." % (device.pluginProps.get('sensorId', ""), sensor.get('name', "no name")))
 			
 			# Separate out the specific Hue sensor data.
-			# Get the name of the sensor as it appears on the Hue hub.
-			nameOnHub = sensor.get('name', "")
+			# Get the name of the sensor as it appears on the Hue bridge.
+			nameOnbridge = sensor.get('name', "")
 			uniqueId = sensor.get('uniqueid', "")
 			productId = sensor.get('productid', "")
 			swVersion = sensor.get('swversion', "")
 			manufacturerName = sensor.get('manufacturername', "")
 			sensorType = sensor.get('type', "")
 			modelId = sensor.get('modelid', "")
-			enabledOnHub = sensor['config'].get('on', True)
+			enabledOnbridge = sensor['config'].get('on', True)
 			batteryLevel = sensor['config'].get('battery', 0)
 			testMode = sensor['config'].get('usertest', False)
 			ledEnabled = sensor['config'].get('ledindication', False)
@@ -6408,17 +6633,17 @@ class Plugin(indigo.PluginBase):
 			temperatureRaw = sensor['state'].get('temperature', 0)
 			lastUpdated = sensor['state'].get('lastupdated', "")
 			
-			#   Update Indigo properties and states.
+			# Update Indigo properties and states.
 			tempProps = device.pluginProps
 			# Update the device properties.
-			tempProps['nameOnHub'] = nameOnHub
+			tempProps['nameOnbridge'] = nameOnbridge
 			tempProps['uniqueId'] = uniqueId
 			tempProps['productId'] = productId
 			tempProps['swVersion'] = swVersion
 			tempProps['manufacturerName'] = manufacturerName
 			tempProps['type'] = sensorType
 			tempProps['modelId'] = modelId
-			tempProps['enabledOnHub'] = enabledOnHub
+			tempProps['enabledOnbridge'] = enabledOnbridge
 			self.updateDeviceProps(device, tempProps)
 			
 			# Get the calibration offset specified in the device settings.
@@ -6472,15 +6697,15 @@ class Plugin(indigo.PluginBase):
 			## self.debugLog(u"parseOneHueSensorData: Parsing Hue sensor ID %s (\"%s\")." % (device.pluginProps.get('sensorId', ""), sensor.get('name', "no name")))
 			
 			# Separate out the specific Hue sensor data.
-			# Get the name of the sensor as it appears on the Hue hub.
-			nameOnHub = sensor.get('name', "")
+			# Get the name of the sensor as it appears on the Hue bridge.
+			nameOnbridge = sensor.get('name', "")
 			uniqueId = sensor.get('uniqueid', "")
 			productId = sensor.get('productid', "")
 			swVersion = sensor.get('swversion', "")
 			manufacturerName = sensor.get('manufacturername', "")
 			sensorType = sensor.get('type', "")
 			modelId = sensor.get('modelid', "")
-			enabledOnHub = sensor['config'].get('on', True)
+			enabledOnbridge = sensor['config'].get('on', True)
 			batteryLevel = sensor['config'].get('battery', 0)
 			testMode = sensor['config'].get('usertest', False)
 			ledEnabled = sensor['config'].get('ledindication', False)
@@ -6496,14 +6721,14 @@ class Plugin(indigo.PluginBase):
 			#   Update Indigo properties and states.
 			tempProps = device.pluginProps
 			# Update the device properties.
-			tempProps['nameOnHub'] = nameOnHub
+			tempProps['nameOnbridge'] = nameOnbridge
 			tempProps['uniqueId'] = uniqueId
 			tempProps['productId'] = productId
 			tempProps['swVersion'] = swVersion
 			tempProps['manufacturerName'] = manufacturerName
 			tempProps['type'] = sensorType
 			tempProps['modelId'] = modelId
-			tempProps['enabledOnHub'] = enabledOnHub
+			tempProps['enabledOnbridge'] = enabledOnbridge
 			self.updateDeviceProps(device, tempProps)
 			
 			# Convert raw luminance reading to lux.
@@ -6512,7 +6737,7 @@ class Plugin(indigo.PluginBase):
 				darkThreshold = pow(10.0, (darkThreshold - 1.0) / 10000.0)
 				thresholdOffset = pow(10.0, (thresholdOffset - 1.0) / 10000.0)
 			except TypeError:
-				# In rare circumstances, the value returned from the Hue hub for
+				# In rare circumstances, the value returned from the Hue bridge for
 				# luminanceRaw might not be a number.  Rather than throw a Python
 				# error in the Indigo log, let's just ignore the error and set
 				# the lux value and the thresholds to 0 for now.
@@ -6589,6 +6814,314 @@ class Plugin(indigo.PluginBase):
 			self.updateDeviceState(device, 'sensorValue', sensorValue, sensorPrecision, sensorUiValue, sensorIcon)
 		# End if this is a Hue luminance sensor.
 		
+		# -- Hue Tap Switch --
+		if device.deviceTypeId == "hueTapSwitch":
+			## self.debugLog(u"parseOneHueSensorData: Parsing Hue sensor ID %s (\"%s\")." % (device.pluginProps.get('sensorId', ""), sensor.get('name', "no name")))
+			
+			# Separate out the specific Hue sensor data.
+			nameOnbridge = sensor.get('name', "")
+			uniqueId = sensor.get('uniqueid', "")
+			manufacturerName = sensor.get('manufacturername', "")
+			sensorType = sensor.get('type', "")
+			modelId = sensor.get('modelid', "")
+			enabledOnbridge = sensor['config'].get('on', True)
+			buttonEventID = sensor['state'].get('buttonevent', 0)
+			lastUpdated = sensor['state'].get('lastupdated', "")
+			# The lastButtonPressed variable is used for the device state of the same name.
+			# 0 = No button has been pressed since device was paired with Hue bridge.
+			# 1 = ON button
+			# 2 = DIM UP button
+			# 3 = DIM DOWN button
+			# 4 = OFF button
+			lastButtonPressed = 0
+			onStateBool = False
+			# Create initial value assignments for all the buttons.
+			button1On			= False
+			button2On			= False
+			button3On			= False
+			button4On			= False
+			# Populate the button on/off states based on this buttonEventID.
+			# -- BUTTON 1 --
+			if buttonEventID == 34:
+				# Update the last button pressed state variable.
+				lastButtonPressed = 1
+				# Only set the button ON condition if the lastUpdated value has changed.
+				if lastUpdated != device.states['lastUpdated']:
+					button1On = True
+					# Log any change to the onState.
+					indigo.server.log(u"received \"" + device.name + u"\" button 1 press", 'Hue Lights')
+			# -- BUTTON 2 --
+			elif buttonEventID == 16:
+				lastButtonPressed = 2
+				if lastUpdated != device.states['lastUpdated']:
+					button2On = True
+					indigo.server.log(u"received \"" + device.name + u"\" button 2 press", 'Hue Lights')
+			# -- BUTTON 3 --
+			elif buttonEventID == 17:
+				lastButtonPressed = 3
+				if lastUpdated != device.states['lastUpdated']:
+					button3On = True
+					indigo.server.log(u"received \"" + device.name + u"\" button 3 press", 'Hue Lights')
+			# -- BUTTON 4 --
+			elif buttonEventID == 18:
+				lastButtonPressed = 4
+				if lastUpdated != device.states['lastUpdated']:
+					button4On = True
+					indigo.server.log(u"received \"" + device.name + u"\" button 4 press", 'Hue Lights')
+			
+			if button1On or button2On or button3On or button4On:
+			    onStateBool = True
+
+			# Convert True/False onState to on/off values.
+			if onStateBool:
+				onState = "on"
+				sensorIcon = indigo.kStateImageSel.PowerOn
+			else:
+				onState = "off"
+				sensorIcon = indigo.kStateImageSel.PowerOff
+			
+			#   Update Indigo states and properties.
+			tempProps = device.pluginProps
+			# Update the device properties.
+			tempProps['nameOnbridge'] = nameOnbridge
+			tempProps['uniqueId'] = uniqueId
+			tempProps['manufacturerName'] = manufacturerName
+			tempProps['type'] = sensorType
+			tempProps['modelId'] = modelId
+			tempProps['enabledOnbridge'] = enabledOnbridge
+			self.updateDeviceProps(device, tempProps)
+			
+			# Update the states on the device.
+			self.updateDeviceState(device, 'button1On', button1On)
+			self.updateDeviceState(device, 'button2On', button2On)
+			self.updateDeviceState(device, 'button3On', button3On)
+			self.updateDeviceState(device, 'button4On', button4On)
+			self.updateDeviceState(device, 'lastButtonPressed', lastButtonPressed)
+			self.updateDeviceState(device, 'lastUpdated', lastUpdated)
+			self.updateDeviceState(device, 'buttonEventID', buttonEventID)
+			# Update the device state.  Passing device object, state name, state value, decimal precision, display value, icon selection.
+			self.updateDeviceState(device, 'onOffState', onStateBool, 0, onState, sensorIcon)
+		# End if this is a Hue Tap Switch sensor.
+
+		# -- Hue Dimmer Switch --
+		if device.deviceTypeId == "hueDimmerSwitch":
+			## self.debugLog(u"parseOneHueSensorData: Parsing Hue sensor ID %s (\"%s\")." % (device.pluginProps.get('sensorId', ""), sensor.get('name', "no name")))
+			
+			# Separate out the specific Hue sensor data.
+			nameOnbridge = sensor.get('name', "")
+			uniqueId = sensor.get('uniqueid', "")
+			productId = sensor.get('productid', "")
+			swVersion = sensor.get('swversion', "")
+			manufacturerName = sensor.get('manufacturername', "")
+			sensorType = sensor.get('type', "")
+			modelId = sensor.get('modelid', "")
+			enabledOnbridge = sensor['config'].get('on', True)
+			batteryLevel = sensor['config'].get('battery', 0)
+			online = sensor['config'].get('reachable', False)
+			buttonEventID = sensor['state'].get('buttonevent', 0)
+			lastUpdated = sensor['state'].get('lastupdated', "")
+			# The lastButtonPressed variable is used for the device state of the same name.
+			# 0 = No button has been pressed since device was paired with Hue bridge.
+			# 1 = ON button
+			# 2 = DIM UP button
+			# 3 = DIM DOWN button
+			# 4 = OFF button
+			lastButtonPressed = 0
+			onStateBool = False
+			# Create initial value assignments for all the buttons.
+			button1On			= False
+			button1Hold			= False
+			button1ReleaseShort	= False
+			button1ReleaseLong	= False
+			button2On			= False
+			button2Hold			= False
+			button2ReleaseShort	= False
+			button2ReleaseLong	= False
+			button3On			= False
+			button3Hold			= False
+			button3ReleaseShort	= False
+			button3ReleaseLong	= False
+			button4On			= False
+			button4Hold			= False
+			button4ReleaseShort	= False
+			button4ReleaseLong	= False
+			# Populate the button on/off states based on this buttonEventID.
+			# -- BUTTON 1 --
+			if buttonEventID == 1000:
+				# Update the last button pressed state variable.
+				lastButtonPressed = 1
+				# Sometimes the Hue bridge doesn't detect button releases from the Dimmer Switch and
+				#   will continue to show the most recent button event as the initial press event.
+				#   If the lastUpdated value from the Hue bridge hasn't changed, then allow the button
+				#   on state to revert back to OFF (False) as set above. But if the lastUpdated value
+				#   from the Hue bridge is different, then this must be a new initial button press,
+				#   so set the button on state to True.
+				if lastUpdated != device.states['lastUpdated']:
+					button1On = True
+					# Log any change to the onState.
+					indigo.server.log(u"received \"" + device.name + u"\" ON button press", 'Hue Lights')
+			elif buttonEventID == 1001:
+				lastButtonPressed = 1
+				button1On = True
+				button1Hold = True
+				# Don't write to the Indigo log unless this is the first time this status has been seen.
+				if button1Hold != device.states['button1Hold']:
+					indigo.server.log(u"received \"" + device.name + u"\" ON button press and hold", 'Hue Lights')
+			elif buttonEventID == 1002:
+				lastButtonPressed = 1
+				button1ReleaseShort = True
+				# We're checking to see if a button press event was missed since we can only check the
+				#   Hue bridge every 2 seconds or so.  If the last button event was a button release
+				#   but the current device state for the button shows it was never on, and the lastUpdated
+				#   time on the Hue bridge is different than that in the Indigo device, then the button
+				#   had to have been pressed at some point, so we'll set the button ON state to True.
+				if lastUpdated != device.states['lastUpdated']:
+					# Update the Indigo log about the received button event regardless of current on state.
+					indigo.server.log(u"received \"" + device.name + u"\" ON button press with short release", 'Hue Lights')
+					if device.states['button1On'] == False:
+						button1On = True
+				# Conversely, if the Indigo device state for the button is currently set to True, but
+				#   the lastUpdated time on the bridge is the same as on the Indigo device, that means
+				#   we set it to True the last time around and now we need to set it back to False.
+				#   so we'll just leave the button1On variable set to the initial False assignment above.
+			elif buttonEventID == 1003:
+				lastButtonPressed = 1
+				button1ReleaseLong = True
+				if lastUpdated != device.states['lastUpdated']:
+					# Update the Indigo log regardless of current button on state.
+					indigo.server.log(u"received \"" + device.name + u"\" ON button press with long release", 'Hue Lights')
+					if device.states['button1On'] == False:
+						button1On = True
+			# -- BUTTON 2 --
+			elif buttonEventID == 2000:
+				lastButtonPressed = 2
+				if lastUpdated != device.states['lastUpdated']:
+					button2On = True
+					indigo.server.log(u"received \"" + device.name + u"\" DIM UP button press", 'Hue Lights')
+			elif buttonEventID == 2001:
+				lastButtonPressed = 2
+				button2On = True
+				button2Hold = True
+				if button2Hold != device.states['button2Hold']:
+					indigo.server.log(u"received \"" + device.name + u"\" DIM UP button press and hold", 'Hue Lights')
+			elif buttonEventID == 2002:
+				lastButtonPressed = 2
+				button2ReleaseShort = True
+				if lastUpdated != device.states['lastUpdated']:
+					indigo.server.log(u"received \"" + device.name + u"\" DIM UP button press with short release", 'Hue Lights')
+					if device.states['button2On'] == False:
+						button2On = True
+			elif buttonEventID == 2003:
+				lastButtonPressed = 2
+				button2ReleaseLong = True
+				if lastUpdated != device.states['lastUpdated']:
+					indigo.server.log(u"received \"" + device.name + u"\" DIM UP button press with long release", 'Hue Lights')
+					if device.states['button2On'] == False:
+						button2On = True
+			# -- BUTTON 3 --
+			elif buttonEventID == 3000:
+				lastButtonPressed = 3
+				if lastUpdated != device.states['lastUpdated']:
+					button3On = True
+					indigo.server.log(u"received \"" + device.name + u"\" DIM DOWN button press", 'Hue Lights')
+			elif buttonEventID == 3001:
+				lastButtonPressed = 3
+				button3On = True
+				button3Hold = True
+				if button3Hold != device.states['button3Hold']:
+					indigo.server.log(u"received \"" + device.name + u"\" DIM DOWN button press and hold", 'Hue Lights')
+			elif buttonEventID == 3002:
+				lastButtonPressed = 3
+				button3ReleaseShort = True
+				if lastUpdated != device.states['lastUpdated']:
+					indigo.server.log(u"received \"" + device.name + u"\" DIM DOWN button press with short release", 'Hue Lights')
+					if device.states['button3On'] == False:
+						button3On = True
+			elif buttonEventID == 3003:
+				lastButtonPressed = 3
+				button3ReleaseLong = True
+				if lastUpdated != device.states['lastUpdated']:
+					indigo.server.log(u"received \"" + device.name + u"\" DIM DOWN button press with long release", 'Hue Lights')
+					if device.states['button3On'] == False:
+						button3On = True
+			# -- BUTTON 4 --
+			elif buttonEventID == 4000:
+				lastButtonPressed = 4
+				if lastUpdated != device.states['lastUpdated']:
+					button4On = True
+					indigo.server.log(u"received \"" + device.name + u"\" OFF button press", 'Hue Lights')
+			elif buttonEventID == 4001:
+				lastButtonPressed = 4
+				button4On = True
+				button4Hold = True
+				if button4Hold != device.states['button4Hold']:
+					indigo.server.log(u"received \"" + device.name + u"\" OFF button press and hold", 'Hue Lights')
+			elif buttonEventID == 4002:
+				lastButtonPressed = 4
+				button4ReleaseShort = True
+				if lastUpdated != device.states['lastUpdated']:
+					indigo.server.log(u"received \"" + device.name + u"\" OFF button press with short release", 'Hue Lights')
+					if device.states['button4On'] == False:
+						button4On = True
+			elif buttonEventID == 4003:
+				lastButtonPressed = 4
+				button4ReleaseLong = True
+				if lastUpdated != device.states['lastUpdated']:
+					indigo.server.log(u"received \"" + device.name + u"\" OFF button press with long release", 'Hue Lights')
+					if device.states['button4On'] == False:
+						button4On = True
+
+			# Set the overall sensor on state to True if any button was pressed.
+			if button1On or button2On or button3On or button4On:
+			    onStateBool = True
+
+			# Convert True/False onState to on/off values.
+			if onStateBool:
+				onState = "on"
+				sensorIcon = indigo.kStateImageSel.PowerOn
+			else:
+				onState = "off"
+				sensorIcon = indigo.kStateImageSel.PowerOff
+			
+			#   Update Indigo states and properties.
+			tempProps = device.pluginProps
+			# Update the device properties.
+			tempProps['nameOnbridge'] = nameOnbridge
+			tempProps['uniqueId'] = uniqueId
+			tempProps['productId'] = productId
+			tempProps['swVersion'] = swVersion
+			tempProps['manufacturerName'] = manufacturerName
+			tempProps['type'] = sensorType
+			tempProps['modelId'] = modelId
+			tempProps['enabledOnbridge'] = enabledOnbridge
+			self.updateDeviceProps(device, tempProps)
+			
+			# Update the states on the device.
+			self.updateDeviceState(device, 'button1On', button1On)
+			self.updateDeviceState(device, 'button1Hold', button1Hold)
+			self.updateDeviceState(device, 'button1ReleaseShort', button1ReleaseShort)
+			self.updateDeviceState(device, 'button1ReleaseLong', button1ReleaseLong)
+			self.updateDeviceState(device, 'button2On', button2On)
+			self.updateDeviceState(device, 'button2Hold', button2Hold)
+			self.updateDeviceState(device, 'button2ReleaseShort', button2ReleaseShort)
+			self.updateDeviceState(device, 'button2ReleaseLong', button2ReleaseLong)
+			self.updateDeviceState(device, 'button3On', button3On)
+			self.updateDeviceState(device, 'button3Hold', button3Hold)
+			self.updateDeviceState(device, 'button3ReleaseShort', button3ReleaseShort)
+			self.updateDeviceState(device, 'button3ReleaseLong', button3ReleaseLong)
+			self.updateDeviceState(device, 'button4On', button4On)
+			self.updateDeviceState(device, 'button4Hold', button4Hold)
+			self.updateDeviceState(device, 'button4ReleaseShort', button4ReleaseShort)
+			self.updateDeviceState(device, 'button4ReleaseLong', button4ReleaseLong)
+			self.updateDeviceState(device, 'lastButtonPressed', lastButtonPressed)
+			self.updateDeviceState(device, 'lastUpdated', lastUpdated)
+			self.updateDeviceState(device, 'buttonEventID', buttonEventID)
+			self.updateDeviceState(device, 'online', online)
+			self.updateDeviceState(device, 'batteryLevel', batteryLevel)
+			# Update the device state.  Passing device object, state name, state value, decimal precision, display value, icon selection.
+			self.updateDeviceState(device, 'onOffState', onStateBool, 0, onState, sensorIcon)
+		# End if this is a Hue Dimmer Switch sensor.
+
 
 	# Turn Device On or Off
 	########################################
@@ -6650,7 +7183,7 @@ class Plugin(indigo.PluginBase):
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
 		if self.ipAddress is None:
-			errorText = u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com"
+			errorText = u"No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com"
 			self.errorLog(errorText)
 			# Remember the error.
 			self.lastErrorMessage = errorText
@@ -6682,7 +7215,7 @@ class Plugin(indigo.PluginBase):
 			# If the bulb's saved brightness is zero or less (for some reason), use a default value of 100% on (255).
 			if savedBrightness <= 0:
 				savedBrightness = 255
-			# Create the JSON object and send the command to the hub.
+			# Create the JSON object and send the command to the bridge.
 			requestData = json.dumps({"bri": savedBrightness, "on": onState, "transitiontime": rampRate})
 			# Create the command based on whether this is a light or group device.
 			if device.deviceTypeId == "hueGroup":
@@ -6693,7 +7226,7 @@ class Plugin(indigo.PluginBase):
 			try:
 				r = requests.put(command, data=requestData, timeout=kTimeout)
 			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -6701,7 +7234,7 @@ class Plugin(indigo.PluginBase):
 					self.lastErrorMessage = errorText
 				return
 			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -6723,7 +7256,7 @@ class Plugin(indigo.PluginBase):
 			#   because dimming from that low of a brightness level to 0 isn't noticeable.
 			if currentBrightness < 6:
 				rampRate = 0
-			# Create the JSON object and send the command to the hub.
+			# Create the JSON object and send the command to the bridge.
 			requestData = json.dumps({"on": onState, "transitiontime": rampRate})
 			# Create the command based on whether this is a light or group device.
 			if device.deviceTypeId == "hueGroup":
@@ -6734,7 +7267,7 @@ class Plugin(indigo.PluginBase):
 			try:
 				r = requests.put(command, data=requestData, timeout=kTimeout)
 			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -6742,7 +7275,7 @@ class Plugin(indigo.PluginBase):
 					self.lastErrorMessage = errorText
 				return
 			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -6792,7 +7325,7 @@ class Plugin(indigo.PluginBase):
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
 		if self.ipAddress is None:
-			errorText = u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com"
+			errorText = u"No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com"
 			self.errorLog(errorText)
 			# Remember the error.
 			self.lastErrorMessage = errorText
@@ -6830,7 +7363,7 @@ class Plugin(indigo.PluginBase):
 			try:
 				r = requests.put(command, data=requestData, timeout=kTimeout)
 			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -6838,7 +7371,7 @@ class Plugin(indigo.PluginBase):
 					self.lastErrorMessage = errorText
 				return
 			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -6873,7 +7406,7 @@ class Plugin(indigo.PluginBase):
 			try:
 				r = requests.put(command, data=requestData, timeout=kTimeout)
 			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -6881,7 +7414,7 @@ class Plugin(indigo.PluginBase):
 					self.lastErrorMessage = errorText
 				return
 			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 				# Don't display the error if it's been displayed already.
 				if errorText != self.lastErrorMessage:
 					self.errorLog(errorText)
@@ -6945,7 +7478,7 @@ class Plugin(indigo.PluginBase):
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
 		if self.ipAddress is None:
-			errorText = u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com"
+			errorText = u"No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com"
 			self.errorLog(errorText)
 			# Remember the error.
 			self.lastErrorMessage = errorText
@@ -6992,7 +7525,7 @@ class Plugin(indigo.PluginBase):
 			#   because the xyy object contains invalid "NaN" values when all RGB values are 0.
 			requestData = json.dumps({"bri": 0, "colormode": 'hs', "hue": 0, "sat": 0, "transitiontime": int(rampRate), "on": False})
 			
-		# Create the HTTP command and send it to the hub.
+		# Create the HTTP command and send it to the bridge.
 		# Create the command based on whether this is a light or group device.
 		if device.deviceTypeId == "hueGroup":
 			command = "http://%s/api/%s/groups/%s/action" % (self.ipAddress, self.hostId, groupId)
@@ -7002,7 +7535,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			r = requests.put(command, data=requestData, timeout=kTimeout)
 		except requests.exceptions.Timeout:
-			errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+			errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -7010,7 +7543,7 @@ class Plugin(indigo.PluginBase):
 				self.lastErrorMessage = errorText
 			return
 		except requests.exceptions.ConnectionError:
-			errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+			errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -7038,7 +7571,7 @@ class Plugin(indigo.PluginBase):
 		self.updateDeviceState(device, 'saturation', saturation)
 		# We don't set the colorRed, colorGreen, and colorBlue states
 		#   because Hue devices are not capable of the full RGB color
-		#   gamut and when the Hue hub updates the HSB values to reflect
+		#   gamut and when the Hue bridge updates the HSB values to reflect
 		#   actual displayed light, the interpreted RGB values will not
 		#   match the values entered by the user in the Action dialog.
 		
@@ -7080,7 +7613,7 @@ class Plugin(indigo.PluginBase):
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
 		if self.ipAddress is None:
-			errorText = u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com"
+			errorText = u"No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com"
 			self.errorLog(errorText)
 			# Remember the error.
 			self.lastErrorMessage = errorText
@@ -7135,7 +7668,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			r = requests.put(command, data=requestData, timeout=kTimeout)
 		except requests.exceptions.Timeout:
-			errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+			errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -7143,7 +7676,7 @@ class Plugin(indigo.PluginBase):
 				self.lastErrorMessage = errorText
 			return
 		except requests.exceptions.ConnectionError:
-			errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+			errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -7206,7 +7739,7 @@ class Plugin(indigo.PluginBase):
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
 		if self.ipAddress is None:
-			errorText = u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com"
+			errorText = u"No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com"
 			self.errorLog(errorText)
 			# Remember the error.
 			self.lastErrorMessage = errorText
@@ -7275,7 +7808,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			r = requests.put(command, data=requestData, timeout=kTimeout)
 		except requests.exceptions.Timeout:
-			errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+			errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -7283,7 +7816,7 @@ class Plugin(indigo.PluginBase):
 				self.lastErrorMessage = errorText
 			return
 		except requests.exceptions.ConnectionError:
-			errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+			errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -7361,7 +7894,7 @@ class Plugin(indigo.PluginBase):
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
 		if self.ipAddress is None:
-			errorText = u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com"
+			errorText = u"No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com"
 			self.errorLog(errorText)
 			# Remember the error.
 			self.lastErrorMessage = errorText
@@ -7416,7 +7949,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			r = requests.put(command, data=requestData, timeout=kTimeout)
 		except requests.exceptions.Timeout:
-			errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+			errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -7424,7 +7957,7 @@ class Plugin(indigo.PluginBase):
 				self.lastErrorMessage = errorText
 			return
 		except requests.exceptions.ConnectionError:
-			errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+			errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -7463,7 +7996,7 @@ class Plugin(indigo.PluginBase):
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
 		if self.ipAddress is None:
-			errorText = u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com"
+			errorText = u"No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com"
 			self.errorLog(errorText)
 			# Remember the error.
 			self.lastErrorMessage = errorText
@@ -7479,6 +8012,13 @@ class Plugin(indigo.PluginBase):
 				# Remember the error.
 				self.lastErrorMessage = errorText
 				return
+		elif device.deviceTypeId in ['hueAttributeController', 'hueMotionSensor', 'hueMotionTemperatureSensor', 'hueMotionLightSensor', 'hueDimmerSwitch', 'hueTapSwitch']:
+			# Attribute controllers and sensor devices don't support alert actions. Print the error in the Indigo log.
+			errorText = u"The \"%s\" device does not support Alert actions. Select a different Hue device." % (device.name)
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
 		else:
 			# Sanity check on bulb ID
 			bulbId = device.pluginProps.get('bulbId', None)
@@ -7498,7 +8038,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			r = requests.put(command, data=requestData, timeout=kTimeout)
 		except requests.exceptions.Timeout:
-			errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+			errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -7506,7 +8046,7 @@ class Plugin(indigo.PluginBase):
 				self.lastErrorMessage = errorText
 			return
 		except requests.exceptions.ConnectionError:
-			errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+			errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -7536,7 +8076,7 @@ class Plugin(indigo.PluginBase):
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
 		if self.ipAddress is None:
-			errorText = u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com"
+			errorText = u"No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com"
 			self.errorLog(errorText)
 			# Remember the error.
 			self.lastErrorMessage = errorText
@@ -7574,7 +8114,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			r = requests.put(command, data=requestData, timeout=kTimeout)
 		except requests.exceptions.Timeout:
-			errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+			errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -7582,7 +8122,7 @@ class Plugin(indigo.PluginBase):
 				self.lastErrorMessage = errorText
 			return
 		except requests.exceptions.ConnectionError:
-			errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+			errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -7599,10 +8139,10 @@ class Plugin(indigo.PluginBase):
 	# Recall a Hue Scene
 	########################################
 	def doScene(self, groupId="0", sceneId=""):
-		# groupId:		String. Group ID (numeral) on Hue hub on which to apply the scene.
-		# sceneId:		String. Scene ID on Hue hub of scene to be applied to the group.
+		# groupId:		String. Group ID (numeral) on Hue bridge on which to apply the scene.
+		# sceneId:		String. Scene ID on Hue bridge of scene to be applied to the group.
 		
-		# The Hue hub behavior is to apply the scene to all members of the group that are
+		# The Hue bridge behavior is to apply the scene to all members of the group that are
 		#   also members of the scene.  If a group is selected that has no lights that are
 		#   also part of the scene, nothing will happen when the scene is activated.  The
 		#   build-in Hue group 0 is the set of all Hue lights, so if the scene is applied
@@ -7611,7 +8151,7 @@ class Plugin(indigo.PluginBase):
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
 		if self.ipAddress is None:
-			errorText = u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com"
+			errorText = u"No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com"
 			self.errorLog(errorText)
 			# Remember the error.
 			self.lastErrorMessage = errorText
@@ -7636,7 +8176,7 @@ class Plugin(indigo.PluginBase):
 		else:
 			groupName = "all hue lights"
 		
-		# Create the JSON object and send the command to the hub.
+		# Create the JSON object and send the command to the bridge.
 		requestData = json.dumps({"scene": sceneId})
 		# Create the command based on whether this is a light or group device.
 		command = "http://%s/api/%s/groups/%s/action" % (self.ipAddress, self.hostId, groupId)
@@ -7646,7 +8186,7 @@ class Plugin(indigo.PluginBase):
 			r = requests.put(command, data=requestData, timeout=kTimeout)
 		
 		except requests.exceptions.Timeout:
-			errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (self.ipAddress, kTimeout)
+			errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -7655,7 +8195,7 @@ class Plugin(indigo.PluginBase):
 			return
 
 		except requests.exceptions.ConnectionError:
-			errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (self.ipAddress)
+			errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 			# Don't display the error if it's been displayed already.
 			if errorText != self.lastErrorMessage:
 				self.errorLog(errorText)
@@ -7672,18 +8212,18 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def updateAllHueLists(self):
 		# This function is generally only used as a callback method for the
-		#    Plugins -> Hue Lights -> Reload Hue Hub Config menu item, but can
-		#    be used to force a reload of everything from the Hue hub.
+		#    Plugins -> Hue Lights -> Reload Hue bridge Config menu item, but can
+		#    be used to force a reload of everything from the Hue bridge.
 		# Sanity check for an IP address
 		self.ipAddress = self.pluginPrefs.get('address', None)
 		if self.ipAddress is None:
-			errorText = u"No IP address set for the Hue hub. You can get this information from the My Settings page at http://www.meethue.com."
+			errorText = u"No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com."
 			self.errorLog(errorText)
 			# Remember the error.
 			self.lastErrorMessage = errorText
 			return
 		
-		# Get the entire configuration from the Hue hub.
+		# Get the entire configuration from the Hue bridge.
 		self.getHueConfig()
 		
 		# Now report the results.
@@ -7740,10 +8280,10 @@ class Plugin(indigo.PluginBase):
 
 
 	########################################
-	# Hue Hub Pairing Methods
+	# Hue bridge Pairing Methods
 	########################################
 
-	# Start/Restart Pairing with Hue Hub
+	# Start/Restart Pairing with Hue bridge
 	########################################
 	def restartPairing(self, valuesDict):
 		# This method should only be used as a callback method from the
@@ -7758,7 +8298,7 @@ class Plugin(indigo.PluginBase):
 			# The field was left blank.
 			self.debugLog(u"IP address \"%s\" is blank." % valuesDict['address'])
 			isError = True
-			errorsDict['address'] = u"The IP Address field is blank. Please enter an IP Address for the Hue hub."
+			errorsDict['address'] = u"The IP Address field is blank. Please enter an IP Address for the Hue bridge."
 			errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 		
 		else:
@@ -7775,47 +8315,47 @@ class Plugin(indigo.PluginBase):
 				errorsDict['address'] = u"The IP Address is not valid. Please enter a valid IP address."
 				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 		
-		# If there haven't been any errors so far, try to connect to the Hue hub to see
-		#   if it's actually a Hue hub.
+		# If there haven't been any errors so far, try to connect to the Hue bridge to see
+		#   if it's actually a Hue bridge.
 		if not isError:
 			try:
-				self.debugLog(u"Verifying that a Hue hub exists at IP address \"%s\"." %valuesDict['address'])
+				self.debugLog(u"Verifying that a Hue bridge exists at IP address \"%s\"." %valuesDict['address'])
 				command = "http://%s/description.xml" % valuesDict['address']
 				self.debugLog(u"Accessing URL: %s" % command)
 				r = requests.get(command, timeout=kTimeout)
 				self.debugLog(u"Got response:\n%s" % r.content)
 				
-				# Quick and dirty check to see if this is a Philips Hue hub.
+				# Quick and dirty check to see if this is a Philips Hue bridge.
 				if "Philips hue bridge" not in r.content:
-					# If "Philips hue bridge" doesn't exist in the response, it's not a Hue hub.
-					self.debugLog(u"No \"Philips hue bridge\" string found in response. This isn't a Hue hub.")
+					# If "Philips hue bridge" doesn't exist in the response, it's not a Hue bridge.
+					self.debugLog(u"No \"Philips hue bridge\" string found in response. This isn't a Hue bridge.")
 					isError = True
-					errorsDict['address'] = u"This doesn't appear to be a Philips Hue hub.  Please verify the IP address."
+					errorsDict['address'] = u"This doesn't appear to be a Philips Hue bridge.  Please verify the IP address."
 					errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 				
 				else:
-					# This is likely a Hue hub.
-					self.debugLog(u"Verified that this is a Hue hub.")
+					# This is likely a Hue bridge.
+					self.debugLog(u"Verified that this is a Hue bridge.")
 					
 			except requests.exceptions.Timeout:
 				errorText = u"Connection to %s timed out after %i seconds." % (valuesDict['address'], kTimeout)
 				self.errorLog(errorText)
 				isError = True
-				errorsDict['address'] = u"Unable to reach the hub. Please check the IP address and ensure that the Indigo server and Hue hub are connected to the network."
+				errorsDict['address'] = u"Unable to reach the bridge. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
 				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 			
 			except requests.exceptions.ConnectionError:
 				errorText = u"Connection to %s failed. There was a connection error." % valuesDict['address']
 				self.errorLog(errorText)
 				isError = True
-				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue hub are connected to the network."
+				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
 				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 				
 			except Exception, e:
 				errorText = u"Connection error. " + unicode(e)
 				self.errorLog(errorText)
 				isError = True
-				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue hub are connected to the network."
+				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
 				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 				
 		# Check for errors and act accordingly.
@@ -7825,14 +8365,14 @@ class Plugin(indigo.PluginBase):
 			return (valuesDict, errorsDict)
 		else:
 			# There weren't any errors, so...
-			# Try pairing with the hub.
+			# Try pairing with the bridge.
 			
 			# Configure timeout
 			socket.setdefaulttimeout(kTimeout)
 			
 			# Request a username/key.
 			try:
-				indigo.server.log(u"Attempting to pair with the Hue hub at \"%s\"." % (valuesDict['address']))
+				indigo.server.log(u"Attempting to pair with the Hue bridge at \"%s\"." % (valuesDict['address']))
 				requestData = json.dumps({"devicetype": "Indigo Hue Lights"})
 				self.debugLog(u"Request is %s" % requestData)
 				command = "http://%s/api" % (valuesDict['address'])
@@ -7853,15 +8393,15 @@ class Plugin(indigo.PluginBase):
 						errorCode = errorDict.get('type', None)
 						
 						if errorCode == 101:
-							# Center link button wasn't pressed on hub yet.
-							errorText = u"Unable to pair with the Hue hub. Press the center button on the Hue hub, then click the \"Pair Now\" button."
+							# Center link button wasn't pressed on bridge yet.
+							errorText = u"Unable to pair with the Hue bridge. Press the center button on the Hue bridge, then click the \"Pair Now\" button."
 							self.errorLog(errorText)
 							isError = True
 							errorsDict['startPairingButton'] = errorText
 							errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
 						
 						else:
-							errorText = u"Error #%i from the Hue hub. Description: \"%s\"." % (errorCode, errorDict.get('description', u"(No Description)"))
+							errorText = u"Error #%i from the Hue bridge. Description: \"%s\"." % (errorCode, errorDict.get('description', u"(No Description)"))
 							self.errorLog(errorText)
 							isError = True
 							errorsDict['startPairingButton'] = errorText
@@ -7871,22 +8411,22 @@ class Plugin(indigo.PluginBase):
 					successDict = firstResponseItem.get('success', None)
 					if successDict is not None:
 						# Pairing was successful.
-						indigo.server.log(u"Paired with Hue hub successfully.")
-						# The plugin was paired with the Hue hub.
+						indigo.server.log(u"Paired with Hue bridge successfully.")
+						# The plugin was paired with the Hue bridge.
 						self.paired = True
-						# Get the username provided by the hub.
+						# Get the username provided by the bridge.
 						hueUsername = successDict['username']
-						self.debugLog(u"Username (a.k.a. key) assigned by Hue hub to Hue Lights plugin: %s" % hueUsername)
+						self.debugLog(u"Username (a.k.a. key) assigned by Hue bridge to Hue Lights plugin: %s" % hueUsername)
 						# Set the plugin's hostId to the new username.
 						self.hostId = hueUsername
 						# Make sure the new username is returned to the config dialog.
 						valuesDict['hostId'] = hueUsername
 			
 				else:
-					# The Hue hub is acting weird.  There should have been only 1 response.
-					errorText = u"Invalid response from Hue hub. Check the IP address and try again."
+					# The Hue bridge is acting weird.  There should have been only 1 response.
+					errorText = u"Invalid response from Hue bridge. Check the IP address and try again."
 					self.errorLog(errorText)
-					self.debugLog(u"Response from Hue hub contained %i items." % len(responseData))
+					self.debugLog(u"Response from Hue bridge contained %i items." % len(responseData))
 					isError = True
 					errorsDict['startPairingButton'] = errorText
 					errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
@@ -7895,21 +8435,21 @@ class Plugin(indigo.PluginBase):
 				errorText = u"Connection to %s timed out after %i seconds." % (valuesDict['address'], kTimeout)
 				self.errorLog(errorText)
 				isError = True
-				errorsDict['startPairingButton'] = u"Unable to reach the hub. Please check the IP address and ensure that the Indigo server and Hue hub are connected to the network."
+				errorsDict['startPairingButton'] = u"Unable to reach the bridge. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
 				errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
 			
 			except requests.exceptions.ConnectionError:
 				errorText = u"Connection to %s failed. There was a connection error." % valuesDict['address']
 				self.errorLog(errorText)
 				isError = True
-				errorsDict['startPairingButton'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue hub are connected to the network."
+				errorsDict['startPairingButton'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
 				errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
 				
 			except Exception, e:
 				errorText = u"Connection error. " + unicode(e)
 				self.errorLog(errorText)
 				isError = True
-				errorsDict['startPairingButton'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue hub are connected to the network."
+				errorsDict['startPairingButton'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
 				errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
 			
 			# Check again for errors.
@@ -8969,6 +9509,13 @@ class Plugin(indigo.PluginBase):
 				# Remember the error.
 				self.lastErrorMessage = errorText
 				return
+		elif device.deviceTypeId in ['hueAttributeController', 'hueMotionSensor', 'hueMotionTemperatureSensor', 'hueMotionLightSensor', 'hueDimmerSwitch', 'hueTapSwitch']:
+			# Attribute controllers and sensor devices don't support alert actions. Print the error in the Indigo log.
+			errorText = u"The \"%s\" device does not support Alert actions. Select a different Hue device." % (device.name)
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
 		else:
 			# Sanity check on bulb ID
 			bulbId = device.pluginProps.get('bulbId', None)
@@ -8996,6 +9543,13 @@ class Plugin(indigo.PluginBase):
 				# Remember the error.
 				self.lastErrorMessage = errorText
 				return
+		elif device.deviceTypeId in ['hueAttributeController', 'hueMotionSensor', 'hueMotionTemperatureSensor', 'hueMotionLightSensor', 'hueDimmerSwitch', 'hueTapSwitch']:
+			# Attribute controllers and sensor devices don't support alert actions. Print the error in the Indigo log.
+			errorText = u"The \"%s\" device does not support Alert actions. Select a different Hue device." % (device.name)
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
 		else:
 			# Sanity check on bulb ID
 			bulbId = device.pluginProps.get('bulbId', None)
@@ -9023,6 +9577,13 @@ class Plugin(indigo.PluginBase):
 				# Remember the error.
 				self.lastErrorMessage = errorText
 				return
+		elif device.deviceTypeId in ['hueAttributeController', 'hueMotionSensor', 'hueMotionTemperatureSensor', 'hueMotionLightSensor', 'hueDimmerSwitch', 'hueTapSwitch']:
+			# Attribute controllers and sensor devices don't support alert actions. Print the error in the Indigo log.
+			errorText = u"The \"%s\" device does not support Alert actions so there is no alert to cancel.  Select a different Hue device." % (device.name)
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
 		else:
 			# Sanity check on bulb ID
 			bulbId = device.pluginProps.get('bulbId', None)
@@ -9050,6 +9611,13 @@ class Plugin(indigo.PluginBase):
 				# Remember the error.
 				self.lastErrorMessage = errorText
 				return
+		elif device.deviceTypeId in ['hueAttributeController', 'hueMotionSensor', 'hueMotionTemperatureSensor', 'hueMotionLightSensor', 'hueDimmerSwitch', 'hueTapSwitch']:
+			# Attribute controllers and sensor devices don't support effects actions. Print the error in the Indigo log.
+			errorText = u"The \"%s\" device does not support Effects actions. Select a different Hue device." % (device.name)
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
 		else:
 			# Sanity check on bulb ID
 			bulbId = device.pluginProps.get('bulbId', None)
