@@ -1,6 +1,70 @@
 HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
 ========================================
 
+1.7.16
+* Added support for a new Hue LED spiral filament ST64 bulb.
+* Added support for the on/off OSRAM Smart+ Plug.
+* Fixed plugin log issue that caused plugin log files to grow very large.
+* Fixed the Innr On/Off Plug-in module so it appears in the On/Off Devices. If you already have the module set up with Hue Lights in Indigo, you MUST edit the device in Indigo and redefine it, otherwise it won't work after updating to version 1.7.16.
+--
+1.7.15
+* Added support for a new Hue Ambiance E26 bulb.
+* Added support for a new Hue LED filament G93 globe bulb.
+* Added support for the UK variant of the Hue Smart Plug.
+--
+1.7.14
+* Added support for the Hue LED filament ST19 Edison bulb and Hue LED filament G25 globe bulb.
+--
+1.7.13
+* Added support for 2 new Hue dimming only GU10 lights.
+--
+1.7.12
+* Added support for an Ikea dimmable 806 lumen E27 and dimmable 400 lumen E14 light.
+--
+1.7.11
+* Added support for the Hue White PAR38 Outdoor light.
+* Added support for another Hue White Ambiance BR30 bulb.
+* Added support for another Feibit Inc. LED strip controller, branded as the 3A NUE ZigBee RGBW Light.
+--
+1.7.10
+* Fixed a bug with the Hue Smart Plug where current on/off state would not update.
+* Fixed a bug where using the Indigo's built-in Toggle On/Off action failed with dimmable Hue devices.
+--
+1.7.9
+* Fixed a bug with Hue Group devices that prevented the Set Brightness with Ramp Rate action from working correctly.
+--
+1.7.8
+* Fixed a bug that would cause the Hue Smart Plug device states to never update.
+--
+1.7.7
+* Added support for the Hue Outdoor Lucca light.
+* Added support for the Hue Smart Plug as a new On/Off device type.
+--
+1.7.6
+* Fixed bug that would cause errors if a motion sensor was disabled in the Hue bridge.  The plugin will now show a "disabled" error state for sensors that are turned off on the Hue bridge.
+--
+1.7.5
+* Added support for the Hue White PAR-38 flood light.
+--
+1.7.4
+* Decreased sensor update interval to 1 second instead of 2 seconds.
+* Decreased lights and groups update interval to 5 seconds instead of 10.
+* Added support for the Innr RS-228T GU10 color temperature light.
+--
+1.7.3
+* Added support for the Hue Signe Floor light.
+* Added button hold states for the Run Less Wire switch device. Note that this feature is still experimental.
+* Fixed issue where Run Less Wire switch button ON states may not be saved.
+--
+1.7.2
+* Fixed a bug with Run Less Wire switch support that would not allow you to select a Run Less Wire switch device in the device selection dialog.
+* Fixed a bug with Run Less Wire switch support that returned numerous errors when the plugin attempted to update the online state of the switch which has no online state.
+* Fixed a bug with Run Less Wire switch support that would not update switch states during initial plugin load.
+--
+1.7.1
+* Added support for the Run Less Wire switch.
+* Fixed a bug that would prevent Hue Tap switches from appearing in the device selection list.
+--
 1.7.0
 * Added support for the Hue Tap and Hue Dimmer Switches.
 * Changed all references to the "Hue hub" to "Hue bridge".
