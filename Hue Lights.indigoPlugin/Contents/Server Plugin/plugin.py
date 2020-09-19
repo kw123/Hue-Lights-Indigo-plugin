@@ -14,7 +14,7 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.7.16
+#	Version 1.7.36
 #
 #	See the "VERSION_HISTORY.txt" file in the same location as this plugin.py
 #	file for a complete version change history.
@@ -419,12 +419,11 @@ class Plugin(indigo.PluginBase):
 			return (False, valuesDict, errorsDict)
 			
 		# Check data based on which device config UI was returned.
-		#  -- Hue Bulb --
-		if typeId == "hueBulb":
+		#  -- Lights and On/Off Devices --
+		if typeId in kLightDeviceTypeIDs:
 			# Make sure a bulb was selected.
 			if valuesDict.get('bulbId', "") == "":
-				isError = True
-				errorsDict['bulbId'] = u"Please select a Hue Color/Ambiance light to control."
+				errorsDict['bulbId'] = u"Please select a Hue device to control."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
 				return (False, valuesDict, errorsDict)
 			
@@ -443,7 +442,9 @@ class Plugin(indigo.PluginBase):
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
-				return
+				errorsDict['bulbId'] = errorText
+				errorsDict['showAlertText'] += errorsDict['bulbId']
+				return (False, valuesDict, errorsDict)
 			except requests.exceptions.ConnectionError:
 				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
 				# Don't display the error if it's been displayed already.
@@ -451,33 +452,46 @@ class Plugin(indigo.PluginBase):
 					self.errorLog(errorText)
 					# Remember the error.
 					self.lastErrorMessage = errorText
-				return
-			self.debugLog(u"Data from bridge: " + r.content)
+				errorsDict['bulbId'] = errorText
+				errorsDict['showAlertText'] += errorsDict['bulbId']
+				return (False, valuesDict, errorsDict)
+				
+			self.debugLog(u"Data from bridge: " + r.content.decode("utf-8"))
 			# Convert the response to a Python object.
 			try:
 				bulb = json.loads(r.content)
 			except Exception, e:
 				# There was an error in the returned data.
 				indigo.server.log(u"Error retrieving Hue device data from bridge.  Error reported: " + unicode(e))
-				isError = True
 				errorsDict['bulbId'] = u"Error retrieving Hue device data from bridge. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
 				return (False, valuesDict, errorsDict)
-			if bulb.get('modelid', "") not in kHueBulbDeviceIDs:
-				isError = True
-				errorsDict['bulbId'] = u"The selected device is not a Hue Color/Ambiance light. Plesea select a Hue Color/Ambiance light to control."
-				errorsDict['showAlertText'] += errorsDict['bulbId']
-				return (False, valuesDict, errorsDict)
 				
+			# Populate the appropriate values in the valuesDict.
+			valuesDict['manufacturerName'] = bulb.get('manufacturername', "")
+			valuesDict['modelId'] = bulb.get('modelid', "")
+			valuesDict['nameOnHub'] = bulb.get('name', "")
+			valuesDict['swVersion'] = bulb.get('swversion', "")
+			valuesDict['type'] = bulb.get('type', "")
+			valuesDict['uniqueId'] = bulb.get('uniqueid', "")
+			
 			# Make sure the bulb ID isn't used by another device.
 			for otherDeviceId in self.deviceList:
 				if otherDeviceId != deviceId:
 					otherDevice = indigo.devices[otherDeviceId]
 					if valuesDict['bulbId'] == otherDevice.pluginProps.get('bulbId', 0):
 						otherDevice = indigo.devices[otherDeviceId]
-						isError = True
 						errorsDict['bulbId'] = u"This Hue device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different Hue bulb to control."
 						errorsDict['showAlertText'] += errorsDict['bulbId'] + "\n\n"
+						return (False, valuesDict, errorsDict)
+
+		#  -- Hue Bulb --
+		if typeId == "hueBulb":
+			# Make sure this is a Hue color/ambiance light.
+			if bulb.get('modelid', "") not in kHueBulbDeviceIDs:
+				errorsDict['bulbId'] = u"The selected device is not a Hue Color/Ambiance light. Plesea select a Hue Color/Ambiance light to control."
+				errorsDict['showAlertText'] += errorsDict['bulbId']
+				return (False, valuesDict, errorsDict)
 				
 			# Validate the default brightness is reasonable.
 			if valuesDict.get('defaultBrightness', "") != "":
@@ -525,63 +539,11 @@ class Plugin(indigo.PluginBase):
 				
 		#  -- Ambiance Lights --
 		if typeId == "hueAmbiance":
-			# Make sure a bulb was selected.
-			if valuesDict.get('bulbId', "") == "":
-				isError = True
-				errorsDict['bulbId'] = u"Please select a Hue device to control."
-				errorsDict['showAlertText'] += errorsDict['bulbId']
-				return (False, valuesDict, errorsDict)
-			
-			bulbId = valuesDict['bulbId']
-			
-			# Make sure the device selected is a Hue device.
-			#   Get the device info directly from the bridge.
-			command = "http://%s/api/%s/lights/%s" % (self.ipAddress, self.hostId, bulbId)
-			self.debugLog(u"Sending URL request: " + command)
-			try:
-				r = requests.get(command, timeout=kTimeout)
-			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
-				# Don't display the error if it's been displayed already.
-				if errorText != self.lastErrorMessage:
-					self.errorLog(errorText)
-					# Remember the error.
-					self.lastErrorMessage = errorText
-				return
-			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
-				# Don't display the error if it's been displayed already.
-				if errorText != self.lastErrorMessage:
-					self.errorLog(errorText)
-					# Remember the error.
-					self.lastErrorMessage = errorText
-				return
-			self.debugLog(u"Data from bridge: " + r.content)
-			# Convert the response to a Python object.
-			try:
-				bulb = json.loads(r.content)
-			except Exception, e:
-				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving Hue device data from bridge.  Error reported: " + unicode(e))
-				isError = True
-				errorsDict['bulbId'] = u"Error retrieving Hue device data from bridge. See Indigo log."
-				errorsDict['showAlertText'] += errorsDict['bulbId']
-				return (False, valuesDict, errorsDict)
+			# Make sure an ambiance light was selected.
 			if bulb.get('modelid', "") not in kAmbianceDeviceIDs:
-				isError = True
 				errorsDict['bulbId'] = u"The selected device is not an Ambiance light. Plesea select an Ambiance light to control."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
 				return (False, valuesDict, errorsDict)
-				
-			# Make sure the bulb ID isn't used by another device.
-			for otherDeviceId in self.deviceList:
-				if otherDeviceId != deviceId:
-					otherDevice = indigo.devices[otherDeviceId]
-					if valuesDict['bulbId'] == otherDevice.pluginProps.get('bulbId', 0):
-						otherDevice = indigo.devices[otherDeviceId]
-						isError = True
-						errorsDict['bulbId'] = u"This Hue device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different Hue device to control."
-						errorsDict['showAlertText'] += errorsDict['bulbId'] + "\n\n"
 				
 			# Validate the default brightness is reasonable.
 			if valuesDict.get('defaultBrightness', "") != "":
@@ -629,75 +591,37 @@ class Plugin(indigo.PluginBase):
 				
 		#  -- LightStrips Device --
 		elif typeId == "hueLightStrips":
-			# Make sure a device was selected.
-			if valuesDict.get('bulbId', "") == "":
-				isError = True
-				errorsDict['bulbId'] = u"Please select a LightStrips device to control."
-				errorsDict['showAlertText'] += errorsDict['bulbId']
-				return (False, valuesDict, errorsDict)
-			
-			bulbId = valuesDict['bulbId']
-			
-			# Make sure the device selected is a LightStrips device.
-			#   Get the device info directly from the bridge.
-			command = "http://%s/api/%s/lights/%s" % (self.ipAddress, self.hostId, bulbId)
-			self.debugLog(u"Sending URL request: " + command)
-			try:
-				r = requests.get(command, timeout=kTimeout)
-			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
-				# Don't display the error if it's been displayed already.
-				if errorText != self.lastErrorMessage:
-					self.errorLog(errorText)
-					# Remember the error.
-					self.lastErrorMessage = errorText
-				return
-			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
-				# Don't display the error if it's been displayed already.
-				if errorText != self.lastErrorMessage:
-					self.errorLog(errorText)
-					# Remember the error.
-					self.lastErrorMessage = errorText
-				return
-			self.debugLog(u"Data from bridge: " + r.content)
-			# Convert the response to a Python object.
-			try:
-				bulb = json.loads(r.content)
-			except Exception, e:
-				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving LightStrip data from bridge.  Error reported: " + unicode(e))
-				isError = True
-				errorsDict['bulbId'] = u"Error retrieving LightStrip data from bridge. See Indigo log."
-				errorsDict['showAlertText'] += errorsDict['bulbId']
-				return (False, valuesDict, errorsDict)
-			# Make sure it's a LightStrip device.
+			# Make sure it's a Light Strip device.
 			if bulb.get('modelid', "") not in kLightStripsDeviceIDs:
-				isError = True
-				errorsDict['bulbId'] = u"The selected device is not a LightStrip device. Plesea select a LightStrip device to control."
+				errorsDict['bulbId'] = u"The selected device is not a Light Strip device. Plesea select a Light Strip device to control."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
 				return (False, valuesDict, errorsDict)
-			# If it's an original LightStrip (not a new Plus version),
-			#   remove the color temperature capabilities from the Indigo device.
-			if bulb.get('modelid', "") == "LST001":
-				self.debugLog(u"LightStrip device doesn't support color temperature. Removing color temperature from Indigo device properties.")
-				if 'SupportsWhite' in valuesDict:
-					valuesDict['SupportsWhite'] = False
-				if 'SupportsWhiteTemperature' in valuesDict:
-					valuesDict['SupportsWhiteTemperature'] = False
-				if 'SupportsRGBandWhiteSimultaneously' in valuesDict:
-					valuesDict['SupportsRGBandWhiteSimultaneously'] = False
-
-			# Make sure the bulb ID isn't used by another device.
-			for otherDeviceId in self.deviceList:
-				if otherDeviceId != deviceId:
-					otherDevice = indigo.devices[otherDeviceId]
-					if valuesDict['bulbId'] == otherDevice.pluginProps.get('bulbId', 0):
-						otherDevice = indigo.devices[otherDeviceId]
-						isError = True
-						errorsDict['bulbId'] = u"This LightStrip device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different device to control."
-						errorsDict['showAlertText'] += errorsDict['bulbId'] + "\n\n"
 				
+			# Assign Indigo color support properties based on Hue lighting device type.
+			if bulb.get('type', "") in [u'Extended color light', u'Color light', u'Color temperature light']:
+				valuesDict['SupportsColor'] = True
+				if bulb.get('type', "") in [u'Extended color light', u'Color light']:
+					valuesDict['SupportsRGB'] = True
+				else:
+					valuesDict['SupportsRGB'] = False
+				if bulb.get('type', "") in [u'Extended color light', u'Color temperature light']:
+					valuesDict['SupportsWhite'] = True
+					valuesDict['SupportsWhiteTemperature'] = True
+					valuesDict['WhiteTemperatureMin'] = "2000"
+					valuesDict['WhiteTemperatureMax'] = "6500"
+				else:
+					valuesDict['SupportsWhite'] = False
+					valuesDict['SupportsWhiteTemperature'] = False
+					if valuesDict.get('WhiteTemperatureMin', False):
+						del valuesDict['WhiteTemperatureMin']
+					if valuesDict.get('WhiteTemperatureMax', False):
+						del valuesDict['WhiteTemperatureMax']
+				# No Hue bridge controlled device supports both RGB and white balance control simultaniously.
+				if bulb.get('type', "") == u"Extended color light":
+					valuesDict['SupportsRGBandWhiteSimultaneously'] = False
+			else:
+				valuesDict['SupportsColor'] = False
+
 			# Validate the default brightness is reasonable.
 			if valuesDict.get('defaultBrightness', "") != "":
 				try:
@@ -744,63 +668,12 @@ class Plugin(indigo.PluginBase):
 				
 		#  -- LivingColors Bloom Device --
 		elif typeId == "hueLivingColorsBloom":
-			# Make sure a device was selected.
-			if valuesDict.get('bulbId', "") == "":
-				isError = True
-				errorsDict['bulbId'] = u"Please select a LivingColors Bloom device to control."
-				errorsDict['showAlertText'] += errorsDict['bulbId']
-				return (False, valuesDict, errorsDict)
-			
-			bulbId = valuesDict['bulbId']
-			
-			# Make sure the device selected is a LivingColors device.
-			#   Get the device info directly from the bridge.
-			command = "http://%s/api/%s/lights/%s" % (self.ipAddress, self.hostId, bulbId)
-			self.debugLog(u"Sending URL request: " + command)
-			try:
-				r = requests.get(command, timeout=kTimeout)
-			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
-				# Don't display the error if it's been displayed already.
-				if errorText != self.lastErrorMessage:
-					self.errorLog(errorText)
-					# Remember the error.
-					self.lastErrorMessage = errorText
-				return
-			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
-				# Don't display the error if it's been displayed already.
-				if errorText != self.lastErrorMessage:
-					self.errorLog(errorText)
-					# Remember the error.
-					self.lastErrorMessage = errorText
-				return
-			self.debugLog(u"Data from bridge: " + r.content)
-			# Convert the response to a Python object.
-			try:
-				bulb = json.loads(r.content)
-			except Exception, e:
-				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving LovingColors Bloom data from bridge.  Error reported: " + unicode(e))
-				isError = True
-				errorsDict['bulbId'] = u"Error retrieving LivingColors Bloom data from bridge. See Indigo log."
-				errorsDict['showAlertText'] += errorsDict['bulbId']
-				return (False, valuesDict, errorsDict)
+			# Make sure a Living Colors device was selected.
 			if bulb.get('modelid', "") not in kLivingColorsDeviceIDs:
 				isError = True
-				errorsDict['bulbId'] = u"The selected device is not a LivingColors Bloom device. Plesea select a LivingColors Bloom device to control."
+				errorsDict['bulbId'] = u"The selected device is not a LivingColors type device. Plesea select a LivingColors type device to control."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
 				return (False, valuesDict, errorsDict)
-				
-			# Make sure the bulb ID isn't used by another device.
-			for otherDeviceId in self.deviceList:
-				if otherDeviceId != deviceId:
-					otherDevice = indigo.devices[otherDeviceId]
-					if valuesDict['bulbId'] == otherDevice.pluginProps.get('bulbId', 0):
-						otherDevice = indigo.devices[otherDeviceId]
-						isError = True
-						errorsDict['bulbId'] = u"This LivingColors Bloom device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different device to control."
-						errorsDict['showAlertText'] += errorsDict['bulbId'] + "\n\n"
 				
 			# Validate the default brightness is reasonable.
 			if valuesDict.get('defaultBrightness', "") != "":
@@ -848,63 +721,12 @@ class Plugin(indigo.PluginBase):
 				
 		#  -- LivingWhites Device --
 		elif typeId == "hueLivingWhites":
-			# Make sure a device was selected.
-			if valuesDict.get('bulbId', "") == "":
-				isError = True
-				errorsDict['bulbId'] = u"Please select a LivingWhites device to control."
-				errorsDict['showAlertText'] += errorsDict['bulbId']
-				return (False, valuesDict, errorsDict)
-			
-			bulbId = valuesDict['bulbId']
-			
-			# Make sure the device selected is a LightStrips device.
-			#   Get the device info directly from the bridge.
-			command = "http://%s/api/%s/lights/%s" % (self.ipAddress, self.hostId, bulbId)
-			self.debugLog(u"Sending URL request: " + command)
-			try:
-				r = requests.get(command, timeout=kTimeout)
-			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
-				# Don't display the error if it's been displayed already.
-				if errorText != self.lastErrorMessage:
-					self.errorLog(errorText)
-					# Remember the error.
-					self.lastErrorMessage = errorText
-				return
-			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
-				# Don't display the error if it's been displayed already.
-				if errorText != self.lastErrorMessage:
-					self.errorLog(errorText)
-					# Remember the error.
-					self.lastErrorMessage = errorText
-				return
-			self.debugLog(u"Data from bridge: " + r.content)
-			# Convert the response to a Python object.
-			try:
-				bulb = json.loads(r.content)
-			except Exception, e:
-				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving LivingWhites data from bridge.  Error reported: " + unicode(e))
-				isError = True
-				errorsDict['bulbId'] = u"Error retrieving LivingWhites data from bridge. See Indigo log."
-				errorsDict['showAlertText'] += errorsDict['bulbId']
-				return (False, valuesDict, errorsDict)
+			# Make sure a Living Whites device was selected.
 			if bulb.get('modelid', "") not in kLivingWhitesDeviceIDs:
 				isError = True
-				errorsDict['bulbId'] = u"The selected device is not a LivingWhites device. Plesea select a LightStrips device to control."
+				errorsDict['bulbId'] = u"The selected device is not a LivingWhites device. Plesea select a LivingWhites device to control."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
 				return (False, valuesDict, errorsDict)
-				
-			# Make sure the bulb ID isn't used by another device.
-			for otherDeviceId in self.deviceList:
-				if otherDeviceId != deviceId:
-					otherDevice = indigo.devices[otherDeviceId]
-					if valuesDict['bulbId'] == otherDevice.pluginProps.get('bulbId', 0):
-						otherDevice = indigo.devices[otherDeviceId]
-						isError = True
-						errorsDict['bulbId'] = u"This LivingWhites device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different device to control."
-						errorsDict['showAlertText'] += errorsDict['bulbId'] + "\n\n"
 				
 			# Validate the default brightness is reasonable.
 			if valuesDict.get('defaultBrightness', "") != "":
@@ -952,74 +774,17 @@ class Plugin(indigo.PluginBase):
 				
 		#  -- On/Off Device --
 		elif typeId == "hueOnOffDevice":
-			# Make sure a device was selected.
-			if valuesDict.get('bulbId', "") == "":
-				isError = True
-				errorsDict['bulbId'] = u"Please select an On/Off device to control."
-				errorsDict['showAlertText'] += errorsDict['bulbId']
-				return (False, valuesDict, errorsDict)
-			
-			bulbId = valuesDict['bulbId']
-			
-			# Make sure the device selected is an on/off device.
-			#   Get the device info directly from the bridge.
-			command = "http://%s/api/%s/lights/%s" % (self.ipAddress, self.hostId, bulbId)
-			self.debugLog(u"Sending URL request: " + command)
-			try:
-				r = requests.get(command, timeout=kTimeout)
-			except requests.exceptions.Timeout:
-				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
-				# Don't display the error if it's been displayed already.
-				if errorText != self.lastErrorMessage:
-					self.errorLog(errorText)
-					# Remember the error.
-					self.lastErrorMessage = errorText
-				return
-			except requests.exceptions.ConnectionError:
-				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
-				# Don't display the error if it's been displayed already.
-				if errorText != self.lastErrorMessage:
-					self.errorLog(errorText)
-					# Remember the error.
-					self.lastErrorMessage = errorText
-				return
-			self.debugLog(u"Data from bridge: " + r.content)
-			# Convert the response to a Python object.
-			try:
-				bulb = json.loads(r.content)
-			except Exception, e:
-				# There was an error in the returned data.
-				indigo.server.log(u"Error retrieving On/Off device data from bridge.  Error reported: " + unicode(e))
-				isError = True
-				errorsDict['bulbId'] = u"Error retrieving On/Off device data from bridge. See Indigo log."
-				errorsDict['showAlertText'] += errorsDict['bulbId']
-				return (False, valuesDict, errorsDict)
+			# Make sure an on/off device was selected.
 			if bulb.get('modelid', "") not in kOnOffOnlyDeviceIDs:
 				isError = True
 				errorsDict['bulbId'] = u"The selected device is not an On/Off device. Plesea select an On/Off device to control."
 				errorsDict['showAlertText'] += errorsDict['bulbId']
 				return (False, valuesDict, errorsDict)
+				
+			# Define the device's address to appear in Indigo.
+			valuesDict['address'] = self.pluginPrefs.get('address', "") + " (ID " + unicode(valuesDict['bulbId']) + ")"
+			return (True, valuesDict)
 			
-			# Make sure the bulb ID isn't used by another device.
-			for otherDeviceId in self.deviceList:
-				if otherDeviceId != deviceId:
-					otherDevice = indigo.devices[otherDeviceId]
-					if valuesDict['bulbId'] == otherDevice.pluginProps.get('bulbId', 0):
-						otherDevice = indigo.devices[otherDeviceId]
-						isError = True
-						errorsDict['bulbId'] = u"This On/Off device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different device to control."
-						errorsDict['showAlertText'] += errorsDict['bulbId'] + "\n\n"
-
-			# Show errors if there are any.
-			if isError:
-				errorsDict['showAlertText'] = errorsDict['showAlertText'].strip()
-				return (False, valuesDict, errorsDict)
-
-			else:
-				# Define the device's address to appear in Indigo.
-				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (ID " + unicode(valuesDict['bulbId']) + ")"
-				return (True, valuesDict)
-
 		#  -- Hue Group --
 		elif typeId == "hueGroup":
 			# Make sure a group was selected.
@@ -1053,7 +818,7 @@ class Plugin(indigo.PluginBase):
 					# Remember the error.
 					self.lastErrorMessage = errorText
 				return
-			self.debugLog(u"Data from bridge: " + r.content)
+			self.debugLog(u"Data from bridge: " + r.content.decode("utf-8"))
 			# Convert the response to a Python object.
 			try:
 				group = json.loads(r.content)
@@ -1070,6 +835,11 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['groupId']
 				return (False, valuesDict, errorsDict)
 				
+			# Populate the appropriate values in the valuesDict.
+			valuesDict['groupClass'] = group.get('class', "")
+			valuesDict['nameOnHub'] = group.get('name', "")
+			valuesDict['type'] = group.get('type', "")
+			
 			# Make sure the group ID isn't used by another device.
 			for otherDeviceId in self.deviceList:
 				if otherDeviceId != deviceId:
@@ -1224,7 +994,7 @@ class Plugin(indigo.PluginBase):
 					# Remember the error.
 					self.lastErrorMessage = errorText
 				return
-			self.debugLog(u"Data from bridge: " + r.content)
+			self.debugLog(u"Data from bridge: " + r.content.decode("utf-8"))
 			# Convert the response to a Python object.
 			try:
 				sensor = json.loads(r.content)
@@ -1235,6 +1005,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['sensorId'] = u"Error retrieving Hue device data from bridge. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['sensorId']
 				return (False, valuesDict, errorsDict)
+				
 			if sensor.get('modelid', "") not in kMotionSensorDeviceIDs:
 				isError = True
 				errorsDict['sensorId'] = u"The selected device is not a Hue Motion Sensor. Plesea select a Hue Motion Sensor device."
@@ -1263,14 +1034,14 @@ class Plugin(indigo.PluginBase):
 				#   be invalid for this device type.  Let's make sure they're not.
 				valuesDict['SupportsOnState'] = True
 				valuesDict['SupportsSensorValue'] = False
-				valuesDict['enabledOnbridge'] = True
-				valuesDict['manufacturerName'] = ""
-				valuesDict['modelId'] = ""
-				valuesDict['nameOnBridge'] = ""
-				valuesDict['productId'] = ""
-				valuesDict['swVersion'] = ""
-				valuesDict['type'] = ""
-				valuesDict['uniqueId'] = ""
+				valuesDict['enabledOnHub'] = True
+				valuesDict['manufacturerName'] = sensor.get('manufacturername', "")
+				valuesDict['modelId'] = sensor.get('modelid', "")
+				valuesDict['productId'] = sensor.get('productname', "")
+				valuesDict['nameOnHub'] = sensor.get('name', "")
+				valuesDict['swVersion'] = sensor.get('swversion', "")
+				valuesDict['type'] = sensor.get('type', "")
+				valuesDict['uniqueId'] = sensor.get('uniqueid', "")
 				if valuesDict.get('sensorOffset', False):
 					valuesDict['sensorOffset'] = ""
 				if valuesDict.get('temperatureScale', False):
@@ -1282,7 +1053,7 @@ class Plugin(indigo.PluginBase):
 			# Make sure a motion sensor was selected.
 			if valuesDict.get('sensorId', "") == "":
 				isError = True
-				errorsDict['sensorId'] = u"Please select a Hue Motion Sensor."
+				errorsDict['sensorId'] = u"Please select a temperature sensor."
 				errorsDict['showAlertText'] += errorsDict['sensorId']
 				return (False, valuesDict, errorsDict)
 			
@@ -1310,7 +1081,8 @@ class Plugin(indigo.PluginBase):
 					# Remember the error.
 					self.lastErrorMessage = errorText
 				return
-			self.debugLog(u"Data from bridge: " + r.content)
+			self.debugLog(u"Data from bridge: " + r.content.decode("utf-8"))
+			
 			# Convert the response to a Python object.
 			try:
 				sensor = json.loads(r.content)
@@ -1321,9 +1093,10 @@ class Plugin(indigo.PluginBase):
 				errorsDict['sensorId'] = u"Error retrieving Hue device data from bridge. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['sensorId']
 				return (False, valuesDict, errorsDict)
-			if sensor.get('modelid', "") not in kMotionSensorDeviceIDs:
+				
+			if sensor.get('modelid', "") not in kTemperatureSensorDeviceIDs:
 				isError = True
-				errorsDict['sensorId'] = u"The selected device is not a Hue Motion Sensor. Plesea select a Hue Motion Sensor device."
+				errorsDict['sensorId'] = u"The selected device is not a temperature sensor. Plesea select a temperature sensor device."
 				errorsDict['showAlertText'] += errorsDict['sensorId']
 				return (False, valuesDict, errorsDict)
 				
@@ -1334,7 +1107,7 @@ class Plugin(indigo.PluginBase):
 					if valuesDict['sensorId'] == otherDevice.pluginProps.get('sensorId', 0):
 						otherDevice = indigo.devices[otherDeviceId]
 						isError = True
-						errorsDict['sensorId'] = u"This Hue device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different Hue Motion Sensor."
+						errorsDict['sensorId'] = u"This Hue device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different temperature sensor."
 						errorsDict['showAlertText'] += errorsDict['sensorId'] + "\n\n"
 
 			# Validate the sensor offset (calibration offset).
@@ -1377,14 +1150,14 @@ class Plugin(indigo.PluginBase):
 				#   be invalid for this device type.  Let's make sure they're not.
 				valuesDict['SupportsOnState'] = False
 				valuesDict['SupportsSensorValue'] = True
-				valuesDict['enabledOnbridge'] = True
-				valuesDict['manufacturerName'] = ""
-				valuesDict['modelId'] = ""
-				valuesDict['nameOnBridge'] = ""
-				valuesDict['productId'] = ""
-				valuesDict['swVersion'] = ""
-				valuesDict['type'] = ""
-				valuesDict['uniqueId'] = ""
+				valuesDict['enabledOnHub'] = True
+				valuesDict['manufacturerName'] = sensor.get('manufacturername', "")
+				valuesDict['modelId'] = sensor.get('modelid', "")
+				valuesDict['productId'] = sensor.get('productname', "")
+				valuesDict['nameOnHub'] = sensor.get('name', "")
+				valuesDict['swVersion'] = sensor.get('swversion', "")
+				valuesDict['type'] = sensor.get('type', "")
+				valuesDict['uniqueId'] = sensor.get('uniqueid', "")
 				return (True, valuesDict)
 
 		#  -- Hue Motion Sensor (Luminance) --
@@ -1392,7 +1165,7 @@ class Plugin(indigo.PluginBase):
 			# Make sure a motion sensor was selected.
 			if valuesDict.get('sensorId', "") == "":
 				isError = True
-				errorsDict['sensorId'] = u"Please select a Hue Motion Sensor."
+				errorsDict['sensorId'] = u"Please select a light sensor."
 				errorsDict['showAlertText'] += errorsDict['sensorId']
 				return (False, valuesDict, errorsDict)
 			
@@ -1420,7 +1193,8 @@ class Plugin(indigo.PluginBase):
 					# Remember the error.
 					self.lastErrorMessage = errorText
 				return
-			self.debugLog(u"Data from bridge: " + r.content)
+			self.debugLog(u"Data from bridge: " + r.content.decode("utf-8"))
+			
 			# Convert the response to a Python object.
 			try:
 				sensor = json.loads(r.content)
@@ -1431,9 +1205,10 @@ class Plugin(indigo.PluginBase):
 				errorsDict['sensorId'] = u"Error retrieving Hue device data from bridge. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['sensorId']
 				return (False, valuesDict, errorsDict)
-			if sensor.get('modelid', "") not in kMotionSensorDeviceIDs:
+				
+			if sensor.get('modelid', "") not in kLightSensorDeviceIDs:
 				isError = True
-				errorsDict['sensorId'] = u"The selected device is not a Hue Motion Sensor. Plesea select a Hue Motion Sensor device."
+				errorsDict['sensorId'] = u"The selected device is not a light sensor. Plesea select a light sensor device."
 				errorsDict['showAlertText'] += errorsDict['sensorId']
 				return (False, valuesDict, errorsDict)
 				
@@ -1444,7 +1219,7 @@ class Plugin(indigo.PluginBase):
 					if valuesDict['sensorId'] == otherDevice.pluginProps.get('sensorId', 0):
 						otherDevice = indigo.devices[otherDeviceId]
 						isError = True
-						errorsDict['sensorId'] = u"This Hue device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different Hue Motion Sensor."
+						errorsDict['sensorId'] = u"This Hue device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different light sensor."
 						errorsDict['showAlertText'] += errorsDict['sensorId'] + "\n\n"
 
 			# Show errors if there are any.
@@ -1459,14 +1234,14 @@ class Plugin(indigo.PluginBase):
 				#   be invalid for this device type.  Let's make sure they're not.
 				valuesDict['SupportsOnState'] = False
 				valuesDict['SupportsSensorValue'] = True
-				valuesDict['enabledOnbridge'] = True
-				valuesDict['manufacturerName'] = ""
-				valuesDict['modelId'] = ""
-				valuesDict['nameOnBridge'] = ""
-				valuesDict['productId'] = ""
-				valuesDict['swVersion'] = ""
-				valuesDict['type'] = ""
-				valuesDict['uniqueId'] = ""
+				valuesDict['enabledOnHub'] = True
+				valuesDict['manufacturerName'] = sensor.get('manufacturername', "")
+				valuesDict['modelId'] = sensor.get('modelid', "")
+				valuesDict['productId'] = sensor.get('productname', "")
+				valuesDict['nameOnHub'] = sensor.get('name', "")
+				valuesDict['swVersion'] = sensor.get('swversion', "")
+				valuesDict['type'] = sensor.get('type', "")
+				valuesDict['uniqueId'] = sensor.get('uniqueid', "")
 				if valuesDict.get('sensorOffset', False):
 					valuesDict['sensorOffset'] = ""
 				if valuesDict.get('temperatureScale', False):
@@ -1506,7 +1281,8 @@ class Plugin(indigo.PluginBase):
 					# Remember the error.
 					self.lastErrorMessage = errorText
 				return
-			self.debugLog(u"Data from bridge: " + r.content)
+			self.debugLog(u"Data from bridge: " + r.content.decode("utf-8"))
+			
 			# Convert the response to a Python object.
 			try:
 				sensor = json.loads(r.content)
@@ -1517,6 +1293,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['sensorId'] = u"Error retrieving Hue device data from bridge. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['sensorId']
 				return (False, valuesDict, errorsDict)
+				
 			if sensor.get('modelid', "") not in kSwitchDeviceIDs:
 				isError = True
 				errorsDict['sensorId'] = u"The selected device is not a Hue Tap Switch. Plesea select a Hue Tap Switch device."
@@ -1546,12 +1323,13 @@ class Plugin(indigo.PluginBase):
 				valuesDict['SupportsOnState'] = True
 				valuesDict['SupportsSensorValue'] = False
 				valuesDict['SupportsBatteryLevel'] = False
-				valuesDict['enabledOnbridge'] = True
-				valuesDict['manufacturerName'] = ""
-				valuesDict['modelId'] = ""
-				valuesDict['nameOnBridge'] = ""
-				valuesDict['type'] = ""
-				valuesDict['uniqueId'] = ""
+				valuesDict['enabledOnHub'] = True
+				valuesDict['manufacturerName'] = sensor.get('manufacturername', "")
+				valuesDict['modelId'] = sensor.get('modelid', "")
+				valuesDict['nameOnHub'] = sensor.get('name', "")
+				valuesDict['swVersion'] = sensor.get('swversion', "")
+				valuesDict['type'] = sensor.get('type', "")
+				valuesDict['uniqueId'] = sensor.get('uniqueid', "")
 
 				return (True, valuesDict)
 
@@ -1588,7 +1366,8 @@ class Plugin(indigo.PluginBase):
 					# Remember the error.
 					self.lastErrorMessage = errorText
 				return
-			self.debugLog(u"Data from bridge: " + r.content)
+			self.debugLog(u"Data from bridge: " + r.content.decode("utf-8"))
+			
 			# Convert the response to a Python object.
 			try:
 				sensor = json.loads(r.content)
@@ -1599,6 +1378,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['sensorId'] = u"Error retrieving Hue device data from bridge. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['sensorId']
 				return (False, valuesDict, errorsDict)
+				
 			if sensor.get('modelid', "") not in kSwitchDeviceIDs:
 				isError = True
 				errorsDict['sensorId'] = u"The selected device is not a Hue Dimmer Switch. Plesea select a Hue Dimmer Switch device."
@@ -1628,23 +1408,23 @@ class Plugin(indigo.PluginBase):
 				valuesDict['SupportsOnState'] = True
 				valuesDict['SupportsSensorValue'] = False
 				valuesDict['SupportsBatteryLevel'] = True
-				valuesDict['enabledOnbridge'] = True
-				valuesDict['manufacturerName'] = ""
-				valuesDict['modelId'] = ""
-				valuesDict['nameOnBridge'] = ""
-				valuesDict['productId'] = ""
-				valuesDict['swVersion'] = ""
-				valuesDict['type'] = ""
-				valuesDict['uniqueId'] = ""
+				valuesDict['enabledOnHub'] = True
+				valuesDict['manufacturerName'] = sensor.get('manufacturername', "")
+				valuesDict['modelId'] = sensor.get('modelid', "")
+				valuesDict['productId'] = sensor.get('productname', "")
+				valuesDict['nameOnHub'] = sensor.get('name', "")
+				valuesDict['swVersion'] = sensor.get('swversion', "")
+				valuesDict['type'] = sensor.get('type', "")
+				valuesDict['uniqueId'] = sensor.get('uniqueid', "")
 
 				return (True, valuesDict)
 
-		#  -- Run Less Wire Switch --
-		elif typeId == "runLessWireSwitch":
-			# Make sure a Run Less Wire switch was selected.
+		#  -- Hue Smart Button --
+		elif typeId == "hueSmartButton":
+			# Make sure a smart button was selected.
 			if valuesDict.get('sensorId', "") == "":
 				isError = True
-				errorsDict['sensorId'] = u"Please select a Run Less Wire Switch."
+				errorsDict['sensorId'] = u"Please select a Hue Smart Button."
 				errorsDict['showAlertText'] += errorsDict['sensorId']
 				return (False, valuesDict, errorsDict)
 			
@@ -1672,7 +1452,8 @@ class Plugin(indigo.PluginBase):
 					# Remember the error.
 					self.lastErrorMessage = errorText
 				return
-			self.debugLog(u"Data from bridge: " + r.content)
+			self.debugLog(u"Data from bridge: " + r.content.decode("utf-8"))
+			
 			# Convert the response to a Python object.
 			try:
 				sensor = json.loads(r.content)
@@ -1683,9 +1464,96 @@ class Plugin(indigo.PluginBase):
 				errorsDict['sensorId'] = u"Error retrieving Hue device data from bridge. See Indigo log."
 				errorsDict['showAlertText'] += errorsDict['sensorId']
 				return (False, valuesDict, errorsDict)
+				
 			if sensor.get('modelid', "") not in kSwitchDeviceIDs:
 				isError = True
-				errorsDict['sensorId'] = u"The selected device is not a Run Less Wire Switch. Plesea select a Run Less Wire Switch device."
+				errorsDict['sensorId'] = u"The selected device is not a Hue Smart Button. Plesea select a Hue Smart Button device."
+				errorsDict['showAlertText'] += errorsDict['sensorId']
+				return (False, valuesDict, errorsDict)
+				
+			# Make sure the sensor ID isn't used by another device.
+			for otherDeviceId in self.deviceList:
+				if otherDeviceId != deviceId:
+					otherDevice = indigo.devices[otherDeviceId]
+					if sensorId == otherDevice.pluginProps.get('sensorId', 0):
+						otherDevice = indigo.devices[otherDeviceId]
+						isError = True
+						errorsDict['sensorId'] = u"This Hue device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different Hue Smart Button."
+						errorsDict['showAlertText'] += errorsDict['sensorId'] + "\n\n"
+
+			# Show errors if there are any.
+			if isError:
+				errorsDict['showAlertText'] = errorsDict['showAlertText'].strip()
+				return (False, valuesDict, errorsDict)
+
+			else:
+				# Define the device's address to appear in Indigo.
+				valuesDict['address'] = self.pluginPrefs.get('address', "") + " (SID " + unicode(valuesDict['sensorId']) + ")"
+				# If this was a copied device, some properties could
+				#   be invalid for this device type.  Let's make sure they're not.
+				valuesDict['SupportsOnState'] = True
+				valuesDict['SupportsSensorValue'] = False
+				valuesDict['SupportsBatteryLevel'] = True
+				valuesDict['enabledOnHub'] = True
+				valuesDict['manufacturerName'] = sensor.get('manufacturername', "")
+				valuesDict['modelId'] = sensor.get('modelid', "")
+				valuesDict['productId'] = sensor.get('productname', "")
+				valuesDict['nameOnHub'] = sensor.get('name', "")
+				valuesDict['swVersion'] = sensor.get('swversion', "")
+				valuesDict['type'] = sensor.get('type', "")
+				valuesDict['uniqueId'] = sensor.get('uniqueid', "")
+
+				return (True, valuesDict)
+
+		#  -- Run Less Wire or Niko Switch --
+		elif typeId == "runLessWireSwitch":
+			# Make sure a Run Less Wire or Niko switch was selected.
+			if valuesDict.get('sensorId', "") == "":
+				isError = True
+				errorsDict['sensorId'] = u"Please select a Run Less Wire or Niko Switch."
+				errorsDict['showAlertText'] += errorsDict['sensorId']
+				return (False, valuesDict, errorsDict)
+			
+			sensorId = valuesDict['sensorId']
+			
+			# Make sure the device selected is a Hue sensor device.
+			#   Get the device info directly from the bridge.
+			command = "http://%s/api/%s/sensors/%s" % (self.ipAddress, self.hostId, sensorId)
+			self.debugLog(u"Sending URL request: " + command)
+			try:
+				r = requests.get(command, timeout=kTimeout)
+			except requests.exceptions.Timeout:
+				errorText = u"Failed to connect to the Hue bridge at %s after %i seconds. - Check that the bridge is connected and turned on." % (self.ipAddress, kTimeout)
+				# Don't display the error if it's been displayed already.
+				if errorText != self.lastErrorMessage:
+					self.errorLog(errorText)
+					# Remember the error.
+					self.lastErrorMessage = errorText
+				return
+			except requests.exceptions.ConnectionError:
+				errorText = u"Failed to connect to the Hue bridge at %s. - Check that the bridge is connected and turned on." % (self.ipAddress)
+				# Don't display the error if it's been displayed already.
+				if errorText != self.lastErrorMessage:
+					self.errorLog(errorText)
+					# Remember the error.
+					self.lastErrorMessage = errorText
+				return
+			self.debugLog(u"Data from bridge: " + r.content.decode("utf-8"))
+			
+			# Convert the response to a Python object.
+			try:
+				sensor = json.loads(r.content)
+			except Exception, e:
+				# There was an error in the returned data.
+				indigo.server.log(u"Error retrieving Hue device data from bridge.  Error reported: " + unicode(e))
+				isError = True
+				errorsDict['sensorId'] = u"Error retrieving Hue device data from bridge. See Indigo log."
+				errorsDict['showAlertText'] += errorsDict['sensorId']
+				return (False, valuesDict, errorsDict)
+				
+			if sensor.get('modelid', "") not in kSwitchDeviceIDs:
+				isError = True
+				errorsDict['sensorId'] = u"The selected device is not a Run Less Wire or Niko Switch. Plesea select a Run Less Wire or Niko Switch device."
 				errorsDict['showAlertText'] += errorsDict['sensorId']
 				return (False, valuesDict, errorsDict)
 			
@@ -1712,20 +1580,22 @@ class Plugin(indigo.PluginBase):
 				valuesDict['SupportsOnState'] = True
 				valuesDict['SupportsSensorValue'] = False
 				valuesDict['SupportsBatteryLevel'] = False
-				valuesDict['enabledOnbridge'] = True
-				valuesDict['manufacturerName'] = ""
-				valuesDict['modelId'] = ""
-				valuesDict['nameOnBridge'] = ""
-				valuesDict['productId'] = ""
-				valuesDict['type'] = ""
-				valuesDict['uniqueId'] = ""
+				valuesDict['enabledOnHub'] = True
+				valuesDict['manufacturerName'] = sensor.get('manufacturername', "")
+				valuesDict['modelId'] = sensor.get('modelid', "")
+				valuesDict['productId'] = sensor.get('productname', "")
+				valuesDict['nameOnHub'] = sensor.get('name', "")
+				valuesDict['swVersion'] = sensor.get('swversion', "")
+				valuesDict['type'] = sensor.get('type', "")
+				valuesDict['uniqueId'] = sensor.get('uniqueid', "")
 
 				return (True, valuesDict)
-
+				
 		else:
 			isError = True
 			errorsDict['showAlertText'] = u"No compatible device type was selected. Please cancel the device setup and try selecting the device type again."
 			errorsDict['showAlertText'] = errorsDict['showAlertText'].strip()
+			self.errorLog(errorsDict['showAlertText'])
 			return (False, valuesDict, errorsDict)
 
 	# Closed Device Configuration.
@@ -1737,7 +1607,6 @@ class Plugin(indigo.PluginBase):
 			# Configuration was saved.  Rebuild the device if needed.
 			device = indigo.devices[deviceId]
 			self.rebuildDevice(device)
-	
 
 	# Validate Action Configuration.
 	########################################
@@ -1937,7 +1806,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
 			# If it is a valid device, check everything else.
 			# Make sure this device can handle color.
-			elif modelId not in kHueBulbDeviceIDs and modelId not in kLightStripsDeviceIDs and modelId not in kLivingColorsDeviceIDs and device.deviceTypeId != "hueGroup":
+			elif not device.pluginProps.get('SupportsRGB', False):
 				isError = True
 				errorsDict['device'] = u"The \"%s\" device does not support color. Choose a different device." % (device.name)
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
@@ -2059,7 +1928,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
 			# If it is a valid device, check everything else.
 			# Make sure this device can handle color.
-			elif modelId not in kHueBulbDeviceIDs and modelId not in kLightStripsDeviceIDs and modelId not in kLivingColorsDeviceIDs and device.deviceTypeId != "hueGroup":
+			elif not device.pluginProps.get('SupportsRGB', False):
 				isError = True
 				errorsDict['device'] = u"The \"%s\" device does not support color. Choose a different device." % (device.name)
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
@@ -2201,7 +2070,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
 			# If it is a valid device, check everything else.
 			# Make sure this device can handle color.
-			elif modelId not in kHueBulbDeviceIDs and modelId not in kLightStripsDeviceIDs and modelId not in kLivingColorsDeviceIDs and device.deviceTypeId != "hueGroup":
+			elif not device.pluginProps.get('SupportsRGB', False):
 				isError = True
 				errorsDict['device'] = u"The \"%s\" device does not support color. Choose a different device." % (device.name)
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
@@ -2329,7 +2198,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
 			# If it is a valid device, check everything else.
 			# Make sure this device can handle color temperature changes.
-			elif modelId not in kHueBulbDeviceIDs and modelId not in kLightStripsDeviceIDs and modelId not in kAmbianceDeviceIDs and modelId != "LST001" and device.deviceTypeId != "hueGroup":
+			elif not device.pluginProps.get('SupportsWhiteTemperature', False):
 				isError = True
 				errorsDict['device'] = u"The \"%s\" device does not support variable color temperature. Choose a different device." % (device.name)
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
@@ -2462,7 +2331,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
 			# If it is a valid device, check everything else.
 			# Make sure this device can handle the color effect.
-			elif modelId not in kHueBulbDeviceIDs and modelId not in kLightStripsDeviceIDs and modelId not in kLivingColorsDeviceIDs and device.deviceTypeId != "hueGroup":
+			elif device.pluginProps.get('SupportsRGB', False) == False:
 				isError = True
 				errorsDict['device'] = u"The \"%s\" device does not support color effects. Choose a different device." % (device.name)
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
@@ -2690,7 +2559,7 @@ class Plugin(indigo.PluginBase):
 			return (False, valuesDict, errorsDict)
 		else:
 			return (True, valuesDict)
-	
+		
 	# Plugin Configuration Dialog Closed
 	########################################
 	def closedPrefsConfigUi(self, valuesDict, userCancelled):
@@ -2772,7 +2641,7 @@ class Plugin(indigo.PluginBase):
 			# Update the IP address and Hue bridge username (hostId) as well.
 			self.ipAddress = valuesDict.get('address', self.pluginPrefs['address'])
 			self.hostId = valuesDict.get('hostId', self.pluginPrefs['hostId'])
-
+		
 	# Did Device Communications Properties Change?
 	########################################
 	#
@@ -2781,7 +2650,7 @@ class Plugin(indigo.PluginBase):
 	#
 	def didDeviceCommPropertyChange(self, origDev, newDev):
 		# Automatically called by plugin host when device properties change.
-		self.debugLog("Starting didDeviceCommPropertyChange.")
+		self.debugLog(u"Starting didDeviceCommPropertyChange.")
 		# We only want to reload the device if the Hue device associated with it has chnaged.
 		# For Hue bulbs and lights...
 		if origDev.deviceTypeId in kLightDeviceTypeIDs:
@@ -2819,6 +2688,78 @@ class Plugin(indigo.PluginBase):
 			if origDev.pluginProps != newDev.pluginProps:
 				return True
 			return False
+		
+	# Get Device State List
+	########################################
+	#
+	# Overriding default method to get a dynamically generated device state list
+	#    based on the device properties (namely, for lighting type devices, if
+	#    it supports color and/or color temperature).
+	#
+	def getDeviceStateList(self, device):
+		# This method is automatically called by the plugin host every time the Indigo server needs
+		#    to know anything about the device, so when a trigger or control page is shown and whenever
+		#    a list of device states needs to be populated in some UI menu or to trigger an action.
+		self.debugLog(u"Starting getDeviceStateList for the \"" + unicode(device.name) + u"\" device.")
+		# Get the default state list (based on the Devices.xml file in the plugin).
+		stateList = indigo.PluginBase.getDeviceStateList(self, device)
+		# Only proceed to modify the state list if it isn't empty.
+		if stateList is not None:
+			# Modify the state list based on device type.
+			# -- LightStrips --
+			if device.deviceTypeId == "hueLightStrips" and device.configured:
+				# Iterate through the default state list and remove states that aren't appropriate
+				#    for this specific device's capabilities (based on device properties).
+				self.debugLog(u"Modifying default hueLightStrips Indigo device states to reflect actual states supported by this specific Hue device.")
+				while True:
+					for item in range (0, len (stateList)):
+						stateDict = stateList[item]
+						# Remove all color attributes if the device doesn't support any color.
+						if not device.pluginProps.get('SupportsColor', False):
+							if stateDict['Key'] in ['colorMode', 'colorMode.ui', 'colorTemp', 'colorTemp.ui', 'whiteLevel', 'whiteLevel.ui', 'whiteTemperature', 'whiteTemperature.ui', 'colorRed', 'colorRed.ui', 'colorGreen', 'colorGreen.ui', 'colorBlue', 'colorBlue.ui', 'colorX', 'colorX.ui', 'colorY', 'colorY.ui', 'hue', 'hue.ui', 'saturation', 'saturation.ui', 'redLevel', 'redLevel.ui', 'greenLevel', 'greenLevel.ui', 'blueLevel', 'blueLevel.ui']:
+								self.debugLog(u"\"" + unicode(device.name) + u"\" does not support any color. Removing the \"" + unicode(stateDict['Key']) + u"\" state from the device.")
+								del stateList[item]
+								# Break out of the for loop to restart it with the new length of the stateList.
+								break
+								
+						# Remove RGB color related states.
+						if not device.pluginProps.get('SupportsRGB', False):
+							if stateDict['Key'] in ['colorRed', 'colorRed.ui', 'colorGreen', 'colorGreen.ui', 'colorBlue', 'colorBlue.ui', 'colorX', 'colorX.ui', 'colorY', 'colorY.ui', 'hue', 'hue.ui', 'saturation', 'saturation.ui', 'redLevel', 'redLevel.ui', 'greenLevel', 'greenLevel.ui', 'blueLevel', 'blueLevel.ui']:
+								self.debugLog(u"\"" + unicode(device.name) + u"\" does not support RGB color. Removing the \"" + unicode(stateDict['Key']) + u"\" state from the device.")
+								del stateList[item]
+								# Break out of the for loop to restart it with the new length of the stateList.
+								break
+								
+						# Remove color temperature related states.
+						if not device.pluginProps.get('SupportsWhiteTemperature', False):
+							if stateDict['Key'] in ['colorTemp', 'colorTemp.ui', 'whiteLevel', 'whiteLevel.ui', 'whiteTemperature', 'whiteTemperature.ui']:
+								self.debugLog(u"\"" + unicode(device.name) + u"\" does not support color temperature. Removing the \"" + unicode(stateDict['Key']) + u"\" state from the device.")
+								del stateList[item]
+								# Break out of the for loop to restart it with the new length of the stateList.
+								break
+								
+					# If the for loop wasn't broken before all the items were tested, then all states
+					#    that should be removed have been and we can break out of the while loop.
+					if item == len (stateList) - 1:
+						break
+			
+			# The below commented out lines are an example of how to add states if needed.
+			## if SomeOtherDeviceCondition:
+				## someNumState = self.getDeviceStateDictForNumberType(u"someNumState", u"Some Level Label", u"Some Level Label")
+				## someStringState = self.getDeviceStateDictForStringType(u"someStringState", u"Some Level Label", u"Some Level Label")
+				## someOnOffBoolState = self.getDeviceStateDictForBoolOnOffType(u"someOnOffBoolState", u"Some Level Label", u"Some Level Label")
+				## someYesNoBoolState = self.getDeviceStateDictForBoolYesNoType(u"someYesNoBoolState", u"Some Level Label", u"Some Level Label")
+				## someOneZeroBoolState = self.getDeviceStateDictForBoolOneZeroType(u"someOneZeroBoolState", u"Some Level Label", u"Some Level Label")
+				## someTrueFalseBoolState = self.getDeviceStateDictForBoolTrueFalseType(u"someTrueFalseBoolState", u"Some Level Label", u"Some Level Label")
+				## stateList.append(someNumState)
+				## stateList.append(someStringState)
+				## stateList.append(someOnOffBoolState)
+				## stateList.append(someYesNoBoolState)
+				## stateList.append(someOneZeroBoolState)
+				## stateList.append(someTrueFalseBoolState)
+			
+		# Return the updated state list.
+		return stateList
 	
 	
 	########################################
@@ -2936,28 +2877,6 @@ class Plugin(indigo.PluginBase):
 				
 				actionColorVals = action.actionValue
 
-				useRGB = False
-				useHSB = False
-				useColorTemp = False
-
-				# The "Set RGBW Levels" action in Indigo 7.0 requires Red, Green, Blue and White leves, as well as
-				#   White Temperature for devices that support both RGB and White levels (even if the device doesn't
-				#   support simultaneous RGB and W settings).  We have to, therefor, make the assumption here that
-				#   when the user sets the RGB and W levels all to 100 that they actually intend to use the White
-				#   Temperature value for the action.  Alternatively, if they set the RGB levels to 100 but set a
-				#   White level to something less than 100, we're assuming they intend to use the action to change
-				#   the HSB saturation with the action and not RGB or color temperature.
-				isGenericInterface = False
-				if 'redLevel' in actionColorVals and 'greenLevel' in actionColorVals and 'blueLevel' in actionColorVals and 'whiteLevel' in actionColorVals and 'whiteTemperature' in actionColorVals:
-					isGenericInterface = True
-					if actionColorVals['redLevel'] == 100.0 and actionColorVals['greenLevel'] == 100.0 and actionColorVals['blueLevel'] == 100.0:
-						useHSB = True
-						if actionColorVals['whiteLevel'] == 100.0:
-							useHSB = False
-							useColorTemp = True
-					else:
-						useRGB = True
-
 				# Construct a list of channel keys that are possible for what this device
 				# supports. It may not support RGB or may not support white levels, for
 				# example, depending on how the device's properties (SupportsColor, SupportsRGB,
@@ -2966,12 +2885,8 @@ class Plugin(indigo.PluginBase):
 				channelKeys = []
 				if device.supportsRGB:
 					channelKeys.extend(['redLevel', 'greenLevel', 'blueLevel'])
-				if device.supportsWhite:
-					channelKeys.extend(['whiteLevel'])
-				if device.supportsTwoWhiteLevels:
-					channelKeys.extend(['whiteLevel2'])
-				elif device.supportsWhiteTemperature:
-					channelKeys.extend(['whiteTemperature'])
+				if device.supportsWhiteTemperature:
+					channelKeys.extend(['whiteTemperature', 'whiteLevel'])
 				redLevel = 0
 				greenLevel = 0
 				blueLevel = 0
@@ -2980,64 +2895,67 @@ class Plugin(indigo.PluginBase):
 				
 				# Enumerate through the possible color channels and extract each
 				# value from the actionValue (actionColorVals).
-				keyValueList = []
 				for channel in channelKeys:
 					if channel in actionColorVals:
-						brightness = float(actionColorVals[channel])
-						brightnessByte = int(round(255.0 * (brightness / 100.0)))
+						channelValue = float(actionColorVals[channel])
+						channelValueByte = int(round(255.0 * (channelValue / 100.0)))
 						
 						if channel in device.states:
 							if channel == "redLevel":
-								redLevel = brightnessByte
-								# Don't change the device action method selection if
-								#   the action comes from the generic "Set RGBW Levels"
-								#   Indigo 7 action.
-								if not isGenericInterface:
-									useRGB = True
+								redLevel = channelValueByte
 							elif channel == "greenLevel":
-								greenLevel = brightnessByte
-								if not isGenericInterface:
-									useRGB = True
+								greenLevel = channelValueByte
 							elif channel == "blueLevel":
-								blueLevel = brightnessByte
-								if not isGenericInterface:
-									useRGB = True
+								blueLevel = channelValueByte
 							elif channel == "whiteLevel":
-								# Indigo 7 has a "whiteLevel" parameter that is meaningless
-								#   to the Hue system, so we're choosing to interpret "White level"
-								#   to mean desaturation amount.
-								whiteLevel = brightnessByte
-								if not isGenericInterface:
-									useHSB = True
+								whiteLevel = channelValueByte
 							elif channel == "whiteTemperature":
 								# The Indigo 7 interface allows users to select color temperature
 								#   values over 6500 and (with Indigo 7.0) below 2000. Correct
 								#   out of range values here.
-								if brightness > 6500.0:
-									brightness = 6500.0
-								if brightness < 2000.0:
-									brightness = 2000.0
-								colorTemp = brightness
-								if not isGenericInterface:
-									useColorTemp = True
-							
-							keyValueList.append({'key':channel, 'value':brightness})
-
-				# Tell the device to change based on which method we've decided to use.
-				if useRGB:
+								# The "brightness" variable contains the color temperature value in this case.
+								if channelValue > 6500.0:
+									channelValue = 6500.0
+								if channelValue < 2000.0:
+									channelValue = 2000.0
+								colorTemp = channelValue
+				self.debugLog(u"actionControlDimmerRelay: Detected color change values of redLevel: %s, greenLevel: %s, blueLevel: %s, whiteLevel: %s, whiteTemperature: %s." % (redLevel, greenLevel, blueLevel, whiteLevel, colorTemp))
+				# The "Set RGBW Levels" action in Indigo 7.0 can have Red, Green, Blue and White levels, as well as
+				#   White Temperature for devices that support both RGB and White levels (even if the device doesn't
+				#   support simultaneous RGB and W settings).  We have to, therefor, make assumptions based on which
+				#   keys are passed and what values are in those keys.
+				#
+				# Start with whiteTemperature.  If it was the only key passed, the user is making changes to the
+				#   light via the Indigo UI.
+				if actionColorVals.get('whiteTemperature', None) is not None:
+					self.debugLog(u"actionControlDimmerRelay: whiteTemperature is not empty.")
+					if actionColorVals.get('whiteLevel', None) is None and actionColorVals.get('redLevel', None) is None and actionColorVals.get('greenLevel', None) is None and actionColorVals.get('blueLevel', None) is None:
+						self.debugLog(u"actionControlDimmerRelay: red, green, blue and white levels are all empty")
+						# Since the whiteLevel was not sent, use the existing brightness as the whiteLevel.
+						self.doColorTemperature(device, colorTemp, int(round(currentBrightness / 100.0 * 255.0)))
+					# If both whiteTemperature and whiteLevel keys were sent at the same time, the Indigo Set RGBW
+					#    Levels action is being used, in which case, we still want to use the color temperature method,
+					#    but use the whiteLevel as the brightness instead of the current brightness if it's over zero.
+					elif actionColorVals.get('whiteLevel', None) is not None and float(actionColorVals.get('whiteLevel')) > 0:
+						self.debugLog(u"actionControlDimmerRelay: whiteLevel is not empty and is greater than zero")
+						self.doColorTemperature(device, colorTemp, whiteLevel)
+					# Otherwise, use RGB to set the color of the light.
+					else:
+						self.debugLog(u"actionControlDimmerRelay: using RGB to change device color.")
+						self.doRGB(device, redLevel, greenLevel, blueLevel)
+				# Now see if we're only being sent whiteLevel.  If so, the White level slider in the Indigo UI is being
+				#   used.  Treat the white level like an inverse saturation slider (100 = zero saturation).
+				elif actionColorVals.get('whiteLevel', None) is not None and actionColorVals.get('redLevel', None) is None and actionColorVals.get('greenLevel', None) is None and actionColorVals.get('blueLevel', None) is None:
+					self.debugLog(u"actionControlDimmerRelay: whiteLevel is not empty, but red, green and blue levels are.")
+					newSaturation = 255 - whiteLevel
+					if newSaturation < 0:
+						newSaturation = 0
+					self.doHSB(device, device.states['hue'], newSaturation, int(round(currentBrightness / 100.0 * 255.0)))
+				# If we're not changing color temperature or saturation (white level), use RGB.
+				else:
+					self.debugLog(u"actionControlDimmerRelay: using RGB to change device color.")
 					self.doRGB(device, redLevel, greenLevel, blueLevel)
-				elif useHSB:
-					# Indigo 7 has a "whiteLevel" parameter that is meaningless to the Hue system,
-					#   so we're choosing to interpret "White level" to mean desaturation amount.
-					#   Thus, we subtract the "whiteLevel" value from the full saturation value of 255.
-					self.doHSB(device, int(round(65535.0 * (device.states['hue'] / 360.0))), 255 - whiteLevel, int(round(255.0 * (device.states['brightnessLevel'] / 100.0))))
-				elif useColorTemp:
-					self.doColorTemperature(device, colorTemp, int(round(255.0 * (device.states['brightnessLevel'] / 100.0))))
 
-				# Tell the Indigo Server to update the color level states:
-				if len(keyValueList) > 0:
-					device.updateStatesOnServer(keyValueList)
-					
 			##### REQUEST STATUS #####
 			elif command == indigo.kDeviceAction.RequestStatus:
 				try:
@@ -3145,84 +3063,92 @@ class Plugin(indigo.PluginBase):
 					self.debugLog(u"device request status:\n%s" % action)
 				except Exception, e:
 					self.debugLog(u"device request status: (Unable to display action data due to error: " + unicode(e) + u")")
-				
+
 				actionColorVals = action.actionValue
 
-				useRGB = False
-				useHSB = False
-				useColorTemp = False
-
-				isGenericInterface = False
-				if 'redLevel' in actionColorVals and 'greenLevel' in actionColorVals and 'blueLevel' in actionColorVals and 'whiteLevel' in actionColorVals and 'whiteTemperature' in actionColorVals:
-					isGenericInterface = True
-					if actionColorVals['redLevel'] == 100.0 and actionColorVals['greenLevel'] == 100.0 and actionColorVals['blueLevel'] == 100.0:
-						useHSB = True
-						if actionColorVals['whiteLevel'] == 100.0:
-							useHSB = False
-							useColorTemp = True
-					else:
-						useRGB = True
-
+				# Construct a list of channel keys that are possible for what this device
+				# supports. It may not support RGB or may not support white levels, for
+				# example, depending on how the device's properties (SupportsColor, SupportsRGB,
+				# SupportsWhite, SupportsTwoWhiteLevels, SupportsWhiteTemperature) have
+				# been specified.
 				channelKeys = []
 				if device.supportsRGB:
 					channelKeys.extend(['redLevel', 'greenLevel', 'blueLevel'])
-				if device.supportsWhite:
-					channelKeys.extend(['whiteLevel'])
-				if device.supportsTwoWhiteLevels:
-					channelKeys.extend(['whiteLevel2'])
-				elif device.supportsWhiteTemperature:
-					channelKeys.extend(['whiteTemperature'])
+				if device.supportsWhiteTemperature:
+					channelKeys.extend(['whiteTemperature', 'whiteLevel'])
 				redLevel = 0
 				greenLevel = 0
 				blueLevel = 0
 				whiteLevel = 0
 				colorTemp = 0
-				
-				keyValueList = []
+
+				# Enumerate through the possible color channels and extract each
+				# value from the actionValue (actionColorVals).
 				for channel in channelKeys:
 					if channel in actionColorVals:
-						brightness = float(actionColorVals[channel])
-						brightnessByte = int(round(255.0 * (brightness / 100.0)))
-						
+						channelValue = float(actionColorVals[channel])
+						channelValueByte = int(round(255.0 * (channelValue / 100.0)))
+
 						if channel in device.states:
 							if channel == "redLevel":
-								redLevel = brightnessByte
-								if not isGenericInterface:
-									useRGB = True
+								redLevel = channelValueByte
 							elif channel == "greenLevel":
-								greenLevel = brightnessByte
-								if not isGenericInterface:
-									useRGB = True
+								greenLevel = channelValueByte
 							elif channel == "blueLevel":
-								blueLevel = brightnessByte
-								if not isGenericInterface:
-									useRGB = True
+								blueLevel = channelValueByte
 							elif channel == "whiteLevel":
-								whiteLevel = brightnessByte
-								if not isGenericInterface:
-									useHSB = True
+								whiteLevel = channelValueByte
 							elif channel == "whiteTemperature":
-								if brightness > 6500.0:
-									brightness = 6500.0
-								if brightness < 2000.0:
-									brightness = 2000.0
-								colorTemp = brightness
-								if not isGenericInterface:
-									useColorTemp = True
-							
-							keyValueList.append({'key':channel, 'value':brightness})
+								# The Indigo 7 interface allows users to select color temperature
+								#   values over 6500 and (with Indigo 7.0) below 2000. Correct
+								#   out of range values here.
+								# The "brightness" variable contains the color temperature value in this case.
+								if channelValue > 6500.0:
+									channelValue = 6500.0
+								if channelValue < 2000.0:
+									channelValue = 2000.0
+								colorTemp = channelValue
+				self.debugLog(u"actionControlDimmerRelay: Detected color change values of redLevel: %s, greenLevel: %s, blueLevel: %s, whiteLevel: %s, whiteTemperature: %s." % (redLevel, greenLevel, blueLevel, whiteLevel, colorTemp))
+				# The "Set RGBW Levels" action in Indigo 7.0 can have Red, Green, Blue and White levels, as well as
+				#   White Temperature for devices that support both RGB and White levels (even if the device doesn't
+				#   support simultaneous RGB and W settings).  We have to, therefor, make assumptions based on which
+				#   keys are passed and what values are in those keys.
+				#
+				# Start with whiteTemperature.  If it was the only key passed, the user is making changes to the
+				#   light via the Indigo UI.
+				if actionColorVals.get('whiteTemperature', None) is not None:
+					self.debugLog(u"actionControlDimmerRelay: whiteTemperature is not empty.")
+					if actionColorVals.get('whiteLevel', None) is None and actionColorVals.get('redLevel', None) is None and actionColorVals.get('greenLevel', None) is None and actionColorVals.get('blueLevel', None) is None:
+						self.debugLog(u"actionControlDimmerRelay: red, green, blue and white levels are all empty")
+						# Since the whiteLevel was not sent, use the existing brightness as the whiteLevel.
+						self.doColorTemperature(device, colorTemp, int(round(currentBrightness / 100.0 * 255.0)))
+					# If both whiteTemperature and whiteLevel keys were sent at the same time, the Indigo Set RGBW
+					#    Levels action is being used, in which case, we still want to use the color temperature method,
+					#    but use the whiteLevel as the brightness instead of the current brightness if it's over zero.
+					elif actionColorVals.get('whiteLevel', None) is not None and float(actionColorVals.get('whiteLevel')) > 0:
+						self.debugLog(u"actionControlDimmerRelay: whiteLevel is not empty and is greater than zero")
+						self.doColorTemperature(device, colorTemp, whiteLevel)
+					# Otherwise, use RGB to set the color of the light.
+					else:
+						errorText = u"The \"" + device.nsame + u"\" device does not support the use of white level to change colors. The requested change was not applied."
+						self.errorLog(errorText)
+						# Remember the error.
+						self.lastErrorMessage = errorText
+				# Now see if we're only being sent whiteLevel.  If so, the White level slider in the Indigo UI is being
+				#   used.  Treat the white level like an inverse saturation slider (100 = zero saturation).
+				elif actionColorVals.get('whiteLevel', None) is not None and actionColorVals.get('redLevel', None) is None and actionColorVals.get('greenLevel', None) is None and actionColorVals.get('blueLevel', None) is None:
+					self.debugLog(u"actionControlDimmerRelay: whiteLevel is not empty, but red, green and blue levels are.")
+					newSaturation = 255 - whiteLevel
+					if newSaturation < 0:
+						newSaturation = 0
+					self.doHSB(device, device.states['hue'], newSaturation, int(round(currentBrightness / 100.0 * 255.0)))
+				# If we're not changing color temperature or saturation (white level), use RGB.
+				else:
+					errorText = u"The \"" + device.nsame + u"\" device does not support the use of white level to change colors. The requested change was not applied."
+					self.errorLog(errorText)
+					# Remember the error.
+					self.lastErrorMessage = errorText
 
-				if useRGB:
-					self.doRGB(device, redLevel, greenLevel, blueLevel)
-				elif useHSB:
-					self.doHSB(device, int(round(65535.0 * (device.states['hue'] / 360.0))), 255 - whiteLevel, int(round(255.0 * (device.states['brightnessLevel'] / 100.0))))
-				elif useColorTemp:
-					self.doColorTemperature(device, colorTemp, int(round(255.0 * (device.states['brightnessLevel'] / 100.0))))
-
-				# Tell the Indigo Server to update the color level states:
-				if len(keyValueList) > 0:
-					device.updateStatesOnServer(keyValueList)
-					
 			##### REQUEST STATUS #####
 			elif command == indigo.kDeviceAction.RequestStatus:
 				try:
@@ -3239,13 +3165,13 @@ class Plugin(indigo.PluginBase):
 			pass
 		
 		#
-		# -- LightStrips --
+		# -- Light Strips --
 		#
 		elif device.deviceTypeId == "hueLightStrips":
 			bulbId = device.pluginProps.get('bulbId', None)
 			hostId = self.hostId
 			self.ipAddress = self.pluginPrefs.get('address', None)
-			self.debugLog(u"Command is %s, LightStrips device is %s" % (command, bulbId))
+			self.debugLog(u"Command is %s, Light Strip device is %s" % (command, bulbId))
 			
 			##### TURN ON #####
 			if command == indigo.kDeviceAction.TurnOn:
@@ -3333,80 +3259,96 @@ class Plugin(indigo.PluginBase):
 				
 				actionColorVals = action.actionValue
 
-				useRGB = False
-				useHSB = False
-				useColorTemp = False
-
-				isGenericInterface = False
-				if 'redLevel' in actionColorVals and 'greenLevel' in actionColorVals and 'blueLevel' in actionColorVals and 'whiteLevel' in actionColorVals and 'whiteTemperature' in actionColorVals:
-					isGenericInterface = True
-					if actionColorVals['redLevel'] == 100.0 and actionColorVals['greenLevel'] == 100.0 and actionColorVals['blueLevel'] == 100.0:
-						useHSB = True
-						if actionColorVals['whiteLevel'] == 100.0:
-							useHSB = False
-							useColorTemp = True
-					else:
-						useRGB = True
-
+				# Construct a list of channel keys that are possible for what this device
+				# supports. It may not support RGB or may not support white levels, for
+				# example, depending on how the device's properties (SupportsColor, SupportsRGB,
+				# SupportsWhite, SupportsTwoWhiteLevels, SupportsWhiteTemperature) have
+				# been specified.
 				channelKeys = []
 				if device.supportsRGB:
 					channelKeys.extend(['redLevel', 'greenLevel', 'blueLevel'])
-				if device.supportsWhite:
-					channelKeys.extend(['whiteLevel'])
-				if device.supportsTwoWhiteLevels:
-					channelKeys.extend(['whiteLevel2'])
-				elif device.supportsWhiteTemperature:
-					channelKeys.extend(['whiteTemperature'])
+				if device.supportsWhiteTemperature:
+					channelKeys.extend(['whiteTemperature', 'whiteLevel'])
 				redLevel = 0
 				greenLevel = 0
 				blueLevel = 0
 				whiteLevel = 0
 				colorTemp = 0
-				
-				keyValueList = []
+
+				# Enumerate through the possible color channels and extract each
+				# value from the actionValue (actionColorVals).
 				for channel in channelKeys:
 					if channel in actionColorVals:
-						brightness = float(actionColorVals[channel])
-						brightnessByte = int(round(255.0 * (brightness / 100.0)))
-						
+						channelValue = float(actionColorVals[channel])
+						channelValueByte = int(round(255.0 * (channelValue / 100.0)))
+
 						if channel in device.states:
 							if channel == "redLevel":
-								redLevel = brightnessByte
-								if not isGenericInterface:
-									useRGB = True
+								redLevel = channelValueByte
 							elif channel == "greenLevel":
-								greenLevel = brightnessByte
-								if not isGenericInterface:
-									useRGB = True
+								greenLevel = channelValueByte
 							elif channel == "blueLevel":
-								blueLevel = brightnessByte
-								if not isGenericInterface:
-									useRGB = True
+								blueLevel = channelValueByte
 							elif channel == "whiteLevel":
-								whiteLevel = brightnessByte
-								if not isGenericInterface:
-									useHSB = True
+								whiteLevel = channelValueByte
 							elif channel == "whiteTemperature":
-								if brightness > 6500.0:
-									brightness = 6500.0
-								if brightness < 2000.0:
-									brightness = 2000.0
-								colorTemp = brightness
-								if not isGenericInterface:
-									useColorTemp = True
-							
-							keyValueList.append({'key':channel, 'value':brightness})
-				
-				if useRGB:
+								# The Indigo 7 interface allows users to select color temperature
+								#   values over 6500 and (with Indigo 7.0) below 2000. Correct
+								#   out of range values here.
+								# The "brightness" variable contains the color temperature value in this case.
+								if channelValue > 6500.0:
+									channelValue = 6500.0
+								if channelValue < 2000.0:
+									channelValue = 2000.0
+								colorTemp = channelValue
+				self.debugLog(u"actionControlDimmerRelay: Detected color change values of redLevel: %s, greenLevel: %s, blueLevel: %s, whiteLevel: %s, whiteTemperature: %s." % (redLevel, greenLevel, blueLevel, whiteLevel, colorTemp))
+				# The "Set RGBW Levels" action in Indigo 7.0 can have Red, Green, Blue and White levels, as well as
+				#   White Temperature for devices that support both RGB and White levels (even if the device doesn't
+				#   support simultaneous RGB and W settings).  We have to, therefor, make assumptions based on which
+				#   keys are passed and what values are in those keys.
+				#
+				# Start with whiteTemperature.  If it was the only key passed, the user is making changes to the
+				#   light via the Indigo UI.
+				if actionColorVals.get('whiteTemperature', None) is not None:
+					self.debugLog(u"actionControlDimmerRelay: whiteTemperature is not empty.")
+					if actionColorVals.get('whiteLevel', None) is None and actionColorVals.get('redLevel', None) is None and actionColorVals.get('greenLevel', None) is None and actionColorVals.get('blueLevel', None) is None:
+						self.debugLog(u"actionControlDimmerRelay: red, green, blue and white levels are all empty")
+						# Since the whiteLevel was not sent, use the existing brightness as the whiteLevel.
+						if device.supportsWhiteTemperature:
+							self.doColorTemperature(device, colorTemp, int(round(currentBrightness / 100.0 * 255.0)))
+						else:
+							errorText = u"The \"" + device.nsame + u"\" device does not support color temperature. The requested change was not applied."
+							self.errorLog(errorText)
+							# Remember the error.
+							self.lastErrorMessage = errorText
+					# If both whiteTemperature and whiteLevel keys were sent at the same time, the Indigo Set RGBW
+					#    Levels action is being used, in which case, we still want to use the color temperature method,
+					#    but use the whiteLevel as the brightness instead of the current brightness if it's over zero.
+					elif actionColorVals.get('whiteLevel', None) is not None and float(actionColorVals.get('whiteLevel')) > 0:
+						self.debugLog(u"actionControlDimmerRelay: whiteLevel is not empty and is greater than zero")
+						if device.supportsWhiteTemperature:
+							self.doColorTemperature(device, colorTemp, whiteLevel)
+						else:
+							errorText = u"The \"" + device.nsame + u"\" device does not support color temperature. The requested change was not applied."
+							self.errorLog(errorText)
+							# Remember the error.
+							self.lastErrorMessage = errorText
+					# Otherwise, use RGB to set the color of the light.
+					else:
+						self.debugLog(u"actionControlDimmerRelay: using RGB to change device color.")
+						self.doRGB(device, redLevel, greenLevel, blueLevel)
+				# Now see if we're only being sent whiteLevel.  If so, the White level slider in the Indigo UI is being
+				#   used.  Treat the white level like an inverse saturation slider (100 = zero saturation).
+				elif actionColorVals.get('whiteLevel', None) is not None and actionColorVals.get('redLevel', None) is None and actionColorVals.get('greenLevel', None) is None and actionColorVals.get('blueLevel', None) is None:
+					self.debugLog(u"actionControlDimmerRelay: whiteLevel is not empty, but red, green and blue levels are.")
+					newSaturation = 255 - whiteLevel
+					if newSaturation < 0:
+						newSaturation = 0
+					self.doHSB(device, device.states['hue'], newSaturation, int(round(currentBrightness / 100.0 * 255.0)))
+				# If we're not changing color temperature or saturation (white level), use RGB.
+				else:
+					self.debugLog(u"actionControlDimmerRelay: using RGB to change device color.")
 					self.doRGB(device, redLevel, greenLevel, blueLevel)
-				elif useHSB:
-					self.doHSB(device, int(round(65535.0 * (device.states['hue'] / 360.0))), 255 - whiteLevel, int(round(255.0 * (device.states['brightnessLevel'] / 100.0))))
-				elif useColorTemp:
-					self.doColorTemperature(device, colorTemp, int(round(255.0 * (device.states['brightnessLevel'] / 100.0))))
-
-				# Tell the Indigo Server to update the color level states:
-				if len(keyValueList) > 0:
-					device.updateStatesOnServer(keyValueList)
 
 			##### REQUEST STATUS #####
 			elif command == indigo.kDeviceAction.RequestStatus:
@@ -3518,80 +3460,96 @@ class Plugin(indigo.PluginBase):
 				
 				actionColorVals = action.actionValue
 
-				useRGB = False
-				useHSB = False
-				useColorTemp = False
-
-				isGenericInterface = False
-				if 'redLevel' in actionColorVals and 'greenLevel' in actionColorVals and 'blueLevel' in actionColorVals and 'whiteLevel' in actionColorVals and 'whiteTemperature' in actionColorVals:
-					isGenericInterface = True
-					if actionColorVals['redLevel'] == 100.0 and actionColorVals['greenLevel'] == 100.0 and actionColorVals['blueLevel'] == 100.0:
-						useHSB = True
-						if actionColorVals['whiteLevel'] == 100.0:
-							useHSB = False
-							useColorTemp = True
-					else:
-						useRGB = True
-
+				# Construct a list of channel keys that are possible for what this device
+				# supports. It may not support RGB or may not support white levels, for
+				# example, depending on how the device's properties (SupportsColor, SupportsRGB,
+				# SupportsWhite, SupportsTwoWhiteLevels, SupportsWhiteTemperature) have
+				# been specified.
 				channelKeys = []
 				if device.supportsRGB:
 					channelKeys.extend(['redLevel', 'greenLevel', 'blueLevel'])
-				if device.supportsWhite:
-					channelKeys.extend(['whiteLevel'])
-				if device.supportsTwoWhiteLevels:
-					channelKeys.extend(['whiteLevel2'])
-				elif device.supportsWhiteTemperature:
-					channelKeys.extend(['whiteTemperature'])
+				if device.supportsWhiteTemperature:
+					channelKeys.extend(['whiteTemperature', 'whiteLevel'])
 				redLevel = 0
 				greenLevel = 0
 				blueLevel = 0
 				whiteLevel = 0
 				colorTemp = 0
-				
-				keyValueList = []
+
+				# Enumerate through the possible color channels and extract each
+				# value from the actionValue (actionColorVals).
 				for channel in channelKeys:
 					if channel in actionColorVals:
-						brightness = float(actionColorVals[channel])
-						brightnessByte = int(round(255.0 * (brightness / 100.0)))
-						
+						channelValue = float(actionColorVals[channel])
+						channelValueByte = int(round(255.0 * (channelValue / 100.0)))
+
 						if channel in device.states:
 							if channel == "redLevel":
-								redLevel = brightnessByte
-								if not isGenericInterface:
-									useRGB = True
+								redLevel = channelValueByte
 							elif channel == "greenLevel":
-								greenLevel = brightnessByte
-								if not isGenericInterface:
-									useRGB = True
+								greenLevel = channelValueByte
 							elif channel == "blueLevel":
-								blueLevel = brightnessByte
-								if not isGenericInterface:
-									useRGB = True
+								blueLevel = channelValueByte
 							elif channel == "whiteLevel":
-								whiteLevel = brightnessByte
-								if not isGenericInterface:
-									useHSB = True
+								whiteLevel = channelValueByte
 							elif channel == "whiteTemperature":
-								if brightness > 6500.0:
-									brightness = 6500.0
-								if brightness < 2000.0:
-									brightness = 2000.0
-								colorTemp = brightness
-								if not isGenericInterface:
-									useColorTemp = True
-							
-							keyValueList.append({'key':channel, 'value':brightness})
-				
-				if useRGB:
+								# The Indigo 7 interface allows users to select color temperature
+								#   values over 6500 and (with Indigo 7.0) below 2000. Correct
+								#   out of range values here.
+								# The "brightness" variable contains the color temperature value in this case.
+								if channelValue > 6500.0:
+									channelValue = 6500.0
+								if channelValue < 2000.0:
+									channelValue = 2000.0
+								colorTemp = channelValue
+				self.debugLog(u"actionControlDimmerRelay: Detected color change values of redLevel: %s, greenLevel: %s, blueLevel: %s, whiteLevel: %s, whiteTemperature: %s." % (redLevel, greenLevel, blueLevel, whiteLevel, colorTemp))
+				# The "Set RGBW Levels" action in Indigo 7.0 can have Red, Green, Blue and White levels, as well as
+				#   White Temperature for devices that support both RGB and White levels (even if the device doesn't
+				#   support simultaneous RGB and W settings).  We have to, therefor, make assumptions based on which
+				#   keys are passed and what values are in those keys.
+				#
+				# Start with whiteTemperature.  If it was the only key passed, the user is making changes to the
+				#   light via the Indigo UI.
+				if actionColorVals.get('whiteTemperature', None) is not None:
+					self.debugLog(u"actionControlDimmerRelay: whiteTemperature is not empty.")
+					if actionColorVals.get('whiteLevel', None) is None and actionColorVals.get('redLevel', None) is None and actionColorVals.get('greenLevel', None) is None and actionColorVals.get('blueLevel', None) is None:
+						self.debugLog(u"actionControlDimmerRelay: red, green, blue and white levels are all empty")
+						# Since the whiteLevel was not sent, use the existing brightness as the whiteLevel.
+						if device.supportsWhiteTemperature:
+							self.doColorTemperature(device, colorTemp, int(round(currentBrightness / 100.0 * 255.0)))
+						else:
+							errorText = u"The \"" + device.nsame + u"\" device does not support color temperature. The requested change was not applied."
+							self.errorLog(errorText)
+							# Remember the error.
+							self.lastErrorMessage = errorText
+					# If both whiteTemperature and whiteLevel keys were sent at the same time, the Indigo Set RGBW
+					#    Levels action is being used, in which case, we still want to use the color temperature method,
+					#    but use the whiteLevel as the brightness instead of the current brightness if it's over zero.
+					elif actionColorVals.get('whiteLevel', None) is not None and float(actionColorVals.get('whiteLevel')) > 0:
+						self.debugLog(u"actionControlDimmerRelay: whiteLevel is not empty and is greater than zero")
+						if device.supportsWhiteTemperature:
+							self.doColorTemperature(device, colorTemp, whiteLevel)
+						else:
+							errorText = u"The \"" + device.nsame + u"\" device does not support color temperature. The requested change was not applied."
+							self.errorLog(errorText)
+							# Remember the error.
+							self.lastErrorMessage = errorText
+					# Otherwise, use RGB to set the color of the light.
+					else:
+						self.debugLog(u"actionControlDimmerRelay: using RGB to change device color.")
+						self.doRGB(device, redLevel, greenLevel, blueLevel)
+				# Now see if we're only being sent whiteLevel.  If so, the White level slider in the Indigo UI is being
+				#   used.  Treat the white level like an inverse saturation slider (100 = zero saturation).
+				elif actionColorVals.get('whiteLevel', None) is not None and actionColorVals.get('redLevel', None) is None and actionColorVals.get('greenLevel', None) is None and actionColorVals.get('blueLevel', None) is None:
+					self.debugLog(u"actionControlDimmerRelay: whiteLevel is not empty, but red, green and blue levels are.")
+					newSaturation = 255 - whiteLevel
+					if newSaturation < 0:
+						newSaturation = 0
+					self.doHSB(device, device.states['hue'], newSaturation, int(round(currentBrightness / 100.0 * 255.0)))
+				# If we're not changing color temperature or saturation (white level), use RGB.
+				else:
+					self.debugLog(u"actionControlDimmerRelay: using RGB to change device color.")
 					self.doRGB(device, redLevel, greenLevel, blueLevel)
-				elif useHSB:
-					self.doHSB(device, int(round(65535.0 * (device.states['hue'] / 360.0))), 255 - whiteLevel, int(round(255.0 * (device.states['brightnessLevel'] / 100.0))))
-				elif useColorTemp:
-					self.doColorTemperature(device, colorTemp, int(round(255.0 * (device.states['brightnessLevel'] / 100.0))))
-
-				# Tell the Indigo Server to update the color level states:
-				if len(keyValueList) > 0:
-					device.updateStatesOnServer(keyValueList)
 
 			##### REQUEST STATUS #####
 			elif command == indigo.kDeviceAction.RequestStatus:
@@ -3705,7 +3663,10 @@ class Plugin(indigo.PluginBase):
 				except Exception, e:
 					self.debugLog(u"device request status: (Unable to display action data due to error: " + unicode(e) + u")")
 
-				indigo.server.log(u"ignored \"%s\" color change request. Device does not support color." % (device.name))
+				errorText = u"The \"" + device.nsame + u"\" device does not support color. The requested change was not applied."
+				self.errorLog(errorText)
+				# Remember the error.
+				self.lastErrorMessage = errorText
 
 			##### REQUEST STATUS #####
 			elif command == indigo.kDeviceAction.RequestStatus:
@@ -3815,7 +3776,10 @@ class Plugin(indigo.PluginBase):
 				except Exception, e:
 					self.debugLog(u"device set color: (Unable to display action data due to error: " + unicode(e) + u")")
 
-				indigo.server.log(u"ignored \"%s\" color change request. Device does not support color." % (device.name))
+				errorText = u"The \"" + device.nsame + u"\" device does not support color. The requested change was not applied."
+				self.errorLog(errorText)
+				# Remember the error.
+				self.lastErrorMessage = errorText
 
 			##### REQUEST STATUS #####
 			elif command == indigo.kDeviceAction.RequestStatus:
@@ -3927,80 +3891,94 @@ class Plugin(indigo.PluginBase):
 				
 				actionColorVals = action.actionValue
 
-				useRGB = False
-				useHSB = False
-				useColorTemp = False
-
-				isGenericInterface = False
-				if 'redLevel' in actionColorVals and 'greenLevel' in actionColorVals and 'blueLevel' in actionColorVals and 'whiteLevel' in actionColorVals and 'whiteTemperature' in actionColorVals:
-					isGenericInterface = True
-					if actionColorVals['redLevel'] == 100.0 and actionColorVals['greenLevel'] == 100.0 and actionColorVals['blueLevel'] == 100.0:
-						useHSB = True
-						if actionColorVals['whiteLevel'] == 100.0:
-							useHSB = False
-							useColorTemp = True
-					else:
-						useRGB = True
-
+				# Construct a list of channel keys that are possible for what this device
+				# supports. It may not support RGB or may not support white levels, for
+				# example, depending on how the device's properties (SupportsColor, SupportsRGB,
+				# SupportsWhite, SupportsTwoWhiteLevels, SupportsWhiteTemperature) have
+				# been specified.
 				channelKeys = []
 				if device.supportsRGB:
 					channelKeys.extend(['redLevel', 'greenLevel', 'blueLevel'])
-				if device.supportsWhite:
-					channelKeys.extend(['whiteLevel'])
-				if device.supportsTwoWhiteLevels:
-					channelKeys.extend(['whiteLevel2'])
-				elif device.supportsWhiteTemperature:
-					channelKeys.extend(['whiteTemperature'])
+				if device.supportsWhiteTemperature:
+					channelKeys.extend(['whiteTemperature', 'whiteLevel'])
 				redLevel = 0
 				greenLevel = 0
 				blueLevel = 0
 				whiteLevel = 0
 				colorTemp = 0
-				
-				keyValueList = []
+
+				# Enumerate through the possible color channels and extract each
+				# value from the actionValue (actionColorVals).
 				for channel in channelKeys:
 					if channel in actionColorVals:
-						brightness = float(actionColorVals[channel])
-						brightnessByte = int(round(255.0 * (brightness / 100.0)))
-						
+						channelValue = float(actionColorVals[channel])
+						channelValueByte = int(round(255.0 * (channelValue / 100.0)))
+
 						if channel in device.states:
 							if channel == "redLevel":
-								redLevel = brightnessByte
-								if not isGenericInterface:
-									useRGB = True
+								redLevel = channelValueByte
 							elif channel == "greenLevel":
-								greenLevel = brightnessByte
-								if not isGenericInterface:
-									useRGB = True
+								greenLevel = channelValueByte
 							elif channel == "blueLevel":
-								blueLevel = brightnessByte
-								if not isGenericInterface:
-									useRGB = True
+								blueLevel = channelValue
 							elif channel == "whiteLevel":
-								whiteLevel = brightnessByte
-								if not isGenericInterface:
-									useHSB = True
+								whiteLevel = channelValueByte
 							elif channel == "whiteTemperature":
-								if brightness > 6500.0:
-									brightness = 6500.0
-								if brightness < 2000.0:
-									brightness = 2000.0
-								colorTemp = brightness
-								if not isGenericInterface:
-									useColorTemp = True
-							
-							keyValueList.append({'key':channel, 'value':brightness})
-				
-				if useRGB:
-					self.doRGB(device, redLevel, greenLevel, blueLevel)
-				elif useHSB:
-					self.doHSB(device, int(round(65535.0 * (device.states['hue'] / 360.0))), 255 - whiteLevel, int(round(255.0 * (device.states['brightnessLevel'] / 100.0))))
-				elif useColorTemp:
-					self.doColorTemperature(device, colorTemp, int(round(255.0 * (device.states['brightnessLevel'] / 100.0))))
+								# The Indigo 7 interface allows users to select color temperature
+								#   values over 6500 and (with Indigo 7.0) below 2000. Correct
+								#   out of range values here.
+								# The "brightness" variable contains the color temperature value in this case.
+								if channelValue > 6500.0:
+									channelValue = 6500.0
+								if channelValue < 2000.0:
+									channelValue = 2000.0
+								colorTemp = channelValue
 
-				# Tell the Indigo Server to update the color level states:
-				if len(keyValueList) > 0:
-					device.updateStatesOnServer(keyValueList)
+				# The "Set RGBW Levels" action in Indigo 7.0 can have Red, Green, Blue and White levels, as well as
+				#   White Temperature for devices that support both RGB and White levels (even if the device doesn't
+				#   support simultaneous RGB and W settings).  We have to, therefor, make assumptions based on which
+				#   keys are passed and what values are in those keys.
+				#
+				# Start with whiteTemperature.  If it was the only key passed, the user is making changes to the
+				#   light via the Indigo UI.
+				if device.supportsWhiteTemperature and actionColorVals.get('whiteTemperature', None) is not None:
+					if actionColorVals.get('whiteLevel', None) is None and actionColorVals.get('redLevel', None) is None and actionColorVals.get('greenLevel', None) is None and actionColorVals.get('blueLevel', None) is None:
+						# Since the whiteLevel was not sent, use the existing brightness as the whiteLevel.
+						self.doColorTemperature(device, colorTemp, int(round(currentBrightness / 100.0 * 255.0)))
+					# If both whiteTemperature and whiteLevel keys were sent at the same time, the Indigo Set RGBW
+					#    Levels action is being used, in which case, we still want to use the color temperature method,
+					#    but use the whiteLevel as the brightness instead of the current brightness.
+					elif actionColorVals.get('whiteLevel', None) is not None and float(actionColorVals.get('whiteLevel')) > 0:
+						self.doColorTemperature(device, colorTemp, whiteLevel)
+				# If the user is trying to set color temperature on an older LightStrip that doesn't support color
+				#   temperature, let them know in the error log.
+				elif not device.supportsWhiteTemperature and actionColorVals.get('whiteTemperature', None) is not None:
+					errorText = u"The \"" + device.nsame + u"\" device does not support color temperature. The requested change was not applied."
+					self.errorLog(errorText)
+					# Remember the error.
+					self.lastErrorMessage = errorText
+				# Now see if we're only being sent whiteLevel.  If so, the White level slider in the Indigo UI is being
+				#   used.  Treat the white level like an inverse saturation slider (100 = zero saturation).
+				elif actionColorVals.get('whiteLevel', None) is not None and actionColorVals.get('redLevel', None) is None and actionColorVals.get('greenLevel', None) is None and actionColorVals.get('blueLevel', None) is None:
+					newSaturation = device.states['saturation'] - int(round(whiteLevel / 100.0 * 255.0))
+					if newSaturation < 0:
+						newSaturation = 0
+					if device.supportsRGB:
+						self.doHSB(device, device.states['hue'], newSaturation, int(round(currentBrightness / 100.0 * 255.0)))
+					else:
+						errorText = u"The \"" + device.nsame + u"\" device does not support color. The requested change was not applied."
+						self.errorLog(errorText)
+						# Remember the error.
+						self.lastErrorMessage = errorText
+				# If we're not changing color temperature or saturation (white level), use RGB.
+				else:
+					if device.supportsRGB:
+						self.doRGB(device, redLevel, greenLevel, blueLevel)
+					else:
+						errorText = u"The \"" + device.nsame + u"\" device does not support color. The requested change was not applied."
+						self.errorLog(errorText)
+						# Remember the error.
+						self.lastErrorMessage = errorText
 
 			##### REQUEST STATUS #####
 			elif command == indigo.kDeviceAction.RequestStatus:
@@ -4368,7 +4346,8 @@ class Plugin(indigo.PluginBase):
 			else:
 				indigo.server.log(u"Unhandled Hue Attribute Controller command \"%s\"" % (command))
 			pass
-	
+			
+		
 	# Sensor Action callback
 	######################
 	def actionControlSensor(self, action, device):
@@ -4382,9 +4361,9 @@ class Plugin(indigo.PluginBase):
 		
 		# Act based on the type of device.
 		#
-		# -- Hue Sensor (Motion, Temperature, Luminance, Dimmer Switch) --
+		# -- Hue Sensor (Motion, Temperature, Luminance, Switch, Button, etc.) --
 		#
-		if device.deviceTypeId in ['hueMotionSensor', 'hueMotionTemperatureSensor', 'hueMotionLightSensor', 'hueDimmerSwitch']:
+		if device.deviceTypeId in kMotionSensorTypeIDs or device.deviceTypeId in kTemperatureSensorTypeIDs or device.deviceTypeId in kLightSensorTypeIDs or device.deviceTypeId in kSwitchTypeIDs:
 			sensorId = device.pluginProps.get('sensorId', False)
 			hostId = self.hostId
 			self.ipAddress = self.pluginPrefs.get('address', False)
@@ -4412,15 +4391,15 @@ class Plugin(indigo.PluginBase):
 				self.getSensorStatus(device.id)
 			# End if/else sensor action checking.
 		# End if this is a sensor device.
-
-
-
+	
+	
+	
 	########################################
 	#     END STANDARD PLUGIN METHODS      #
 	########################################
-
-
-
+	
+	
+	
 	########################################
 	# Custom Methods
 	########################################
@@ -4490,7 +4469,7 @@ class Plugin(indigo.PluginBase):
 		rgbHexVals.append("%02X" % fieldValue)
 		# Return all 3 values as a string separated by a single space.
 		return ' '.join(rgbHexVals)
-
+		
 	def calcRgbHexValsFromHsbLevels(self, valuesDict):
 		self.debugLog(u"Starting calcRgbHexValsFromHsbLevels.")
 		self.debugLog(u"valuesDict: " + unicode(valuesDict))
@@ -4508,7 +4487,7 @@ class Plugin(indigo.PluginBase):
 			brightnessDevId = 0
 		if brightnessVarId.__class__ != int:
 			brightnessVarId = 0
-
+			
 		for channel in ['hue', 'saturation', 'brightness']:
 			fieldValue = 0
 			# Make sure the field values are integers.
@@ -4529,7 +4508,7 @@ class Plugin(indigo.PluginBase):
 				# If the brightnessSource is something other than "custom" get the current
 				#   value of the device or variable to which the brightness should be derived.
 				if brightnessSource == "variable":
-					fieldValue = indigo.variables[brightnessVarId].value
+					fieldValue =	 indigo.variables[brightnessVarId].value
 					if self.isIntCompat(fieldValue):
 						fieldValue = int(fieldValue)
 				elif brightnessSource == "dimmer":
@@ -4575,10 +4554,10 @@ class Plugin(indigo.PluginBase):
 		valuesDict['hue'] = hue
 		valuesDict['saturation'] = saturation
 		valuesDict['brightness'] = brightness
-
+		
 		# Can send a live update to the hardware here:
 		#    self.sendSetRGBWCommand(valuesDict, typeId, devId)
-
+		
 		del valuesDict['rgbColor']
 		return (valuesDict)
 
@@ -4586,10 +4565,10 @@ class Plugin(indigo.PluginBase):
 		self.debugLog(u"Starting rgbColorFieldUpdated.")
 		self.debugLog(u"typeId: " + typeId + "\ndevId: " + unicode(devId) + "\nvaluesDict: " + unicode(valuesDict))
 		valuesDict['rgbColor'] = self.calcRgbHexValsFromRgbLevels(valuesDict)
-
+		
 		# Can send a live update to the hardware here:
 		#    self.sendSetRGBWCommand(valuesDict, typeId, devId)
-
+		
 		del valuesDict['red']
 		del valuesDict['green']
 		del valuesDict['blue']
@@ -4599,10 +4578,10 @@ class Plugin(indigo.PluginBase):
 		self.debugLog(u"Starting hsbColorFieldUpdated.")
 		self.debugLog(u"typeId: " + typeId + "\ndevId: " + unicode(devId) + "\nvaluesDict: " + unicode(valuesDict))
 		valuesDict['rgbColor'] = self.calcRgbHexValsFromHsbLevels(valuesDict)
-
+		
 		# Can send a live update to the hardware here:
 		#    self.sendSetRGBWCommand(valuesDict, typeId, devId)
-
+		
 		del valuesDict['hue']
 		del valuesDict['saturation']
 		del valuesDict['brightness']
@@ -4624,7 +4603,7 @@ class Plugin(indigo.PluginBase):
 		valuesDict['sceneId'] = ""
 		
 		return valuesDict
-		
+
 	# Scenes List Item Selected (callback from action UI)
 	########################################
 	def scenesListItemSelected(self, valuesDict=None, typeId="", deviceId=0):
@@ -4633,7 +4612,7 @@ class Plugin(indigo.PluginBase):
 		self.sceneListSelection = valuesDict['sceneId']
 		
 		return valuesDict
-	
+
 	# Groups List Item Selected (callback from action UI)
 	########################################
 	def groupsListItemSelected(self, valuesDict=None, typeId="", deviceId=0):
@@ -4642,7 +4621,6 @@ class Plugin(indigo.PluginBase):
 		self.groupListSelection = valuesDict['groupId']
 		
 		return valuesDict
-	
 
 	# Bulb List Generator
 	########################################
@@ -4652,8 +4630,9 @@ class Plugin(indigo.PluginBase):
 		
 		returnBulbList = list()
 		
-		# Iterate over our bulbs, and return the available list in Indigo's format
-		for bulbId, bulbDetails in self.lightsDict.items():
+		# Iterate over our bulbs, and return a sorted list.
+		#   The "lambda" keyword in Python creates an inline function. Here it returns the device name.
+		for bulbId, bulbDetails in sorted(self.lightsDict.items(), key = lambda x: x[1]['name']):
 			if typeId == "":
 				# If no typeId exists, list all devices.
 				returnBulbList.append([bulbId, bulbDetails['name']])
@@ -4669,12 +4648,12 @@ class Plugin(indigo.PluginBase):
 				returnBulbList.append([bulbId, bulbDetails['name']])
 			elif typeId == "hueOnOffDevice" and bulbDetails['modelid'] in kOnOffOnlyDeviceIDs:
 				returnBulbList.append([bulbId, bulbDetails['name']])
-			
+				
 		# Debug
 		self.debugLog(u"bulbListGenerator: Return bulb list is %s" % returnBulbList)
 		
 		return returnBulbList
-		
+
 	# Group List Generator
 	########################################
 	def groupListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
@@ -4685,9 +4664,10 @@ class Plugin(indigo.PluginBase):
 		
 		# Add the special default zero group to the beginning of the list.
 		returnGroupList.append([0, "0: (All Hue Lights)"])
-
-		# Iterate over our groups, and return the available list in Indigo's format
-		for groupId, groupDetails in sorted(self.groupsDict.items()):
+		
+		# Iterate over our groups, and return a sorted list that's sorted by group ID.
+		#   The "lambda" keyword in Python creates an inline function. Here it returns the group ID as an integer.
+		for groupId, groupDetails in sorted(self.groupsDict.items(), key = lambda x: int(x[0])):
 			
 			returnGroupList.append([groupId, unicode(groupId) + ": " + groupDetails['name']])
 			
@@ -4695,27 +4675,29 @@ class Plugin(indigo.PluginBase):
 		self.debugLog(u"groupListGenerator: Return group list is %s" % returnGroupList)
 		
 		return returnGroupList
-		
+
 	# Bulb Device List Generator
 	########################################
-	def bulbDeviceListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
+	def bulbAndGroupDeviceListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
 		# Used in actions that need a list of Hue Lights plugin devices that aren't
 		#   attribute controllers or groups.
-		self.debugLog(u"Starting bulbDeviceListGenerator.\n  filter: " + unicode(filter) + u"\n  valuesDict: " + unicode(valuesDict) + u"\n  typeId: " + unicode(typeId) + u"\n  targetId: " + unicode(targetId))
+		self.debugLog(u"Starting bulbAndGroupDeviceListGenerator.\n  filter: " + unicode(filter) + u"\n  valuesDict: " + unicode(valuesDict) + u"\n  typeId: " + unicode(typeId) + u"\n  targetId: " + unicode(targetId))
 		
 		returnDeviceList = list()
 		
 		# Iterate over our devices, and return the available devices as a 2-tupple list.
 		for deviceId in self.deviceList:
 			device = indigo.devices[deviceId]
-			if device.deviceTypeId != "hueAttributeController":
-				returnDeviceList.append([deviceId, device.name])
-			
+			if device.pluginProps.get('type', "") in [u'Extended color light', u'Color light', u'Color temperature light'] or device.deviceTypeId == "hueGroup":
+				returnDeviceList.append([deviceId, unicode(device.name)])
+				
+		# Sort the list.  Use the "lambda" Python inline function to use the 2nd item in the tuple list (device name) as the sorting key.
+		returnDeviceList = sorted(returnDeviceList, key = lambda x: x[1])
 		# Debug
-		self.debugLog(u"bulbDeviceListGenerator: Return Hue device list is %s" % returnDeviceList)
+		self.debugLog(u"bulbAndGroupDeviceListGenerator: Return Hue device list is " + unicode(returnDeviceList))
 		
 		return returnDeviceList
-		
+
 	# Generate Presets List
 	########################################
 	def presetListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
@@ -4729,7 +4711,7 @@ class Plugin(indigo.PluginBase):
 		
 		if presets != None:
 			presetNumber = 0
-				
+			
 			for preset in presets:
 				# Determine whether the Preset has saved data or not.
 				hasData = u""
@@ -4743,7 +4725,7 @@ class Plugin(indigo.PluginBase):
 			theList.append((0, u"-- no presets --"))
 			
 		return theList
-		
+
 	# Generate Users List
 	########################################
 	def usersListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
@@ -4769,9 +4751,9 @@ class Plugin(indigo.PluginBase):
 				#   won't have any scenes associated with it, which could be confusing.
 				if userName != "Indigo Hue Lights":
 					theList.append((userId, userName))
-	
-		return theList
 		
+		return theList
+
 	# Generate Scenes List
 	########################################
 	def scenesListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
@@ -4861,7 +4843,7 @@ class Plugin(indigo.PluginBase):
 				theList.append((lightId, lightName))
 		
 		return theList
-		
+
 	# Generate Lights List for a Group
 	########################################
 	def groupLightsListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
@@ -4889,7 +4871,7 @@ class Plugin(indigo.PluginBase):
 				theList.append((lightId, lightName))
 		
 		return theList
-		
+
 	# Sensor List Generator
 	########################################
 	def sensorListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
@@ -4898,7 +4880,8 @@ class Plugin(indigo.PluginBase):
 		
 		returnSensorList = list()
 		
-		# Iterate over our sensors, and return the available list in Indigo's format
+		# Iterate over our sensors, and return a sorted list in Indigo's format
+		#   The "lambda" keyword in Python creates an inline function. Here it returns the device name.
 		for sensorId, sensorDetails in self.sensorsDict.items():
 			if filter == "":
 				# If no filter exists, list all devices.
@@ -4923,74 +4906,175 @@ class Plugin(indigo.PluginBase):
 					if value.get('uniqueid', False) and value.get('type', False):
 						if uniqueId in value['uniqueid'] and value['type'] == "ZLLPresence":
 							returnSensorList.append([sensorId, value['name']])
-			elif filter == "hueDimmerSwitch" and sensorDetails['type'] == "ZLLSwitch" and sensorDetails['modelid'] in kSwitchDeviceIDs:
+			elif filter == "hueDimmerSwitch" and sensorDetails['type'] == "ZLLSwitch" and sensorDetails['modelid'] in kSwitchDeviceIDs and sensorDetails['modelid'] != 'ROM001':
 				returnSensorList.append([sensorId, sensorDetails['name']])
-			elif filter == "hueTapSwitch" and sensorDetails['type'] == "ZGPSwitch" and sensorDetails['modelid'] in kSwitchDeviceIDs:
+			elif filter == "hueSmartButton" and sensorDetails['type'] == "ZLLSwitch" and sensorDetails['modelid'] in kSwitchDeviceIDs and sensorDetails['modelid'] not in ['RWL020', 'RWL021']:
 				returnSensorList.append([sensorId, sensorDetails['name']])
-			elif filter == "runLessWireSwitch" and sensorDetails['type'] == "ZGPSwitch" and sensorDetails['modelid'] in kSwitchDeviceIDs:
+			elif filter == "hueTapSwitch" and sensorDetails['type'] == "ZGPSwitch" and sensorDetails['modelid'] in kSwitchDeviceIDs and sensorDetails['modelid'] != 'FOHSWITCH':
 				returnSensorList.append([sensorId, sensorDetails['name']])
+			# This also shows Niko switches...
+			elif filter == "runLessWireSwitch" and sensorDetails['type'] == "ZGPSwitch" and sensorDetails['modelid'] in kSwitchDeviceIDs and sensorDetails['modelid'] not in ['ZGPSWITCH', 'SWT001']:
+				returnSensorList.append([sensorId, sensorDetails['name']])
+
+		returnSensorList = sorted(returnSensorList, key = lambda x: x[1])
 		# Debug
 		self.debugLog(u"sensorListGenerator: Return sensor list is %s" % returnSensorList)
 		
 		return returnSensorList
-		
+
 
 	########################################
 	# Device Update Methods
 	########################################
-	
+
 	# Update Device State
 	########################################
-	def updateDeviceState(self, device, state, newValue, decimals=None, newUiValue=None, newUiImage=None):
-		# Change the device state on the server
+	def updateDeviceState(self, device, state, newValue=None, decimals=None, newUiValue=None, newUiImage=None):
+		# Change the device state or states on the server
 		#   if it's different than the current state.
 		
 		# Note that the newUiImage value, if passed, should be a valid
 		# Indigo State Image Select Enumeration value as defined at
 		# http://wiki.indigodomo.com/doku.php?id=indigo_7_documentation:device_class.
 		
-		# Set the initial UI Value to the same raw value in newValue.
-		if newUiValue == None:
-			newUiValue = unicode(newValue)
-
-		# First, if the state doesn't even exist on the device, force a reload
-		#   of the device configuration to try to add the new state.
-		if device.states.get(state, None) is None:
-			self.debugLog(u"The " + device.name + u" device doesn't have the \"" + state + u"\" state.  Updating device.")
-			device.stateListOrDisplayStateIdChanged()
-		
-		# If a decimal precision was specified, attempt to round the new value to that precision.
-		if decimals is not None:
-			try:
-				# See if the newValue is a number.
-				newValue = float(newValue)
-				if decimals > 0:
-					newValue = round(newValue, decimals)
+		# First determine if we've been sent a key/value list or a device object.
+		if state.__class__ == list:
+			# Create a temporary key/value list to be used for device updating.
+			tempKeyValList = []
+			# Loop through the key/value items in the list.
+			for statesDict in state:
+				# Make sure the minimum required dictionary items exist.
+				if statesDict.get('key', False) == False:
+					errorText = u"updateDeviceState: One of the key/value dicts passed in a multi-state update request is missing the \"key\" item. Unable to update any states for the \"" + unicode(device.name) + u"\" device. State update list: " + unicode(state) + u"."
+					# Don't display the error if it's been displayed already.
+					if errorText != self.lastErrorMessage:
+						self.errorLog(errorText)
+						# Remember the error.
+						self.lastErrorMessage = errorText
+					return
 				else:
-					newValue = int(round(newValue, decimals))
-			except ValueError:
-				# This isn't a number, don't try to make it one.
-				pass
-			except TypeError:
-				# This also isn't a number and we don't need to make it one.
-				pass
-		# If no precision was specified, default to zero decimals.
-		else:
-			decimals = 0
-		
-		# Now update the state if the new value (rounded if needed) is different.
-		if (newValue != device.states.get(state, None)):
-			try:
-				self.debugLog(u"updateDeviceState: Updating device " + device.name + u" state: " + unicode(state) + u". Old value = " + unicode(device.states.get(state, "")) + u". New value = " + unicode(newValue))
-			except Exception, e:
-				self.debugLog(u"updateDeviceState: Updating device " + device.name + u" state: (Unable to display state due to error: " + unicode(e) + u")")
-			
-			# Actually update the device state now.
-			device.updateStateOnServer(key=state, value=newValue, decimalPlaces=decimals, uiValue=newUiValue)
-			# Update the device UI icon if one was specified.
-			if newUiImage != None:
-				device.updateStateImageOnServer(newUiImage)
+					stateKey = state['key']
+					
+				if statesDict.get('value', False) == False:
+					errorText = u"updateDeviceState: One of the key/value dicts passed in a multi-state update request is missing the \"value\" item. Unable to update any states for the \"" + unicode(device.name) + u"\" device. State update list: " + unicode(state) + u"."
+					# Don't display the error if it's been displayed already.
+					if errorText != self.lastErrorMessage:
+						self.errorLog(errorText)
+						# Remember the error.
+						self.lastErrorMessage = errorText
+					return
+				else:
+					newValue = statesDict['value']
+				
+				# Get any optional dictionary items that may have been passed.
+				newUiValue = statesDict.get('uiValue', None)
+				decimals = statesDict.get('decimalPlaces', None)
+				newUiImage = statesDict.get('uiImage', None)
+				
+				# Set the initial UI Value to the same raw value in newValue.
+				if newUiValue == None:
+					newUiValue = unicode(newValue)
 
+				# First, if the state doesn't even exist on the device, force a reload
+				#   of the device configuration to try to add the new state.
+				if device.states.get(stateKey, None) is None:
+					self.debugLog(u"The \"" + device.name + u"\" device doesn't have the \"" + stateKey + u"\" state.  Updating device.")
+					device.stateListOrDisplayStateIdChanged()
+				
+				# If a decimal precision was specified, attempt to round the new value to that precision.
+				if decimals is not None:
+					try:
+						# See if the newValue is a number.
+						newValue = float(newValue)
+						if decimals > 0:
+							newValue = round(newValue, decimals)
+						else:
+							newValue = int(round(newValue, decimals))
+					except ValueError:
+						# This isn't a number, don't try to make it one.
+						pass
+					except TypeError:
+						# This also isn't a number and we don't need to make it one.
+						pass
+				# If no precision was specified, default to zero decimals.
+				else:
+					decimals = 0
+				
+				# Now update the state if the new value (rounded if needed) is different.
+				if newValue != device.states.get(stateKey, None):
+					try:
+						self.debugLog(u"updateDeviceState: Updating device \"" + device.name + u"\" state: " + unicode(stateKey) + u". Old value = " + unicode(device.states.get(stateKey, "")) + u". New value = " + unicode(newValue))
+					except Exception, e:
+						self.debugLog(u"updateDeviceState: Updating device \"" + device.name + u"\" state: (Unable to display state due to error: " + unicode(e) + u")")
+					
+				# Update the device UI icon if one was specified.
+				if newUiImage != None:
+					device.updateStateImageOnServer(newUiImage)
+					# Delete the uiImage dictionary item as its not a valid key name for Indigo device updates.
+					del statesDict['uiImage']
+					
+				# Add the statesDict dictionary to the temporary key/value list to be updated in the device.
+				tempKeyValList.append(statesDict)
+				
+			# End loop through state key/value list.
+			# Update all the states that have changed on the device at one time.
+			device.updateStatesOnServer(tempKeyValList)
+			
+		# If state wasn't a list, treat it like a string and just update 1 device state.
+		else:
+			# Make sure the newValue variable wasn't left blank when passed to this method.
+			if newValue == None:
+				errorText = u"updateDeviceState: A blank value was passed as the new \"" + unicode(state) + u"\" state for the \"" + unicode(device.name) + u"\" device. The state value was not changed. Please report this error to the plugin developer."
+				# Don't display the error if it's been displayed already.
+				if errorText != self.lastErrorMessage:
+					self.errorLog(errorText)
+					# Remember the error.
+					self.lastErrorMessage = errorText
+				return
+				
+			# Set the initial UI Value to the same raw value in newValue.
+			if newUiValue == None:
+				newUiValue = unicode(newValue)
+
+			# First, if the state doesn't even exist on the device, force a reload
+			#   of the device configuration to try to add the new state.
+			if device.states.get(state, None) is None:
+				self.debugLog(u"The " + device.name + u" device doesn't have the \"" + state + u"\" state.  Updating device.")
+				device.stateListOrDisplayStateIdChanged()
+			
+			# If a decimal precision was specified, attempt to round the new value to that precision.
+			if decimals is not None:
+				try:
+					# See if the newValue is a number.
+					newValue = float(newValue)
+					if decimals > 0:
+						newValue = round(newValue, decimals)
+					else:
+						newValue = int(round(newValue, decimals))
+				except ValueError:
+					# This isn't a number, don't try to make it one.
+					pass
+				except TypeError:
+					# This also isn't a number and we don't need to make it one.
+					pass
+			# If no precision was specified, default to zero decimals.
+			else:
+				decimals = 0
+			
+			# Now update the state if the new value (rounded if needed) is different.
+			if (newValue != device.states.get(state, None)):
+				try:
+					self.debugLog(u"updateDeviceState: Updating device " + device.name + u" state: " + unicode(state) + u". Old value = " + unicode(device.states.get(state, "")) + u". New value = " + unicode(newValue))
+				except Exception, e:
+					self.debugLog(u"updateDeviceState: Updating device " + device.name + u" state: (Unable to display state due to error: " + unicode(e) + u")")
+				
+				# Actually update the device state now.
+				device.updateStateOnServer(key=state, value=newValue, decimalPlaces=decimals, uiValue=newUiValue)
+				# Update the device UI icon if one was specified.
+				if newUiImage != None:
+					device.updateStateImageOnServer(newUiImage)
+		# End if state is a list or not.
+	
 	# Update Device Properties
 	########################################
 	def updateDeviceProps(self, device, newProps):
@@ -5004,6 +5088,8 @@ class Plugin(indigo.PluginBase):
 	def rebuildDevice(self, device):
 		self.debugLog(u"Starting rebuildDevice.")
 		
+		self.debugLog(u"Checking if the " + unicode(device.name) + u" device needs to be rebuilt.")
+		self.debugLog(u"Device details before rebuild check:\n" + unicode(device))
 		# Copy the current device properties.
 		newProps = device.pluginProps
 
@@ -5011,137 +5097,84 @@ class Plugin(indigo.PluginBase):
 		
 		# Prior to version 1.1.0, the "modelId" property did not exist in lighting devices.
 		#   If that property does not exist, force an update.
-		if device.deviceTypeId in kLightDeviceTypeIDs and not device.pluginProps.get('modelId', False):
-			self.debugLog(u"The " + device.name + u" Hue light device doesn't have a modelId attribute.  Adding it.")
+		if device.deviceTypeId in kLightDeviceTypeIDs and device.pluginProps.get('modelId', u"") == u"":
+			self.debugLog(u"The " + device.name + u" lighting device doesn't have a modelId attribute.  Adding it.")
 			newProps['modelId'] = u""
-			device.replacePluginPropsOnServer(newProps)
-		
-		# Prior to version 1.3.8, the "alertMode" state didn't exist in Hue Group devices.
-		#   If that state does not exist, force the device state list to be updated.
-		if device.deviceTypeId == "hueGroup" and not device.states.get('alertMode', False):
-			self.debugLog(u"The " + device.name + u" Hue group device doesn't have an alertMode state.  Updating device.")
-			device.stateListOrDisplayStateIdChanged()
-			
+
 		# Prior to version 1.4, the color device properties did not exist in lighting devices.
 		#   If any of those properties don't exist, update the device properties based on model ID.
 		if device.deviceTypeId in kLightDeviceTypeIDs and device.configured:
-			self.debugLog(u"The " + device.name + u" device is a Hue light device and it's configured.")
-			if device.pluginProps['modelId'] in kHueBulbDeviceIDs and device.pluginProps.get('SupportsColor', "") == "":
-				self.debugLog(u"The \"" + device.name + u"\" Color/Ambiance light device doesn't have color properties.  Adding them.")
+			self.debugLog(u"Verifying the " + unicode(device.name) + u" lighting device properties.")
+			if device.pluginProps.get('type', "") in [u'Extended color light', u'Color light', u'Color temperature light']:
 				newProps['SupportsColor'] = True
-				newProps['SupportsRGB'] = True
-				newProps['SupportsWhite'] = True
-				newProps['SupportsWhiteTemperature'] = True
-				newProps['WhiteTemperatureMin'] = "2000"
-				newProps['WhiteTemperatureMax'] = "6500"
-				newProps['SupportsRGBandWhiteSimultaneously'] = False
-				device.replacePluginPropsOnServer(newProps)
-				indigo.server.log(u"The \"" + device.name + u"\" Color/Ambiance light device is from an old Hue Lights version. It's properties have been updated.")
-			elif device.pluginProps['modelId'] in kAmbianceDeviceIDs and not device.supportsColor:
-				self.debugLog(u"The \"" + device.name + u"\" Ambiance light device doesn't have color temperature properties.  Adding them.")
-				newProps['SupportsColor'] = True
-				newProps['SupportsRGB'] = False
-				newProps['SupportsWhite'] = True
-				newProps['SupportsWhiteTemperature'] = True
-				newProps['WhiteTemperatureMin'] = "2000"
-				newProps['WhiteTemperatureMax'] = "6500"
-				device.replacePluginPropsOnServer(newProps)
-				indigo.server.log(u"The \"" + device.name + u"\" Ambiance light device is from old an Hue Lights version. It's properties have been updated.")
-			elif device.pluginProps['modelId'] in kLivingColorsDeviceIDs and device.pluginProps.get('SupportsColor', "") == "":
-				self.debugLog(u"The \"" + device.name + u"\" Color light device doesn't have color properties.  Adding them.")
-				newProps['SupportsColor'] = True
-				newProps['SupportsRGB'] = True
-				newProps['SupportsWhite'] = False
-				newProps['SupportsWhiteTemperature'] = False
-				device.replacePluginPropsOnServer(newProps)
-				indigo.server.log(u"The \"" + device.name + u"\" Color light device is from old an Hue Lights version. It's properties have been updated.")
-			elif device.pluginProps['modelId'] in kLightStripsDeviceIDs and device.pluginProps.get('SupportsColor', "") == "":
-				self.debugLog(u"The \"" + device.name + u"\" LightStrip device doesn't have color properties.  Adding them.")
-				newProps['SupportsColor'] = True
-				newProps['SupportsRGB'] = True
-				# If this is anything but version 1 of the LightStrip, add color temperature support.
-				if device.pluginProps['modelId'] != "LST001":
+				if device.pluginProps.get('type', "") in [u'Extended color light', u'Color light']:
+					newProps['SupportsRGB'] = True
+				else:
+					newProps['SupportsRGB'] = False
+				if device.pluginProps.get('type', "") in [u'Extended color light', u'Color temperature light']:
 					newProps['SupportsWhite'] = True
 					newProps['SupportsWhiteTemperature'] = True
 					newProps['WhiteTemperatureMin'] = "2000"
 					newProps['WhiteTemperatureMax'] = "6500"
-					newProps['SupportsRGBandWhiteSimultaneously'] = False
 				else:
 					newProps['SupportsWhite'] = False
-				device.replacePluginPropsOnServer(newProps)
-				indigo.server.log(u"The \"" + device.name + u"\" LightStrip device is from an old Hue Lights version. It's properties have been updated.")
-			elif device.pluginProps['modelId'] in kLivingWhitesDeviceIDs and device.pluginProps.get('SupportsColor', "") == "":
-				self.debugLog(u"The \"" + device.name + u"\" LivingWhites type light device doesn't have the necessary Indigo 7 properties.  Adding them.")
+					newProps['SupportsWhiteTemperature'] = False
+					if newProps.get('WhiteTemperatureMin', False):
+						del newProps['WhiteTemperatureMin']
+					if newProps.get('WhiteTemperatureMax', False):
+						del newProps['WhiteTemperatureMax']
+				# No Hue bridge controlled device supports both RGB and white balance control simultaniously.
+				if device.pluginProps.get('type', "") == u"Extended color light":
+					newProps['SupportsRGBandWhiteSimultaneously'] = False
+			else:
 				newProps['SupportsColor'] = False
-				device.replacePluginPropsOnServer(newProps)
-				indigo.server.log(u"The \"" + device.name + u"\" LivingWhites type light device is from an old Hue Lights version. It's properties have been updated.")
-			elif device.pluginProps['modelId'] in kOnOffOnlyDeviceIDs:
-				# We don't actually need to do anything with On/Off devices because they're defined as relays
-				# without any dimmer type color or white ballance properties.  So just reload the properties.
-				device.replacePluginPropsOnServer(newProps)
 		elif device.deviceTypeId in kGroupDeviceTypeIDs and device.configured:
-			self.debugLog(u"Ths " + device.name + u" device is a Hue group and is configured.")
-			if device.pluginProps.get('SupportsColor', "") == "":
-				self.debugLog(u"The \"" + device.name + u"\" Hue group device doesn't have color properties.  Adding them.")
-				newProps['SupportsColor'] = True
-				newProps['SupportsRGB'] = True
-				newProps['SupportsWhite'] = True
-				newProps['SupportsWhiteTemperature'] = True
-				newProps['WhiteTemperatureMin'] = "2000"
-				newProps['WhiteTemperatureMax'] = "6500"
-				newProps['SupportsRGBandWhiteSimultaneously'] = False
-				device.replacePluginPropsOnServer(newProps)
-				indigo.server.log(u"The \"" + device.name + u"\" Hue group device is from an old Hue Lights version. It's properties have been updated.")
+			self.debugLog(u"Verifying the " + unicode(device.name) + u" group device.")
+			newProps['SupportsColor'] = True
+			newProps['SupportsRGB'] = True
+			newProps['SupportsWhite'] = True
+			newProps['SupportsWhiteTemperature'] = True
+			newProps['WhiteTemperatureMin'] = "2000"
+			newProps['WhiteTemperatureMax'] = "6500"
+			newProps['SupportsRGBandWhiteSimultaneously'] = False
 		elif device.deviceTypeId in kMotionSensorTypeIDs and device.configured:
-			self.debugLog(u"The " + device.name + u" device is a motion sensor and is configured.")
-			# If the device doesn't have the SupportsOnState set to True, then set it.
-			if device.pluginProps.get('SupportsOnState', False) == False:
-				self.debugLog(u"The \"" + device.name + u"\" sensor device doesn't have an on/off state.  Adding it.")
-				newProps['SupportsOnState'] = True
-				newProps['SupportsSensorValue'] = False
-				newProps['SupportsBatteryLevel'] = True
-				device.replacePluginPropsOnServer(newProps)
-				device.stateListOrDisplayStateIdChanged()
+			self.debugLog(u"Verifying the " + unicode(device.name) + u" motion sensor device.")
+			newProps['SupportsOnState'] = True
+			newProps['SupportsSensorValue'] = False
+			newProps['SupportsBatteryLevel'] = True
 		elif device.deviceTypeId in kTemperatureSensorTypeIDs and device.configured:
-			self.debugLog(u"The " + device.name + u" device is a temperature sensor and is configured.")
-			# If the device doesn't have the SupportsOnState set to True, then set it.
-			if device.pluginProps.get('SupportsSensorValue', False) == False:
-				self.debugLog(u"The \"" + device.name + u"\" sensor device doesn't have a sensorValue state.  Adding it.")
-				newProps['SupportsOnState'] = False
-				newProps['SupportsSensorValue'] = True
-				newProps['SupportsBatteryLevel'] = True
-				if newProps.get('sensorOffset', False):
-					del newProps['sensorOffset']
-				if newProps.get('temperatureScale', False):
-					del newProps['temperatureScale']
-				device.replacePluginPropsOnServer(newProps)
-				device.stateListOrDisplayStateIdChanged()
+			self.debugLog(u"Verifying the " + unicode(device.name) + u" temperature sensor device.")
+			newProps['SupportsOnState'] = False
+			newProps['SupportsSensorValue'] = True
+			newProps['SupportsBatteryLevel'] = True
+			if not newProps.get('sensorOffset', False):
+				newProps['sensorOffset'] = ""
+			if not newProps.get('temperatureScale', False):
+				newProps['temperatureScale'] = "c"
 		elif device.deviceTypeId in kLightSensorTypeIDs and device.configured:
-			self.debugLog(u"The " + device.name + u" device is a light sensor and is configured.")
-			# If the device doesn't have the SupportsSensorValue set to True, then set it.
-			if device.pluginProps.get('SupportsSensorValue', False) == False:
-				self.debugLog(u"The \"" + device.name + u"\" sensor device doesn't have a sensorValue state.  Adding it.")
-				newProps['SupportsOnState'] = False
-				newProps['SupportsSensorValue'] = True
-				newProps['SupportsBatteryLevel'] = True
-				device.replacePluginPropsOnServer(newProps)
-				device.stateListOrDisplayStateIdChanged()
+			self.debugLog(u"Verifying the " + unicode(device.name) + u" light sensor device.")
+			newProps['SupportsOnState'] = False
+			newProps['SupportsSensorValue'] = True
+			newProps['SupportsBatteryLevel'] = True
 		elif device.deviceTypeId in kSwitchTypeIDs and device.configured:
-			self.debugLog(u"The " + device.name + u" device is a switch and is configured.")
-			# If the device doesn't have the SupportsOnState set to True, then set it.
-			if device.pluginProps.get('SupportsOnState', False) == False:
-				self.debugLog(u"The \"" + device.name + u"\" sensor device doesn't have an on/off state.  Adding it.")
-				newProps['SupportsOnState'] = True
-				newProps['SupportsSensorValue'] = False
-				# The Hue Tap and Run Less Wire switches don't have a battery so don't support battery level.
-				if device.pluginProps['modelId'] in ['ZGPSWITCH', 'SWT001', 'FOHSWITCH']:
-					newProps['SupportsBatteryLevel'] = False
-				else:
-					newProps['SupportsBatteryLevel'] = True
-				device.replacePluginPropsOnServer(newProps)
-				device.stateListOrDisplayStateIdChanged()
+			self.debugLog(u"Verifying the " + unicode(device.name) + u" switch device.")
+			newProps['SupportsOnState'] = True
+			newProps['SupportsSensorValue'] = False
+			# The Hue Tap, Run Less Wire and Niko switches don't have a battery so don't support battery level.
+			if device.pluginProps['modelId'] in ['ZGPSWITCH', 'SWT001', 'FOHSWITCH', 'PTM215Z']:
+				newProps['SupportsBatteryLevel'] = False
+			else:
+				newProps['SupportsBatteryLevel'] = True
 
+		if newProps != device.pluginProps:
+			self.debugLog(u"Device properties have changed. New properties:\n" + unicode(newProps))
+			self.debugLog(u"Replacing properties on server.")
+			device.replacePluginPropsOnServer(newProps)
+
+		self.debugLog(u"Telling server to reload state list and display state.")
 		device.stateListOrDisplayStateIdChanged()
+		
+		self.debugLog(u"rebuildDevice complete.")
 
 
 
@@ -5192,7 +5225,7 @@ class Plugin(indigo.PluginBase):
 				self.debugLog(u"No bulbId exists in the \"%s\" device. New device perhaps." % (device.name))
 				return
 			
-		self.debugLog(u"Data from bridge: " + r.content)
+		self.debugLog(u"Data from bridge: " + r.content.decode("utf-8"))
 		# Convert the response to a Python object.
 		try:
 			bulb = json.loads(r.content)
@@ -5215,7 +5248,7 @@ class Plugin(indigo.PluginBase):
 		
 		# Call the method to update the Indigo device with the Hue device info.
 		self.parseOneHueLightData(bulb, device)
-		
+
 	# Get Group Status
 	########################################
 	def getGroupStatus(self, deviceId):
@@ -5252,7 +5285,7 @@ class Plugin(indigo.PluginBase):
 			self.debugLog(u"No group ID was provided.")
 			return
 		
-		self.debugLog(u"Data from bridge: " + r.content)
+		self.debugLog(u"Data from bridge: " + r.content.decode("utf-8"))
 		
 		# Convert the response to a Python object.
 		try:
@@ -5315,7 +5348,7 @@ class Plugin(indigo.PluginBase):
 			return
 		# End if sensorId is defined.
 		
-		self.debugLog(u"Data from bridge: " + r.content)
+		self.debugLog(u"Data from bridge: " + r.content.decode("utf-8"))
 		# Convert the response to a Python object.
 		try:
 			sensor = json.loads(r.content)
@@ -5339,7 +5372,6 @@ class Plugin(indigo.PluginBase):
 		# Call the method to update the Indigo device with the Hue device info.
 		self.parseOneHueSensorData(sensor, device)
 
-	
 	# Get Entire Hue bridge Config
 	########################################
 	def getHueConfig(self):
@@ -5440,7 +5472,7 @@ class Plugin(indigo.PluginBase):
 			
 		except Exception, e:
 			self.errorLog(u"Unable to obtain the configuration from the Hue bridge." + unicode(e))
-	
+
 	# Update Lights List
 	########################################
 	def updateLightsList(self):
@@ -5545,7 +5577,7 @@ class Plugin(indigo.PluginBase):
 				self.errorLog(errorText)
 				# Remember the error.
 				self.lastErrorMessage = errorText
-	
+
 	# Update Groups List
 	########################################
 	def updateGroupsList(self):
@@ -5644,7 +5676,7 @@ class Plugin(indigo.PluginBase):
 			
 		except Exception, e:
 			self.errorLog(u"Unable to obtain list of Hue groups from the bridge." + unicode(e))
-	
+
 	# Update Sensors List
 	########################################
 	def updateSensorsList(self):
@@ -5744,7 +5776,6 @@ class Plugin(indigo.PluginBase):
 		except Exception, e:
 			self.errorLog(u"Unable to obtain list of Hue sensors from the bridge." + unicode(e))
 
-
 	# Parse All Hue Lights Data
 	########################################
 	def parseAllHueLightsData(self):
@@ -5828,7 +5859,7 @@ class Plugin(indigo.PluginBase):
 				tempProps['savedBrightness'] = brightness
 
 		# Update the Hue device name.
-		if nameOnBridge != device.pluginProps.get('nameOnBridge', False):
+		if nameOnBridge != device.pluginProps.get('nameOnBridge', ""):
 			tempProps['nameOnBridge'] = nameOnBridge
 		# Update the modelId.
 		if modelId != device.pluginProps.get('modelId', ""):
@@ -5852,9 +5883,9 @@ class Plugin(indigo.PluginBase):
 		self.updateDeviceState(device, 'online', online)
 		# Update the error state if needed.
 		if not online:
-			device.setErrorStateOnServer("disconnected")
+			device.setErrorStateOnServer(u"disconnected")
 		else:
-			device.setErrorStateOnServer("")
+			device.setErrorStateOnServer(u"")
 		# Update the alert state of the Hue device.
 		self.updateDeviceState(device, 'alertMode', alert)
 
@@ -6076,122 +6107,173 @@ class Plugin(indigo.PluginBase):
 						# Hue Device is off.  Set Attribute Controller device brightness level to 0.
 						self.updateDeviceState(controlDevice, 'brightnessLevel', 0)
 						
-		# -- LightStrips --
+		# -- Light Strips --
 		elif modelId in kLightStripsDeviceIDs:
 			#   Value assignment.  (Using the get() method to avoid KeyErrors).
-			hue = bulb['state'].get('hue', 0)
-			saturation = bulb['state'].get('sat', 0)
-			colorX = bulb['state'].get('xy', [0,0])[0]
-			colorY = bulb['state'].get('xy', [0,0])[1]
-			colorRed = 255		# Initialize for later
-			colorGreen = 255	# Initialize for later
-			colorBlue = 255		# Initialize for later
-			# Handle color temperature values for anything but the original LightStrip.
-			if bulb['modelid'] != "LST001":
+			# Handle values common for "Color light" and "Extended color light" strips.
+			if type in ['Color light', 'Extended color light']:
+				hue = bulb['state'].get('hue', 0)
+				saturation = bulb['state'].get('sat', 0)
+				colorX = bulb['state'].get('xy', [0.0,0.0])[0]
+				colorY = bulb['state'].get('xy', [0.0,0.0])[1]
+				colorMode = bulb['state'].get('colormode', "xy")
+				#   Value manipulation.
+				# Newer Hue bridge firmware doesn't report hue and saturation values for the original LightStrips, so
+				#   if HSB values are zero but xyY values are not, use the xyY values to convert to RGB, otherwise use
+				#   the HSB values.
+				if hue == 0 and saturation == 0 and (colorX > 0 or colorY > 0):
+					xyY = xyYColor(colorX, colorY, brightness / 255.0)
+					rgb = xyY.convert_to('rgb')
+					# Let's also convert the xyY color to HSB so that related device states in Indigo are updated correctly.
+					hsb = xyY.convert_to('hsv')
+					hue = int(round(hsb.hsv_h * 182.0))
+					saturation = int(round(hsb.hsv_s * 255.0))
+				else:
+					hsb = HSVColor(hue / 182.0, saturation / 255.0, brightness / 255.0)
+					rgb = hsb.convert_to('rgb')
+				# RGB values will have a range of 0 to 255.
+				colorRed = int(round(rgb.rgb_r))
+				colorGreen = int(round(rgb.rgb_g))
+				colorBlue = int(round(rgb.rgb_b))
+				# Convert saturation from 0-255 scale to 0-100 scale.
+				saturation = int(round(saturation / 255.0 * 100.0))
+				# Convert hue from 0-65535 scale to 0-360 scale.
+				hue = int(round(hue / 182.0))
+			# Handle color temperature values for "Extended color light" type devices.
+			if type in ['Extended color light', 'Color temperature light']:
 				colorTemp = bulb['state'].get('ct', 0)
-			colorMode = bulb['state'].get('colormode', "ct")
-			effect = bulb['state'].get('effect', "none")
-	
-			#   Value manipulation.
-			# Convert from HSB to RGB, scaling the hue and saturation values appropriately.
-			hsb = HSVColor(hue / 182.0, saturation / 255.0, brightness / 255.0)
-			rgb = hsb.convert_to('rgb', rgb_type='wide_gamut_rgb')
-			# RGB values will have a range of 0 to 255.
-			colorRed = int(round(rgb.rgb_r))
-			colorGreen = int(round(rgb.rgb_g))
-			colorBlue = int(round(rgb.rgb_b))
-			# Convert saturation from 0-255 scale to 0-100 scale.
-			saturation = int(round(saturation / 255.0 * 100.0))
-			# Convert hue from 0-65535 scale to 0-360 scale.
-			hue = int(round(hue / 182.0))
-			# Must first test color temp value. If it's zero, the formula throws a divide by zero execption.
-			if bulb['modelid'] != "LST001":
+				# Must first test color temp value. If it's zero, the formula throws a divide by zero execption.
 				if colorTemp > 0:
 					# Converting from mireds to Kelvin.
 					colorTemp = int(round(1000000.0/colorTemp))
 				else:
 					colorTemp = 0
-
+			effect = bulb['state'].get('effect', "none")
+	
 			# Update the Indigo device if the Hue device is on.
 			if onState == True:
 				tempProps = device.pluginProps
 				# Update the brightness level if it's different.
-				if device.states['brightnessLevel'] != brightnessLevel:
+				if device.states.get('brightnessLevel', '') != brightnessLevel:
 					# Log the update.
-					indigo.server.log(u"\"" + device.name + "\" on to " + unicode(brightnessLevel), 'Updated')
+					indigo.server.log(u"\"" + unicode(device.name) + "\" on to " + unicode(brightnessLevel), 'Updated')
 					self.updateDeviceState(device, 'brightnessLevel', brightnessLevel)
-				# Hue Degrees (0-360).
-				self.updateDeviceState(device, 'hue', hue)
-				# Saturation (0-100).
-				self.updateDeviceState(device, 'saturation', saturation)
-				# CIE XY Cromaticity (range of 0.0 to 1.0 for X and Y)
-				self.updateDeviceState(device, 'colorX', colorX, 4)
-				self.updateDeviceState(device, 'colorY', colorY, 4)
-				# Color Temperature (converted from 154-500 mireds to 6494-2000 K).
-				if bulb['modelid'] != "LST001":
-					self.updateDeviceState(device, 'colorTemp', colorTemp)
-				# Color Mode.
-				self.updateDeviceState(device, 'colorMode', colorMode)
-				# Red, Green, Blue (0-255).
-				self.updateDeviceState(device, 'colorRed', colorRed)
-				self.updateDeviceState(device, 'colorGreen', colorGreen)
-				self.updateDeviceState(device, 'colorBlue', colorBlue)
-				
+				if type in ['Color light', 'Extended color light']:
+					# We test to see if each device state actually exists with Light Strips because
+					#   a state may not exist in the device (despite the light type).
+					#
+					# Hue Degrees (0-360).
+					if 'hue' in device.states:
+						self.updateDeviceState(device, 'hue', hue)
+					# Saturation (0-100).
+					if 'saturation' in device.states:
+						self.updateDeviceState(device, 'saturation', saturation)
+					# CIE XY Cromaticity (range of 0.0 to 1.0 for X and Y)
+					if 'colorX' in device.states:
+						self.updateDeviceState(device, 'colorX', colorX, 4)
+					if 'colorY' in device.states:
+						self.updateDeviceState(device, 'colorY', colorY, 4)
+					# Red, Green, Blue (0-255).
+					if 'colorRed' in device.states:
+						self.updateDeviceState(device, 'colorRed', colorRed)
+					if 'colorGreen' in device.states:
+						self.updateDeviceState(device, 'colorGreen', colorGreen)
+					if 'colorBlue' in device.states:
+						self.updateDeviceState(device, 'colorBlue', colorBlue)
+				if type in ['Extended color light', 'Color temperature light']:
+					# Color Temperature (converted from 154-500 mireds to 6494-2000 K).
+					if 'colorTemp' in device.states:
+						self.updateDeviceState(device, 'colorTemp', colorTemp)
+				if type in ['Color light', 'Extended color light', 'Color temperature light']:
+					# Color Mode.
+					if 'colorMode' in device.states:
+						self.updateDeviceState(device, 'colorMode', colorMode)
+
 				### Update inherited states for Indigo 7+ devices.
 				if "whiteLevel" in device.states or "redLevel" in device.states:
-					# For everything but the original LightStrip...
-					if bulb['modelid'] != "LST001":
+					# Only for devices capabile of color temperature...
+					if type in ['Extended color light', 'Color temperature light']:
 						# White Level (negative saturation, 0-100).
-						self.updateDeviceState(device, 'whiteLevel', 100 - saturation)
+						if device.states.get('whiteLevel', False):
+							self.updateDeviceState(device, 'whiteLevel', 100 - saturation)
 						# White Temperature (0-100).
-						self.updateDeviceState(device, 'whiteTemperature', colorTemp)
-					# Red, Green, Blue levels (0-100).
-					self.updateDeviceState(device, 'redLevel', int(round(colorRed / 255.0 * 100.0)))
-					self.updateDeviceState(device, 'greenLevel', int(round(colorGreen / 255.0 * 100.0)))
-					self.updateDeviceState(device, 'blueLevel', int(round(colorBlue / 255.0 * 100.0)))
-
+						if device.states.get('whiteTemperature', False):
+							self.updateDeviceState(device, 'whiteTemperature', colorTemp)
+					if type in ['Color light', 'Extended color light']:
+						# Hue Degrees (0-360).
+						# Red, Green, Blue levels (0-100).
+						if 'redLevel' in device.states:
+							self.updateDeviceState(device, 'redLevel', int(round(colorRed / 255.0 * 100.0)))
+						if 'greenLevel' in device.states:
+							self.updateDeviceState(device, 'greenLevel', int(round(colorGreen / 255.0 * 100.0)))
+						if 'blueLevel' in device.states:
+							self.updateDeviceState(device, 'blueLevel', int(round(colorBlue / 255.0 * 100.0)))
+						
 			elif onState == False:
 				# Hue device is off. Set brightness to zero.
 				if device.states['brightnessLevel'] != 0:
 					# Log the update.
 					indigo.server.log(u"\"" + device.name + "\" off", 'Updated')
 					self.updateDeviceState(device, 'brightnessLevel', 0)
-				# Hue Degrees (convert from 0-65535 to 0-360).
-				self.updateDeviceState(device, 'hue', hue)
-				# Saturation (convert from 0-255 to 0-100).
-				self.updateDeviceState(device, 'saturation', saturation)
-				# CIE XY Cromaticity.
-				self.updateDeviceState(device, 'colorX', colorX, 4)
-				self.updateDeviceState(device, 'colorY', colorY, 4)
-				# Color Temperature (convert from 154-500 mireds to 6494-2000 K).
-				if bulb['modelid'] != "LST001":
-					self.updateDeviceState(device, 'colorTemp', colorTemp)
-				# Color Mode.
-				self.updateDeviceState(device, 'colorMode', colorMode)
-				# Red, Green, and Blue Color.
-				#    If the bulb is off, all RGB values should be 0.
-				self.updateDeviceState(device, 'colorRed', 0)
-				self.updateDeviceState(device, 'colorGreen', 0)
-				self.updateDeviceState(device, 'colorBlue', 0)
-				
+				if type in ['Color light', 'Extended color light']:
+					# We test to see if each device state actually exists with Light Strips because
+					#   a state may not exist in the device (despite the light type).
+					#
+					# Hue Degrees (0-360).
+					# Hue Degrees (convert from 0-65535 to 0-360).
+					if 'hue' in device.states:
+						self.updateDeviceState(device, 'hue', hue)
+					# Saturation (convert from 0-255 to 0-100).
+					if 'saturation' in device.states:
+						self.updateDeviceState(device, 'saturation', saturation)
+					# CIE XY Cromaticity.
+					if 'colorX' in device.states:
+						self.updateDeviceState(device, 'colorX', colorX, 4)
+					if 'colorY' in device.states:
+						self.updateDeviceState(device, 'colorY', colorY, 4)
+					# Red, Green, and Blue Color.
+					#    If the bulb is off, all RGB values should be 0.
+					if 'colorRed' in device.states:
+						self.updateDeviceState(device, 'colorRed', 0)
+					if 'colorGreen' in device.states:
+						self.updateDeviceState(device, 'colorGreen', 0)
+					if 'colorBlue' in device.states:
+						self.updateDeviceState(device, 'colorBlue', 0)
+				if type in ['Extended color light', 'Color temperature light']:
+					# Color Temperature (convert from 154-500 mireds to 6494-2000 K).
+					if 'colorTemp' in device.states:
+						self.updateDeviceState(device, 'colorTemp', colorTemp)
+				if type in ['Color light', 'Extended color light', 'Color temperature light']:
+					# Color Mode.
+					if 'colorMode' in device.states:
+						self.updateDeviceState(device, 'colorMode', colorMode)
+
 				### Update inherited states for Indigo 7+ devices.
 				if "whiteLevel" in device.states or "redLevel" in device.states:
-					# For everything but the original LightStrip...
-					if bulb['modelid'] != "LST001":
+					# For color temperature devices...
+					if type in ['Extended color light', 'Color temperature light']:
 						# White Level (negative saturation, 0-100).
-						self.updateDeviceState(device, 'whiteLevel', 100 - saturation)
+						if 'whiteLevel' in device.states:
+							self.updateDeviceState(device, 'whiteLevel', 100 - saturation)
 						# White Temperature (0-100).
-						self.updateDeviceState(device, 'whiteTemperature', colorTemp)
-					# Red, Green, Blue levels (0-100).
-					self.updateDeviceState(device, 'redLevel', 0)
-					self.updateDeviceState(device, 'greenLevel', 0)
-					self.updateDeviceState(device, 'blueLevel', 0)
+						if 'whiteTemperature' in device.states:
+							self.updateDeviceState(device, 'whiteTemperature', colorTemp)
+					if type in ['Color light', 'Extended color light']:
+						# Hue Degrees (0-360).
+						# Red, Green, Blue levels (0-100).
+						if 'redLevel' in device.states:
+							self.updateDeviceState(device, 'redLevel', 0)
+						if 'greenLevel' in device.states:
+							self.updateDeviceState(device, 'greenLevel', 0)
+						if 'blueLevel' in device.states:
+							self.updateDeviceState(device, 'blueLevel', 0)
 			else:
 				# Unrecognized on state, but not important enough to mention in regular log.
 				self.debugLog(u"LightStrip unrecognized on state given by bridge: " + unicode(bulb['state']['on']))
 			
 			# Update the effect state (regardless of onState).
-			self.updateDeviceState(device, 'effect', effect)
+			if 'effect' in device.states:
+				self.updateDeviceState(device, 'effect', effect)
 
 			# Update any Hue Device Attribute Controller virtual dimmers associated with this bulb.
 			for controlDeviceId in self.controlDeviceList:
@@ -6218,7 +6300,7 @@ class Plugin(indigo.PluginBase):
 						elif attributeToControl == "colorBlue":
 							# Convert RGB scale from 0-255 to 0-100.
 							self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorBlue / 255.0 * 100.0)))
-						elif attributeToControl == "colorTemp" and bulb['modelid'] != "LST001":
+						elif attributeToControl == "colorTemp" and type in ['Extended color light', 'Color temperature light']:
 							# Convert color temperature scale from 2000-6500 to 0-100.
 							self.updateDeviceState(controlDevice, 'brightnessLevel', int(round((colorTemp - 2000.0) / 4500.0 * 100.0)))
 					else:
@@ -6371,13 +6453,13 @@ class Plugin(indigo.PluginBase):
 				if device.onState != onState:
 					# Log the update.
 					indigo.server.log(u"\"" + device.name + "\" on", 'Updated')
-					self.updateDeviceState(device, 'onOffState', onState)
+					self.updateDeviceState(device, 'onOffState', onState, None, "on")
 			elif onState == False:
 				# Update the onState if it's different.
 				if device.onState != onState:
 					# Log the update.
 					indigo.server.log(u"\"" + device.name + "\" off", 'Updated')
-					self.updateDeviceState(device, 'onOffState', onState)
+					self.updateDeviceState(device, 'onOffState', onState, None, "off")
 			else:
 				# Unrecognized on state, but not important enough to mention in regular log.
 				self.debugLog(u"On/Off device unrecognized on state given by bridge: " + unicode(bulb['state']['on']))
@@ -6434,7 +6516,7 @@ class Plugin(indigo.PluginBase):
 				# End loop through self.groupsDict.
 			# End check if this is a Hue Group device.
 		# End loop through self.deviceList.
-		
+
 	# Parse One Hue Group Data
 	########################################
 	def parseOneHueGroupData(self, group, device):
@@ -6642,13 +6724,13 @@ class Plugin(indigo.PluginBase):
 				# End if device onState is True.
 			# End if this device is an the current attribute controller device.
 		# End loop through attribute controller device list.
-		
+
 	# Parse All Hue Users (User Device) Data
 	########################################
 	def parseAllHueUsersData(self):
 		self.debugLog(u"Starting parseAllHueUsersData.")
 		# Soon to be filled in.
-	
+
 	# Parse All Hue Scenes Data
 	########################################
 	def parseAllHueScenesData(self):
@@ -6763,7 +6845,25 @@ class Plugin(indigo.PluginBase):
 				# End loop through self.sensorsDict.
 			# End check if this is a Hue Dimmer Switch device.
 
-			# -- Run Less Wire Switch --
+			# -- Hue Smart Button --
+			if device.deviceTypeId == "hueSmartButton":
+				## self.debugLog(u"parseAllHueSensorsData: Indigo device \"%s\" is for a Hue Smart Button sensor. Proceeing." % (device.name))
+				# Go through each Hue sensor device and see if it is controlled by this Indigo device.
+				for sensorId in self.sensorsDict:
+					sensor = self.sensorsDict[sensorId]
+					## self.debugLog(u"parseAllHueSensorsData: Parsing Hue sensor ID %s (\"%s\")." % (sensorId, sensor.get('name', "no name")))
+					# Is this Hue sensor ID the one associated with this Indigo device?
+					if sensorId == device.pluginProps['sensorId']:
+						## self.debugLog(u"parseAllHueSensorsData: Indigo device \"%s\" is controlling Hue sensor ID \"%s\" (\"%s\"). Updating Indigo device properties and states." % (device.name, sensorId, sensor.get('name', "no name")))
+						
+						# It is, so call the method that assigns sensor data to the Indigo device.
+						self.parseOneHueSensorData(sensor, device)
+						
+					# End check if this Hue Sensor device is the one associated with the Indigo device.
+				# End loop through self.sensorsDict.
+			# End check if this is a Hue Smart Button device.
+
+			# -- Run Less Wire or Niko Switch --
 			if device.deviceTypeId == "runLessWireSwitch":
 				## self.debugLog(u"parseAllHueSensorsData: Indigo device \"%s\" is for a Hue Dimmer Switch sensor. Proceeing." % (device.name))
 				# Go through each Hue sensor device and see if it is controlled by this Indigo device.
@@ -6779,7 +6879,7 @@ class Plugin(indigo.PluginBase):
 
 					# End check if this Hue Sensor device is the one associated with the Indigo device.
 				# End loop through self.sensorsDict.
-			# End check if this is a Hue Dimmer Switch device.
+			# End check if this is a Run Less Wires Switrch device.
 
 		# End loop through self.deviceList.
 
@@ -7388,7 +7488,110 @@ class Plugin(indigo.PluginBase):
 			self.updateDeviceState(device, 'onOffState', onStateBool, 0, onState, sensorIcon)
 		# End if this is a Hue Dimmer Switch sensor.
 
-		# -- Run Less Wire (Friends of Hue) Switch --
+		# -- Hue Smart Button --
+		if device.deviceTypeId == "hueSmartButton":
+			## self.debugLog(u"parseOneHueSensorData: Parsing Hue sensor ID %s (\"%s\")." % (device.pluginProps.get('sensorId', ""), sensor.get('name', "no name")))
+			
+			# Separate out the specific Hue sensor data.
+			nameOnBridge = sensor.get('name', "")
+			uniqueId = sensor.get('uniqueid', "")
+			productId = sensor.get('productid', "")
+			swVersion = sensor.get('swversion', "")
+			manufacturerName = sensor.get('manufacturername', "")
+			sensorType = sensor.get('type', "")
+			modelId = sensor.get('modelid', "")
+			enabledOnbridge = sensor['config'].get('on', True)
+			batteryLevel = sensor['config'].get('battery', 0)
+			online = sensor['config'].get('reachable', False)
+			buttonEventID = sensor['state'].get('buttonevent', 0)
+			lastUpdated = sensor['state'].get('lastupdated', "")
+			onStateBool = False
+			# Create initial value assignments for the button.
+			button1On			= False
+			button1Hold			= False
+			button1ReleaseShort	= False
+			button1ReleaseLong	= False
+			# Populate the button on/off state based on the buttonEventID.
+			if buttonEventID == 1000:
+				# Sometimes the Hue bridge doesn't detect button releases from the Dimmer Switch and
+				#   will continue to show the most recent button event as the initial press event.
+				#   If the lastUpdated value from the Hue bridge hasn't changed, then allow the button
+				#   on state to revert back to OFF (False) as set above. But if the lastUpdated value
+				#   from the Hue bridge is different, then this must be a new initial button press,
+				#   so set the button on state to True.
+				if lastUpdated != device.states['lastUpdated']:
+					button1On = True
+					# Log any change to the onState.
+					indigo.server.log(u"received \"" + device.name + u"\" button press", 'Hue Lights')
+			elif buttonEventID == 1001:
+				button1On = True
+				button1Hold = True
+				# Don't write to the Indigo log unless this is the first time this status has been seen.
+				if button1Hold != device.states['button1Hold']:
+					indigo.server.log(u"received \"" + device.name + u"\" button press and hold", 'Hue Lights')
+			elif buttonEventID == 1002:
+				button1ReleaseShort = True
+				# We're checking to see if a button press event was missed since we can only check the
+				#   Hue bridge every 2 seconds or so.  If the last button event was a button release
+				#   but the current device state for the button shows it was never on, and the lastUpdated
+				#   time on the Hue bridge is different than that in the Indigo device, then the button
+				#   had to have been pressed at some point, so we'll set the button ON state to True.
+				if lastUpdated != device.states['lastUpdated']:
+					# Update the Indigo log about the received button event regardless of current on state.
+					indigo.server.log(u"received \"" + device.name + u"\" button press with short release", 'Hue Lights')
+					if device.states['button1On'] == False:
+						button1On = True
+				# Conversely, if the Indigo device state for the button is currently set to True, but
+				#   the lastUpdated time on the bridge is the same as on the Indigo device, that means
+				#   we set it to True the last time around and now we need to set it back to False.
+				#   so we'll just leave the button1On variable set to the initial False assignment above.
+			elif buttonEventID == 1003:
+				button1ReleaseLong = True
+				if lastUpdated != device.states['lastUpdated']:
+					# Update the Indigo log regardless of current button on state.
+					indigo.server.log(u"received \"" + device.name + u"\" button press with long release", 'Hue Lights')
+					if device.states['button1On'] == False:
+						button1On = True
+
+			# Set the overall sensor on state to True if any button was pressed.
+			if button1On:
+			    onStateBool = True
+
+			# Convert True/False onState to on/off values.
+			if onStateBool:
+				onState = "on"
+				sensorIcon = indigo.kStateImageSel.PowerOn
+			else:
+				onState = "off"
+				sensorIcon = indigo.kStateImageSel.PowerOff
+			
+			#   Update Indigo states and properties.
+			tempProps = device.pluginProps
+			# Update the device properties.
+			tempProps['nameOnBridge'] = nameOnBridge
+			tempProps['uniqueId'] = uniqueId
+			tempProps['productId'] = productId
+			tempProps['swVersion'] = swVersion
+			tempProps['manufacturerName'] = manufacturerName
+			tempProps['type'] = sensorType
+			tempProps['modelId'] = modelId
+			tempProps['enabledOnbridge'] = enabledOnbridge
+			self.updateDeviceProps(device, tempProps)
+			
+			# Update the states on the device.
+			self.updateDeviceState(device, 'button1On', button1On)
+			self.updateDeviceState(device, 'button1Hold', button1Hold)
+			self.updateDeviceState(device, 'button1ReleaseShort', button1ReleaseShort)
+			self.updateDeviceState(device, 'button1ReleaseLong', button1ReleaseLong)
+			self.updateDeviceState(device, 'lastUpdated', lastUpdated)
+			self.updateDeviceState(device, 'buttonEventID', buttonEventID)
+			self.updateDeviceState(device, 'online', online)
+			self.updateDeviceState(device, 'batteryLevel', batteryLevel)
+			# Update the device state.  Passing device object, state name, state value, decimal precision, display value, icon selection.
+			self.updateDeviceState(device, 'onOffState', onStateBool, 0, onState, sensorIcon)
+		# End if this is a Hue Smart Button sensor.
+
+		# -- Run Less Wire or Niko (Friends of Hue) Switch --
 		if device.deviceTypeId == "runLessWireSwitch":
 			## self.debugLog(u"parseOneHueSensorData: Parsing Hue sensor ID %s (\"%s\")." % (device.pluginProps.get('sensorId', ""), sensor.get('name', "no name")))
 			
@@ -7609,10 +7812,10 @@ class Plugin(indigo.PluginBase):
 			self.updateDeviceState(device, 'onOffState', onStateBool, 0, onState, sensorIcon)
 		# End if this is a Run Less Wire Switch sensor.
 
-
 	# Turn Device On or Off
 	########################################
 	def doOnOff(self, device, onState, rampRate=-1):
+		self.debugLog(u"Starting doOnOff. onState: %s, rampRate: %s. Device: %s" % (onState, rampRate, device))
 		# onState:		Boolean on state.  True = on. False = off.
 		# rampRate:		Optional float from 0 to 540.0 (higher values will probably work too).
 		
@@ -7799,10 +8002,10 @@ class Plugin(indigo.PluginBase):
 				# Update the Indigo device.
 				self.updateDeviceState(device, 'brightnessLevel', 0)
 
-	
 	# Set Brightness
 	########################################
 	def doBrightness(self, device, brightness, rampRate=-1, showLog=True):
+		self.debugLog(u"Starting doBrightness. brightness: %s, rampRate: %s, showLogs: %s. Device: %s" % (brightness, rampRate, showLog, device))
 		# brightness:	Integer from 0 to 255.
 		# rampRate:		Optional float from 0 to 540.0 (higher values will probably work too).
 		# showLog:		Optional boolean. False = hide change from Indigo log.
@@ -8028,7 +8231,7 @@ class Plugin(indigo.PluginBase):
 				return
 		
 		# Make sure the device is capable of rendering color.
-		if modelId not in kHueBulbDeviceIDs and modelId not in kLightStripsDeviceIDs and modelId not in kLivingColorsDeviceIDs and device.deviceTypeId != "hueGroup":
+		if device.pluginProps.get('SupportsRGB', False) == False:
 			errorText = u"Cannot set RGB values. The \"%s\" device does not support color." % (device.name)
 			self.errorLog(errorText)
 			# Remember the error.
@@ -8101,6 +8304,7 @@ class Plugin(indigo.PluginBase):
 	# Set Hue, Saturation and Brightness
 	########################################
 	def doHSB(self, device, hue, saturation, brightness, rampRate=-1):
+		self.debugLog(u"Starting doHSB. HSB: %s, %s, %s. Device: %s" % (hue, saturation, brightness, device))
 		# hue:			Integer from 0 to 65535.
 		# saturation:	Integer from 0 to 255.
 		# brightness:	Integer from 0 to 255.
@@ -8227,6 +8431,7 @@ class Plugin(indigo.PluginBase):
 	# Set CIE 1939 xyY Values
 	########################################
 	def doXYY(self, device, colorX, colorY, brightness, rampRate=-1):
+		self.debugLog(u"Starting doXYY. xyY: %s, %s, %s. Device: %s" % (colorX, colorY, brightness, device))
 		# colorX:		Integer from 0 to 1.0.
 		# colorY:		Integer from 0 to 1.0.
 		# brightness:	Integer from 0 to 255.
@@ -8367,6 +8572,7 @@ class Plugin(indigo.PluginBase):
 	# Set Color Temperature
 	########################################
 	def doColorTemperature(self, device, temperature, brightness, rampRate=-1):
+		self.debugLog(u"Starting doColorTemperature. temperature: %s, brightness: %s. Device: %s" % (temperature, brightness, device))
 		# temperature:	Integer from 2000 to 6500.
 		# brightness:	Integer from 0 to 255.
 		# rampRate:		Optional float from 0 to 540.0 (higher values will probably work too).
@@ -8511,6 +8717,7 @@ class Plugin(indigo.PluginBase):
 	# Start Alert (Blinking)
 	########################################
 	def doAlert(self, device, alertType="lselect"):
+		self.debugLog(u"Starting doAlert. alert: %s. Device: %s" % (alertType, device))
 		# alertType:	Optional string.  String options are:
 		#					lselect		: Long alert (default if nothing specified)
 		#					select		: Short alert
@@ -8535,7 +8742,7 @@ class Plugin(indigo.PluginBase):
 				# Remember the error.
 				self.lastErrorMessage = errorText
 				return
-		elif device.deviceTypeId in ['hueAttributeController', 'hueMotionSensor', 'hueMotionTemperatureSensor', 'hueMotionLightSensor', 'hueDimmerSwitch', 'hueTapSwitch']:
+		elif device.deviceTypeId == 'hueAttributeController' or device.deviceTypeId in kMotionSensorTypeIDs or device.deviceTypeId in kTemperatureSensorTypeIDs or device.deviceTypeId in kLightSensorTypeIDs or device.deviceTypeId in kSwitchTypeIDs:
 			# Attribute controllers and sensor devices don't support alert actions. Print the error in the Indigo log.
 			errorText = u"The \"%s\" device does not support Alert actions. Select a different Hue device." % (device.name)
 			self.errorLog(errorText)
@@ -8591,6 +8798,7 @@ class Plugin(indigo.PluginBase):
 	# Set Effect Status
 	########################################
 	def doEffect(self, device, effect):
+		self.debugLog(u"Starting doEffect. effect: %s. Device: %s" % (effect, device))
 		# effect:		String specifying the effect to use.  Hue supported effects are:
 		#					none		: Stop any current effect
 		#					colorloop	: Cycle through all hues at current brightness/saturation.
@@ -8662,6 +8870,7 @@ class Plugin(indigo.PluginBase):
 	# Recall a Hue Scene
 	########################################
 	def doScene(self, groupId="0", sceneId=""):
+		self.debugLog(u"Starting doScene. groupId: %s, sceneId: %s." % (groupId, sceneId))
 		# groupId:		String. Group ID (numeral) on Hue bridge on which to apply the scene.
 		# sceneId:		String. Scene ID on Hue bridge of scene to be applied to the group.
 		
@@ -8701,7 +8910,7 @@ class Plugin(indigo.PluginBase):
 		
 		# Create the JSON object and send the command to the bridge.
 		requestData = json.dumps({"scene": sceneId})
-		# Create the command based on whether this is a light or group device.
+		# Create the command.
 		command = "http://%s/api/%s/groups/%s/action" % (self.ipAddress, self.hostId, groupId)
 		self.debugLog("Sending URL request: " + command)
 		
@@ -8991,7 +9200,7 @@ class Plugin(indigo.PluginBase):
 	# Action Handling Methods
 	########################################
 	
-	# Start/Stop Brightening
+	# Start (or Stop if already) Brightening
 	########################################
 	def startStopBrightening(self, action, device):
 		# Catch if no device was passed in the action call.
@@ -9040,7 +9249,7 @@ class Plugin(indigo.PluginBase):
 				
 		return
 		
-	# Start/Stop Dimming
+	# Start (or Stop if already) Dimming
 	########################################
 	def startStopDimming(self, action, device):
 		# Catch if no device was passed in the action call.
@@ -9085,6 +9294,47 @@ class Plugin(indigo.PluginBase):
 					indigo.server.log(u"\"" + device.name + u"\" start dimming", 'Sent Hue Lights')
 					# Add to list.
 					self.dimmingList.append(device.id)
+
+		return
+	
+	# Stop Brightening and Dimming
+	########################################
+	def stopBrighteningAndDimming(self, action, device):
+		# Catch if no device was passed in the action call.
+		if device == None:
+			errorText = u"No device was selected for the \"" + action.name + "\" action. Please edit the action and select a Hue Light device."
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
+		# Catch if the device is an on/off only device.
+		if device.deviceTypeId == "hueOnOffDevice":
+			errorText = u"The " + device.name + u" device doesn't support dimming. Please edit the action and select a device that supports dimming."
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
+		
+		self.debugLog(u"stopBrighteningAndDimming: device: " + device.name + ", action:\n" + unicode(action))
+		# Make sure the device is in the deviceList.
+		if device.id in self.deviceList:
+			# First, remove from brighteningList if it's there.
+			if device.id in self.brighteningList:
+				# Log the event to Indigo log.
+				indigo.server.log(u"\"" + device.name + u"\" stop brightening", 'Sent Hue Lights')
+				# Remove from list.
+				self.brighteningList.remove(device.id)
+				
+			# Now remove from dimmingList if it's in the list.
+			if device.id in self.dimmingList:
+				# Log the event to Indigo log.
+				indigo.server.log(u"\"" + device.name + u"\" stop dimming", 'Sent Hue Lights')
+				# Remove from list.
+				self.dimmingList.remove(device.id)
+				# Get the bulb status
+				self.getBulbStatus(device.id)
+				# Log the new brightnss.
+				indigo.server.log(u"\"" + device.name + u"\" status request (received: " + unicode(device.states['brightnessLevel']) + ")", 'Sent Hue Lights')
 
 		return
 	
@@ -10048,7 +10298,7 @@ class Plugin(indigo.PluginBase):
 				# Remember the error.
 				self.lastErrorMessage = errorText
 				return
-		elif device.deviceTypeId in ['hueAttributeController', 'hueMotionSensor', 'hueMotionTemperatureSensor', 'hueMotionLightSensor', 'hueDimmerSwitch', 'hueTapSwitch']:
+		elif device.deviceTypeId == 'hueAttributeController' or device.deviceTypeId in kMotionSensorTypeIDs or device.deviceTypeId in kTemperatureSensorTypeIDs or device.deviceTypeId in kLightSensorTypeIDs or device.deviceTypeId in kSwitchTypeIDs:
 			# Attribute controllers and sensor devices don't support alert actions. Print the error in the Indigo log.
 			errorText = u"The \"%s\" device does not support Alert actions. Select a different Hue device." % (device.name)
 			self.errorLog(errorText)
@@ -10082,7 +10332,7 @@ class Plugin(indigo.PluginBase):
 				# Remember the error.
 				self.lastErrorMessage = errorText
 				return
-		elif device.deviceTypeId in ['hueAttributeController', 'hueMotionSensor', 'hueMotionTemperatureSensor', 'hueMotionLightSensor', 'hueDimmerSwitch', 'hueTapSwitch']:
+		elif device.deviceTypeId == 'hueAttributeController' or device.deviceTypeId in kMotionSensorTypeIDs or device.deviceTypeId in kTemperatureSensorTypeIDs or device.deviceTypeId in kLightSensorTypeIDs or device.deviceTypeId in kSwitchTypeIDs:
 			# Attribute controllers and sensor devices don't support alert actions. Print the error in the Indigo log.
 			errorText = u"The \"%s\" device does not support Alert actions. Select a different Hue device." % (device.name)
 			self.errorLog(errorText)
@@ -10116,7 +10366,7 @@ class Plugin(indigo.PluginBase):
 				# Remember the error.
 				self.lastErrorMessage = errorText
 				return
-		elif device.deviceTypeId in ['hueAttributeController', 'hueMotionSensor', 'hueMotionTemperatureSensor', 'hueMotionLightSensor', 'hueDimmerSwitch', 'hueTapSwitch']:
+		elif device.deviceTypeId == 'hueAttributeController' or device.deviceTypeId in kMotionSensorTypeIDs or device.deviceTypeId in kTemperatureSensorTypeIDs or device.deviceTypeId in kLightSensorTypeIDs or device.deviceTypeId in kSwitchTypeIDs:
 			# Attribute controllers and sensor devices don't support alert actions. Print the error in the Indigo log.
 			errorText = u"The \"%s\" device does not support Alert actions so there is no alert to cancel.  Select a different Hue device." % (device.name)
 			self.errorLog(errorText)
@@ -10150,7 +10400,7 @@ class Plugin(indigo.PluginBase):
 				# Remember the error.
 				self.lastErrorMessage = errorText
 				return
-		elif device.deviceTypeId in ['hueAttributeController', 'hueMotionSensor', 'hueMotionTemperatureSensor', 'hueMotionLightSensor', 'hueDimmerSwitch', 'hueTapSwitch']:
+		elif device.deviceTypeId == 'hueAttributeController' or device.deviceTypeId in kMotionSensorTypeIDs or device.deviceTypeId in kTemperatureSensorTypeIDs or device.deviceTypeId in kLightSensorTypeIDs or device.deviceTypeId in kSwitchTypeIDs:
 			# Attribute controllers and sensor devices don't support effects actions. Print the error in the Indigo log.
 			errorText = u"The \"%s\" device does not support Effects actions. Select a different Hue device." % (device.name)
 			self.errorLog(errorText)

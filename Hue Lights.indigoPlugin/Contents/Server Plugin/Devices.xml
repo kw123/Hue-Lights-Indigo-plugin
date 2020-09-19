@@ -209,10 +209,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	</Device>
     <!-- LightStrips Device -->
 	<Device type="dimmer" id="hueLightStrips">
-		<Name>Hue LightStrips</Name>
+		<Name>Light Strips</Name>
 		<ConfigUI>
 			<Field id="bulbId" type="menu"
-				tooltip="Select a Hue light to control. This menu only shows Hue LightStrips.">
+				tooltip="Select a light to control. This menu only shows light strips.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbListGenerator"/>
 			</Field>
@@ -638,56 +638,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 		</States>
 	</Device>
-    <!-- Hue Device Attribute Controller (Virtual Dimmer Device) -->
-	<Device type="dimmer" id="hueAttributeController">
-		<Name>Hue Device Attribute Controller</Name>
-		<ConfigUI>
-			<Field id="bulbDeviceId" type="menu"
-				tooltip="Select a Hue light or group that this attribute controller should control.">
-				<Label>Hue Device:</Label>
-				<List class="self" method="bulbDeviceListGenerator"/>
-			</Field>
-			<Field id="attributeToControl" type="menu" defaultValue="hue"
-				tooltip="Select an attribute associated with the Hue Device above that this attribute controller should control. Note that if you select an attribute that the Hue Device doesn't have, this attribute controller will not work.">
-				<Label>Attribute to Control:</Label>
-				<List>
-					<Option value="hue">Hue</Option>
-					<Option value="saturation">Saturation</Option>
-					<Option value="colorRed">Red Level (RGB)</Option>
-					<Option value="colorGreen">Green Level (RGB)</Option>
-					<Option value="colorBlue">Blue Level (RGB)</Option>
-					<Option value="colorTemp">Color Temperature (K)</Option>
-				</List>
-			</Field>
-			<Field id="labelAttribute" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>Select an attribute on the Hue device to be conrolled.
-</Label>
-			</Field>
-			<Field id="rate" type="textfield"
-				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the Hue Device selected above should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
-				<Label>Ramp Rate:</Label>
-			</Field>
-			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>(0 - 540 seconds)
-0 = instant.
-Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
-</Label>
-			</Field>
-			<Field id="defaultOnLevel" type="textfield"
-				tooltip="Optionally set a default On level. When turned on, the Hue Device Attribute Controller will go to the percentage specified here. If no value is specified, the control will always go to 100% when turned on by Indigo. Range is 1 to 100 percent.">
-				<Label>Default On Level:</Label>
-			</Field>
-			<Field id="labelOnLevel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>(1 to 100 percent)
-Optionally set a default "on" level. When turned on, the Hue Device Attribute Controller will go to the percentage specified here.  If no value is specified, the control will always go to 100% when turned "on" by Indigo.
-</Label>
-			</Field>
-			<Field id="address" type="textfield" hidden="true">
-				<Label/>
-			</Field>
-		</ConfigUI>
-	</Device>
-	
+
 	
 	<!-- SENSOR DEVICES -->
 	<!-- Hue Motion Sensor (multi-sensor) -->
@@ -1094,13 +1045,74 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 		</States>
 	</Device>
 
-	<!-- Run Less Wire Switch -->
-	<Device type="sensor" id="runLessWireSwitch">
-		<Name>Run Less Wire Switch</Name>
+	<!-- Hue Smart Button -->
+	<Device type="sensor" id="hueSmartButton">
+		<Name>Hue Smart Button</Name>
 		<ConfigUI>
 			<Field id="sensorId" type="menu"
-				tooltip="Select a Run Less Wire Switch.">
-				<Label>Run Less Wire Switch:</Label>
+				tooltip="Select a Hue Smart Button.">
+				<Label>Hue Smart Button:</Label>
+				<List class="self" method="sensorListGenerator" filter="hueSmartButton" />
+			</Field>
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="enabledOnHub" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="swVersion" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
+			<Field id="productId" type="textfield" hidden="true" />
+			<Field id="SupportsBatteryLevel" type="checkbox" hidden="true" defaultValue="true" />
+            <Field id="SupportsSensorValue" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsOnState" type="checkbox" hidden="true" defaultValue="true" />
+		</ConfigUI>
+		<States>
+            <State id="button1On">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Button Press</TriggerLabel>
+                <ControlPageLabel>Button Press</ControlPageLabel>
+            </State>
+			<State id="button1Hold">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Button Press and Hold</TriggerLabel>
+				<ControlPageLabel>Button Press and Hold</ControlPageLabel>
+			</State>
+            <State id="button1ReleaseShort">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Button Short Release</TriggerLabel>
+                <ControlPageLabel>Button Short Release</ControlPageLabel>
+            </State>
+            <State id="button1ReleaseLong">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Button Long Release</TriggerLabel>
+                <ControlPageLabel>Button Long Release</ControlPageLabel>
+            </State>
+			<State id="online">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Online</TriggerLabel>
+				<ControlPageLabel>Online</ControlPageLabel>
+			</State>
+            <State id="buttonEventID">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Last Button Event ID</TriggerLabel>
+                <ControlPageLabel>Last Button Event ID</ControlPageLabel>
+            </State>
+			<State id="lastUpdated">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
+	<!-- Run Less Wire or Niko Switch -->
+	<Device type="sensor" id="runLessWireSwitch">
+		<Name>Run Less Wire or Niko Switch</Name>
+		<ConfigUI>
+			<Field id="sensorId" type="menu"
+				tooltip="Select a Run Less Wire or Niko Switch.">
+				<Label>Run Less Wire or Niko Switch:</Label>
 				<List class="self" method="sensorListGenerator" filter="runLessWireSwitch" />
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
@@ -1229,6 +1241,58 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
 			</State>
 		</States>
+	</Device>
+
+
+	<!-- ATTRIBUTE CONTROLLER VIRTUAL DEVICE -->
+    <!-- Hue Device Attribute Controller (Virtual Dimmer Device) -->
+	<Device type="dimmer" id="hueAttributeController">
+		<Name>Hue Device Attribute Controller</Name>
+		<ConfigUI>
+			<Field id="bulbDeviceId" type="menu"
+				tooltip="Select a Hue light or group that this attribute controller should control.">
+				<Label>Hue Device:</Label>
+				<List class="self" method="bulbAndGroupDeviceListGenerator"/>
+			</Field>
+			<Field id="attributeToControl" type="menu" defaultValue="hue"
+				tooltip="Select an attribute associated with the Hue Device above that this attribute controller should control. Note that if you select an attribute that the Hue Device doesn't have, this attribute controller will not work.">
+				<Label>Attribute to Control:</Label>
+				<List>
+					<Option value="hue">Hue</Option>
+					<Option value="saturation">Saturation</Option>
+					<Option value="colorRed">Red Level (RGB)</Option>
+					<Option value="colorGreen">Green Level (RGB)</Option>
+					<Option value="colorBlue">Blue Level (RGB)</Option>
+					<Option value="colorTemp">Color Temperature (K)</Option>
+				</List>
+			</Field>
+			<Field id="labelAttribute" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Select an attribute on the Hue device to be conrolled.
+</Label>
+			</Field>
+			<Field id="rate" type="textfield"
+				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the Hue Device selected above should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
+				<Label>Ramp Rate:</Label>
+			</Field>
+			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(0 - 540 seconds)
+0 = instant.
+Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+</Label>
+			</Field>
+			<Field id="defaultOnLevel" type="textfield"
+				tooltip="Optionally set a default On level. When turned on, the Hue Device Attribute Controller will go to the percentage specified here. If no value is specified, the control will always go to 100% when turned on by Indigo. Range is 1 to 100 percent.">
+				<Label>Default On Level:</Label>
+			</Field>
+			<Field id="labelOnLevel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>(1 to 100 percent)
+Optionally set a default "on" level. When turned on, the Hue Device Attribute Controller will go to the percentage specified here.  If no value is specified, the control will always go to 100% when turned "on" by Indigo.
+</Label>
+			</Field>
+			<Field id="address" type="textfield" hidden="true">
+				<Label/>
+			</Field>
+		</ConfigUI>
 	</Device>
 
 </Devices>

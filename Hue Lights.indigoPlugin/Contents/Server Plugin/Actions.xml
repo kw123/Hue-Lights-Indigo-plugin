@@ -1,12 +1,16 @@
 <?xml version="1.0"?>
 <Actions>
 	<Action id="startStopBrightening" deviceFilter="self" uiPath="DeviceActions">
-		<Name>Start/Stop Brightening</Name>
+		<Name>Start Brightening</Name>
 		<CallbackMethod>startStopBrightening</CallbackMethod>
 	</Action>
 	<Action id="startStopDimming" deviceFilter="self" uiPath="DeviceActions">
-		<Name>Start/Stop Dimming</Name>
+		<Name>Start Dimming</Name>
 		<CallbackMethod>startStopDimming</CallbackMethod>
+	</Action>
+	<Action id="stopBrighteningAndDimming" deviceFilter="self" uiPath="DeviceActions">
+		<Name>Stop Brightening and Dimming</Name>
+		<CallbackMethod>stopBrighteningAndDimming</CallbackMethod>
 	</Action>
 	<Action id="sep1" uiPath="DeviceActions" />
 	<Action id="setBrightness" deviceFilter="self" uiPath="DeviceActions">

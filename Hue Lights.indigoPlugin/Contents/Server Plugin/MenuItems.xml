@@ -11,7 +11,7 @@
 		<ConfigUI>
 			<Field id="deviceId" type="menu" defaultValue="">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbDeviceListGenerator"></List>
+				<List class="self" method="bulbAndGroupDeviceListGenerator"></List>
 			</Field>
 			<Field id="deviceLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Select the Hue device whose current settings you'd like to save to a Preset. The settings can be restored to any compatible Hue device at a later time.</Label>
@@ -45,7 +45,7 @@ Save a Ramp Rate (transition time) to be used when recalling this Preset, accura
 		<ConfigUI>
 			<Field id="deviceId" type="menu" defaultValue="">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbDeviceListGenerator"></List>
+				<List class="self" method="bulbAndGroupDeviceListGenerator"></List>
 			</Field>
 			<Field id="deviceLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Select the Hue device to which the Preset should be applied.</Label>
@@ -109,7 +109,7 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 				</Label>
 			</Field>
 			<Field id="groupId" type="menu" defaultValue=""
-				tooltip="The Hue hub allows you to limit a Scene to just one Group, as long as at least one light in the Scene is part of the Group. Lights that are part of a Scene but NOT part of the selected Group Limit will not be affected.">
+				tooltip="The Hue bridge allows you to limit a Scene to just one Group, as long as at least one light in the Scene is part of the Group. Lights that are part of a Scene but NOT part of the selected Group Limit will not be affected.">
 				<Label>Group Limit:</Label>
 				<List class="self" method="groupListGenerator"></List>
 				<CallbackMethod>groupsListItemSelected</CallbackMethod>

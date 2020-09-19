@@ -1,6 +1,93 @@
 HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
 ========================================
-
+1.7.36
+* Fixed a bug that caused a plugin error when recalling a Hue scene.
+--
+1.7.35
+* Added support for the Quotra-Vision RGB + warm/cool white light strip.
+* Added support for version 4 of the Hue LightStrips Plus.
+* Added support for the Innr SP 224 on/off plug.
+* Added support for the IKEA TRADFRI E26 WW 806lm dimmable light.
+--
+1.7.34
+* Fixed a bug that prevented the Set RGBW Levels Indigo action from working correctly.
+* Fixed a bug that prevented device states from being updated for the original Hue LightStrip on newer Hue bridge firmware.
+--
+1.7.33
+* Fixed support for the Adore Hue Ambiance Wall light.
+* Added support for another Hue White Ambiance bulb.
+--
+1.7.32
+* Added support for another Hue filament dimmable bulb.
+* Added support for the Adore Hue Ambiance Wall light.
+* Improved the native Indigo RGB and color temperature control implementation.
+--
+1.7.31
+* Fixed a bug that would display an error in the Hue Device menu of the Save Preset and Recall Preset plugin menu dialog.
+--
+1.7.30
+* Added support for another Philips white/color bulb.
+* Added support for more Hue outdoor and floor lamps.
+--
+1.7.29
+* Added support for another Philips dimmable light.
+* Fixed a bug that displayed "True" or "False" as the on state for the Hue Smart Plug instead of "on" or "off".
+* Fixed a bug that would display an error saying the device doesn't support color temperature when attempting to create a Set Color Temperature action for a Hue Group device.
+* Fixed a bug that would always set the temperature scale to Celsius when creating a new Hue Motion Sensor device even if you selected Fahrenheit as the scale.
+--
+1.7.28
+* Added support for the Innr Flex Color 4 meter RGBW LED Strip.
+* Fixed a bug that prevented control of color channels in some GLEDOPTO LED controllers.
+* Fixed a bug that prevented the selection of Hue Groups in the Hue Attribute Controller device configuration window.
+--
+1.7.27
+* Fixed a bug that would cause the plugin to crash when updating light strip devices that have no color capabilities.
+--
+1.7.26
+* Added support for the Müller-Licht (Aldi) ZBT color temperature light.
+* Added support for GLEDOPTO color light strip drivers.
+* Added support for Niko ZigBee switches.
+* Added support for the TRADFRI 10 watt LED driver.  Moved the already supported TRADFRI 30 watt LED driver into the Light Strips device model.
+* Fixed a bug that would allow you to select a sensor or switch device as the target for a Hue Attribute Controller even though those devices can't be controlled.
+* Fixed light device menus in various device configuration windows so Hue light devices are listed in alphabetical order.
+* Fixed the group device menu in the Hue Group configuration window so the Hue Groups are listed in numerical group order rather than alphanumeric order.
+--
+1.7.25
+* Added support for the Osram PAR-16 SMART+ Spot GU10 Multicolor 350lm light.
+* Added support for a Hue color wall light and Hue filament bulb.
+--
+1.7.24
+* Added support for the Hue Smart Button.
+* Added a separate "Stop Brightening and Dimming" action to the available device actions.
+--
+1.7.23
+* Fixed bug that would cause plugin to crash when validating device configurations whose Hue device had non-ASCII compatible Unicode characters in the device name on the Hue bridge.
+--
+1.7.22
+* Added support for a new Hue white ambiance bulb (European model).
+* Added support for another IKEA color temperature E26 bulb.
+--
+1.7.21
+* Added support for another Hue Smart Plug model variant.
+* Added support for a Hue white dimmable BR30 light.
+* Added support for an IKEA TRADFRI E12 and GU10 dimmable light.
+--
+1.7.20
+* Added support for a new Hue color B22 bulb.
+* Added support for a new Hue white bulb.
+--
+1.7.19
+* Added support for the Hue GU10 version 2 bulb.
+* Added support for an IKEA dimmable 600 lumen E14 color bulb.
+--
+1.7.18
+* Added support for an IKEA dimmable 1000 lumen E27 color temperature bulb.
+* Added support for an IKEA dimmable 600 lumen E14 color temperature bulb.
+* Added support for an IKEA dimmable 600 lumen E27 color LED bulb.
+--
+1.7.17
+* Added support for a new Philips A19 dimmable light.
+--
 1.7.16
 * Added support for a new Hue LED spiral filament ST64 bulb.
 * Added support for the on/off OSRAM Smart+ Plug.
