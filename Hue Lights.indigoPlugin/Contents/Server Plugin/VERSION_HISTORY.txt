@@ -1,5 +1,34 @@
 HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
 ========================================
+1.7.42
+* Added support for a new GLEDOPTO light.
+* Added support for an Ikea FLOALT 30x30 color temperature light panel
+* Added support for the Hue Gradient Lightstrip.
+* Added support for the Lidl smart plug.
+* Added support for a Lidl color temperature light.
+--
+1.7.41
+* Fixed support for a Hue white and color GU10 bulb.
+--
+1.7.40
+* Added support for a new Hue white and color GU10 bulb.
+--
+1.7.39
+* Added support for a new Hue Play model.
+* Added support for 2 new GLEDOPTO lights.
+* Added support for the Hue Lily XL outdoor light.
+* Added support for new Hue White (dimming only) lights.
+* Fixed a bug with ambiance (color temperature only) lights that would cause an error if the White Level in the Indigo client was changed.
+--
+1.7.38
+* Added support for a new Hue LED filament bulb variant.
+* Added support for a new Hue Centura color downlight.
+* Added support for a new Hue Ambiance downlight.
+--
+1.7.37
+* Fixed a bug that would cause an error when attempting to select a Hue scene in the Recall Hue Scene dialog if the scene parameters on the Hue bridge don't include a corresponding scene creator (owner).
+* Added support for a new dimming-only Hue white lamp.
+--
 1.7.36
 * Fixed a bug that caused a plugin error when recalling a Hue scene.
 --

@@ -14,7 +14,7 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.7.36
+#	Version 1.7.42
 #
 #	See the "VERSION_HISTORY.txt" file in the same location as this plugin.py
 #	file for a complete version change history.
@@ -3118,36 +3118,31 @@ class Plugin(indigo.PluginBase):
 				#   light via the Indigo UI.
 				if actionColorVals.get('whiteTemperature', None) is not None:
 					self.debugLog(u"actionControlDimmerRelay: whiteTemperature is not empty.")
-					if actionColorVals.get('whiteLevel', None) is None and actionColorVals.get('redLevel', None) is None and actionColorVals.get('greenLevel', None) is None and actionColorVals.get('blueLevel', None) is None:
-						self.debugLog(u"actionControlDimmerRelay: red, green, blue and white levels are all empty")
+					if actionColorVals.get('whiteLevel', None) is None:
+						self.debugLog(u"actionControlDimmerRelay: white level is empty")
 						# Since the whiteLevel was not sent, use the existing brightness as the whiteLevel.
 						self.doColorTemperature(device, colorTemp, int(round(currentBrightness / 100.0 * 255.0)))
-					# If both whiteTemperature and whiteLevel keys were sent at the same time, the Indigo Set RGBW
-					#    Levels action is being used, in which case, we still want to use the color temperature method,
-					#    but use the whiteLevel as the brightness instead of the current brightness if it's over zero.
-					elif actionColorVals.get('whiteLevel', None) is not None and float(actionColorVals.get('whiteLevel')) > 0:
-						self.debugLog(u"actionControlDimmerRelay: whiteLevel is not empty and is greater than zero")
-						self.doColorTemperature(device, colorTemp, whiteLevel)
-					# Otherwise, use RGB to set the color of the light.
+					# If both whiteTemperature and whiteLevel keys were sent at the same time, it must be a Python
+					#    script call, in which case, we still want to use the color temperature method, but use
+					#    the whiteLevel as the brightness instead of the current brightness if it's over zero.
 					else:
-						errorText = u"The \"" + device.nsame + u"\" device does not support the use of white level to change colors. The requested change was not applied."
-						self.errorLog(errorText)
-						# Remember the error.
-						self.lastErrorMessage = errorText
+						if float(actionColorVals.get('whiteLevel', 0)) > 0:
+							self.debugLog(u"actionControlDimmerRelay: whiteLevel is not empty and is greater than zero.")
+							self.doColorTemperature(device, colorTemp, whiteLevel)
+						else:
+							# A whiteLevel of 0 (or lower) is the same as a brightness of 0. Turn off the light.
+							self.debugLog(u"actionControlDimmerRelay: whiteLevel is not empty but is equal to zero.")
+							self.doOnOff(device, False)
 				# Now see if we're only being sent whiteLevel.  If so, the White level slider in the Indigo UI is being
-				#   used.  Treat the white level like an inverse saturation slider (100 = zero saturation).
-				elif actionColorVals.get('whiteLevel', None) is not None and actionColorVals.get('redLevel', None) is None and actionColorVals.get('greenLevel', None) is None and actionColorVals.get('blueLevel', None) is None:
-					self.debugLog(u"actionControlDimmerRelay: whiteLevel is not empty, but red, green and blue levels are.")
-					newSaturation = 255 - whiteLevel
-					if newSaturation < 0:
-						newSaturation = 0
-					self.doHSB(device, device.states['hue'], newSaturation, int(round(currentBrightness / 100.0 * 255.0)))
-				# If we're not changing color temperature or saturation (white level), use RGB.
-				else:
-					errorText = u"The \"" + device.nsame + u"\" device does not support the use of white level to change colors. The requested change was not applied."
-					self.errorLog(errorText)
-					# Remember the error.
-					self.lastErrorMessage = errorText
+				#   used.  Treat the white level like the brightness level for ambiance lights.
+				elif actionColorVals.get('whiteLevel', None) is not None:
+					self.debugLog(u"actionControlDimmerRelay: whiteTemperature is empty but whiteLevel is not empty.")
+					# Save the new brightness level into the device properties.
+					tempProps = device.pluginProps
+					tempProps['savedBrightness'] = int(round(actionColorVals.get('whiteLevel', 0) / 100.0 * 255.0))
+					self.updateDeviceProps(device, tempProps)
+					# Set the new brightness level on the bulb.
+					self.doBrightness(device, int(round(actionColorVals.get('whiteLevel', 0) / 100.0 * 255.0)))
 
 			##### REQUEST STATUS #####
 			elif command == indigo.kDeviceAction.RequestStatus:
@@ -4769,7 +4764,11 @@ class Plugin(indigo.PluginBase):
 				sceneOwner = sceneData.get('owner', "")
 				sceneName = sceneData.get('name', "(unknown)")
 				if valuesDict.get('userId', "all") == "all":
-					sceneDisplayName = sceneName + u" (from " + self.usersDict[sceneOwner]['name'].replace("#", " app on ") + u")"
+					# In rare cases, a scene may now have an owner...
+					if sceneOwner == u"none":
+						sceneDisplayName = sceneName + u" (from an unknown scene creator)"
+					else:
+						sceneDisplayName = sceneName + u" (from " + self.usersDict[sceneOwner]['name'].replace("#", " app on ") + u")"
 				else:
 					# Don't add the "(from ... app on ...)" string to the scene name if that Scene Creator was selected.
 					sceneDisplayName = sceneName
@@ -6060,8 +6059,8 @@ class Plugin(indigo.PluginBase):
 				
 				### Update inherited states for Indigo 7+ devices.
 				if "whiteLevel" in device.states:
-					# White Level (set to 100 at all times for Ambiance bulbs).
-					self.updateDeviceState(device, 'whiteLevel', 100)
+					# White Level (set to the same as brightness level for ambiance lights).
+					self.updateDeviceState(device, 'whiteLevel', brightnessLevel)
 					# White Temperature (0-100).
 					self.updateDeviceState(device, 'whiteTemperature', colorTemp)
 
@@ -6071,15 +6070,15 @@ class Plugin(indigo.PluginBase):
 					# Log the update.
 					indigo.server.log(u"\"" + device.name + "\" off", 'Updated')
 					self.updateDeviceState(device, 'brightnessLevel', 0)
-				# Color Temperature (convert from 154-500 mireds to 6494-2000 K).
+				# Color Temperature (converted from 154-500 mireds to 6494-2000 K).
 				self.updateDeviceState(device, 'colorTemp', colorTemp)
 				# Color Mode.
 				self.updateDeviceState(device, 'colorMode', colorMode)
-				
+
 				### Update inherited states for Indigo 7+ devices.
 				if "whiteLevel" in device.states:
 					# White Level (set to 100 at all times for Ambiance bulbs).
-					self.updateDeviceState(device, 'whiteLevel', 100)
+					self.updateDeviceState(device, 'whiteLevel', 0)
 					# White Temperature (0-100).
 					self.updateDeviceState(device, 'whiteTemperature', colorTemp)
 			else:
