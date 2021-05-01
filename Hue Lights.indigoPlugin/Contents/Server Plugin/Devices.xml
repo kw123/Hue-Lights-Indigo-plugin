@@ -2,10 +2,10 @@
 <Devices>
     <!-- Extended Color Device -->
 	<Device type="dimmer" id="hueBulb">
-		<Name>Hue Color/Ambiance (Original, Downlight, Spotlight, etc.)</Name>
+		<Name>Hue Color/Ambiance and compatible</Name>
 		<ConfigUI>
 			<Field id="bulbId" type="menu"
-				tooltip="Select a Hue light to control. This menu only shows lights that support both full color and color temperature (a.k.a. Ambiance) features, except for the LightStrips.">
+				tooltip="Select a light to control. This menu only shows lights that support both full color and color temperature (a.k.a. Ambiance) features, except for the LightStrips.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbListGenerator"/>
 			</Field>
@@ -15,7 +15,7 @@
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an "on" command is sent to this light.  If no value is entered, when an "on" command is sent, the light will return to the brightness it was at before being turned off.
+Optionally set a default brightness level used whenever an ON command is sent to this light.  If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.
 </Label>
 			</Field>
 			<Field id="rate" type="textfield"
@@ -26,9 +26,18 @@ Optionally set a default brightness level used whenever an "on" command is sent 
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
-
-NOTE: Ramp Rates greater than 60 seconds when turning off a device will result in the device abruptly turning off after dimming for about 60 seconds. This is a bug in the Philips Hue system specific to the Hue bulb.  This does not affect Ramp Rates when turning on or changing brightness, only when turning a device off.
 </Label>
+			</Field>
+			<Field id="noOnRampRate" type="checkbox" defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times.">
+				<Label>Disable ON Ramp Rate</Label>
+			</Field>
+			<Field id="noOffRampRate" type="checkbox" defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning Off this device. Some non-Hue devices don't support Off transtion times.">
+				<Label>Disable OFF Ramp Rate</Label>
+			</Field>
+			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -138,10 +147,10 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 	</Device>
 	<!-- Ambiance Device -->
 	<Device type="dimmer" id="hueAmbiance">
-		<Name>Ambiance Lights</Name>
+		<Name>Ambiance Lights (color temperature)</Name>
 		<ConfigUI>
 			<Field id="bulbId" type="menu"
-				tooltip="Select a Hue light to control. This menu only shows color temperature (a.k.a. Ambiance) lights. Lights that also support full color will appear in the Hue Color/Ambiance device list.">
+				tooltip="Select a light to control. This menu only shows color temperature (a.k.a. Ambiance) lights. Lights that also support full color will appear in the Hue Color/Ambiance device list.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbListGenerator"/>
 			</Field>
@@ -151,7 +160,7 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an "on" command is sent to this light. If no value is entered, when an "on" command is sent, the light will return to the brightness it was at before being turned off.
+Optionally set a default brightness level used whenever an ON command is sent to this light. If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.
 				</Label>
 			</Field>
 			<Field id="rate" type="textfield"
@@ -162,7 +171,18 @@ Optionally set a default brightness level used whenever an "on" command is sent 
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
-				</Label>
+</Label>
+			</Field>
+			<Field id="noOnRampRate" type="checkbox" defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times.">
+				<Label>Disable ON Ramp Rate</Label>
+			</Field>
+			<Field id="noOffRampRate" type="checkbox" defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning Off this device. Some non-Hue devices don't support Off transtion times.">
+				<Label>Disable OFF Ramp Rate</Label>
+			</Field>
+			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -222,7 +242,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an "on" command is sent to this device.  If no value is entered, when an "on" command is sent, the device will return to the brightness it was at before being turned off.
+Optionally set a default brightness level used whenever an ON command is sent to this device.  If no value is entered, when an ON command is sent, the device will return to the brightness it was at before being turned off.
 </Label>
 			</Field>
 			<Field id="rate" type="textfield"
@@ -234,6 +254,17 @@ Optionally set a default brightness level used whenever an "on" command is sent 
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
+			</Field>
+			<Field id="noOnRampRate" type="checkbox" defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times.">
+				<Label>Disable ON Ramp Rate</Label>
+			</Field>
+			<Field id="noOffRampRate" type="checkbox" defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning Off this device. Some non-Hue devices don't support Off transtion times.">
+				<Label>Disable OFF Ramp Rate</Label>
+			</Field>
+			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -319,7 +350,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Color Lights (Aura, Bloom, StoryLight, LivingColors, etc.)</Name>
 		<ConfigUI>
 			<Field id="bulbId" type="menu"
-				tooltip="Select a Hue light to control. This menu shows color lights such as the Bloom, StoryLight and other color lights. It does not include LightStrips or color temperature lights.">
+				tooltip="Select a light to control. This menu shows color lights such as the Bloom, StoryLight and other color lights. It does not include LightStrips or color temperature lights.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbListGenerator"/>
 			</Field>
@@ -329,7 +360,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an "on" command is sent to this device.  If no value is entered, when an "on" command is sent, the device will return to the brightness it was at before being turned off.
+Optionally set a default brightness level used whenever an ON command is sent to this device.  If no value is entered, when an ON command is sent, the device will return to the brightness it was at before being turned off.
 </Label>
 			</Field>
 			<Field id="rate" type="textfield"
@@ -341,6 +372,17 @@ Optionally set a default brightness level used whenever an "on" command is sent 
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
+			</Field>
+			<Field id="noOnRampRate" type="checkbox" defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times.">
+				<Label>Disable ON Ramp Rate</Label>
+			</Field>
+			<Field id="noOffRampRate" type="checkbox" defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning Off this device. Some non-Hue devices don't support Off transtion times.">
+				<Label>Disable OFF Ramp Rate</Label>
+			</Field>
+			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -418,7 +460,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>LivingWhites (Hue Lux, generic dimmable device, etc.)</Name>
 		<ConfigUI>
 			<Field id="bulbId" type="menu"
-				tooltip="Select a Hue light to control. This menu shows basic dimming lights that don't support any color changes.">
+				tooltip="Select a light to control. This menu shows basic dimming lights that don't support any color changes.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbListGenerator" filter="hueLivingWhites"/>
 			</Field>
@@ -428,7 +470,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an "on" command is sent to this device.  If no value is entered, when an "on" command is sent, the bulb will return to the brightness it was at before being turned off.
+Optionally set a default brightness level used whenever an ON command is sent to this device.  If no value is entered, when an ON command is sent, the bulb will return to the brightness it was at before being turned off.
 </Label>
 			</Field>
 			<Field id="rate" type="textfield"
@@ -439,9 +481,18 @@ Optionally set a default brightness level used whenever an "on" command is sent 
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
-
-NOTE: Ramp Rates greater than 60 seconds when turning off a device may result in the device abruptly turning off after dimming for about 60 seconds. This is a bug in the Philips Hue system.  This does not affect Ramp Rates when turning on or changing brightness, only when turning a device off.
 </Label>
+			</Field>
+			<Field id="noOnRampRate" type="checkbox" defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times.">
+				<Label>Disable ON Ramp Rate</Label>
+			</Field>
+			<Field id="noOffRampRate" type="checkbox" defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning Off this device. Some non-Hue devices don't support Off transtion times.">
+				<Label>Disable OFF Ramp Rate</Label>
+			</Field>
+			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -479,7 +530,7 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device may result in
 		<Name>On/Off Device (Hue Smart Plug, etc.)</Name>
 		<ConfigUI>
 			<Field id="bulbId" type="menu"
-				tooltip="Select a Hue on/off device to control. This menu shows basic on/off devices that don't support any color changes or dimming capabilities.">
+				tooltip="Select an on/off device to control. This menu shows basic on/off devices that don't support any color changes or dimming capabilities.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbListGenerator" filter="hueOnOffDevice"/>
 			</Field>
@@ -539,7 +590,7 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device may result in
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an "on" command is sent to this group.  If no value is entered, when an "on" command is sent, the group will return to the brightness it was last set to.
+Optionally set a default brightness level used whenever an ON command is sent to this group.  If no value is entered, when an ON command is sent, the group will return to the brightness it was last set to.
 </Label>
 			</Field>
 			<Field id="rate" type="textfield"
@@ -551,6 +602,17 @@ Optionally set a default brightness level used whenever an "on" command is sent 
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
+			</Field>
+			<Field id="noOnRampRate" type="checkbox" defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times.">
+				<Label>Disable ON Ramp Rate</Label>
+			</Field>
+			<Field id="noOffRampRate" type="checkbox" defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning Off this device. Some non-Hue devices don't support Off transtion times.">
+				<Label>Disable OFF Ramp Rate</Label>
+			</Field>
+			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="savedBrightness" type="textfield" hidden="true" />
@@ -1093,6 +1155,93 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>Online</TriggerLabel>
 				<ControlPageLabel>Online</ControlPageLabel>
 			</State>
+            <State id="buttonEventID">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Last Button Event ID</TriggerLabel>
+                <ControlPageLabel>Last Button Event ID</ControlPageLabel>
+            </State>
+			<State id="lastUpdated">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
+	<!-- Hue Wall Switch Module -->
+	<Device type="sensor" id="hueWallSwitchModule">
+		<Name>Hue Wall Switch Module</Name>
+		<ConfigUI>
+			<Field id="sensorId" type="menu"
+				tooltip="Select a Hue Wall Switch Module.">
+				<Label>Hue Wall Switch Module:</Label>
+				<List class="self" method="sensorListGenerator" filter="hueWallSwitchModule" />
+			</Field>
+			<Field id="address" type="textfield" hidden="true" />
+			<Field id="nameOnHub" type="textfield" hidden="true" />
+			<Field id="enabledOnHub" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="modelId" type="textfield" hidden="true" />
+			<Field id="manufacturerName" type="textfield" hidden="true" />
+			<Field id="swVersion" type="textfield" hidden="true" />
+			<Field id="type" type="textfield" hidden="true" />
+			<Field id="uniqueId" type="textfield" hidden="true" />
+			<Field id="productId" type="textfield" hidden="true" />
+			<Field id="deviceMode" type="textfield" hidden="true" />
+			<Field id="SupportsBatteryLevel" type="checkbox" hidden="true" defaultValue="true" />
+            <Field id="SupportsSensorValue" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsOnState" type="checkbox" hidden="true" defaultValue="true" />
+		</ConfigUI>
+		<States>
+            <State id="button1On">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Button 1 Press</TriggerLabel>
+                <ControlPageLabel>Button 1 Press</ControlPageLabel>
+            </State>
+			<State id="button1Hold">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Button 1 Press and Hold</TriggerLabel>
+				<ControlPageLabel>Button 1 Press and Hold</ControlPageLabel>
+			</State>
+            <State id="button1ReleaseShort">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Button 1 Short Release</TriggerLabel>
+                <ControlPageLabel>Button 1 Short Release</ControlPageLabel>
+            </State>
+            <State id="button1ReleaseLong">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Button 1 Long Release</TriggerLabel>
+                <ControlPageLabel>Button 1 Long Release</ControlPageLabel>
+            </State>
+            <State id="button2On">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Button 2 Press</TriggerLabel>
+                <ControlPageLabel>Button 2 Press</ControlPageLabel>
+            </State>
+			<State id="button2Hold">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Button 2 Press and Hold</TriggerLabel>
+				<ControlPageLabel>Button 2 Press and Hold</ControlPageLabel>
+			</State>
+            <State id="button2ReleaseShort">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Button 2 Short Release</TriggerLabel>
+                <ControlPageLabel>Button 2 Short Release</ControlPageLabel>
+            </State>
+            <State id="button2ReleaseLong">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Button 2 Long Release</TriggerLabel>
+                <ControlPageLabel>Button 2 Long Release</ControlPageLabel>
+            </State>
+			<State id="online">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Online</TriggerLabel>
+				<ControlPageLabel>Online</ControlPageLabel>
+			</State>
+            <State id="lastButtonPressed">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Last Button Pressed</TriggerLabel>
+                <ControlPageLabel>Last Button Pressed</ControlPageLabel>
+            </State>
             <State id="buttonEventID">
                 <ValueType>Number</ValueType>
                 <TriggerLabel>Last Button Event ID</TriggerLabel>

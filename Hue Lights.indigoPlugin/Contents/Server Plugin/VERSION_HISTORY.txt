@@ -1,5 +1,53 @@
 HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
 ========================================
+
+1.7.51
+* Added support for the Hue Argenta color spot bulb.
+* Added support for an innr A19 color/color temperature bulb.
+--
+1.7.50
+* Fixed a bug that would cause a state key error to appear in the Indigo log.
+--
+1.7.49
+* Added support for a new TRADFRI dimmable bulb.
+* Added support for an eWeLight full color/color temperature bulb.
+* Added support for the Hue Wall Switch module.
+* Added support for a new Hue ambiance downlight.
+* Added option to disable ON and OFF ramp rates (transition times) in lighting device configuration dialogs to help improve compatibility with non-Hue lights.
+* Fixed a bug that would cause the wrong color to be sent to a Hue Group when using the RGB picker in the Indigo UI.
+--
+1.7.48
+* Added support for another GLEDOPTO color and color temperature light.
+--
+1.7.47
+* Added support for the Hue Single color table light.
+* Added support for a new Hue Dimmer Switch.
+* Added support for the Osram Smart + LED GU5.3 reflector.
+* Added support for 2m and 5m Hue Outdoor Lightstrips.
+* Added support for the Hue Amarant Wall Washer light.
+* Added support for the Hue white candle dimmable bulb.
+--
+1.7.46
+* Fixed a bug that would cause an error when recalling a Hue scene if the scene creator had been deleted via the Hue web site (2nd attempt).
+* Fixed saving and recalling Presets to be compatible with Hue Group devices as both source and target for Preset data.
+--
+1.7.45
+* Added support for another Lidl Silvercrest On/Off Plug version.
+* Added support for another Hue outdoor wall floodlight.
+* Added support for another Hue Ambiance GU10 bulb.
+* Fixed a bug that would cause an error when recalling a Hue scene if the scene creator had been deleted via the Hue web site.
+--
+1.7.44
+* Added support for a new Hue color downlight (BR30)
+* Added support for a new GLEDOPTO color/color temperature light.
+--
+1.7.43
+* Added support for a new Hue Ambiance downlight.
+* Added support for a new Hue white dimmable light.
+* Added support for another GLEDOPTO color/color temperature light strip.
+* Added support for another GLEDOPTO color/color temperature bulb.
+* Added support for another Hue Smart Plug (Australia version).
+--
 1.7.42
 * Added support for a new GLEDOPTO light.
 * Added support for an Ikea FLOALT 30x30 color temperature light panel
