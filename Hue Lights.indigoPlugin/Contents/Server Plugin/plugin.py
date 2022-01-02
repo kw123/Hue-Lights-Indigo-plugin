@@ -14,7 +14,7 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.7.51
+#	Version 1.7.63
 #
 #	See the "VERSION_HISTORY.txt" file in the same location as this plugin.py
 #	file for a complete version change history.
@@ -6256,6 +6256,8 @@ class Plugin(indigo.PluginBase):
                     colorTemp = int(round(1000000.0/colorTemp))
                 else:
                     colorTemp = 0
+                # Set the colorMode.
+                colorMode = bulb['state'].get('colormode', "ct")
             effect = bulb['state'].get('effect', "none")
 
             # Update the Indigo device if the Hue device is on.
@@ -6359,13 +6361,6 @@ class Plugin(indigo.PluginBase):
                 ### Update inherited states for Indigo 7+ devices.
                 if "whiteLevel" in device.states or "redLevel" in device.states:
                     # For color temperature devices...
-                    if type in ['Extended color light', 'Color temperature light']:
-                        # White Level (negative saturation, 0-100).
-                        if 'whiteLevel' in device.states:
-                            self.updateDeviceState(device, 'whiteLevel', 100 - saturation)
-                        # White Temperature (0-100).
-                        if 'whiteTemperature' in device.states:
-                            self.updateDeviceState(device, 'whiteTemperature', colorTemp)
                     if type in ['Color light', 'Extended color light']:
                         # Hue Degrees (0-360).
                         # Red, Green, Blue levels (0-100).
@@ -6375,6 +6370,13 @@ class Plugin(indigo.PluginBase):
                             self.updateDeviceState(device, 'greenLevel', 0)
                         if 'blueLevel' in device.states:
                             self.updateDeviceState(device, 'blueLevel', 0)
+                        # White Level (negative saturation, 0-100).
+                        if 'whiteLevel' in device.states:
+                            self.updateDeviceState(device, 'whiteLevel', 100 - saturation)
+                    if type in ['Extended color light', 'Color temperature light']:
+                        # White Temperature (0-100).
+                        if 'whiteTemperature' in device.states:
+                            self.updateDeviceState(device, 'whiteTemperature', colorTemp)
             else:
                 # Unrecognized on state, but not important enough to mention in regular log.
                 self.debugLog(u"LightStrip unrecognized on state given by bridge: " + unicode(bulb['state']['on']))
@@ -7195,7 +7197,13 @@ class Plugin(indigo.PluginBase):
             luminanceRaw = sensor['state'].get('lightlevel', 0)
             lastUpdated = sensor['state'].get('lastupdated', "")
             dark = sensor['state'].get('dark', True)
+            # If a sensor is disabled on the bridge, the value will be None so we have to account for this.
+            if dark == None:
+                dark = True
             daylight = sensor['state'].get('daylight', False)
+            # If a sensor is disabled on the bridge, the value will be None so we have to account for this.
+            if daylight == None:
+                daylight = False
             darkThreshold = sensor['config'].get('tholddark', 0)
             thresholdOffset = sensor['config'].get('tholdoffset', 0)
 
