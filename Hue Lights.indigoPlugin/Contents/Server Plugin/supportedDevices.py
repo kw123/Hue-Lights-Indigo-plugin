@@ -9,6 +9,7 @@
 # List of compatible device IDs that may be associated with a Hue hub.
 #
 # Philips Hue Color and Ambiance Lights
+# LCA009    =   Hue color lamp (color gamut C)
 # LCT001	=	Hue bulb (color gamut B)
 # LCT002	=	Hue Downlight/Spot BR30 bulb (color gamut B)
 # LCT003	=	Hue Spot Light GU10 bulb (color gamut B)
@@ -42,6 +43,9 @@
 # 1746630P7 =   Hue Amarant Wall Washer (color gamut C)
 # 1746630V7 =   Hue Amarant Wall Washer (color gamut C)
 # 1746730V7 =   Hue outdoor Lily spotlight (US, color gamut C)
+# 1746330V7 =   Hue Appear Outdoor wall light, White and color ambiance
+# 1743830V7 =   Hue Econic Outdoor Wall light, White and color ambiance
+# 1741930V7 =   Hue Calla Outdoor bollard, White and color ambiance
 # 4080148P9 =   Hue color table (color gamut C)
 # 4080248P9 =   Hue color floor (color gamut C)
 # 4080248U9 =   Hue Signe floor (color gamut C)
@@ -244,6 +248,7 @@
 # TRADFRI control outlet            =   IKEA TRADFRI wall plug
 # FLOALT panel WS 30x90				=	IKEA color temperature LED panel (30x90)
 # FLOALT panel WS 30x30             =   IKEA color temperature LED panel (30x30)
+# FLOALT panel WS 60x60             =   IKEA color temperature LED panel (60x60)
 # RS 128 T							=	innr RS-128T GU10 color temperature lights
 # AE 280 C                          =   innr AE-280C A19 color and color temperature light
 # AE 260                            =   innr AE-260 A19 dimmable light
@@ -269,11 +274,11 @@
 ### LIGHTS ###
 ##############
 # Compatible Hue bulb devices (Color and Color Temperature)
-kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LCT007', 'LCT010', 'LCT011', 'LCT012', 'LCT014', 'LCT015',  'LCT016', 'LCT024', '440400982841', 'LCS001', '1746230V7', 'LCF001', 'LCF002', 'LCF003', 'LCG002', 'LCA001', 'LCA002', 'LCA003', 'LCB001', 'LCG001', 'LCW002', 'LLM001', 'HBL001', 'HBL002', 'HBL003', 'HEL001', 'HEL002', 'HIL001', 'HIL002', 'FLS-PP3', 'GL-B-001Z', 'GL-B-007Z', 'GL-D-004Z', 'GL-FL-005P', 'GL-FL-005TZS', 'GL-S-007Z', 'Classic A60 RGBW', 'Gardenpole Mini RGBW OSRAM', 'PAR 16 50 RGBW - LIGHTIFY', 'RB 185 C', 'RB 250 C', 'AE 280 C', 'PAR16 RGBW Z3', 'LCF005', '1741430P7', '1746230P7', '1746630P7', '1746630V7', '1746730V7', '4080148P9', '4080248P9', '4080248U9', '4090331P9_01', '4090331P9_02', '1742930P7', '1743530P7', '5045131P7', '5062148P7', 'ZB-CL01', 'TS0505B', 'LCA005', 'LCA007']
+kHueBulbDeviceIDs = ['LCA009', 'LCT001', 'LCT002', 'LCT003', 'LCT007', 'LCT010', 'LCT011', 'LCT012', 'LCT014', 'LCT015',  'LCT016', 'LCT024', '440400982841', 'LCS001', '1746230V7', 'LCF001', 'LCF002', 'LCF003', 'LCG002', 'LCA001', 'LCA002', 'LCA003', 'LCB001', 'LCG001', 'LCW002', 'LLM001', 'HBL001', 'HBL002', 'HBL003', 'HEL001', 'HEL002', 'HIL001', 'HIL002', 'FLS-PP3', 'GL-B-001Z', 'GL-B-007Z', 'GL-D-004Z', 'GL-FL-005P', 'GL-FL-005TZS', 'GL-S-007Z', 'Classic A60 RGBW', 'Gardenpole Mini RGBW OSRAM', 'PAR 16 50 RGBW - LIGHTIFY', 'RB 185 C', 'RB 250 C', 'AE 280 C', 'PAR16 RGBW Z3', 'LCF005', '1741430P7', '1746230P7', '1746630P7', '1746630V7', '1746730V7', '1746330V7', '1743830V7', '1741930V7', '4080148P9', '4080248P9', '4080248U9', '4090331P9_01', '4090331P9_02', '1742930P7', '1743530P7', '5045131P7', '5062148P7', 'ZB-CL01', 'TS0505B', 'LCA005', 'LCA007']
 # Compatible LivingColors devices (Color only)
 kLivingColorsDeviceIDs = ['LLC001', 'LLC005', 'LLC006', 'LLC007', 'LLC010', 'LLC011', 'LLC012', 'LLC013', 'LLC014', 'LLC020', 'TRADFRI bulb E26 CWS opal 600lm', 'TRADFRI bulb E27 CWS opal 600lm', 'TRADFRI bulb E14 CWS opal 600lm']
 # Compatible Ambiance devices (Color Temperature only)
-kAmbianceDeviceIDs = ['LLM010', 'LLM011', 'LLM012', 'LTW001', 'LTC001', 'LTC003', 'LTC002', 'LTC003', 'LTW004', 'LTC011', 'LTW010', 'LTW011', 'LTW012', 'LTW013', 'LTW014', 'LTW015', 'LTE001', 'LTF001', 'LTF002', 'LTG001', 'LTG002', 'LTD001', 'LTD002', 'LTP001', 'LTP002', 'LTP003', 'LTP004', 'LTP005', 'LTD003', 'LTD009', 'LTD010', 'LTD011', 'LFF001', 'LTT001', 'LDT001', 'LTB002', 'LTA001', 'LTA002', 'LTA003', 'LTA008', 'LTA010', 'HML001', 'HML002', 'HML003', 'HML004', 'HML005', 'HML006', '3402931P7', '3261330P6', 'Classic A60 TW', 'PAR16 50 TW', 'RS 128 T', 'RS 228 T', 'FLOALT panel WS 30x90', 'FLOALT panel WS 30x30', 'FLS-CT', 'TRADFRI bulb E26 WS opal 1000lm', 'TRADFRI bulb E27 WS opal 1000lm', 'TRADFRI bulb E27 WS opal 980lm', 'TRADFRI bulb E14 WS opal 600lm', 'TRADFRI bulb GU10 WS 400lm', 'ZBT-ColorTemperature', 'TS0502A', 'MR16 TW OSRAM']
+kAmbianceDeviceIDs = ['LLM010', 'LLM011', 'LLM012', 'LTW001', 'LTC001', 'LTC003', 'LTC002', 'LTC003', 'LTW004', 'LTC011', 'LTW010', 'LTW011', 'LTW012', 'LTW013', 'LTW014', 'LTW015', 'LTE001', 'LTF001', 'LTF002', 'LTG001', 'LTG002', 'LTD001', 'LTD002', 'LTP001', 'LTP002', 'LTP003', 'LTP004', 'LTP005', 'LTD003', 'LTD009', 'LTD010', 'LTD011', 'LFF001', 'LTT001', 'LDT001', 'LTB002', 'LTA001', 'LTA002', 'LTA003', 'LTA008', 'LTA010', 'HML001', 'HML002', 'HML003', 'HML004', 'HML005', 'HML006', '3402931P7', '3261330P6', 'Classic A60 TW', 'PAR16 50 TW', 'RS 128 T', 'RS 228 T', 'FLOALT panel WS 30x90', 'FLOALT panel WS 30x30', 'FLOALT panel WS 60x60', 'FLS-CT', 'TRADFRI bulb E26 WS opal 1000lm', 'TRADFRI bulb E27 WS opal 1000lm', 'TRADFRI bulb E27 WS opal 980lm', 'TRADFRI bulb E14 WS opal 600lm', 'TRADFRI bulb GU10 WS 400lm', 'ZBT-ColorTemperature', 'TS0502A', 'MR16 TW OSRAM']
 # Compatible LightStrips devices. (Color only on LST001. Color and Color Temperature on others)
 kLightStripsDeviceIDs = ['LST001', 'LST002', 'LST003', 'LST004', 'LCL001', 'LCL002', 'LCL003', 'LCX001', 'Flex RGBW', 'HOMA1001', 'GL-C-006', 'GL-C-007', 'GL-C-008', 'FB56-ZCW08KU1.1', 'FZB56-ZCW27LX1.0', 'GLEDOPTO', 'TRADFRI transformer 10W', 'TRADFRI transformer 30W', 'FL 130 C', 'QV-RGBCCT']
 # Compatible LivingWhites devices. (Dimming only.  No color change of any kind)

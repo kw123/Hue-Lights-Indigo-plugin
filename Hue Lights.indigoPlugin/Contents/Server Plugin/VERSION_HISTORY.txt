@@ -1,5 +1,10 @@
 HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
 ========================================
+1.7.64
+* Added support for the Ikea FLOALT panel WS 60x60 color temperature LED panel.
+* Added support for 3 new Hue outdoor lights.
+* Added support for a new Hue color lamp.
+--
 1.7.63
 * Added support for 2 new Hue outdoor Lily spotlights.
 --
