@@ -1,5 +1,13 @@
 HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
 ========================================
+1.7.65
+* Added support for another GLEDOPTO light strip controller
+* Added support for another Osram garden light pole.
+* Added support for another Hue color/ambiance bulb.
+* Added support for another Hue outdoor wall color light.
+* Added support for 2 new Hue color spot lights.
+* Added support for 2 new Hue dimmable lights.
+--
 1.7.64
 * Added support for the Ikea FLOALT panel WS 60x60 color temperature LED panel.
 * Added support for 3 new Hue outdoor lights.
