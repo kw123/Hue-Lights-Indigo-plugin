@@ -4,10 +4,20 @@
 	<Device type="dimmer" id="hueBulb">
 		<Name>Hue Color/Ambiance and compatible</Name>
 		<ConfigUI>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Bridge this device is associated with">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmhubNumber" type="button">
+				<Label>Click to</Label>
+				<Title>Select Bridge Number</Title>
+				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu only shows lights that support both full color and color temperature (a.k.a. Ambiance) features, except for the LightStrips.">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator"/>
+				<List class="self" method="bulbListGenerator"  dynamicReload="true"/> 
 			</Field>
 			<Field id="defaultBrightness" type="textfield"
 				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
@@ -149,10 +159,20 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="dimmer" id="hueAmbiance">
 		<Name>Ambiance Lights (color temperature)</Name>
 		<ConfigUI>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmhubNumber" type="button">
+				<Label>Click to</Label>
+				<Title>Select Bridge Number</Title>
+				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu only shows color temperature (a.k.a. Ambiance) lights. Lights that also support full color will appear in the Hue Color/Ambiance device list.">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator"/>
+				<List class="self" method="bulbListGenerator"  dynamicReload="true"/> 
 			</Field>
 			<Field id="defaultBrightness" type="textfield"
 				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
@@ -231,10 +251,20 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="dimmer" id="hueLightStrips">
 		<Name>Light Strips</Name>
 		<ConfigUI>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Bridge this device is associated with">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmhubNumber" type="button">
+				<Label>Click to</Label>
+				<Title>Select Bridge Number</Title>
+				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu only shows light strips.">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator"/>
+				<List class="self" method="bulbListGenerator"  dynamicReload="true"/> 
 			</Field>
 			<Field id="defaultBrightness" type="textfield"
 				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
@@ -349,10 +379,20 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="dimmer" id="hueLivingColorsBloom">
 		<Name>Color Lights (Aura, Bloom, StoryLight, LivingColors, etc.)</Name>
 		<ConfigUI>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Bridge this device is associated with">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmhubNumber" type="button">
+				<Label>Click to</Label>
+				<Title>Select Bridge Number</Title>
+				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu shows color lights such as the Bloom, StoryLight and other color lights. It does not include LightStrips or color temperature lights.">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator"/>
+				<List class="self" method="bulbListGenerator"  dynamicReload="true"/> 
 			</Field>
 			<Field id="defaultBrightness" type="textfield"
 				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
@@ -459,10 +499,20 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="dimmer" id="hueLivingWhites">
 		<Name>LivingWhites (Hue Lux, generic dimmable device, etc.)</Name>
 		<ConfigUI>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Bridge this device is associated with">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmhubNumber" type="button">
+				<Label>Click to</Label>
+				<Title>Select Bridge Number</Title>
+				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu shows basic dimming lights that don't support any color changes.">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator" filter="hueLivingWhites"/>
+				<List class="self" method="bulbListGenerator" filter="hueLivingWhites"  dynamicReload="true" />
 			</Field>
 			<Field id="defaultBrightness" type="textfield"
 				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
@@ -529,10 +579,20 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="relay" id="hueOnOffDevice">
 		<Name>On/Off Device (Hue Smart Plug, etc.)</Name>
 		<ConfigUI>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Bridge this device is associated with">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmhubNumber" type="button">
+				<Label>Click to</Label>
+				<Title>Select Bridge Number</Title>
+				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select an on/off device to control. This menu shows basic on/off devices that don't support any color changes or dimming capabilities.">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator" filter="hueOnOffDevice"/>
+				<List class="self" method="bulbListGenerator" filter="hueOnOffDevice" dynamicReload="true"/>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -563,10 +623,20 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="dimmer" id="hueGroup">
 		<Name>Hue Group</Name>
 		<ConfigUI>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Bridge this device is associated with">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmhubNumber" type="button">
+				<Label>Click to</Label>
+				<Title>Select Bridge Number</Title>
+				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			</Field>
 			<Field id="groupId" type="menu"
-				tooltip="Select a Hue Group to control. This menu contains all the groups saved in the Hue hub. Groups can contain any combination of Hue supported lights.">
+				tooltip="Select a Hue Group to control. This menu contains all the groups saved in the Hue Bridge. Groups can contain any combination of Hue supported lights.">
 				<Label>Hue Group:</Label>
-				<List class="self" method="groupListGenerator"/>
+				<List class="self" method="groupListGenerator" dynamicReload="true"/>
 				<CallbackMethod>groupsListItemSelected</CallbackMethod>
 			</Field>
 			<Field id="groupLights" type="list" defaultValue="" readonly="true" enabledBindingId="groupLightsDisabler"
@@ -708,10 +778,20 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="sensor" id="hueMotionSensor">
 		<Name>Hue Motion Sensor (Motion)</Name>
 		<ConfigUI>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Bridge this device is associated with">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmhubNumber" type="button">
+				<Label>Click to</Label>
+				<Title>Select Bridge Number</Title>
+				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Motion Sensor.">
 				<Label>Hue Sensor:</Label>
-				<List class="self" method="sensorListGenerator" filter="hueMotionSensor" />
+				<List class="self" method="sensorListGenerator" filter="hueMotionSensor"  dynamicReload="true"/>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -759,8 +839,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
-				<TriggerLabel>Last Updated on Hub</TriggerLabel>
-				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+				<TriggerLabel>Last Updated on Bridge</TriggerLabel>
+				<ControlPageLabel>Last Updated on Bridge</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -768,10 +848,20 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="sensor" id="hueMotionTemperatureSensor">
 		<Name>Hue Motion Sensor (Temperature)</Name>
 		<ConfigUI>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Bridge this device is associated with">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmhubNumber" type="button">
+				<Label>Click to</Label>
+				<Title>Select Bridge Number</Title>
+				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Motion Sensor.">
 				<Label>Hue Sensor:</Label>
-				<List class="self" method="sensorListGenerator" filter="hueMotionTemperatureSensor" />
+				<List class="self" method="sensorListGenerator" filter="hueMotionTemperatureSensor"  dynamicReload="true"/>
 			</Field>
 			<Field id="temperatureScale" type="menu" defaultValue="c"
 				tooltip="Select a temperature scale to display in Indigo.">
@@ -826,8 +916,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
-				<TriggerLabel>Last Updated on Hub</TriggerLabel>
-				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+				<TriggerLabel>Last Updated on Bridge</TriggerLabel>
+				<ControlPageLabel>Last Updated on Bridge</ControlPageLabel>
 			</State>
 			<State id="temperatureC">
 				<ValueType>Number</ValueType>
@@ -845,10 +935,20 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<Device type="sensor" id="hueMotionLightSensor">
 		<Name>Hue Motion Sensor (Luminance)</Name>
 		<ConfigUI>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Bridge this device is associated with">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmhubNumber" type="button">
+				<Label>Click to</Label>
+				<Title>Select Bridge Number</Title>
+				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Motion Sensor.">
 				<Label>Hue Sensor:</Label>
-				<List class="self" method="sensorListGenerator" filter="hueMotionLightSensor" />
+				<List class="self" method="sensorListGenerator" filter="hueMotionLightSensor"  dynamicReload="true"/>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -896,8 +996,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
-				<TriggerLabel>Last Updated on Hub</TriggerLabel>
-				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+				<TriggerLabel>Last Updated on Bridge</TriggerLabel>
+				<ControlPageLabel>Last Updated on Bridge</ControlPageLabel>
 			</State>
 			<State id="luminance">
 				<ValueType>Number</ValueType>
@@ -926,10 +1026,20 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<Device type="sensor" id="hueTapSwitch">
 		<Name>Hue Tap Switch</Name>
 		<ConfigUI>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Bridge this device is associated with">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmhubNumber" type="button">
+				<Label>Click to</Label>
+				<Title>Select Bridge Number</Title>
+				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Tap Switch.">
 				<Label>Hue Tap Switch:</Label>
-				<List class="self" method="sensorListGenerator" filter="hueTapSwitch" />
+				<List class="self" method="sensorListGenerator" filter="hueTapSwitch"  dynamicReload="true"/>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -975,8 +1085,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
             </State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
-				<TriggerLabel>Last Updated on Hub</TriggerLabel>
-				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+				<TriggerLabel>Last Updated on Bridge</TriggerLabel>
+				<ControlPageLabel>Last Updated on Bridge</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -985,10 +1095,20 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<Device type="sensor" id="hueDimmerSwitch">
 		<Name>Hue Dimmer Switch</Name>
 		<ConfigUI>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Bridge this device is associated with">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmhubNumber" type="button">
+				<Label>Click to</Label>
+				<Title>Select Bridge Number</Title>
+				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Dimmer Switch.">
 				<Label>Hue Dimmer Switch:</Label>
-				<List class="self" method="sensorListGenerator" filter="hueDimmerSwitch" />
+				<List class="self" method="sensorListGenerator" filter="hueDimmerSwitch"  dynamicReload="true"/>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -1101,8 +1221,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
             </State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
-				<TriggerLabel>Last Updated on Hub</TriggerLabel>
-				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+				<TriggerLabel>Last Updated on Bridge</TriggerLabel>
+				<ControlPageLabel>Last Updated on Bridge</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1111,10 +1231,20 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<Device type="sensor" id="hueSmartButton">
 		<Name>Hue Smart Button</Name>
 		<ConfigUI>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Bridge this device is associated with">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmhubNumber" type="button">
+				<Label>Click to</Label>
+				<Title>Select Bridge Number</Title>
+				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Smart Button.">
 				<Label>Hue Smart Button:</Label>
-				<List class="self" method="sensorListGenerator" filter="hueSmartButton" />
+				<List class="self" method="sensorListGenerator" filter="hueSmartButton"  dynamicReload="true"/>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -1162,8 +1292,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
             </State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
-				<TriggerLabel>Last Updated on Hub</TriggerLabel>
-				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+				<TriggerLabel>Last Updated on Bridge</TriggerLabel>
+				<ControlPageLabel>Last Updated on Bridge</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1172,10 +1302,20 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<Device type="sensor" id="hueWallSwitchModule">
 		<Name>Hue Wall Switch Module</Name>
 		<ConfigUI>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Bridge this device is associated with">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmhubNumber" type="button">
+				<Label>Click to</Label>
+				<Title>Select Bridge Number</Title>
+				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Wall Switch Module.">
 				<Label>Hue Wall Switch Module:</Label>
-				<List class="self" method="sensorListGenerator" filter="hueWallSwitchModule" />
+				<List class="self" method="sensorListGenerator" filter="hueWallSwitchModule"  dynamicReload="true"/>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -1249,8 +1389,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
             </State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
-				<TriggerLabel>Last Updated on Hub</TriggerLabel>
-				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+				<TriggerLabel>Last Updated on Bridge</TriggerLabel>
+				<ControlPageLabel>Last Updated on Bridge</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1259,10 +1399,20 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<Device type="sensor" id="runLessWireSwitch">
 		<Name>Run Less Wire or Niko Switch</Name>
 		<ConfigUI>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Bridge this device is associated with">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmhubNumber" type="button">
+				<Label>Click to</Label>
+				<Title>Select Bridge Number</Title>
+				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Run Less Wire or Niko Switch.">
 				<Label>Run Less Wire or Niko Switch:</Label>
-				<List class="self" method="sensorListGenerator" filter="runLessWireSwitch" />
+				<List class="self" method="sensorListGenerator" filter="runLessWireSwitch"  dynamicReload="true"/>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -1386,8 +1536,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
             </State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
-				<TriggerLabel>Last Updated on Hub</TriggerLabel>
-				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+				<TriggerLabel>Last Updated on Bridge</TriggerLabel>
+				<ControlPageLabel>Last Updated on Bridge</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1398,10 +1548,20 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<Device type="dimmer" id="hueAttributeController">
 		<Name>Hue Device Attribute Controller</Name>
 		<ConfigUI>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Bridge this device is associated with">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmhubNumber" type="button">
+				<Label>Click to</Label>
+				<Title>Select Bridge Number</Title>
+				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			</Field>
 			<Field id="bulbDeviceId" type="menu"
 				tooltip="Select a Hue light or group that this attribute controller should control.">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbAndGroupDeviceListGenerator"/>
+				<List class="self" method="bulbAndGroupDeviceListGenerator" dynamicReload="true"/>
 			</Field>
 			<Field id="attributeToControl" type="menu" defaultValue="hue"
 				tooltip="Select an attribute associated with the Hue Device above that this attribute controller should control. Note that if you select an attribute that the Hue Device doesn't have, this attribute controller will not work.">

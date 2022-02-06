@@ -4,28 +4,71 @@
 	<Field id="title" type="label" alignText="center" fontColor="blue">
 		<Label>Hue Lights Configuration</Label>
 	</Field>
-	<Field id="address" type="textfield" defaultValue=""
-		tooltip="IP address of the Hue hub (e.g. 192.168.1.15. If the Hub is given a different IP address by your router later on, you'll need to enter the new address here each time it changes.">
+
+	<Field id="hubNumber" type="menu" defaultValue="0"
+	tooltip="Bridge number: Use 0 if you have just one. If you have several, repeat steps below for each after selecting the Bridge number">
+	<Label>Bridge Number:</Label>
+	  <List>
+		<Option value="0">0</Option>
+		<Option value="1">1</Option>
+		<Option value="2">2</Option>
+		<Option value="3">3</Option>
+		<Option value="4">4</Option>
+		<Option value="5">5</Option>
+		<Option value="6">6</Option>
+		<Option value="7">7</Option>
+		<Option value="8">8</Option>
+		<Option value="9">9</Option>
+	  </List>
+    </Field>
+
+	<Field id="hubAction"
+			type="menu" defaultValue="keep"
+			tooltip="">
+		<Label>Select:</Label>
+	  <List>
+		<Option value="keep">Keep / Add</Option>
+		<Option value="delete">Delete</Option>
+	  </List>
+    </Field>
+
+	<Field id="selecthubNumber"
+			type="button" 
+			tooltip="">
+		<Label>Click to:</Label>
+		<Title>Confirm</Title>
+		<CallbackMethod>selHubNumberCallback</CallbackMethod>
+    </Field>
+
+	<Field id="ipvisible" type="checkbox" defaultValue="false">
+    </Field>
+	
+	<Field id="address" type="textfield" visibleBindingId="ipvisible" visibleBindingValue="true"  defaultValue=""
+		tooltip="IP address of the Hue Bridge (e.g. 192.168.1.15. If the Bridge is given a different IP address by your router later on, you'll need to enter the new address here each time it changes.">
 		<Label>IP Address:</Label>
 	</Field>
-	<Field id="labelAddress" type="label" alignWithControl="true" fontColor="darkgray" fontSize="small">
-		<Label>IP address of Hue hub (e.g. 192.168.1.15)</Label>
+
+	<Field id="labelAddress" type="label" visibleBindingId="ipvisible" visibleBindingValue="true"  alignWithControl="true" fontColor="darkgray" fontSize="small">
+		<Label>IP address of Hue Bridge (e.g. 192.168.1.15)</Label>
 	</Field>
-	<Field id="hostId" type="textfield" defaultValue="" readonly="true"
-		tooltip="(read-only). Generated host ID assigned by the Hue hub to Hue Lights plugin. Provided here for troubleshooting purposes only.">
+	<Field id="hostId" type="textfield" visibleBindingId="ipvisible" visibleBindingValue="true"  defaultValue="" readonly="true"
+		tooltip="(read-only). Generated host ID assigned by the Hue Bridge to Hue Lights plugin. Provided here for troubleshooting purposes only.">
 		<Label>Host ID:</Label>
 	</Field>
-	<Field id="labelHostId" type="label" alignWithControl="true" fontColor="darkgray" fontSize="small">
-		<Label>(read-only). Generated host ID assigned by the Hue hub.</Label>
+	<Field id="labelHostId" type="label" visibleBindingId="ipvisible" visibleBindingValue="true"  alignWithControl="true" fontColor="darkgray" fontSize="small">
+		<Label>(read-only). Generated host ID assigned by the Hue Bridge.</Label>
 	</Field>
+
 	<Field id="startPairingButton"
-			type="button"
-			tooltip="Before clicking this button, press the center button on the Hue hub.  Within 30 seconds of doing that, come back here and click this button to pair with the Hue hub.">
+			type="button" visibleBindingId="ipvisible" visibleBindingValue="true" 
+			tooltip="Before clicking this button, press the center button on the Hue Bridge.  Within 30 seconds of doing that, come back here and click this button to pair with the Hue Bridge.">
 		<Label>Pairing:</Label>
 		<Title>Pair Now</Title>
 		<CallbackMethod>restartPairing</CallbackMethod>
     </Field>
+
 	<Field id="sep00" type="separator"/>
+	<Field id="sep01" type="separator"/>
 	<Field id="maxPresetCount" type="textfield"
 		tooltip="Enter how many Preset memories you'd like Hue Lights to keep saved (a number from 1 to 100). See warning below.">
 		<Label>Preset Memories:</Label>
@@ -66,10 +109,10 @@
 		<Label>INSTRUCTION:</Label>
 	</Field>
 	<Field id="instructions1" type="label" fontColor="darkgray" fontSize="small">
-		<Label>Enter the IP address assigned to the Hue hub by your router.  If you are unable to find the IP address given to your Hue hub using your router's administrative interface, you can obtain the Hue hub's IP address by registering on and using the www.meethue.com web site, then viewing your hub settings.</Label>
+		<Label>Enter the IP address assigned to the Hue Bridge by your router.  If you are unable to find the IP address given to your Hue Bridge using your router's administrative interface, you can obtain the Hue Bridge's IP address by registering on and using the www.meethue.com web site, then viewing your Bridge settings.</Label>
 	</Field>
 	<Field id="instructions2" type="label" fontColor="darkgray" fontSize="small">
-		<Label>After the IP address has been entered, go to the Hue hub and press the center button.  Within 30 seconds, come back to this dialog and click the "Pair Now" button.</Label>
+		<Label>After the IP address has been entered, go to the Hue Bridge and press the center button.  Within 30 seconds, come back to this dialog and click the "Pair Now" button.</Label>
 	</Field>
 	<Field id="instructions3" type="label" fontColor="darkgray" fontSize="small">
 		<Label>Once this is done, click the "Save" button.</Label>
