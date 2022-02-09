@@ -86,31 +86,31 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 		<CallbackMethod>recallScene</CallbackMethod>
 		<ConfigUI>
 			<Field id="instructions1" type="label" fontSize="small">
-				<Label>Hue Scenes are stored on the Hue bridge and are organized here by which application created them.</Label>
+				<Label>Hue Scenes are stored on the Hue Bridge and are organized here by which application created them.</Label>
 			</Field>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway his Scene is associated with">
-				<Label>Hue GW number:</Label>
+				tooltip="Select the Bridge this Scene is associated with">
+				<Label>Hue Bridge number:</Label>
 				<List class="self" method="gwListGenerator" dynamicReload="true"> </List>
 			</Field>
 			<Field id="userId" type="menu" defaultValue=""
-				tooltip="Scene Creators are the applications on various devices that have connected to the Hue bridge and created Scenes.">
+				tooltip="Scene Creators are the applications on various devices that have connected to the Hue Bridge and created Scenes.">
 				<Label>Scene Creator:</Label>
 				<List class="self" method="usersListGenerator"></List>
 				<CallbackMethod>usersListItemSelected</CallbackMethod>
 			</Field>
 			<Field id="userLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>Select a Scene Creator from the bridge first (or use "All Scene Creators").
+				<Label>Select a Scene Creator from the Bridge first (or use "All Scene Creators").
 				</Label>
 			</Field>
 			<Field id="sceneId" type="menu" defaultValue=""
-				tooltip="Scenes are stored on the Hue bridge along with which application created them. Scenes in this menu were created by the Scene Creator selected above.">
+				tooltip="Scenes are stored on the Hue Bridge along with which application created them. Scenes in this menu were created by the Scene Creator selected above.">
 				<Label>Scene:</Label>
 				<List class="self" method="scenesListGenerator" dynamicReload="true"></List>
 				<CallbackMethod>scenesListItemSelected</CallbackMethod>
 			</Field>
 			<Field id="scemeLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>Some Scenes may have the same name because of how the Hue app creates them on the bridge. Use the Lights Affected list below to distinguish between Scenes with the same name.
+				<Label>Some Scenes may have the same name because of how the Hue app creates them on the Bridge. Use the Lights Affected list below to distinguish between Scenes with the same name.
 				</Label>
 			</Field>
 			<Field id="groupId" type="menu" defaultValue=""
@@ -144,19 +144,20 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 	</MenuItem>
 	<MenuItem id="sep3" />
 	<MenuItem id="printHueDataMenu">
-		<Name>Print hue config data to log ...</Name>
+		<Name>Print Hue Config Data to Log ...</Name>
 		<ConfigUI>
 			<Field  id="whatToPrint" 
 					type="menu" 
 					defaultValue="lights">
-				<Label>Select what to print:</Label>
+				<Label>Select What to Print:</Label>
 				<List>
 					<Option value="lights">Lights</Option>
 					<Option value="sensors">Sensors </Option>
 					<Option value="groups">Groups</Option>
-					<Option value="specificLight">All info for one specific Bridge and Light</Option>
-					<Option value="specificSensor">All info for one specific Bridge and Sensor</Option>
-					<Option value="specificGroup">All info for one specific Bridge and Group</Option>
+					<Option value="scenes">Scenes</Option>
+					<Option value="specificLight">All info for a Bridge and light</Option>
+					<Option value="specificSensor">All info for a Bridge and sensor</Option>
+					<Option value="specificGroup">All info for a Bridge and group</Option>
 				</List>
 			</Field>
 			<Field  id="bulbId" type="menu" 

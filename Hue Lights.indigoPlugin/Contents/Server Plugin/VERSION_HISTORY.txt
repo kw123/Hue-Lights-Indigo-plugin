@@ -1,5 +1,9 @@
 HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
 ========================================
+1.8.1
+* Fixed a number of UI and functional bugs.
+* Fixed some minor UI naming inconsistencies.
+--
 1.8.0
 * Added support for all light types without the need to update the plugin for every new model of light.
 * Added support for multiple Hue bridges.

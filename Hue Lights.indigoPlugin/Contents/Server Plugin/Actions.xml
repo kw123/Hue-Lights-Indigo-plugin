@@ -485,13 +485,13 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 				<Label>Hue Scenes are stored on the Hue Bridge and are organized here by which application created them.</Label>
 			</Field>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge this Scene is associated with">
-				<Label>Hue Bridge Number:</Label>
+				tooltip="Select the Bridge his Scene is associated with">
+				<Label>Hue Bridge number:</Label>
 				<List class="self" method="gwListGenerator" dynamicReload="true"> </List>
 			</Field>
+			<Field id="confirmGWNumber" type="button">
 				<Label>Click to</Label>
 				<Title>Select Bridge Number</Title>
-			<Field id="confirmGWNumber" type="button">
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="userId" type="menu" defaultValue=""

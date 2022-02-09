@@ -6,3 +6,8 @@ Hue.indigoPlugin/.idea/workspace.xml
 *.pyc
 
 *.pyc
+.idea/vcs.xml
+.idea/modules.xml
+.idea/misc.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/Hue-Lights-Indigo-plugin.iml

@@ -6,7 +6,9 @@
 	</Field>
 
 	<Field id="hubNumber" type="menu" defaultValue="0"
-	tooltip="Bridge number: Use 0 if you have just one. If you have several, repeat steps below for each after selecting the Bridge number">
+	tooltip="Bridge number use 0 if you have just one. If you have several, repeat steps below for each after selecting the Bridge number.
+
+You must start with Bridge nummer 0">
 	<Label>Bridge Number:</Label>
 	  <List>
 		<Option value="0">0</Option>
@@ -25,17 +27,17 @@
 	<Field id="gwAction"
 			type="menu" defaultValue="keep"
 			tooltip="">
-		<Label>Select:</Label>
+		<Label>select:</Label>
 	  <List>
-		<Option value="keep">Keep / Add</Option>
-		<Option value="delete">Delete</Option>
+		<Option value="keep">keep / add</Option>
+		<Option value="delete">delete</Option>
 	  </List>
     </Field>
 
 	<Field id="selecthubNumber"
 			type="button" 
 			tooltip="">
-		<Label>Click to:</Label>
+		<Label>click:</Label>
 		<Title>Confirm</Title>
 		<CallbackMethod>selHubNumberCallback</CallbackMethod>
     </Field>
