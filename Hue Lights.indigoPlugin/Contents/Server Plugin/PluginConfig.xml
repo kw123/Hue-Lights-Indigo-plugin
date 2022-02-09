@@ -22,7 +22,7 @@
 	  </List>
     </Field>
 
-	<Field id="hubAction"
+	<Field id="gwAction"
 			type="menu" defaultValue="keep"
 			tooltip="">
 		<Label>Select:</Label>

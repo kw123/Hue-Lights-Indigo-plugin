@@ -7,12 +7,12 @@
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Bridge this device is associated with">
 				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
 			</Field>
-			<Field id="confirmhubNumber" type="button">
 				<Label>Click to</Label>
 				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			<Field id="confirmGWNumber" type="button">
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu only shows lights that support both full color and color temperature (a.k.a. Ambiance) features, except for the LightStrips.">
@@ -162,12 +162,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
 			</Field>
 			<Field id="confirmhubNumber" type="button">
 				<Label>Click to</Label>
 				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmhubNumber</CallbackMethod>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu only shows color temperature (a.k.a. Ambiance) lights. Lights that also support full color will appear in the Hue Color/Ambiance device list.">
@@ -254,12 +254,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Bridge this device is associated with">
 				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
 			</Field>
-			<Field id="confirmhubNumber" type="button">
 				<Label>Click to</Label>
 				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			<Field id="confirmGWNumber" type="button">
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu only shows light strips.">
@@ -382,12 +382,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Bridge this device is associated with">
 				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
 			</Field>
-			<Field id="confirmhubNumber" type="button">
 				<Label>Click to</Label>
 				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			<Field id="confirmGWNumber" type="button">
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu shows color lights such as the Bloom, StoryLight and other color lights. It does not include LightStrips or color temperature lights.">
@@ -502,12 +502,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Bridge this device is associated with">
 				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
 			</Field>
-			<Field id="confirmhubNumber" type="button">
 				<Label>Click to</Label>
 				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			<Field id="confirmGWNumber" type="button">
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu shows basic dimming lights that don't support any color changes.">
@@ -582,12 +582,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Bridge this device is associated with">
 				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
 			</Field>
-			<Field id="confirmhubNumber" type="button">
 				<Label>Click to</Label>
 				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			<Field id="confirmGWNumber" type="button">
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select an on/off device to control. This menu shows basic on/off devices that don't support any color changes or dimming capabilities.">
@@ -626,12 +626,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Bridge this device is associated with">
 				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
 			</Field>
-			<Field id="confirmhubNumber" type="button">
 				<Label>Click to</Label>
 				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			<Field id="confirmGWNumber" type="button">
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="groupId" type="menu"
 				tooltip="Select a Hue Group to control. This menu contains all the groups saved in the Hue Bridge. Groups can contain any combination of Hue supported lights.">
@@ -781,12 +781,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Bridge this device is associated with">
 				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
 			</Field>
-			<Field id="confirmhubNumber" type="button">
 				<Label>Click to</Label>
 				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			<Field id="confirmGWNumber" type="button">
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Motion Sensor.">
@@ -851,12 +851,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Bridge this device is associated with">
 				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
 			</Field>
-			<Field id="confirmhubNumber" type="button">
 				<Label>Click to</Label>
 				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			<Field id="confirmGWNumber" type="button">
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Motion Sensor.">
@@ -938,12 +938,12 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Bridge this device is associated with">
 				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
 			</Field>
-			<Field id="confirmhubNumber" type="button">
 				<Label>Click to</Label>
 				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			<Field id="confirmGWNumber" type="button">
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Motion Sensor.">
@@ -1029,12 +1029,12 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Bridge this device is associated with">
 				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
 			</Field>
-			<Field id="confirmhubNumber" type="button">
 				<Label>Click to</Label>
 				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			<Field id="confirmGWNumber" type="button">
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Tap Switch.">
@@ -1098,12 +1098,12 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Bridge this device is associated with">
 				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
 			</Field>
-			<Field id="confirmhubNumber" type="button">
 				<Label>Click to</Label>
 				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			<Field id="confirmGWNumber" type="button">
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Dimmer Switch.">
@@ -1234,12 +1234,12 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Bridge this device is associated with">
 				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
 			</Field>
-			<Field id="confirmhubNumber" type="button">
 				<Label>Click to</Label>
 				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			<Field id="confirmGWNumber" type="button">
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Smart Button.">
@@ -1305,12 +1305,12 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Bridge this device is associated with">
 				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
 			</Field>
-			<Field id="confirmhubNumber" type="button">
 				<Label>Click to</Label>
 				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			<Field id="confirmGWNumber" type="button">
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Wall Switch Module.">
@@ -1402,12 +1402,12 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Bridge this device is associated with">
 				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
 			</Field>
-			<Field id="confirmhubNumber" type="button">
 				<Label>Click to</Label>
 				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmhubNumber</CallbackMethod>
+			<Field id="confirmGWNumber" type="button">
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Run Less Wire or Niko Switch.">
@@ -1551,12 +1551,12 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Bridge this device is associated with">
 				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
 			</Field>
-			<Field id="confirmhubNumber" type="button">
 				<Label>Click to</Label>
 				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmhubNumber</CallbackMethod>
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+			<Field id="confirmGWNumber" type="button">
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="bulbDeviceId" type="menu"
 				tooltip="Select a Hue light or group that this attribute controller should control.">

@@ -68,7 +68,7 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 		</ConfigUI>
 	</MenuItem>
 	<MenuItem id="displayPreset">
-		<Name>Display Preset in Log...</Name>
+		<Name>Print Preset to Log...</Name>
 		<CallbackMethod>displayPreset</CallbackMethod>
 		<ConfigUI>
 			<Field id="presetId" type="menu" defaultValue="">
@@ -87,6 +87,11 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 		<ConfigUI>
 			<Field id="instructions1" type="label" fontSize="small">
 				<Label>Hue Scenes are stored on the Hue bridge and are organized here by which application created them.</Label>
+			</Field>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Gateway his Scene is associated with">
+				<Label>Hue GW number:</Label>
+				<List class="self" method="gwListGenerator" dynamicReload="true"> </List>
 			</Field>
 			<Field id="userId" type="menu" defaultValue=""
 				tooltip="Scene Creators are the applications on various devices that have connected to the Hue bridge and created Scenes.">
@@ -139,7 +144,7 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 	</MenuItem>
 	<MenuItem id="sep3" />
 	<MenuItem id="printHueDataMenu">
-		<Name>Print Hue Data to Log...</Name>
+		<Name>Print hue config data to log ...</Name>
 		<ConfigUI>
 			<Field  id="whatToPrint" 
 					type="menu" 
