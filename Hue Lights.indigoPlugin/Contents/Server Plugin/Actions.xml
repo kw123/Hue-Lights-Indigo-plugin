@@ -142,7 +142,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<CallbackMethod>setHSB</CallbackMethod>
 		<ConfigUI>
 			<Field id="intro1" type="label" fontColor="darkgray" fontSize="small">
-				<Label>NOTE: Hue light bulbs are not capable of displaying the same full spectrum of light that your computer monitor can display. Thus, when setting Hue and Saturation values, the bulb will switch to the closest color it can render to the color you specified.* Other supported color lights (LightStrips, LivingColors, etc.) have a wider color range and may represent certain colors (such as green) better.
+				<Label>NOTE: Many "full color" lights are not capable of displaying the same full spectrum of light that your computer monitor can display. Thus, when setting Hue and Saturation values, the light will switch to the closest color it can render to the color you specified.*
 				</Label>
 			</Field>
 			<Field id="rgbColor" type="colorpicker" defaultValue="="
@@ -224,7 +224,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				</Label>
 			</Field>
 			<Field id="details0" type="label" fontColor="darkgray" fontSize="small">
-				<Label>* Within 30 seconds (or less) after this action executes, the device states, including the hue and saturation, will update to reflect a more accurate representation of the color being presented by the Hue device. These conversions are done by the Hue Bridge itself.</Label>
+				<Label>* Within 10 seconds (or less) after this action executes, the device states, including the hue and saturation, will update to reflect a more accurate representation of the color being presented by the Hue device. These conversions are done by the Hue Bridge itself.</Label>
 			</Field>
 			<Field id="description" type="textfield" hidden="true">
 				<Label/>
@@ -236,7 +236,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<CallbackMethod>setXYY</CallbackMethod>
 		<ConfigUI>
 			<Field id="intro1" type="label" fontColor="darkgray" fontSize="small">
-				<Label>NOTE: Each Hue device has it's own colorimetry range (gamut). Entering values outside a device's range can result in unexpected colors. See the color plot at http://developers.meethue.com/coreconcepts.html
+				<Label>NOTE: Each light device has it's own colorimetry range (gamut). Entering values outside a device's range can result in unexpected colors.
 				</Label>
 			</Field>
 			<Field id="xyy_x" type="textfield" defaultValue=""
@@ -291,7 +291,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<CallbackMethod>setColorTemperature</CallbackMethod>
 		<ConfigUI>
 			<Field id="intro1" type="label" fontColor="darkgray" fontSize="small">
-				<Label>Color temperature represents the shade of white being seen. When entering a Custom Temperature, a lower number means a "warmer", or more red shade of white.  A higher number means a "cooler", or more blue shade of white.
+				<Label>Color temperature represents the shade of white being seen. When entering a Custom Temperature, a lower number means a "warmer", or more orange shade of white.  A higher number means a "cooler", or more blue shade of white.
 				</Label>
 			</Field>
 			<Field type="menu" id="preset" defaultValue="relax"
@@ -306,7 +306,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				</List>
 			</Field>
 			<Field id="labelPoint" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>Select a "Preset Color Recipe" or select "Custom Temperature/Brightness" to specify a specific color temperature (in Kelvin).</Label>
+				<Label>Select a "Preset Color Recipe" or select "Custom Temperature/Brightness" to enter a specific color temperature (in Kelvin).</Label>
 			</Field>
 			<Field id="temperatureSource" type="menu" defaultValue="custom" visibleBindingId="preset" visibleBindingValue="custom"
 				tooltip="Select how you'd like to specify a color temperature setting. Either by entering a color temperature or by specifying an Indigo variable that contains the color temperature value.">
@@ -327,7 +327,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</Field>
 			<Field id="labelTemperature" type="label" visibleBindingId="temperatureSource" visibleBindingValue="custom" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(2000 - 6500 K)
-2000 = very warm (more red).
+2000 = very warm (more orange).
 6500 = very cool (more blue).</Label>
 			</Field>
 			<Field id="brightnessSource" type="menu" defaultValue="custom"
@@ -374,7 +374,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				</Label>
 			</Field>
 			<Field id="details0" type="label" fontColor="darkgray" fontSize="small">
-				<Label>* Within 30 seconds (or less) after this action executes, the device states, including the color temperature, will update to reflect a more accurate representation of the color being presented by the Hue bulb. These conversions are done by the Hue Bridge itself.</Label>
+				<Label>* Within 10 seconds (or less) after this action executes, the device states, including the color temperature, will update to reflect a more accurate representation of the color being presented by the Hue bulb. These conversions are done by the Hue Bridge itself.</Label>
 			</Field>
 			<Field id="description" type="textfield" hidden="true">
 				<Label/>
@@ -399,7 +399,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<CallbackMethod>effect</CallbackMethod>
 		<ConfigUI>
 			<Field type="menu" id="effect" defaultValue="none"
-				tooltip="Select a preset effect. Effect presets are built into the Hue Bridge and defined by Philips. These presets are not the same as Hue Lights presets.">
+				tooltip="Select a preset effect. Effect presets are usually built into the light device itself. These presets are not the same as Hue Lights presets.">
 				<Label>Presets:</Label>
 				<List>
 					<Option value="none">None</Option>
@@ -407,7 +407,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				</List>
 			</Field>
 			<Field id="labelEffect" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>Select a Hue device effect. This feature requires the latest Hue Bridge firmware. Currently, the Hue system only offers the "Color Loop" effect which cycles through all hues at the current saturation and brightness level.</Label>
+				<Label>Select a Hue device effect. This feature requires the latest Hue Bridge firmware. The Hue lighting devices have only ever offered the "Color Loop" effect which cycles through all hues at the current saturation and brightness level.</Label>
 			</Field>
 			<Field id="description" type="textfield" hidden="true">
 				<Label/>
@@ -485,23 +485,19 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 				<Label>Hue Scenes are stored on the Hue Bridge and are organized here by which application created them.</Label>
 			</Field>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge his Scene is associated with">
-				<Label>Hue Bridge number:</Label>
+				tooltip="Select the Hue Bridge with which this Scene is associated">
+				<Label>Hue Bridge Number:</Label>
 				<List class="self" method="gwListGenerator" dynamicReload="true"> </List>
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>Click to</Label>
-				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
+				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
 			</Field>
 			<Field id="userId" type="menu" defaultValue=""
-				tooltip="Scene Creators are the applications on various devices that have connected to the Hue Bridge and created Scenes.">
+				tooltip="Scene Creators are the applications on your devices that have connected to the Hue Bridge and created Scenes.">
 				<Label>Scene Creator:</Label>
 				<List class="self" method="usersListGenerator" dynamicReload="true"></List>
 				<CallbackMethod>usersListItemSelected</CallbackMethod>
 			</Field>
 			<Field id="userLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>Select a Scene Creator from the Bridge first (or use "All Scene Creators").
+				<Label>Select a Scene Creator from the Hue Bridge first (or use "All Scene Creators").
 				</Label>
 			</Field>
 			<Field id="sceneId" type="menu" defaultValue=""
@@ -515,7 +511,7 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 				</Label>
 			</Field>
 			<Field id="groupId" type="menu" defaultValue=""
-				tooltip="The Hue Bridge allows you to limit a Scene to just one Group, as long as at least one light in the Scene is part of the Group. Lights that are part of a Scene but NOT part of the selected Group Limit will not be affected.">
+				tooltip="The Hue Bridge allows you to limit a Scene to just one Group, as long as at least one light in the Scene is part of the Group. Lights that are part of a Scene but NOT part of the selected Group Limit will be unaffected.">
 				<Label>Group Limit:</Label>
 				<List class="self" method="groupListGenerator" dynamicReload="true"></List>
 				<CallbackMethod>groupsListItemSelected</CallbackMethod>
@@ -525,7 +521,7 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 				</Label>
 			</Field>
 			<Field id="sceneLights" type="list" defaultValue="" readonly="true" enabledBindingId="sceneLightsDisabler"
-				tooltip="This list shows all the lights that will be affected by the combination of Scene and Group Limit selections above. These cannot be edited.">
+				tooltip="This list shows all the lights that will be affected by the combination of the Scene and Group Limit selections above. These cannot be edited.">
 				<Label>Lights Affected:</Label>
 				<List class="self" method="sceneLightsListGenerator" dynamicReload="true"></List>
 			</Field>

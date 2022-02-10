@@ -89,18 +89,18 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 				<Label>Hue Scenes are stored on the Hue Bridge and are organized here by which application created them.</Label>
 			</Field>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge this Scene is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"> </List>
+				tooltip="Select the Bridge with which this Scene is associated.">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"> </List>
 			</Field>
 			<Field id="userId" type="menu" defaultValue=""
-				tooltip="Scene Creators are the applications on various devices that have connected to the Hue Bridge and created Scenes.">
+				tooltip="Scene Creators are the applications on your devices that have connected to the Hue Bridge and created Scenes.">
 				<Label>Scene Creator:</Label>
 				<List class="self" method="usersListGenerator"></List>
 				<CallbackMethod>usersListItemSelected</CallbackMethod>
 			</Field>
 			<Field id="userLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>Select a Scene Creator from the Bridge first (or use "All Scene Creators").
+				<Label>Select a Scene Creator from the Hue Bridge first (or use "All Scene Creators").
 				</Label>
 			</Field>
 			<Field id="sceneId" type="menu" defaultValue=""
@@ -114,7 +114,7 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 				</Label>
 			</Field>
 			<Field id="groupId" type="menu" defaultValue=""
-				tooltip="The Hue bridge allows you to limit a Scene to just one Group, as long as at least one light in the Scene is part of the Group. Lights that are part of a Scene but NOT part of the selected Group Limit will not be affected.">
+				tooltip="The Hue Bridge allows you to limit a Scene to just one Group, as long as at least one light in the Scene is part of the Group. Lights that are part of a Scene but NOT part of the selected Group Limit will be unaffected.">
 				<Label>Group Limit:</Label>
 				<List class="self" method="groupListGenerator"></List>
 				<CallbackMethod>groupsListItemSelected</CallbackMethod>
@@ -144,39 +144,59 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 	</MenuItem>
 	<MenuItem id="sep3" />
 	<MenuItem id="printHueDataMenu">
-		<Name>Print Hue Config Data to Log ...</Name>
+		<Name>Print Hue Bridge Config to Log...</Name>
 		<ConfigUI>
-			<Field  id="whatToPrint" 
-					type="menu" 
-					defaultValue="lights">
-				<Label>Select What to Print:</Label>
+			<Field id="whatToPrint" type="menu" defaultValue="lights">
+				<Label>Select Data to Print:</Label>
 				<List>
-					<Option value="lights">Lights</Option>
-					<Option value="sensors">Sensors </Option>
-					<Option value="groups">Groups</Option>
-					<Option value="scenes">Scenes</Option>
-					<Option value="specificLight">All info for a Bridge and light</Option>
-					<Option value="specificSensor">All info for a Bridge and sensor</Option>
-					<Option value="specificGroup">All info for a Bridge and group</Option>
+					<Option value="lights">All Lights</Option>
+					<Option value="sensors">All Sensors</Option>
+					<Option value="groups">All Groups</Option>
+					<Option value="scenes">All Scenes</Option>
+					<Option value="specificLight">One Light</Option>
+					<Option value="specificSensor">One Sensor</Option>
+					<Option value="specificGroup">One Group</Option>
 				</List>
 			</Field>
-			<Field  id="bulbId" type="menu" 
-					visibleBindingId="whatToPrint" visibleBindingValue="specificLight" >
-				<Label>Select the LIGHT you want to print all info:</Label>
+			<Field id="bulbId" type="menu" 
+				   visibleBindingId="whatToPrint" visibleBindingValue="specificLight" >
+				<Label>Select a Light:</Label>
 				<List class="self" method="printsListGenerator" filter="lights"/>
+				<CallbackMethod>printHueData</CallbackMethod>
 			</Field>
-			<Field  id="groupId" type="menu" 
-					visibleBindingId="whatToPrint" visibleBindingValue="specificGroup" >
-				<Label>Select the GRPUP you want to print all info:</Label>
+			<Field id="groupId" type="menu" 
+				   visibleBindingId="whatToPrint" visibleBindingValue="specificGroup" >
+				<Label>Select a Group:</Label>
 				<List class="self" method="printsListGenerator" filter="groups"/>
+				<CallbackMethod>printHueData</CallbackMethod>
 			</Field>
-			<Field  id="sensorId" type="menu" 
-					visibleBindingId="whatToPrint" visibleBindingValue="specificSensor" >
-				<Label>Select the SENSOR you want to print all info:</Label>
+			<Field id="sensorId" type="menu" 
+				   visibleBindingId="whatToPrint" visibleBindingValue="specificSensor" >
+				<Label>Select a Sensor:</Label>
 				<List class="self" method="printsListGenerator" filter="sensors"/>
+				<CallbackMethod>printHueData</CallbackMethod>
 			</Field>
-			<Field id="doPrint" type="button">
-				<Label>click to</Label>
+			<Field id="doPrint1" type="button"
+				   visibleBindingId="whatToPrint" visibleBindingValue="lights">
+				<Label>Click to</Label>
+				<Title>Print</Title>
+				<CallbackMethod>printHueData</CallbackMethod>
+			</Field>
+			<Field id="doPrint2" type="button"
+				   visibleBindingId="whatToPrint" visibleBindingValue="sensors">
+				<Label>Click to</Label>
+				<Title>Print</Title>
+				<CallbackMethod>printHueData</CallbackMethod>
+			</Field>
+			<Field id="doPrint3" type="button"
+				   visibleBindingId="whatToPrint" visibleBindingValue="groups">
+				<Label>Click to</Label>
+				<Title>Print</Title>
+				<CallbackMethod>printHueData</CallbackMethod>
+			</Field>
+			<Field id="doPrint4" type="button"
+				   visibleBindingId="whatToPrint" visibleBindingValue="scenes">
+				<Label>Click to</Label>
 				<Title>Print</Title>
 				<CallbackMethod>printHueData</CallbackMethod>
 			</Field>

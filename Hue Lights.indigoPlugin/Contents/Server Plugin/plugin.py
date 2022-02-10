@@ -14,7 +14,7 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.8.1
+#	Version 1.8.2
 #
 #	See the "VERSION_HISTORY.txt" file in the same location as this plugin.py
 #	file for a complete version change history.
@@ -4869,7 +4869,7 @@ class Plugin(indigo.PluginBase):
                 elif typeId == "hueLightStrips" and bulbDetails['type'] == kHueBulbDeviceIDType:
                     xList.append([bulbId, bulbDetails['name']])
 
-                elif typeId == "hueLivingColorsBloom" and bulbDetails['type'] == kLivingColorsDeviceIDs:
+                elif typeId == "hueLivingColorsBloom" and bulbDetails['type'] == kLivingColorsDeviceIDType:
                     xList.append([bulbId, bulbDetails['name']+'-..'+bulbDetails['uniqueid'][-10:]])
 
                 elif typeId == "hueLivingWhites" and bulbDetails['type'] == kLivingWhitesDeviceIDType:
@@ -5207,11 +5207,11 @@ class Plugin(indigo.PluginBase):
         return xList
 
 
-    # HUB List Generator
+    # Hue Bridge (Hub) List Generator
     ########################################
-    def gwListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
+    def hubListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
         # Used in actions and device configuration windows that need a list of sensor devices.
-        self.debugLog(u"Starting gwListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, valuesDict, typeId, targetId))
+        self.debugLog(u"Starting hubListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, valuesDict, typeId, targetId))
 
         xList = list()
 
@@ -5224,15 +5224,15 @@ class Plugin(indigo.PluginBase):
                 
             
         # Debug
-        self.debugLog(u"gwListGenerator: Return hubNumber list is {}".format(xList) )
+        self.debugLog(u"hubListGenerator: Return hubNumber list is {}".format(xList) )
 
         return xList
 
 
-    # confirm hub number selection
+    # Populate the hubNumberSelected Dict When a Menu Item is Selected
     ########################################
-    def confirmGWNumber(self, valuesDict, dummy1, dummy2):
-        self.debugLog(u"Starting confirmGWNumber.\n  filter: {}".format(valuesDict) )
+    def hubNumberItemSelected(self, valuesDict, dummy1, dummy2):
+        self.debugLog(u"Starting hubNumberItemSelected.\n  filter: {}".format(valuesDict) )
         self.hubNumberSelected = valuesDict['hubNumber']
         return valuesDict
 
@@ -5784,27 +5784,27 @@ class Plugin(indigo.PluginBase):
 
                         # Is this a link button not pressed error?
                         if errorCode == 1:
-                            errorText = u"getHueConfig: Not paired with the Hue bridge. Press the middle button on the Hue bridge, then press the Pair Now button in the Hue Lights Configuration window (Plugins menu)."
+                            errorText = u"getHueConfig: Not paired with the Hue Bridge. Press the middle button on the Hue Bridge, then press the Pair Now button in the Hue Lights Configuration window (Plugins menu)."
                             self.errorLog(errorText)
                             # Remember the error.
                             self.lastErrorMessage = errorText
                             self.paired[hubNumber] = False
 
                         else:
-                            errorText = u"Error #{} from Hue bridge when getting the Hue bridge configuration. Description is \"{}\"." .format(errorCode, errorDict.get('description', u"(no description"))
+                            errorText = u"Error #{} from Hue Bridge when getting the Hue Bridge configuration. Description is \"{}\"." .format(errorCode, errorDict.get('description', u"(no description"))
                             self.errorLog(errorText)
                             # Remember the error.
                             self.lastErrorMessage = errorText
                             self.paired[hubNumber] = False
 
                     else:
-                        indigo.server.log(u"Unexpected response from Hue bridge ({}) when getting the Hue bridge configuration!" .format(hueConfigResponseData))
+                        indigo.server.log(u"Unexpected response from Hue Bridge ({}) when getting the Hue Bridge configuration!" .format(hueConfigResponseData))
 
                 else:
-                    indigo.server.log(u"Unexpected response from Hue bridge ({}) when getting the Hue bridge configuration!".format(hueConfigResponseData))
+                    indigo.server.log(u"Unexpected response from Hue Bridge ({}) when getting the Hue Bridge configuration!".format(hueConfigResponseData))
 
             except requests.exceptions.Timeout:
-                errorText = u"Failed to load the configuration from the Hue bridge at {} after {} seconds - check settings and retry.".format(ipAddress, kTimeout)
+                errorText = u"Failed to load the configuration from the Hue Bridge at {} after {} seconds - check settings and retry.".format(ipAddress, kTimeout)
                 # Don't display the error if it's been displayed already.
                 if errorText != self.lastErrorMessage:
                     self.errorLog(errorText)
@@ -5812,7 +5812,7 @@ class Plugin(indigo.PluginBase):
                     self.lastErrorMessage = errorText
 
             except requests.exceptions.ConnectionError:
-                errorText = u"Failed to connect to the Hue bridge at {}. - Check that the bridge is connected, turned on and the network settings are correct.".format(ipAddress)
+                errorText = u"Failed to connect to the Hue Bridge at {}. - Check that the bridge is connected, turned on and the network settings are correct.".format(ipAddress)
                 # Don't display the error if it's been displayed already.
                 if errorText != self.lastErrorMessage:
                     self.errorLog(errorText)
@@ -5821,7 +5821,7 @@ class Plugin(indigo.PluginBase):
                 return
 
             except Exception, e:
-                self.errorLog(u"Unable to obtain the configuration from the Hue bridge.{}".format(e))
+                self.errorLog(u"Unable to obtain the configuration from the Hue Bridge.{}".format(e))
         return
 
     # Update Lights List
@@ -6087,9 +6087,9 @@ class Plugin(indigo.PluginBase):
                     elif len(self.sensorsDict[hubNumber]) < lastCount:
                         countChange = lastCount[hubNumber] - len(self.sensorsDict[hubNumber])
                         if countChange == 1:
-                            indigo.server.log(u"{} less Hue sensor was found on the Hue bridge. Check your Hue Lights Indigo devices. One of them may have been controlling the missing Hue sensor." .format(countChange) )
+                            indigo.server.log(u"{} less Hue sensor was found on the Hue Bridge. Check your Hue Lights Indigo devices. One of them may have been controlling the missing Hue sensor." .format(countChange) )
                         elif countChange !=0:
-                            indigo.server.log(u"{} fewer Hue sensors were found on the Hue bridge. Check your Hue Lights Indigo devices. Some of them may have been controlling the missing Hue sensors.".format(countChange) )
+                            indigo.server.log(u"{} fewer Hue sensors were found on the Hue Bridge. Check your Hue Lights Indigo devices. Some of them may have been controlling the missing Hue sensors.".format(countChange) )
                     # Make sure the plugin knows it's actually paired now.
                     self.paired[hubNumber] = True
 
@@ -9552,7 +9552,7 @@ class Plugin(indigo.PluginBase):
        # Do we have a unique Hue username (a.k.a. key or host ID)?
         if self.hostIds == {"0":""}:
             self.hostIds = {"0": self.hostId}
-        indigo.server.log(u"hostIds read:  {}".format(self.hostIds))
+        self.debugLog(u"hostIds read: {}".format(self.hostIds))
 
         for hubNumber in  self.hostIds:
             hueUsername = self.hostIds[hubNumber]
@@ -9580,27 +9580,27 @@ class Plugin(indigo.PluginBase):
                 self.lastErrorMessage = errorText
                 return
             self.ipAddresses[hubNumber] = tempIP[hubNumber]
-        indigo.server.log(u"ipAddresses loaded:{} ".format(self.ipAddresses))
+        self.debugLog(u"ipAddresses loaded: {} ".format(self.ipAddresses))
         self.pluginPrefs['addresses'] = json.dumps(self.ipAddresses)
 
         # Get the entire configuration from the Hue bridge.
         self.getHueConfig()
-        indigo.server.log(u"hubs paired read:  {}".format(self.paired))
+        indigo.server.log(u"Paired Hue Bridges: {}".format(len(self.paired)))
 
         for hubNumber in self.ipAddresses:
             # Now report the results.
             #
             # Lights list...
-            if hubNumber in  self.lightsDict: indigo.server.log(u"hub:{} Loaded {} light(s).".format(hubNumber, len(self.lightsDict[hubNumber])))
+            if hubNumber in  self.lightsDict: indigo.server.log(u"Bridge: {} loaded {} light(s).".format(hubNumber, len(self.lightsDict[hubNumber])))
 
             # Groups list...
-            if hubNumber in  self.groupsDict: indigo.server.log(u"hub:{} Loaded {} group(s).".format(hubNumber, len(self.groupsDict[hubNumber])))
+            if hubNumber in  self.groupsDict: indigo.server.log(u"Bridge: {} loaded {} group(s).".format(hubNumber, len(self.groupsDict[hubNumber])))
 
             # User devices list...
             #indigo.server.log(u"Loaded %i user device." % len(self.usersDict[hubNumber]))
 
             # Scenes list...
-            if hubNumber in  self.scenesDict: indigo.server.log(u"hub:{} Loaded {} scene(s).".format(hubNumber, len(self.scenesDict[hubNumber])))
+            if hubNumber in  self.scenesDict: indigo.server.log(u"Bridge: {} loaded {} scene(s).".format(hubNumber, len(self.scenesDict[hubNumber])))
 
             # Resource links list...
             #indigo.server.log(u"Loaded %i resource link(s)." % len(self.resourcesDict))
@@ -9612,7 +9612,7 @@ class Plugin(indigo.PluginBase):
             #if hubNumber in  self.lightsDict: indigo.server.log(u"Loaded %i schedule(s)." % len(self.schedulesDict))
 
             # Sensors list...
-            if hubNumber in  self.sensorsDict: indigo.server.log(u"hub:{} Loaded {} sensor(s).".format(hubNumber, len(self.sensorsDict[hubNumber])))
+            if hubNumber in  self.sensorsDict: indigo.server.log(u"Bridge: {} loaded {} sensor(s).".format(hubNumber, len(self.sensorsDict[hubNumber])))
         return
 
 
@@ -11712,7 +11712,7 @@ class Plugin(indigo.PluginBase):
 
         return valuesDict
 
-    # nake a dict of hue indigo devices {id:indigoName}
+    # Make a Dict of Hue Indigo Devices {id:indigoName}
     ########################################
     def getIndigoDevDict(self, idName):
         indigoList = {}

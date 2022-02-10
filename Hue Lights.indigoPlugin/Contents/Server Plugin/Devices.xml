@@ -5,14 +5,10 @@
 		<Name>Hue Color/Ambiance and compatible</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge his device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>Click to</Label>
-				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
+				tooltip="Select the Hue Bridge with which this device is associated.">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
 			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu only shows lights that support both full color and color temperature (a.k.a. Ambiance) features, except for the LightStrips.">
@@ -160,14 +156,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Ambiance Lights (color temperature)</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge his device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>Click to</Label>
-				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
+				tooltip="Select the Hue Bridge with which this device is associated.">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
 			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu only shows color temperature (a.k.a. Ambiance) lights. Lights that also support full color will appear in the Hue Color/Ambiance device list.">
@@ -252,17 +244,13 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Light Strips</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge his device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>Click to</Label>
-				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
+				tooltip="Select the Hue Bridge with which this device is associated.">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
 			</Field>
 			<Field id="bulbId" type="menu"
-				tooltip="Select a light to control. This menu only shows light strips.">
+				tooltip="Select a light to control.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbListGenerator"  dynamicReload="true"/> 
 			</Field>
@@ -380,14 +368,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Color Lights (Aura, Bloom, StoryLight, LivingColors, etc.)</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge his device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>Click to</Label>
-				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
+				tooltip="Select the Hue Bridge with which this device is associated.">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
 			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu shows color lights such as the Bloom, StoryLight and other color lights. It does not include LightStrips or color temperature lights.">
@@ -500,14 +484,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>LivingWhites (Hue Lux, generic dimmable device, etc.)</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge his device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>Click to</Label>
-				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
+				tooltip="Select the Hue Bridge with which this device is associated.">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
 			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu shows basic dimming lights that don't support any color changes.">
@@ -580,14 +560,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>On/Off Device (Hue Smart Plug, etc.)</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge his device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>Click to</Label>
-				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
+				tooltip="Select the Hue Bridge with which this device is associated.">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
 			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select an on/off device to control. This menu shows basic on/off devices that don't support any color changes or dimming capabilities.">
@@ -624,17 +600,13 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Hue Group</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge his device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>Click to</Label>
-				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
+				tooltip="Select the Hue Bridge with which this device is associated.">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
 			</Field>
 			<Field id="groupId" type="menu"
-				tooltip="Select a Hue Group to control. This menu contains all the groups saved in the Hue hub. Groups can contain any combination of Hue supported lights.">
+				tooltip="Select a Hue Group to control. This menu contains all the groups saved in the Hue Bridge. Groups can contain any combination of Hue supported lights.">
 				<Label>Hue Group:</Label>
 				<List class="self" method="groupListGenerator" dynamicReload="true"/>
 				<CallbackMethod>groupsListItemSelected</CallbackMethod>
@@ -779,14 +751,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Hue Motion Sensor (Motion)</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge his device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>Click to</Label>
-				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
+				tooltip="Select the Hue Bridge with which this device is associated.">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Motion Sensor.">
@@ -849,14 +817,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Hue Motion Sensor (Temperature)</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge his device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>Click to</Label>
-				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
+				tooltip="Select the Hue Bridge with which this device is associated.">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Motion Sensor.">
@@ -936,14 +900,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 		<Name>Hue Motion Sensor (Luminance)</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge his device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>Click to</Label>
-				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
+				tooltip="Select the Hue Bridge with which this device is associated.">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Motion Sensor.">
@@ -1027,14 +987,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 		<Name>Hue Tap Switch</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge his device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>Click to</Label>
-				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
+				tooltip="Select the Hue Bridge with which this device is associated.">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Tap Switch.">
@@ -1096,14 +1052,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 		<Name>Hue Dimmer Switch</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge his device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>Click to</Label>
-				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
+				tooltip="Select the Hue Bridge with which this device is associated.">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Dimmer Switch.">
@@ -1232,14 +1184,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 		<Name>Hue Smart Button</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge his device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>Click to</Label>
-				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
+				tooltip="Select the Hue Bridge with which this device is associated.">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Smart Button.">
@@ -1303,14 +1251,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 		<Name>Hue Wall Switch Module</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge his device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>Click to</Label>
-				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
+				tooltip="Select the Hue Bridge with which this device is associated.">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Wall Switch Module.">
@@ -1400,14 +1344,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 		<Name>Run Less Wire or Niko Switch</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge his device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>Click to</Label>
-				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
+				tooltip="Select the Hue Bridge with which this device is associated.">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Run Less Wire or Niko Switch.">
@@ -1549,14 +1489,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 		<Name>Hue Device Attribute Controller</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge his device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>Click to</Label>
-				<Title>Select Bridge Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
+				tooltip="Select the Hue Bridge with which this device is associated.">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
+				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
 			</Field>
 			<Field id="bulbDeviceId" type="menu"
 				tooltip="Select a Hue light or group that this attribute controller should control.">
