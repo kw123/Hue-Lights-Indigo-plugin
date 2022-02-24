@@ -39,7 +39,7 @@
 		<CallbackMethod>selHubNumberCallback</CallbackMethod>
     </Field>
 
-	<Field id="ipvisible" type="checkbox" defaultValue="false">
+	<Field id="ipvisible" type="checkbox" defaultValue="true">
     </Field>
 	
 	<Field id="address" type="textfield" visibleBindingId="ipvisible" visibleBindingValue="true"  defaultValue=""
@@ -55,12 +55,12 @@
 		<Label>Host ID:</Label>
 	</Field>
 	<Field id="labelHostId" type="label" visibleBindingId="ipvisible" visibleBindingValue="true"  alignWithControl="true" fontColor="darkgray" fontSize="small">
-		<Label>(read-only). Generated host ID assigned by the Hue hub.</Label>
+		<Label>(read-only). Generated host ID assigned by the Hue bridge.</Label>
 	</Field>
 
 	<Field id="startPairingButton"
 			type="button" visibleBindingId="ipvisible" visibleBindingValue="true" 
-			tooltip="Before clicking this button, press the center button on the Hue hub.  Within 30 seconds of doing that, come back here and click this button to pair with the Hue hub.">
+			tooltip="Before clicking this button, press the center button on the Hue bridge.  Within 30 seconds of doing that, come back here and click this button to pair with the Hue bridge.">
 		<Label>Pairing:</Label>
 		<Title>Pair Now</Title>
 		<CallbackMethod>restartPairing</CallbackMethod>

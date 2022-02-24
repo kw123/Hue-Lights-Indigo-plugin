@@ -1,5 +1,21 @@
 HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
 ========================================
+1.8.7
+* Fixed a bug where pre-version 1.8 Hue bridge preferences weren't migrated correctly to the new 1.8 version.
+* Fixed a bug that caused the plugin to crash when using the XYY color setting action.
+--
+1.8.6
+* Added option to switch logging on/off for events and light changes such as "Hue Lights received 'dimmer dining' ON button press with short release" and "Updated 'dining room ceiling' on to 11". (unreleased).
+--
+1.8.5
+* Fixed an error in doColorTemperature where not all arguments were converted during string formatting. (unreleased).
+--
+1.8.4
+* Fixed "This Hue connected device is already being controlled by..." error. (unreleased).
+--
+1.8.3
+* Fixed "unicode" object has no attribute "formate". (unreleased).
+--
 1.8.2
 * Fixed some dialog bugs and a number of inconsistent labels.
 --

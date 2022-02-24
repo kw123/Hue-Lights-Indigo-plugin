@@ -14,7 +14,7 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
-#	Version 1.8.2
+#	Version 1.8.7
 #
 #	See the "VERSION_HISTORY.txt" file in the same location as this plugin.py
 #	file for a complete version change history.
@@ -61,15 +61,15 @@ class Plugin(indigo.PluginBase):
         else:
             self.plugin_file_handler.setLevel(logging.INFO)
         self.debugLog(u"Starting plugin initialization.")
-        self.hostId = pluginPrefs.get('hostId', "")	# Username/key used to access Hue bridge Old
-        self.hostIds = json.loads(pluginPrefs.get('hostIds', '{"0":""}'))	# Username/key used to access Hue bridge for multiple bridge
+        self.hostId = pluginPrefs.get('hostId', "")	# user ID used to access Hue bridge (pre-version 1.8).
+        self.hostIds = json.loads(pluginPrefs.get('hostIds', '{"0":"' + self.hostId + '"}'))	# user IDs used to access Hue bridge for multiple bridges
         self.threadsList = []		    # list of threads used for various processes outside runConcurrentThread.
         ### one list for all devices on all bridges related to indigo devices 
         self.deviceList = []		    # list of device IDs to monitor (one list for all devices on all bridges)
         self.controlDeviceList = []	    # list of virtual dimmer device IDs that control bulb devices
         self.brighteningList = []	    # list of device IDs being brightened
         self.dimmingList = []		    # list of device IDs being dimmed
-        ### one for each bridge read from bridge
+        ### one for each bridge
         self.paired = {"0":False}		# if paired with Hue bridge or not
         self.hueConfigDict = {"0":{}}   # Entire Hue bridge configuration dictionary.
         self.lightsDict = {"0":{}}	    # Hue devices dict.
@@ -80,12 +80,13 @@ class Plugin(indigo.PluginBase):
         self.scenesDict = {"0":{}}	    # Hue scenes dict.
         self.rulesDict = {"0":{}}		# Hue trigger rules dict.
         self.schedulesDict = {"0":{}}	# Hue schedules dict.
+        self.ipAddress = ""			    # Hue bridge IP address (from pre-version 1.8).
         self.ipAddresses = {"0":{}}	    # Hue bridge IP addresses 
 
         self.hubNumberSelected = "0"    # default hub number 
         self.lastErrorMessage = u""	    # last error message displayed in log
         self.unsupportedDeviceWarned = False	# Boolean. Was user warned this device isn't supported?
-        self.usersListSelection = ""	# String. The Hue whilelist user ID selected in action UIs.
+        self.usersListSelection = ""	# String. The Hue user ID on the bridge selected in action UIs.
         self.sceneListSelection = ""	# String. The Hue scene ID selected in action UIs.
         self.groupListSelection = ""	# String. The Hue group ID selected in action UIs.
         self.maxPresetCount = int(pluginPrefs.get('maxPresetCount', "30"))	# Integer. The maximum number of Presets to use and store.
@@ -2591,15 +2592,15 @@ class Plugin(indigo.PluginBase):
 
 
 
-    # set deflaut Preferences Configuration.
+    # Set Default Preferences Configuration.
     ########################################
     def getPrefsConfigUiValues(self):
         valuesDict = indigo.Dict()
 
-        self.debugLog(u'Starting  getPrefsConfigUiValues(self):')
+        self.debugLog(u'Starting getPrefsConfigUiValues(self):')
         valuesDict['hubNumber'] = "0"
         valuesDict['address'] = self.ipAddresses['0']
-        valuesDict['labelHostId'] = self.hostIds['0']
+        valuesDict['hostId'] = self.hostIds['0']
         valuesDict['ipvisible'] = False
 
         return super(Plugin, self).getPrefsConfigUiValues()
@@ -5215,7 +5216,7 @@ class Plugin(indigo.PluginBase):
 
         xList = list()
 
-        # pick the gateway for this device scenario ... is associtated with
+        # pick the bridge for this device scenario ... is associtated with
         if "hubNumber" not in valuesDict: valuesDict['hubNumber'] = "0"
         for hubNumber in self.ipAddresses:
             if hubNumber != valuesDict['hubNumber']:
@@ -5921,7 +5922,7 @@ class Plugin(indigo.PluginBase):
                     self.lastErrorMessage = errorText
                 return
 
-            except Exception, e:
+            except Exception as e:
                 errorText = u"Unable to obtain list of Hue lights from the bridge. at line:{};  error msg:{}\n lastCount:{}".format(sys.exc_traceback.tb_lineno, e, lastCount) 
                 # Don't display the error if it's been displayed already.
                 if errorText != self.lastErrorMessage:
@@ -8988,7 +8989,7 @@ class Plugin(indigo.PluginBase):
                     #   of a second (0.5 = 0.5 seconds, 10 = 10 seconds, etc), so
                     #   it must be converted to 10th seconds here.
                     rampRate = int(round(float(device.pluginProps['rate']) * 10))
-            except Exception, e:
+            except Exception as e:
                 errorText = u"Default ramp rate could not be obtained: {}".format(e)
                 self.errorLog(errorText)
                 # Remember the error.
@@ -9084,7 +9085,7 @@ class Plugin(indigo.PluginBase):
             command = "http://{}/api/{}/groups/{}/action".format(ipAddress, self.hostIds[hubNumber], groupId)
         else:
             command = "http://{}/api/{}/lights/{}/state".format(ipAddress, self.hostIds[hubNumber], bulbId)
-        self.debugLog(u"Request is {}".format(r.content) )
+        self.debugLog(u"Request is {}".format(requestData))
         try:
             r = requests.put(command, data=requestData, timeout=kTimeout)
         except requests.exceptions.Timeout:
@@ -9103,7 +9104,7 @@ class Plugin(indigo.PluginBase):
                 # Remember the error.
                 self.lastErrorMessage = errorText
             return
-        self.debugLog(u"Got response - {}".format(r.content) )
+        self.debugLog(u"Request is {}".format(r.content) )
 
         # Update on Indigo
         if int(round(brightness/255.0*100.0)) > 0:
@@ -11528,7 +11529,7 @@ class Plugin(indigo.PluginBase):
 
     # print to logfile info from hub 
     ########################################
-  # Bulb List Generator
+    # Bulb List Generator
     ########################################
     def printsListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
         # Used in actions that need a list of Hue bridge devices.
