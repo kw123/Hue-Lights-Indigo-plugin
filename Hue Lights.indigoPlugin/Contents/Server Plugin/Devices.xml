@@ -5,10 +5,14 @@
 		<Name>Hue Color/Ambiance and compatible</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Hue Bridge with which this device is associated.">
-				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
-				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu only shows lights that support both full color and color temperature (a.k.a. Ambiance) features, except for the LightStrips.">
@@ -44,6 +48,9 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</Field>
 			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
+			</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -149,6 +156,31 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>Online</TriggerLabel>
 				<ControlPageLabel>Online</ControlPageLabel>
 			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="manufacturerName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="modelId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 	<!-- Ambiance Device -->
@@ -156,10 +188,14 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Ambiance Lights (color temperature)</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Hue Bridge with which this device is associated.">
-				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
-				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu only shows color temperature (a.k.a. Ambiance) lights. Lights that also support full color will appear in the Hue Color/Ambiance device list.">
@@ -195,6 +231,9 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</Field>
 			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
+			</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -237,6 +276,31 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>Online</TriggerLabel>
 				<ControlPageLabel>Online</ControlPageLabel>
 			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="manufacturerName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="modelId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- LightStrips Device -->
@@ -244,13 +308,17 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Light Strips</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Hue Bridge with which this device is associated.">
-				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
-				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="bulbId" type="menu"
-				tooltip="Select a light to control.">
+				tooltip="Select a light to control. This menu only shows light strips.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbListGenerator"  dynamicReload="true"/> 
 			</Field>
@@ -283,6 +351,9 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</Field>
 			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
+			</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -361,6 +432,31 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>Online</TriggerLabel>
 				<ControlPageLabel>Online</ControlPageLabel>
 			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="manufacturerName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="modelId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- LivingColors Bloom Device -->
@@ -368,10 +464,14 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Color Lights (Aura, Bloom, StoryLight, LivingColors, etc.)</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Hue Bridge with which this device is associated.">
-				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
-				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu shows color lights such as the Bloom, StoryLight and other color lights. It does not include LightStrips or color temperature lights.">
@@ -407,6 +507,9 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</Field>
 			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
+			</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -477,6 +580,31 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>Online</TriggerLabel>
 				<ControlPageLabel>Online</ControlPageLabel>
 			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="manufacturerName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="modelId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- LivingWhites Device -->
@@ -484,10 +612,14 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>LivingWhites (Hue Lux, generic dimmable device, etc.)</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Hue Bridge with which this device is associated.">
-				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
-				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu shows basic dimming lights that don't support any color changes.">
@@ -524,6 +656,9 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
 			</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
+			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
 			<Field id="savedBrightness" type="textfield" hidden="true" />
@@ -553,6 +688,31 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>Online</TriggerLabel>
 				<ControlPageLabel>Online</ControlPageLabel>
 			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="manufacturerName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="modelId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- On/Off Only Device -->
@@ -560,15 +720,22 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>On/Off Device (Hue Smart Plug, etc.)</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Hue Bridge with which this device is associated.">
-				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
-				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="bulbId" type="menu"
 				tooltip="Select an on/off device to control. This menu shows basic on/off devices that don't support any color changes or dimming capabilities.">
 				<Label>Hue Device:</Label>
 				<List class="self" method="bulbListGenerator" filter="hueOnOffDevice" dynamicReload="true"/>
+			</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -593,6 +760,31 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>Online</TriggerLabel>
 				<ControlPageLabel>Online</ControlPageLabel>
 			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="manufacturerName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="modelId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- Hue Group Device -->
@@ -600,13 +792,17 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Hue Group</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Hue Bridge with which this device is associated.">
-				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
-				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="groupId" type="menu"
-				tooltip="Select a Hue Group to control. This menu contains all the groups saved in the Hue Bridge. Groups can contain any combination of Hue supported lights.">
+				tooltip="Select a Hue Group to control. This menu contains all the groups saved in the Hue hub. Groups can contain any combination of Hue supported lights.">
 				<Label>Hue Group:</Label>
 				<List class="self" method="groupListGenerator" dynamicReload="true"/>
 				<CallbackMethod>groupsListItemSelected</CallbackMethod>
@@ -655,6 +851,9 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</Field>
 			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
+			</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="savedBrightness" type="textfield" hidden="true" />
@@ -725,20 +924,40 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>Effect</TriggerLabel>
 				<ControlPageLabel>Effect</ControlPageLabel>
 			</State>
-			<State id="groupMemberIDs">
+			<State id="lightIds">
 				<ValueType>String</ValueType>
-				<TriggerLabel>Group Member IDs</TriggerLabel>
-				<ControlPageLabel>Group Members IDs</ControlPageLabel>
+				<TriggerLabel>light IDs</TriggerLabel>
+				<ControlPageLabel>light IDs</ControlPageLabel>
+			</State>
+			<State id="sensorIds">
+				<ValueType>String</ValueType>
+				<TriggerLabel>sensor IDs</TriggerLabel>
+				<ControlPageLabel>sensor IDs</ControlPageLabel>
 			</State>
 			<State id="allOn">
 				<ValueType>Boolean</ValueType>
-				<TriggerLabel>All Group Members On</TriggerLabel>
-				<ControlPageLabel>All Group Memebers On</ControlPageLabel>
+				<TriggerLabel>All Lights On</TriggerLabel>
+				<ControlPageLabel>All Lights On</ControlPageLabel>
 			</State>
 			<State id="anyOn">
 				<ValueType>Boolean</ValueType>
-				<TriggerLabel>Any Group Members On</TriggerLabel>
-				<ControlPageLabel>Any Group Memebers On</ControlPageLabel>
+				<TriggerLabel>Any Lights On</TriggerLabel>
+				<ControlPageLabel>Any Lights On</ControlPageLabel>
+			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="groupClass">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -751,15 +970,22 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Hue Motion Sensor (Motion)</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Hue Bridge with which this device is associated.">
-				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
-				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Motion Sensor.">
 				<Label>Hue Sensor:</Label>
 				<List class="self" method="sensorListGenerator" filter="hueMotionSensor"  dynamicReload="true"/>
+			</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -807,8 +1033,28 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
-				<TriggerLabel>Last Updated on Bridge</TriggerLabel>
-				<ControlPageLabel>Last Updated on Bridge</ControlPageLabel>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="manufacturerName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="modelId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -817,10 +1063,14 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Hue Motion Sensor (Temperature)</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Hue Bridge with which this device is associated.">
-				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
-				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Motion Sensor.">
@@ -843,6 +1093,9 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>(-10 to 10 degrees)
 Optionally set a calibration offset if the sensor readings are inaccurate.
 </Label>
+			</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -880,8 +1133,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
-				<TriggerLabel>Last Updated on Bridge</TriggerLabel>
-				<ControlPageLabel>Last Updated on Bridge</ControlPageLabel>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
 			</State>
 			<State id="temperatureC">
 				<ValueType>Number</ValueType>
@@ -893,6 +1146,31 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>Temperature (ºF)</TriggerLabel>
 				<ControlPageLabel>Temperature (ºF)</ControlPageLabel>
 			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="manufacturerName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="modelId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 	<!--   LUMINANCE   -->
@@ -900,15 +1178,22 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 		<Name>Hue Motion Sensor (Luminance)</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Hue Bridge with which this device is associated.">
-				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
-				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Motion Sensor.">
 				<Label>Hue Sensor:</Label>
 				<List class="self" method="sensorListGenerator" filter="hueMotionLightSensor"  dynamicReload="true"/>
+			</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -956,8 +1241,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
-				<TriggerLabel>Last Updated on Bridge</TriggerLabel>
-				<ControlPageLabel>Last Updated on Bridge</ControlPageLabel>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
 			</State>
 			<State id="luminance">
 				<ValueType>Number</ValueType>
@@ -979,6 +1264,31 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>Dark Threshold Offset (lux)</TriggerLabel>
 				<ControlPageLabel>Dark Threshold Offset (lxu)</ControlPageLabel>
 			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="manufacturerName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="modelId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     
@@ -987,15 +1297,22 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 		<Name>Hue Tap Switch</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Hue Bridge with which this device is associated.">
-				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
-				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Tap Switch.">
 				<Label>Hue Tap Switch:</Label>
 				<List class="self" method="sensorListGenerator" filter="hueTapSwitch"  dynamicReload="true"/>
+			</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -1041,8 +1358,33 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
             </State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
-				<TriggerLabel>Last Updated on Bridge</TriggerLabel>
-				<ControlPageLabel>Last Updated on Bridge</ControlPageLabel>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="manufacturerName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="modelId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1052,15 +1394,22 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 		<Name>Hue Dimmer Switch</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Hue Bridge with which this device is associated.">
-				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
-				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Dimmer Switch.">
 				<Label>Hue Dimmer Switch:</Label>
 				<List class="self" method="sensorListGenerator" filter="hueDimmerSwitch"  dynamicReload="true"/>
+			</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -1173,8 +1522,33 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
             </State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
-				<TriggerLabel>Last Updated on Bridge</TriggerLabel>
-				<ControlPageLabel>Last Updated on Bridge</ControlPageLabel>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="manufacturerName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="modelId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1184,15 +1558,22 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 		<Name>Hue Smart Button</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Hue Bridge with which this device is associated.">
-				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
-				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Smart Button.">
 				<Label>Hue Smart Button:</Label>
 				<List class="self" method="sensorListGenerator" filter="hueSmartButton"  dynamicReload="true"/>
+			</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -1240,8 +1621,33 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
             </State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
-				<TriggerLabel>Last Updated on Bridge</TriggerLabel>
-				<ControlPageLabel>Last Updated on Bridge</ControlPageLabel>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="manufacturerName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="modelId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1251,15 +1657,22 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 		<Name>Hue Wall Switch Module</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Hue Bridge with which this device is associated.">
-				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
-				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Wall Switch Module.">
 				<Label>Hue Wall Switch Module:</Label>
 				<List class="self" method="sensorListGenerator" filter="hueWallSwitchModule"  dynamicReload="true"/>
+			</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -1333,26 +1746,58 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
             </State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
-				<TriggerLabel>Last Updated on Bridge</TriggerLabel>
-				<ControlPageLabel>Last Updated on Bridge</ControlPageLabel>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="manufacturerName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="modelId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
 
 	<!-- Run Less Wire or Niko Switch -->
 	<Device type="sensor" id="runLessWireSwitch">
-		<Name>Run Less Wire or Niko Switch</Name>
+		<Name>Run Less Wire, Niko Switch, FriendsOfHue</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Hue Bridge with which this device is associated.">
-				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
-				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Run Less Wire or Niko Switch.">
 				<Label>Run Less Wire or Niko Switch:</Label>
 				<List class="self" method="sensorListGenerator" filter="runLessWireSwitch"  dynamicReload="true"/>
+			</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true" />
 			<Field id="nameOnHub" type="textfield" hidden="true" />
@@ -1476,8 +1921,33 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
             </State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
-				<TriggerLabel>Last Updated on Bridge</TriggerLabel>
-				<ControlPageLabel>Last Updated on Bridge</ControlPageLabel>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="manufacturerName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="modelId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1489,10 +1959,14 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 		<Name>Hue Device Attribute Controller</Name>
 		<ConfigUI>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Hue Bridge with which this device is associated.">
-				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"/> 
-				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="bulbDeviceId" type="menu"
 				tooltip="Select a Hue light or group that this attribute controller should control.">

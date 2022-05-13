@@ -1,5 +1,81 @@
+========================================
+1.10.21 @ 2022-05-09
+* fixed hubnumber default from False to "0" in action execution
+  this created an error when hubnumber was not selected in device actions edit
+
+
+========================================
+1.10.20 @ 2022-04-6
+* added dev name to >> Set hue device to   ..<< to >> Set hue device:"devName" to ...<
+
+
+
+========================================
+1.10.19 @ 2022-04-14
+* bug fix: Plugin' object has no attribute 'getbaseHTTP' .. should be  baseHTTPAddress
+* bug fix: global name 'hubnumber' is not defined  ..  should be hubNumber
+
+
+
+========================================
+1.10.18 @ 2022-04-13
+* added option to enter effect manually besides preset colorloop in effect action
+* bug fix: Plugin' object has no attribute 'getbaseHTTP' .. should be  baseHTTPAddress
+* bug fix: global name 'hubnumber' is not defined, shluld be hubNumber
+
+
+========================================
+1.10.16 @ 2022-04-01
+* fixed hue value > 360
+* fixed /0 if ColorX or colorY ==0 
+
+
+========================================
+1.10.15 @ 2022-03-29
+* bug fix: logChanges not defined  
+
+========================================
+1.10.14 @ 2022-03-29
+* prepared for indigo v 2022.1 
+* added some more print options and some bugs were fixed 
+
+========================================
+1.9.14 @ 2022-03-16
+* did a lot of testing 
+* fixed several bugs ie when more than one bridge is used
+* added several print options (for rules, schedules, resource links, config, user lists (whitelist) etc)
+* added print option for orphanes, indigo devices that do not exists anymore on the bridge
+* tested with 3 bridges, 70+ lights, 30+ sensors/ switches
+
+========================================
+1.9.12
+* following recommendations from Jay
+* removed autocreate folder for new devices, now it will only create a folder when you execute menu: "Create all HUE light devices in indigo if they do not exist already"
+* removed debug setting from config. now ONLY in menu. only in one place. Menu is better as you likely want to easily switch it on and then off to avoid a lot pages printed to logfile.
+
+
 HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
 ========================================
+1.9.11
+* Fixed a bug:   NameError: global name 'lastUpdated' is not defined
+
+
+HUE LIGHTS INDIGO PLUGIN VERSION HISTORY
+========================================
+1.8.9
+* Fixed a bug  eorror: "plugin does not define method hubNumberItemSelected"
+* added several states to devices to show eg Hubnumber modelID, type etc in state list
+* made debugging a litle more specific, ie you can select which area should be debugged, read or write from to hub, updating devices, init etc . so that debuging does not too big.
+  the detailed logging is done in /Library/Application Support/Perceptive Automation/Indigo 2021.2/Logs/com.nathansheldon.indigoplugin.HueLights
+* added menu item to create ALL hue light devcies. by reading from the hue bridges and creating corresponding indigo devices if they do not exist yet
+  the names will be Hue_light_bridge#_lightID#_nameOnBridge. 
+   you can set the folder where they are created in config , default is Hue New Devices.
+* changed eg abc == True:  to abc:  and the same for == False
+* streamlined the code for receiving of data to set all common states and dev props in a common mothod.
+
+above this Karl Wachs 
+
+--
 1.8.7
 * Fixed a bug where pre-version 1.8 Hue bridge preferences weren't migrated correctly to the new 1.8 version.
 * Fixed a bug that caused the plugin to crash when using the XYY color setting action.

@@ -306,7 +306,23 @@ kCompatibleDeviceIDs = kHueBulbDeviceIDs + kAmbianceDeviceIDs + kLivingColorsDev
 kCompatibleDeviceIDType = kHueBulbDeviceIDType + kAmbianceDeviceIDType + kLivingColorsDeviceIDType + kLightStripsDeviceIDType + kLivingWhitesDeviceIDType + kOnOffOnlyDeviceIDType
 
 
+kmapHueTypeToIndigoDevType = {	
+#								Hue_Type					indigo dev types					indigo dev type text											LEDs 
+								"Extended color light":		["hueBulb", "hueLightStrips"],  # = "Hue Color/Ambiance and compatible"  and  "Light Strips"   		rgb xyz color temp 		RGB and cold and Warm LED
+								"Color light":				["hueLivingColorsBloom"],  		# = "Color Lights (Aura, Bloom, StoryLight, LivingColors, etc.)" 	rgb xyz NO color Temp 	RGB LEDS
+								"Dimmable light":			["hueLivingWhites"],  			# =" LivingWhites (Hue Lux, generic dimmable device, etc.)"     	white lamp only dimmer	White LED
+								"Color temperature light":	["hueAmbiance"], 				# = "Ambiance Lights (color temperature)" 							dimmer and color temperature cold + warm LED
+								"On/Off":					["hueOnOffDevice"],   			# ="On/Off Device (Hue Smart Plug, etc.)" 							on off only
+							}
 
+kmapIndigoDevTypeToHueType = {	
+								"hueBulb": 				"Extended color light",
+								"hueLightStrips":		"Extended color light",
+								"hueLivingColorsBloom":	"Color light",
+								"hueLivingWhites":		"Dimmable light",
+								"hueAmbiance":			"Color temperature light",
+								"hueOnOffDevice":		"On/Off"	
+							}
 
 
 ### SENSORS ###
@@ -342,4 +358,72 @@ kLightSensorTypeIDs = ['hueMotionLightSensor']
 kSwitchTypeIDs = ['hueTapSwitch', 'hueDimmerSwitch', 'hueSmartButton', 'runLessWireSwitch']
 # possible hub numbers
 khubNumbersAvailable = ["0","1","2","3","4","5","6","7","8","9"]
+
+kSensorTypeList = kSwitchTypeIDs + kMotionSensorTypeIDs + kTemperatureSensorTypeIDs + kLightSensorTypeIDs
+
+kmapSensorTypeToIndigoDevType = {	
+#								Hue_Type					indigo dev types					indigo dev type text											LEDs 
+								"ZLLPresence":				["hueMotionSensor"],  
+								"ZLLTemperature":			["hueMotionTemperatureSensor"],  
+								"ZLLLightLevel":			["hueMotionLightSensor"],  			
+								"ZLLSwitch":				["hueDimmerSwitch", "hueSmartButton", "hueWallSwitchModule"], 				
+								"ZGPSwitch":				["hueTapSwitch", "runLessWireSwitch"] 				
+							}
+
+kmapSensordevTypeToModelId = {
+								"hueMotionSensor": 			['SML003'],
+								"hueMotionTemperatureSensor": ['SML003'],
+								"hueMotionLightSensor": 	['SML003'],
+								"hueDimmerSwitch": 			['RWL020', 'RWL021', 'RWL022'],
+								"hueSmartButton": 			['ROM001'],
+								"hueWallSwitchModule": 		['RDM001'],
+								"hueTapSwitch": 			['ZGPSWITCH', 'SWT001'],
+								"hueWallSwitchModule": 		['RDM001'],
+								"runLessWireSwitch": 		['FOHSWITCH', 'PTM215Z']
+							}
+
+kmapIndigoDevTypeToSensorType = {	
+								"hueMotionSensor": 				"ZLLPresence",
+								"hueMotionTemperatureSensor":	"ZLLTemperature",
+								"hueMotionLightSensor":			"ZLLLightLevel",
+								"hueDimmerSwitch":				"ZLLSwitch",
+								"hueSmartButton":				"ZLLSwitch",
+								"hueTapSwitch":					"ZGPSwitch",
+								"hueWallSwitchModule":			"ZGPSwitch",
+								"runLessWireSwitch":			"ZGPSwitch"
+							}
+
+ksupportsOnState = 			{
+								"hueMotionSensor": 				True,
+								"hueMotionTemperatureSensor": 	False,
+								"hueMotionLightSensor": 		False,
+								"hueDimmerSwitch": 				True,
+								"hueSmartButton": 				True,
+								"hueTapSwitch": 				True,
+								"hueWallSwitchModule": 			True,
+								"runLessWireSwitch":			True
+							}
+
+ksupportsSensorValue = 			{
+								"hueMotionSensor": 				False,
+								"hueMotionTemperatureSensor": 	True,
+								"hueMotionLightSensor": 		True,
+								"hueDimmerSwitch": 				False,
+								"hueSmartButton": 				False,
+								"hueTapSwitch": 				False,
+								"hueWallSwitchModule": 			False,
+								"runLessWireSwitch":			False
+							}
+
+ksupportsBatteryLevel = 			{
+								"hueMotionSensor": 				True,
+								"hueMotionTemperatureSensor": 	True,
+								"hueMotionLightSensor": 		True,
+								"hueDimmerSwitch": 				True,
+								"hueSmartButton": 				True,
+								"hueTapSwitch": 				False,
+								"hueWallSwitchModule": 			True,
+								"runLessWireSwitch":			False
+							}
+
 

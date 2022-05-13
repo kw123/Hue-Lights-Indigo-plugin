@@ -402,15 +402,20 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				tooltip="Select a preset effect. Effect presets are usually built into the light device itself. These presets are not the same as Hue Lights presets.">
 				<Label>Presets:</Label>
 				<List>
-					<Option value="none">None</Option>
+					<Option value="none">None = off</Option>
 					<Option value="colorloop">Color Loop</Option>
+					<Option value="manual">enter command manually</Option>
 				</List>
+			</Field>
+			<Field id="effectManual" type="textfield" hidden="false" visibleBindingId="effect" visibleBindingValue="manual" >
+				<Label>enter effect command manually:</Label>
 			</Field>
 			<Field id="labelEffect" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Select a Hue device effect. This feature requires the latest Hue Bridge firmware. The Hue lighting devices have only ever offered the "Color Loop" effect which cycles through all hues at the current saturation and brightness level.</Label>
 			</Field>
+
 			<Field id="description" type="textfield" hidden="true">
-				<Label/>
+				<Label></Label>
 			</Field>
 		</ConfigUI>
 	</Action>
@@ -488,7 +493,6 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 				tooltip="Select the Hue Bridge with which this Scene is associated">
 				<Label>Hue Bridge Number:</Label>
 				<List class="self" method="gwListGenerator" dynamicReload="true"> </List>
-				<CallbackMethod>hubNumberItemSelected</CallbackMethod>
 			</Field>
 			<Field id="userId" type="menu" defaultValue=""
 				tooltip="Scene Creators are the applications on your devices that have connected to the Hue Bridge and created Scenes.">

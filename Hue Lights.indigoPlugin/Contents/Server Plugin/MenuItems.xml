@@ -89,18 +89,18 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 				<Label>Hue Scenes are stored on the Hue Bridge and are organized here by which application created them.</Label>
 			</Field>
 			<Field id="hubNumber" type="menu"
-				tooltip="Select the Bridge with which this Scene is associated.">
-				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="hubListGenerator" dynamicReload="true"> </List>
+				tooltip="Select the Gateway his Scene is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" dynamicReload="true"> </List>
 			</Field>
 			<Field id="userId" type="menu" defaultValue=""
-				tooltip="Scene Creators are the applications on your devices that have connected to the Hue Bridge and created Scenes.">
+				tooltip="Scene Creators are the applications on various devices that have connected to the Hue Bridge and created Scenes.">
 				<Label>Scene Creator:</Label>
 				<List class="self" method="usersListGenerator"></List>
 				<CallbackMethod>usersListItemSelected</CallbackMethod>
 			</Field>
 			<Field id="userLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>Select a Scene Creator from the Hue Bridge first (or use "All Scene Creators").
+				<Label>Select a Scene Creator from the Bridge first (or use "All Scene Creators").
 				</Label>
 			</Field>
 			<Field id="sceneId" type="menu" defaultValue=""
@@ -110,11 +110,11 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 				<CallbackMethod>scenesListItemSelected</CallbackMethod>
 			</Field>
 			<Field id="scemeLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>Some Scenes may have the same name because of how the Hue app creates them on the Bridge. Use the Lights Affected list below to distinguish between Scenes with the same name.
+				<Label>Some Scenes may have the same name because of how the Hue app creates them on the GW. Use the Lights Affected list below to distinguish between Scenes with the same name.
 				</Label>
 			</Field>
 			<Field id="groupId" type="menu" defaultValue=""
-				tooltip="The Hue Bridge allows you to limit a Scene to just one Group, as long as at least one light in the Scene is part of the Group. Lights that are part of a Scene but NOT part of the selected Group Limit will be unaffected.">
+				tooltip="The Hue bridge allows you to limit a Scene to just one Group, as long as at least one light in the Scene is part of the Group. Lights that are part of a Scene but NOT part of the selected Group Limit will not be affected.">
 				<Label>Group Limit:</Label>
 				<List class="self" method="groupListGenerator"></List>
 				<CallbackMethod>groupsListItemSelected</CallbackMethod>
@@ -142,61 +142,107 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 			</Field>
 		</ConfigUI>
 	</MenuItem>
+	<MenuItem id="sep2.1" />
+	<MenuItem id="createNewLightDevicesFromGWDict">
+		<Name>Create all HUE devices in indigo if they do not exist already</Name>
+		<ConfigUI>
+			<Field id="hueFolderName" type="textfield" default ="New Hue Devices"
+				tooltip="If left empty it will be:  Hue New Devices ">
+				<Label>Folder Name where new devices get created:</Label>
+			</Field>
+			<Field id="createLights"  type="checkbox" default ="true"> <Label>create Light devices:</Label> 	</Field>
+			<Field id="createSensors" type="checkbox" default ="true"> <Label>create Sensor devices:</Label> 	</Field>
+			<Field id="createGroups"  type="checkbox" default ="true"> <Label>create Group devices:</Label> 	</Field>
+			<Field id="doCreate" type="button">
+				<Label>click to</Label>
+				<Title>Create folder and devices</Title>
+				<CallbackMethod>autocreateNewDevices</CallbackMethod>
+			</Field>
+			<Field id="infoLabel" type="label" fontSize="small" fontColor="darkgray">
+				<Label>This might take a while if you have a lot of Hue devices, that do not have a corresponding indigo device
+It is a good idea to restart the plugin to get all states etc created properly</Label>
+			</Field>
+		</ConfigUI>
+	</MenuItem>
 	<MenuItem id="sep3" />
 	<MenuItem id="printHueDataMenu">
-		<Name>Print Hue Bridge Config to Log...</Name>
+		<Name>Print hue config data to log ...</Name>
 		<ConfigUI>
-			<Field id="whatToPrint" type="menu" defaultValue="lights">
-				<Label>Select Data to Print:</Label>
+
+			<Field  id="whatToPrint" 
+					type="menu" 
+					defaultValue="lights">
+				<Label>Select what to print:</Label>
 				<List>
-					<Option value="lights">All Lights</Option>
-					<Option value="sensors">All Sensors</Option>
-					<Option value="groups">All Groups</Option>
-					<Option value="scenes">All Scenes</Option>
-					<Option value="specificLight">One Light</Option>
-					<Option value="specificSensor">One Sensor</Option>
-					<Option value="specificGroup">One Group</Option>
+					<Option value="lights">lights</Option>
+					<Option value="sensors">sensors </Option>
+					<Option value="groups">groups</Option>
+					<Option value="scenes">scenes</Option>
+					<Option value="rules">rules</Option>
+					<Option value="schedules">schedules</Option>
+					<Option value="resourcelinks">resource links</Option>
+					<Option value="config">config</Option>
+					<Option value="configJson">config, complete Dict</Option>
+					<Option value="specificLights">all info for one specific Bridge-LIGHT-id</Option>
+					<Option value="specificSensors">all info for one specific Bridge-SENSOR-id</Option>
+					<Option value="specificGroups">all info for one specific Bridge-GROUP-id</Option>
+					<Option value="specificScenes">all info for one specific Bridge-SCENE-id</Option>
+					<Option value="specificRules">all info for one specific Bridge-RULES-id</Option>
+					<Option value="specificSchedules">all info for one specific Bridge-SCHEDULE-id</Option>
+					<Option value="specificResourcelinks">all info for one specific Bridge-RESOURCE-LINK-id</Option>
+					<Option value="orphens">Orphened indigo devices</Option>
 				</List>
 			</Field>
-			<Field id="bulbId" type="menu" 
-				   visibleBindingId="whatToPrint" visibleBindingValue="specificLight" >
-				<Label>Select a Light:</Label>
+			<Field  id="sortBy" 
+					type="menu" 
+					defaultValue="id"
+					visibleBindingId="whatToPrint" visibleBindingValue="lights,sensors,scenes,groups,rules,resourcelinks,schedules" >
+				<Label>Select how to sort lights:</Label>
+				<List>
+					<Option value="id">id</Option>
+					<Option value="type">type (lights, scenes) </Option>
+					<Option value="modelid">model Id (only lights)</Option>
+					<Option value="name">name</Option>
+					<Option value="group">group (scenes)</Option>
+				</List>
+			</Field>
+			<Field  id="lights" type="menu" 
+					visibleBindingId="whatToPrint" visibleBindingValue="specificLights" >
+				<Label>Select the LIGHT you want to print all info:</Label>
 				<List class="self" method="printsListGenerator" filter="lights"/>
-				<CallbackMethod>printHueData</CallbackMethod>
 			</Field>
-			<Field id="groupId" type="menu" 
-				   visibleBindingId="whatToPrint" visibleBindingValue="specificGroup" >
-				<Label>Select a Group:</Label>
+			<Field  id="groups" type="menu" 
+					visibleBindingId="whatToPrint" visibleBindingValue="specificGroups" >
+				<Label>Select the GROUP you want to print all info:</Label>
 				<List class="self" method="printsListGenerator" filter="groups"/>
-				<CallbackMethod>printHueData</CallbackMethod>
 			</Field>
-			<Field id="sensorId" type="menu" 
-				   visibleBindingId="whatToPrint" visibleBindingValue="specificSensor" >
-				<Label>Select a Sensor:</Label>
+			<Field  id="sensors" type="menu" 
+					visibleBindingId="whatToPrint" visibleBindingValue="specificSensors" >
+				<Label>Select the SENSOR you want to print all info:</Label>
 				<List class="self" method="printsListGenerator" filter="sensors"/>
-				<CallbackMethod>printHueData</CallbackMethod>
 			</Field>
-			<Field id="doPrint1" type="button"
-				   visibleBindingId="whatToPrint" visibleBindingValue="lights">
-				<Label>Click to</Label>
-				<Title>Print</Title>
-				<CallbackMethod>printHueData</CallbackMethod>
+			<Field  id="scenes" type="menu" 
+					visibleBindingId="whatToPrint" visibleBindingValue="specificScenes" >
+				<Label>Select the SCENE you want to print all info:</Label>
+				<List class="self" method="printsListGenerator" filter="scenes"/>
 			</Field>
-			<Field id="doPrint2" type="button"
-				   visibleBindingId="whatToPrint" visibleBindingValue="sensors">
-				<Label>Click to</Label>
-				<Title>Print</Title>
-				<CallbackMethod>printHueData</CallbackMethod>
+			<Field  id="rules" type="menu" 
+					visibleBindingId="whatToPrint" visibleBindingValue="specificRules" >
+				<Label>Select the RULES you want to print all info:</Label>
+				<List class="self" method="printsListGenerator" filter="rules"/>
 			</Field>
-			<Field id="doPrint3" type="button"
-				   visibleBindingId="whatToPrint" visibleBindingValue="groups">
-				<Label>Click to</Label>
-				<Title>Print</Title>
-				<CallbackMethod>printHueData</CallbackMethod>
+			<Field  id="schedules" type="menu" 
+					visibleBindingId="whatToPrint" visibleBindingValue="specificSchedules" >
+				<Label>Select the SCHEDULES you want to print all info:</Label>
+				<List class="self" method="printsListGenerator" filter="schedules"/>
 			</Field>
-			<Field id="doPrint4" type="button"
-				   visibleBindingId="whatToPrint" visibleBindingValue="scenes">
-				<Label>Click to</Label>
+			<Field  id="resourcelinks" type="menu" 
+					visibleBindingId="whatToPrint" visibleBindingValue="specificResourcelinks" >
+				<Label>Select the RESOURCE LINKS links you want to print all info:</Label>
+				<List class="self" method="printsListGenerator" filter="resourcelinks"/>
+			</Field>
+			<Field id="doPrint" type="button">
+				<Label>click to</Label>
 				<Title>Print</Title>
 				<CallbackMethod>printHueData</CallbackMethod>
 			</Field>
@@ -204,7 +250,21 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 	</MenuItem>
 	<MenuItem id="sep4" />
 	<MenuItem id="toggleDebug">
-		<Name>Toggle Debugging</Name>
-		<CallbackMethod>toggleDebugging</CallbackMethod>
+		<Name>Set debug areas ...</Name>
+		<ConfigUI>
+			<Field    id="debugInit"          			type="checkbox"         > <Label> Debug...                   ... (1)  Init:</Label>  </Field>
+			<Field    id="debugLoop"          			type="checkbox"         > <Label>     ... (2)  Loop:</Label>  </Field>
+			<Field    id="debugEditSetup"          		type="checkbox"         > <Label>     ... (3)  Edit indigo devs config etc:</Label>  </Field>
+			<Field    id="debugReadFromBridge"          type="checkbox"         > <Label>     ... (4)  Read From Bridge:</Label>  </Field>
+			<Field    id="debugSendCommandsToBridge"    type="checkbox"         > <Label>     ... (5)  Send Commands To Bridge:</Label>  </Field>
+			<Field    id="debugUpdateIndigoDevices"     type="checkbox"         > <Label>     ... (6)  Update Indigo Devices:</Label>  </Field>
+			<Field    id="debugSpecial"       			type="checkbox"         > <Label>     ... (S)  special debug (only for development):</Label>  </Field>
+			<Field    id="debugall"            			type="checkbox"         > <Label>     ... (99) all of the above .. everything:</Label>  </Field>
+			<Field id="doSetdebug" type="button">
+				<Label>click to</Label>
+				<Title>set debug areas</Title>
+				<CallbackMethod>setDebugAreas</CallbackMethod>
+			</Field>
+		</ConfigUI>
 	</MenuItem>
 </MenuItems>
