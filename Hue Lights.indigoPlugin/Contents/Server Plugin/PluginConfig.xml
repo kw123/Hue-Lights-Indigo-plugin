@@ -4,32 +4,32 @@
 	<Field id="title" type="label" alignText="center" fontColor="blue">
 		<Label>Hue Lights Configuration</Label>
 	</Field>
+	<Field id="instructions0" type="label" >
+		<Label>INSTRUCTION to setup a Hue Bridge:</Label>
+	</Field>
+	<Field id="instructions1" type="label" fontColor="darkgray" fontSize="small">
+		<Label>First select the bridge number (0-9), selct action, then click on confirm. 
+Then Enter the IP address assigned to the Hue Bridge by your router.  If you are unable to find the IP address given to your Hue Bridge using your router's administrative interface, you can obtain the Hue hub's IP address by registering on and using the www.meethue.com web site, then viewing your Bridge settings.
+After the IP address has been entered, go to the Hue Bridge and press the center button.  Within 30 seconds, come back to this dialog and click the "Pair Now" button
+Once this is done, click the "Save" button.</Label>
+	</Field>
 
 	<Field id="hubNumber" type="menu" defaultValue="0"
 	tooltip="Bridge number use 0 if you have just one. If you have several, repeat steps below for each after selection the Bridge number
 You must start with  nummer 0">
 	<Label>Hub Bridge/gateway number:</Label>
-	  <List>
-		<Option value="0">0</Option>
-		<Option value="1">1</Option>
-		<Option value="2">2</Option>
-		<Option value="3">3</Option>
-		<Option value="4">4</Option>
-		<Option value="5">5</Option>
-		<Option value="6">6</Option>
-		<Option value="7">7</Option>
-		<Option value="8">8</Option>
-		<Option value="9">9</Option>
-	  </List>
-    </Field>
+		<List class="self" method="gwListGenerator" filter="" dynamicReload="true" />
+ 	</Field>
 
 	<Field id="gwAction"
 			type="menu" defaultValue="keep"
 			tooltip="">
 		<Label>select:</Label>
 	  <List>
-		<Option value="keep">keep / add</Option>
+		<Option value="modify">modify</Option>
+		<Option value="add">add</Option>
 		<Option value="delete">delete</Option>
+		<Option value="keep">keep</Option>
 	  </List>
     </Field>
 
@@ -41,9 +41,8 @@ You must start with  nummer 0">
 		<CallbackMethod>selHubNumberCallback</CallbackMethod>
     </Field>
 
-	<Field id="ipvisible" type="checkbox" defaultValue="false" hidden="true">
-    </Field>
 	
+
 	<Field id="address" type="textfield" visibleBindingId="ipvisible" visibleBindingValue="true"  defaultValue=""
 		tooltip="IP address of the Hue Bridge (e.g. 192.168.1.15. If the Bridge is given a different IP address by your router later on, you'll need to enter the new address here each time it changes.">
 		<Label>IP Address:</Label>
@@ -52,6 +51,11 @@ You must start with  nummer 0">
 	<Field id="labelAddress" type="label" visibleBindingId="ipvisible" visibleBindingValue="true"  alignWithControl="true" fontColor="darkgray" fontSize="small">
 		<Label>IP address of Hue Bridge (e.g. 192.168.1.15)</Label>
 	</Field>
+
+
+	<Field id="ipvisible" type="checkbox" defaultValue="false" hidden="true">
+    </Field>
+	
 	<Field id="hostId" type="textfield" visibleBindingId="ipvisible" visibleBindingValue="true"  defaultValue="" readonly="true"
 		tooltip="(read-only). Generated host ID assigned by the Hue Bridge to Hue Lights plugin. Provided here for troubleshooting purposes only.">
 		<Label>Host ID:</Label>
@@ -69,9 +73,12 @@ You must start with  nummer 0">
     </Field>
 
 	<Field id="sep00" type="separator"/>
+	<Field id="othersettings" type="label" visibleBindingId="ipvisible" >
+		<Label>Other settings for all bridges etc:</Label>
+	</Field>
 	<Field id="logAnyChanges" type="menu" 
 			tooltip="you can set to NO = do not log anything, yes = log everything or leave it to device = edit each dev and set log level there">
-	<Label>log changes received from Hue Bridge:</Label>
+	<Label>Log changes received from Hue Bridge:</Label>
 	 	 <List>
 			<Option value="no">do not log any changes</Option>
 			<Option value="yes">log anychange</Option>
@@ -79,7 +86,6 @@ You must start with  nummer 0">
 	 	 </List>
 	</Field>
 
-	<Field id="sep012" type="separator"/>
 	<Field id="timeScaleFactor" type="menu" default="1.0"
 		tooltip="scale factor 1= std, 2 = twice as often, change to lower value if you have cpu load issues, higher if you like faster response time, default: sensors every 1 sec, lights,groups every 5 secs, all = every 5 minutes  ">
 		<Label>How often the bridge should be read:</Label>
@@ -99,7 +105,6 @@ You must start with  nummer 0">
  	</Field>
 
 
-	<Field id="sep01" type="separator"/>
 	<Field id="maxPresetCount" type="textfield"
 		tooltip="Enter how many Preset memories you'd like Hue Lights to keep saved (a number from 1 to 100). See warning below.">
 		<Label>Preset Memories:</Label>
@@ -110,18 +115,17 @@ You must start with  nummer 0">
 	<Field id="noticeLabel0" type="label" fontSize="small" fontColor="darkgray">
 		<Label>WARNING: Lowering the Preset Memories number will cause the highest Preset memory spaces to be permanently deleted. All actions that reference deleted Presets will result in Indigo errors when attempting to recall those Presets. Don't lower the number unless you're sure nothing uses the Presets that will be deleted.</Label>
 	</Field>
-	<Field id="sep1" type="separator"/>
   
-	<Field id="instructions0" type="label" fontColor="black" fontSize="small">
-		<Label>INSTRUCTION:</Label>
-	</Field>
-	<Field id="instructions1" type="label" fontColor="darkgray" fontSize="small">
-		<Label>Enter the IP address assigned to the Hue Bridge by your router.  If you are unable to find the IP address given to your Hue Bridge using your router's administrative interface, you can obtain the Hue hub's IP address by registering on and using the www.meethue.com web site, then viewing your Bridge settings.</Label>
-	</Field>
-	<Field id="instructions2" type="label" fontColor="darkgray" fontSize="small">
-		<Label>After the IP address has been entered, go to the Hue Bridge and press the center button.  Within 30 seconds, come back to this dialog and click the "Pair Now" button.</Label>
-	</Field>
-	<Field id="instructions3" type="label" fontColor="darkgray" fontSize="small">
-		<Label>Once this is done, click the "Save" button.</Label>
-	</Field>
+	<Field id="sepdeb" type="separator"/>
+	<Field id="setdebug" type="label" >	<Label>Set debug areas ...</Label></Field>
+	<Field    id="debugInit"          			type="checkbox"         > <Label> Debug...                   ... (1)  Init:</Label>  </Field>
+	<Field    id="debugLoop"          			type="checkbox"         > <Label>     ... (2)  Loop:</Label>  </Field>
+	<Field    id="debugEditSetup"          		type="checkbox"         > <Label>     ... (3)  Edit indigo devs config etc:</Label>  </Field>
+	<Field    id="debugReadFromBridge"          type="checkbox"         > <Label>     ... (4)  Read From Bridge:</Label>  </Field>
+	<Field    id="debugSendCommandsToBridge"    type="checkbox"         > <Label>     ... (5)  Send Commands To Bridge:</Label>  </Field>
+	<Field    id="debugUpdateIndigoDevices"     type="checkbox"         > <Label>     ... (6)  Update Indigo Devices:</Label>  </Field>
+	<Field    id="debugSpecial"       			type="checkbox"         > <Label>     ... (S)  special debug (only for development):</Label>  </Field>
+	<Field    id="debugall"            			type="checkbox"         > <Label>     ... (99) all of the above .. everything:</Label>  </Field>
+
+
 </PluginConfig>

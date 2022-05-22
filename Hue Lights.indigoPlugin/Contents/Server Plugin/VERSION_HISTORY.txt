@@ -1,4 +1,23 @@
 ========================================
+1.10.24 @ 2022-05-22
+*sevral bug fixes
+*config menu was rewritten, should make it much easier to setup / modify bridge settings etc
+  reduces error messages if wrong parameters are set etc.
+*logging/debug toggle in menu and detailed logging selection in config
+*some language clarification in menus 
+*  *** still runs under indigo 2022.1 and earlier ***
+*  *** if no other MAJOR bugs found, this should be the last version that uns under Python2 ***
+
+
+========================================
+1.10.22 @ 2022-05-14
+fixed error 
+* Traceback (most recent call last):
+  File "plugin.py", line 458, in runConcurrentThread
+  File "plugin.py", line 5639, in updateTheTypeList
+KeyError: 'sensors'
+
+
 1.10.21 @ 2022-05-09
 * fixed hubnumber default from False to "0" in action execution
   this created an error when hubnumber was not selected in device actions edit

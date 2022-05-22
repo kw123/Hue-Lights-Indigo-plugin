@@ -33,6 +33,7 @@ import time
 import datetime
 import inspect
 import traceback 
+import copy
 try: 
 	import requests
 	krequestsVersion = "new"
@@ -98,30 +99,31 @@ class Plugin(indigo.PluginBase):
 	def __init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs):
 		super(Plugin, self).__init__(pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
 		indigo.server.log(u"Starting plugin initialization.")
-		self.hostId = pluginPrefs.get('hostId', "")	# Username/key used to access Hue bridge Old
-		self.hostIds = json.loads(pluginPrefs.get('hostIds', '{"0":""}'))	# Username/key used to access Hue bridge for multiple bridge
+		self.hostId 					= pluginPrefs.get('hostId', "")	# Username/key used to access Hue bridge Old
+		self.hostIds 					= json.loads(pluginPrefs.get('hostIds', '{"0":""}'))	# Username/key used to access Hue bridge for multiple bridge
 		self.pluginShortName 			= u"Hue Lights"
-		self.threadsList = []			# list of threads used for various processes outside runConcurrentThread.
+		self.threadsList 				= []			# list of threads used for various processes outside runConcurrentThread.
 		### one list for all devices on all bridges related to indigo devices 
-		self.deviceList = []			# list of device IDs to monitor (one list for all devices on all bridges)
-		self.controlDeviceList = []	    # list of virtual dimmer device IDs that control bulb devices
-		self.brighteningList = []	    # list of device IDs being brightened
-		self.dimmingList = []			# list of device IDs being dimmed
+		self.deviceList 				= []			# list of device IDs to monitor (one list for all devices on all bridges)
+		self.controlDeviceList 			= []	    # list of virtual dimmer device IDs that control bulb devices
+		self.brighteningList 			= []	    # list of device IDs being brightened
+		self.dimmingList 				= []			# list of device IDs being dimmed
 		### one for each bridge read from bridge
-		self.paired = {"0":False}		# if paired with Hue bridge or not
-		self.hueConfigDict = {"0":{}}   # Entire Hue bridge configuration dictionary.
-		self.ipAddresses = {"0":{}}	    # Hue bridge IP addresses 
+		self.paired 					= {"0":False}		# if paired with Hue bridge or not
+		self.notPairedMsg 				= {"0":0}
+		self.hueConfigDict 				= {"0":{}}   # Entire Hue bridge configuration dictionary.
+		self.ipAddresses 				= {"0":{}}	    # Hue bridge IP addresses 
 
-		self.hubNumberSelected = "0"    # default hub number 
-		self.lastErrorMessage = u""	    # last error message displayed in log
-		self.unsupportedDeviceWarned = False	# Boolean. Was user warned this device isn't supported?
-		self.usersListSelection = ""	# String. The Hue whilelist user ID selected in action UIs.
-		self.sceneListSelection = ""	# String. The Hue scene ID selected in action UIs.
-		self.groupListSelection = ""	# String. The Hue group ID selected in action UIs.
-		self.maxPresetCount = int(pluginPrefs.get('maxPresetCount', "30"))	# Integer. The maximum number of Presets to use and store.
+		self.hubNumberSelected 			= "0"    # default hub number 
+		self.lastErrorMessage 			= u""	    # last error message displayed in log
+		self.unsupportedDeviceWarned 	= False	# Boolean. Was user warned this device isn't supported?
+		self.usersListSelection 		= ""	# String. The Hue whilelist user ID selected in action UIs.
+		self.sceneListSelection 		= ""	# String. The Hue scene ID selected in action UIs.
+		self.groupListSelection 		= ""	# String. The Hue group ID selected in action UIs.
+		self.maxPresetCount 			= int(pluginPrefs.get('maxPresetCount', "30"))	# Integer. The maximum number of Presets to use and store.
 
-
-		self.hubNumberSelected = ""
+		self.hubNumberSelected 			= ""
+		self.lastReminderHubNumberNotPresent = time.time()
 
 		self.getInstallFolderPath		= indigo.server.getInstallFolderPath()+u"/"
 		self.indigoPath					= indigo.server.getInstallFolderPath()+u"/"
@@ -178,6 +180,7 @@ class Plugin(indigo.PluginBase):
 		indigo.server.log(  u"plugin.py               {}".format(self.pathToPlugin))
 		indigo.server.log(  u"Plugin params           {}".format(self.indigoPreferencesPluginDir))
 
+		indigo.server.log(  u"testing logging levels, for info only: ")
 		self.indiLOG.log( 0,u"logger  enabled for     0 ==> TEST ONLY ")
 		self.indiLOG.log( 5,u"logger  enabled for     THREADDEBUG    ==> TEST ONLY ")
 		self.indiLOG.log(10,u"logger  enabled for     DEBUG          ==> TEST ONLY ")
@@ -188,7 +191,9 @@ class Plugin(indigo.PluginBase):
 		indigo.server.log(  u"check                   {}  <<<<    for detailed logging".format(self.PluginLogFile))
 		indigo.server.log(  u"Plugin short Name       {}".format(self.pluginShortName))
 		indigo.server.log(  u"my PID                  {}".format(self.myPID))	 
-		indigo.server.log(  u"set params for indigo V {}".format(self.indigoVersion))	 
+		indigo.server.log(  u"set params for indigo V {}, indigo_API V:{}, python V:{}.{}.{}".format(self.indigoVersion, indigo.server.apiVersion, sys.version_info[0], sys.version_info[1] , sys.version_info[2]))	 
+
+		indigo.server.log(  u"indigo_API V:{}".format(indigo.server.apiVersion))	 
 
 		return
 
@@ -286,6 +291,7 @@ class Plugin(indigo.PluginBase):
 		self.timeScaleFactor = float(self.pluginPrefs.get('timeScaleFactor',"1.0"))
 
 		self.updateAllHueLists()
+
 		return 
 
 	# Start Devices
@@ -307,15 +313,15 @@ class Plugin(indigo.PluginBase):
 					try:
 						if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Attribute Control device definition:\n{}".format(device))
 					except Exception as e:
-						self.exceptionHandler(30, e, extraText="Attribute Control device definition cannot be displayed ")
+						self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\nAttribute Control device definition cannot be displayed".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 					self.controlDeviceList.append(device.id)
 			# Hue Groups
 			elif device.deviceTypeId in kGroupDeviceTypeIDs:
 				if device.id not in self.deviceList:
 					try:
-						if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Hue Group device definition:\n{}".format(device))
+						if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Hue Group device definition:\n{}".format())
 					except Exception as e:
-						self.exceptionHandler(30, e, extraText="Hue Group device definition cannot be displayed ")
+						self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\nHue Group device definition cannot be displayed ".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:],device))
 					self.deviceList.append(device.id)
 			# Other Hue Devices
 			else:
@@ -326,10 +332,10 @@ class Plugin(indigo.PluginBase):
 						# With versions of Indigo sometime prior to 6.0, if any device name had
 						#   non-ASCII characters, the above "try" will fail, so we have to show
 						#   this error instead of the actual bulb definition.
-						self.exceptionHandler(30, e, extraText="Hue Group device definition cannot be displayed ")
+						self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\nHue Group device definition cannot be displayed".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 					self.deviceList.append(device.id)
 		except Exception as e:
-			self.exceptionHandler(30, e)
+			self.indiLOG.log(30,u"{}line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return 
 
 
@@ -374,9 +380,10 @@ class Plugin(indigo.PluginBase):
 		lastTimeForGroupsRefresh= 0    
 		goErrorReset			=300.1 
 		lastTimeForErrorReset	= 0  # 
-		goAllRefresh			= 200.1 
-		lastTimeForAll			= 0  # 
+		self.goAllRefresh		= 200.1 # is used in self.restartPairing() after pairing to force reload of all info from hub
+		self.lastTimeForAll		= 0  	#  that is why this is not a local variable, but self....
 		# Set the maximum loop counter value based on the highest of the above activity threshold variables.
+		self.printHueData({"whatToPrint":"orphans", "sortBy":"", "other":"skipIfEmpty"},"")
 
 		try:
 			while True:
@@ -410,7 +417,8 @@ class Plugin(indigo.PluginBase):
 									# Log the new brightnss.
 									self.indiLOG.log(20,u"Sent Hue Lights  \"{}\" status request (received: 100)".format(brightenDevice.name))
 								else:
-									if self.decideMyLog(u"Loop"): self.indiLOG.log(10,u"Not currently paired with Hue bridge. Status update skipped.")
+									if self.checkForLastNotPairedMessage(hubNumber):
+										if self.decideMyLog(u"Loop"): self.indiLOG.log(10,u"Not currently paired with Hue bridge. Status update skipped.")
 							# Convert percent-based brightness to 255-based brightness.
 							brightness = int(round(brightness / 100.0 * 255.0))
 							# Set brightness to new value, with 0.5 sec ramp rate and no logging.
@@ -438,7 +446,9 @@ class Plugin(indigo.PluginBase):
 									# Log the new brightnss.
 									self.indiLOG.log(20,u"Sent Hue Lights \"{}\" status request (received: 0)".format(dimDevice.name ))
 								else:
-									if self.decideMyLog(u"Loop"): self.indiLOG.log(10,u"Not currently paired with Hue bridge. Status update skipped.")
+									if self.checkForLastNotPairedMessage(hubNumber):
+										if self.decideMyLog(u"Loop"): self.indiLOG.log(10,u"Not currently paired with Hue bridge. Status update skipped.")
+
 							# Convert percent-based brightness to 255-based brightness.
 							brightness = int(round(brightness / 100.0 * 255.0))
 							# Set brightness to new value, with 0.5 sec ramp rate and no logging.
@@ -449,8 +459,8 @@ class Plugin(indigo.PluginBase):
 				# End it's time to go through brightening and dimming loops.
 
 				# for get hub complete dict = all data
-				if time.time() - lastTimeForAll >= max(30., goAllRefresh / self.timeScaleFactor):
-					lastTimeForAll = time.time()
+				if time.time() - self.lastTimeForAll >= max(30., self.goAllRefresh / self.timeScaleFactor):
+					self.lastTimeForAll = time.time()
 					self.updateAllHueLists()
 
 				if time.time() - lastTimeForSensorRefresh >= max(0.2, goSensorRefresh / self.timeScaleFactor):
@@ -687,22 +697,31 @@ class Plugin(indigo.PluginBase):
 		# Make sure the device selected is a Hue device.
 		#   Get the device info directly from the bridge.
 		ipAddress = self.ipAddresses[hubNumber]
+		if not self.isValidIP(ipAddress):
+			if ipAddress == "": return (False, "", errorsDict) # this happens during setup of hub, for some time ip number is not defined, suppress error msg
+			errorText = self.doErrorLog(u"hub#:{} no valid IP number: >>{}<<".format(hubNumber, ipAddress))
+			errorsDict[errDict1] = errorText
+			errorsDict[errDict2] += errorsDict[errDict1]
+			return (False, "", errorsDict)
+
 		command = "http://{}/api/{}/{}" .format(ipAddress, self.hostIds[hubNumber], cmd)
 		if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"Sending URL request: {}".format(command) )
 		if hubNumber not in self.bridgeRequestsSession:
 			self.bridgeRequestsSession[hubNumber] = {"lastInit": 0, "session" : ""}
-		self.connectToBridge(hubNumber)
+		#self.connectToBridge(hubNumber)
 		try:
 			r = requests.get(command, timeout=kTimeout, headers={'Connection':'close'})
 		except requests.exceptions.Timeout:
-			errorText = self.doErrorLog(u"Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout))
-			errorsDict[errDict1] = errorText
-			errorsDict[errDict2] += errorsDict[errDict1]
+			if self.checkForLastNotPairedMessage(hubNumber):
+				errorText = self.doErrorLog(u"Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout),force=True)
+				errorsDict[errDict1] = errorText
+				errorsDict[errDict2] += errorsDict[errDict1]
 			return (False, "", errorsDict)
 		except requests.exceptions.ConnectionError:
-			errorText = self.doErrorLog(u"Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress))
-			errorsDict[errDict1] = errorText
-			errorsDict[errDict2] += errorsDict[errDict1]
+			if self.checkForLastNotPairedMessage(hubNumber):
+				errorText = self.doErrorLog(u"Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress, force=True))
+				errorsDict[errDict1] = errorText
+				errorsDict[errDict2] += errorsDict[errDict1]
 			return (False, "", errorsDict)
 
 		if self.decideMyLog(u"ReadFromBridge"): self.indiLOG.log(10,u"Data from bridge: {}".format(r.content.decode("utf-8")) )
@@ -711,14 +730,13 @@ class Plugin(indigo.PluginBase):
 			jsonData = json.loads(r.content)
 		except Exception as e:
 			# There was an error in the returned data.
-			self.exceptionHandler(40, e)
+			self.indiLOG.log(40,u"{}line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 			errorsDict[errDict1] = u"Error retrieving Hue device data from bridge. See Indigo log."
 			errorsDict[errDict2] += errorsDict[errDict1]
 			return (False, "",  errorsDict)
+		self.notPairedMsg[hubNumber] = time.time() - 90
 		return True, jsonData, errorsDict
 			
-
-
 	# start or reconnect session to bridge 
 	########################################
 	def connectToBridge(self, hubNumber, force = False):
@@ -731,7 +749,7 @@ class Plugin(indigo.PluginBase):
 				self.bridgeRequestsSession[hubNumber]["session"] = requests.Session()
 				self.bridgeRequestsSession[hubNumber]["lastConnect"] = time.time()
 		except Exception as e:
-			self.exceptionHandler(40, e)
+			self.indiLOG.log(40,u"{}line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return 
 
 	# Validate Device Configuration
@@ -751,6 +769,7 @@ class Plugin(indigo.PluginBase):
 			isError = True
 			errorsDict['bulbId'] = u"Not currently paired with the Hue bridge. Close this window and use the Configure... option in the Plugins -> Hue Lights menu to pair Hue Lights with the Hue bridge first."
 			errorsDict['showAlertText'] += errorsDict['bulbId']
+			self.notPairedMsg[hubNumber] = time.time()
 			return (False, valuesDict, errorsDict)
 
 		# Check data based on which device config UI was returned.
@@ -1716,6 +1735,11 @@ class Plugin(indigo.PluginBase):
 	def validateActionConfigUi(self, valuesDict, typeId, deviceId):
 		if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"Starting validateActionConfigUi.  valuesDict: {}, typeId: {}, deviceId: {}".format(valuesDict,  typeId, deviceId))
 		hubNumber = "0"
+		isError = False
+		errorsDict = indigo.Dict()
+		errorsDict['showAlertText'] = ""
+		descString = u""
+
 		if deviceId == 0:
 			device = None
 			modelId = 0
@@ -1726,13 +1750,15 @@ class Plugin(indigo.PluginBase):
 			modelId = device.pluginProps.get('modelId', False)
 			type = device.pluginProps.get('type', False)
 			hubNumber = device.pluginProps.get('hubNumber', "0")
-		isError = False
-		errorsDict = indigo.Dict()
-		errorsDict['showAlertText'] = ""
-		descString = u""
+
+		if hubNumber not in self.hueConfigDict:
+			errorsDict = indigo.Dict()
+			errorsDict['showAlertText'] = "hubNumber in device not in hue gateways listing {}".format(hubNumber)
+			return (False, valuesDict, errorsDict)
 
 		# Make sure we're still paired with the Hue bridge.
 		if not self.paired[hubNumber]:
+			self.notPairedMsg[hubNumber] = time.time()
 			isError = True
 			errorsDict['device'] = u"Not currently paired with the Hue bridge. Use the Configure... option in the Plugins -> Hue Lights menu to pair Hue Lights with the Hue bridge first."
 			errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
@@ -2575,79 +2601,306 @@ class Plugin(indigo.PluginBase):
 
 
 
+	########################################
+	# Hue bridge Pairing Methods
+	########################################
+
+	# Start/Restart Pairing with Hue bridge
+	########################################
+	def restartPairing(self, valuesDict):
+		# This method should only be used as a callback method from the
+		#   plugin configuration dialog's "Pair Now" button.
+		if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Starting restartPairing.")
+		isError = False
+		errorsDict = indigo.Dict()
+		errorsDict['showAlertText'] = ""
+		hubNumber = valuesDict['hubNumber']
+		if hubNumber not in khubNumbersAvailable: 
+			if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Starting restartPairing. bad hubNumber given {}".format(hubNumber))
+			return 
+		self.hubNumberSelected = valuesDict['hubNumber']
+
+		# Validate the IP Address field.
+		if not self.isValidIP(valuesDict['address']):
+			# The field wasn't blank. Check to see if the format is valid.
+			# Try to format the IP Address as a 32-bit binary value. If this fails, the format was invalid.
+			if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Validating IP address \"{}\".".format(valuesDict['address']))
+			if not self.isValidIP(valuesDict['address']):
+				self.indiLOG.log(30,u"IP address format is invalid.")
+				isError = True
+				errorsDict['address'] = u"The IP Address is not valid. Please enter a valid IP address."
+				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
+
+		# If there haven't been any errors so far, try to connect to the Hue bridge to see
+		#   if it's actually a Hue bridge.
+		if not isError:
+			try:
+				if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Verifying that a Hue bridge exists at IP address \"{}\".".format(valuesDict['address']))
+				command = "http://{}/description.xml".format(valuesDict['address'])
+				if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"Accessing URL: {}".format(command))
+				r = requests.get(command, timeout=kTimeout, headers={'Connection':'close'})
+				if self.decideMyLog(u"ReadFromBridge"): self.indiLOG.log(10,u"Got response:\n{}".format(r.content))
+
+				# Quick and dirty check to see if this is a Philips Hue bridge.
+				if "Philips hue bridge" not in r.content:
+					# If "Philips hue bridge" doesn't exist in the response, it's not a Hue bridge.
+					if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"No \"Philips hue bridge\" string found in response. This isn't a Hue bridge.")
+					isError = True
+					errorsDict['address'] = u"This doesn't appear to be a Philips Hue bridge.  Please verify the IP address."
+					errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
+
+				else:
+					# This is likely a Hue bridge.
+					if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Verified that this is a Hue bridge.")
+
+			except requests.exceptions.Timeout:
+				self.doErrorLog(u"Connection to {} timed out after {} seconds.".format(valuesDict['address'], kTimeout))
+				isError = True
+				errorsDict['address'] = u"Unable to reach the bridge. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
+				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
+
+			except requests.exceptions.ConnectionError:
+				self.doErrorLog(u"Connection to {} failed. There was a connection error.".format(valuesDict['address']))
+				isError = True
+				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
+				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
+
+			except Exception as e:
+				self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\nConnection error".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
+				isError = True
+				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
+				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
+
+		# Check for errors and act accordingly.
+		if isError:
+			# There was at least 1 error.
+			errorsDict['showAlertText'] = errorsDict['showAlertText'].strip()
+			return (valuesDict, errorsDict)
+		else:
+			# There weren't any errors, so...
+
+			# Request a username/key.
+			try:
+				self.ipAddresses[hubNumber] = valuesDict['address']
+				self.indiLOG.log(20,u"Attempting to pair with the Hue bridge at \"{}\".".format(valuesDict['address']))
+				requestData = json.dumps({"devicetype": "Indigo Hue Lights"})
+				if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"Request is {}".format(requestData) )
+				command = "http://{}/api".format(valuesDict['address'])
+				if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"Sending request to {} (via HTTP POST).".format(command))
+				r = requests.post(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
+				responseData = json.loads(r.content)
+				if self.decideMyLog(u"Special"): self.indiLOG.log(10,u"Got response {}".format(responseData))
+
+				# We should have a single response item
+				if len(responseData) == 1:
+					# Get the first item
+					firstResponseItem = responseData[0]
+
+					# See if we got an error.
+					errorDict = firstResponseItem.get('error', None)
+					if errorDict is not None:
+						# We got an error.
+						errorCode = errorDict.get('type', None)
+
+						if errorCode == 101:
+							# Center link button wasn't pressed on bridge yet.
+							errorText = self.doErrorLog(u"Unable to pair with the Hue bridge. Press the center button on the Hue bridge, then click the \"Pair Now\" button.")
+							isError = True
+							errorsDict['startPairingButton'] = errorText
+							errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
+
+						else:
+							errorText = self.doErrorLog(u"Error #{} from the Hue bridge. Description: \"{}\".".format(errorCode, errorDict.get('description', u"(No Description)")))
+							isError = True
+							errorsDict['startPairingButton'] = errorText
+							errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
+
+					# See if we got a success response.
+					successDict = firstResponseItem.get('success', None)
+					if successDict is not None:
+						# Pairing was successful.
+						self.indiLOG.log(20,u"Paired with Hue bridge successfully.")
+						# The plugin was paired with the Hue bridge.
+						self.paired[hubNumber] = True
+						self.notPairedMsg[hubNumber] = time.time() - 90
+						# Get the username provided by the bridge.
+						hueUsername = successDict['username']
+						if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Username (a.k.a. key) assigned by Hue bridge to Hue Lights plugin: {}".format(hueUsername))
+						# Set the plugin's hostId to the new username.
+						self.hostIds[hubNumber] = hueUsername
+						# Make sure the new username is returned to the config dialog.
+						valuesDict['hostId'] = hueUsername
+						valuesDict['hostIds'] = json.dumps(self.hostIds)
+
+				else:
+					# The Hue bridge is acting weird.  There should have been only 1 response.
+					errorText = self.doErrorLog(u"Invalid response from Hue bridge. Check the IP address and try again.")
+					if self.decideMyLog(u"ReadFromBridge"): self.indiLOG.log(10,u"Response from Hue bridge contained {} items.".format(len(responseData)))
+
+					isError = True
+					errorsDict['startPairingButton'] = errorText
+					errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
+
+			except requests.exceptions.Timeout:
+				self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\nConnection to {}  failed,timed out after {} seconds.".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:], valuesDict['address'], kTimeout))
+				isError = True
+				errorsDict['startPairingButton'] = u"Unable to reach the bridge. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
+				errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
+
+			except requests.exceptions.ConnectionError:
+				self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\nConnection to {} There was a connection error".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:], valuesDict['address']))
+				isError = True
+				errorsDict['startPairingButton'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
+				errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
+
+			except Exception as e:
+				self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\nConnection to {}  failed".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:], valuesDict['address']))
+				isError = True
+				errorsDict['startPairingButton'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
+				errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
+
+			# Check again for errors.
+			if isError:
+				# There was at least 1 error.
+				errorsDict['showAlertText'] = errorsDict['showAlertText'].strip()
+				return (valuesDict, errorsDict)
+
+			valuesDict['addresses'] = json.dumps(self.ipAddresses)
+			self.lastTimeForAll = time.time() - (self.goAllRefresh-20)# force rereading hub config in 20 secs, wait for dialog to save 
+			return valuesDict
+
+
+	# HUB List Generator
+	########################################
+	def gwListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
+		# Used in actions and device configuration windows that need a list of sensor devices.
+		if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"Starting gwListGeneratorPrefs.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, valuesDict, typeId, targetId))
+
+		xList = list()
+		for hubNumber in khubNumbersAvailable:
+			if hubNumber in self.ipAddresses and  hubNumber in self.hueConfigDict and "lights" in self.hueConfigDict[hubNumber]:
+				if filter == "" or filter == "active":
+					xList.append((hubNumber, "{}-{} fully configured and used".format(hubNumber, self.ipAddresses[hubNumber])))
+			elif hubNumber in self.ipAddresses and  hubNumber in self.hueConfigDict:
+				if filter == "":
+					xList.append((hubNumber, "{}-{} configured, not contacted ".format(hubNumber, self.ipAddresses[hubNumber])))
+			elif hubNumber in self.ipAddresses:
+				if filter == "":
+					xList.append((hubNumber,  "{}-{} ip# set, not configured yet".format(hubNumber, self.ipAddresses[hubNumber])))
+			else:
+					xList.append((hubNumber,  "{}   not used".format(hubNumber)))
+
+		if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"gwListGenerator: Return hubNumber list is {}".format(xList) )
+
+		return xList
+
 	# set deflaut Preferences Configuration.
 	########################################
 	def getPrefsConfigUiValues(self):
 		valuesDict = indigo.Dict()
+		(valuesDict, errorsDict) = super(Plugin, self).getPrefsConfigUiValues()
+		try:
+			if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u'Starting  getPrefsConfigUiValues(self):')
+			valuesDict['hubNumber'] 				= "0"
+			valuesDict['address'] 					= self.ipAddresses.get('0',"")
+			valuesDict['labelHostId'] 				= self.hostIds.get('0',"")
+			valuesDict['ipvisible'] 				= False
+			valuesDict['gwAction'] 					= "keep"
+			#valuesDict['maxPresetCount'] 			= self.pluginPrefs.get('maxPresetCount', "30")
+			#valuesDict['timeScaleFactor'] 			= self.pluginPrefs.get('timeScaleFactor',"1.0")
+			#valuesDict['debugInit'] 				= self.pluginPrefs.get('debugInit',False)
+			#valuesDict['debugLoop'] 				= self.pluginPrefs.get('debugLoop',False)
+			#valuesDict['debugEditSetup'] 			= self.pluginPrefs.get('debugEditSetup',False)
+			#valuesDict['debugReadFromBridge'] 		= self.pluginPrefs.get('debugReadFromBridge',False)
+			#valuesDict['debugSendCommandsToBridge']	= self.pluginPrefs.get('debugSendCommandsToBridge',False)
+			#valuesDict['debugUpdateIndigoDevices']	= self.pluginPrefs.get('debugUpdateIndigoDevices',False)
+			#valuesDict['debugSpecial']				= self.pluginPrefs.get('debugSpecial',False)
+			#valuesDict['debugall']					= self.pluginPrefs.get('debugall',False)
+		except Exception as e:
+				self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\n".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
-		if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u'Starting  getPrefsConfigUiValues(self):')
-		valuesDict['hubNumber'] = "0"
-		valuesDict['address'] = self.ipAddresses['0']
-		valuesDict['labelHostId'] = self.hostIds['0']
-		valuesDict['ipvisible'] = False
-
-		return super(Plugin, self).getPrefsConfigUiValues()
+		return (valuesDict, errorsDict)
 
 
 	# set hubNumber etc after button press 
 	########################################
 	def selHubNumberCallback(self, valuesDict):
-		if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"Starting selHubNumberCallback.")
-		if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"selHubNumberCallback: Values passed:\n{}".format(valuesDict))
-		if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"selHubNumberCallback: ipAddresses {}".format(self.ipAddresses))
-		isError = False
-		errorsDict = indigo.Dict()
-		errorsDict['showAlertText'] = ""
-		if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"selHubNumberCallback: selecthubNumber   {}".format(valuesDict['hubNumber']))
-		if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"selHubNumberCallback: hubNumberSelected {}".format(self.hubNumberSelected))
-		self.hubNumberSelected = valuesDict['hubNumber']
+		try:
+			if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"Starting selHubNumberCallback.")
+			if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"selHubNumberCallback: Values passed:\n{}".format(valuesDict))
+			if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"selHubNumberCallback: ipAddresses {}".format(self.ipAddresses))
+			isError = False
+			errorsDict = indigo.Dict()
+			errorsDict['showAlertText'] = ""
+			if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"selHubNumberCallback: selecthubNumber   {}".format(valuesDict['hubNumber']))
+			if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"selHubNumberCallback: hubNumberSelected {}".format(self.hubNumberSelected))
+			self.hubNumberSelected = valuesDict['hubNumber']
 
-		valuesDict['ipvisible'] = True
-		gwAction = valuesDict['gwAction']
-		if gwAction == "delete":
-			if self.hubNumberSelected in self.ipAddresses:
-				del self.ipAddresses[self.hubNumberSelected]
+			valuesDict['ipvisible'] = True
+			gwAction = valuesDict['gwAction']
+			if gwAction == "delete":
+				if self.hubNumberSelected in self.ipAddresses:
+					del self.ipAddresses[self.hubNumberSelected]
 
-			if self.hubNumberSelected in self.hueConfigDict:
-				del self.hueConfigDict[hubNumber]
+				if self.hubNumberSelected in self.hueConfigDict:
+					del self.hueConfigDict[self.hubNumberSelected]
+
+				if self.hubNumberSelected in self.paired:
+					del self.paired[self.hubNumberSelected]
+
+				if self.hubNumberSelected in self.notPairedMsg:
+					del self.notPairedMsg[self.hubNumberSelected]
 
 
-			if self.hubNumberSelected != "0":
-				valuesDict['address'] = self.ipAddresses['0']
-				valuesDict['hostId'] = self.hostIds['0']
-				valuesDict['hostIds'] = json.dumps(self.hostIds)
-				valuesDict['hubNumber'] = "0"
-				self.hubNumberSelected = "0"
-			else:
-				valuesDict['ipvisible'] = False
-				valuesDict['address'] = ""
-				valuesDict['hostId'] = ""
-				valuesDict['hostIds'] = json.dumps(self.hostIds)
-			
-			return valuesDict
+				if self.hubNumberSelected != "0":
+					valuesDict['address'] = self.ipAddresses['0']
+					valuesDict['hostId'] = self.hostIds['0']
+					valuesDict['hostIds'] = json.dumps(self.hostIds)
+					valuesDict['hubNumber'] = "0"
+					self.hubNumberSelected = "0"
+					valuesDict['gwAction'] = "deleted"
+				else:
+					valuesDict['ipvisible'] = False
+					valuesDict['address'] = ""
+					valuesDict['hostId'] = ""
+					valuesDict['hostIds'] = json.dumps(self.hostIds)
+					valuesDict['gwAction'] = "deleted"
+				self.printHueData({"whatToPrint":"orphans", "sortBy":"","other":"force"}, "")
+				return valuesDict
 
-		if self.hubNumberSelected in self.ipAddresses:
-			valuesDict['address'] = self.ipAddresses[self.hubNumberSelected]
-			valuesDict['hostId'] = self.hostIds[self.hubNumberSelected]
-			valuesDict['hostIds'] = json.dumps(self.hostIds)
-		elif self.hubNumberSelected == "0":
-			pass
-		else:
-			self.ipAddresses[self.hubNumberSelected] = ""
-			self.paired[self.hubNumberSelected] = False
-			self.hostIds[self.hubNumberSelected] = ""
-			self.hueConfigDict[self.hubNumberSelected] = {}
+			## option keep / create
+			elif gwAction  == "add":
+				if self.hubNumberSelected in self.ipAddresses:
+					valuesDict['address'] = self.ipAddresses[self.hubNumberSelected]
+					if self.hubNumberSelected not in self.hostIds:
+						self.hostIds[self.hubNumberSelected] = ""
+					valuesDict['hostId'] = self.hostIds[self.hubNumberSelected]
+					valuesDict['hostIds'] = json.dumps(self.hostIds)
+					self.notPairedMsg[self.hubNumberSelected] = time.time() - 90
+				elif self.hubNumberSelected == "0":
+					pass
+				else:
+					self.ipAddresses[self.hubNumberSelected] = ""
+					self.paired[self.hubNumberSelected] = False
+					self.notPairedMsg[self.hubNumberSelected] = time.time()
+					self.hostIds[self.hubNumberSelected] = ""
+					self.hueConfigDict[self.hubNumberSelected] = {}
 
-			valuesDict['hostIds'] = json.dumps(self.hostIds)
-			valuesDict['address'] = ""
-			valuesDict['hostId'] = ""
+					valuesDict['hostIds'] = json.dumps(self.hostIds)
+					valuesDict['address'] = ""
+					valuesDict['hostId'] = ""
+			elif gwAction == "modify":
+				if self.hubNumberSelected in self.ipAddresses:
+					valuesDict['address'] = self.ipAddresses[self.hubNumberSelected]
+
+		except Exception as e:
+				self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\n".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return valuesDict
 
 
 	# Validate Preferences Configuration.
 	########################################
 	def validatePrefsConfigUi(self, valuesDict):
-		if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"Starting validatePrefsConfigUi.")
 		if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"validatePrefsConfigUi: Values passed:\n{}".format(valuesDict))
 		isError = False
 		errorsDict = indigo.Dict()
@@ -2657,20 +2910,23 @@ class Plugin(indigo.PluginBase):
 
 		self.timeScaleFactor = float(valuesDict['timeScaleFactor'])
 
-		# Validate the IP Address field.
-		if valuesDict.get('address', "") == "":
-			# The field was left blank.
-			if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"validatePrefsConfigUi: IP address \"{}\" is blank.".format(valuesDict['address']) )
-			isError = True
-			errorsDict['address'] = u"The IP Address field is blank. Please enter an IP Address for the Hue bridge."
-			errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
+		self.getDebugLevels(valuesDict)
 
-		else:
-			if not self.isValidIP(valuesDict['address']):
-				if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"validatePrefsConfigUi: IP address format is invalid.")
+		# Validate the IP Address field.
+		if valuesDict['gwAction'] in ['add','modify']:
+			if valuesDict.get('address', "") == "":
+				# The field was left blank.
+				if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"validatePrefsConfigUi: IP address \"{}\" is blank.".format(valuesDict['address']) )
 				isError = True
-				errorsDict['address'] = u"The IP Address is not valid. Please enter a valid IP address."
+				errorsDict['address'] = u"The IP Address field is blank. Please enter an IP Address for the Hue bridge."
 				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
+
+			else:
+				if not self.isValidIP(valuesDict['address']):
+					if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"validatePrefsConfigUi: IP address format is invalid.")
+					isError = True
+					errorsDict['address'] = u"The IP Address is not valid. Please enter a valid IP address."
+					errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 
 		if maxPresetCount == "":
 			# The field was left blank.
@@ -2696,7 +2952,7 @@ class Plugin(indigo.PluginBase):
 
 		# If there haven't been any errors so far, try to connect to the Hue bridge to see
 		#   if it's actually a Hue bridge.
-		if not isError:
+		if not isError and valuesDict['gwAction'] in ['add','modify']:
 			try:
 				if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"validatePrefsConfigUi: Verifying that a Hue bridge exists at IP address \"{}\".".format(valuesDict['address']) )
 				command = "http://{}/description.xml".format(valuesDict['address'])
@@ -2729,7 +2985,7 @@ class Plugin(indigo.PluginBase):
 				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 
 			except Exception as e:
-				self.exceptionHandler(30, e, extraText="validatePrefsConfigUi: Connection error")
+				self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\nvalidatePrefsConfigUi: Connection error".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				isError = True
 				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
 				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
@@ -2744,6 +3000,9 @@ class Plugin(indigo.PluginBase):
 		else:
 			valuesDict['addresses'] = json.dumps(self.ipAddresses)
 			return (True, valuesDict)
+
+
+
 
 	# Plugin Configuration Dialog Closed
 	########################################
@@ -2931,7 +3190,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"Starting actionControlDimmerRelay for device {}. action: {}\n\ndevice: {}".format(device.name, action, device))
 		except Exception as e:
-			self.exceptionHandler(20, e, extraText=u"Starting actionControlDimmerRelay for device {}. (Unable to display action or device data".format(device.name))
+				self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\nStarting actionControlDimmerRelay for device {}. (Unable to display action or device data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:], device.name))
 		# Get the current brightness (if it's not an on/off only device) and on/off state of the device.
 		if device.deviceTypeId != "hueOnOffDevice":
 			currentBrightness = device.states['brightnessLevel']
@@ -2958,7 +3217,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device on:\n{}".format(action))
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device on: Unable to display action data")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice on: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Turn it on.
 				self.doOnOff(device, True)
 
@@ -2967,7 +3226,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device off:\n{}".format(action))
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device off: Unable to display action data")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice off: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Turn it off by setting the brightness to minimum.
 				self.doOnOff(device, False)
 
@@ -2976,7 +3235,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device toggle:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device toggle: Unable to display action data")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice toggle: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				if currentOnState :
 					# It's on. Turn it off.
 					self.doOnOff(device, False)
@@ -2989,7 +3248,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device set brightness:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device set brightness: Unable to display action data")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice set brightness: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = int(round(action.actionValue / 100.0 * 255.0))
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
@@ -3003,7 +3262,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device increase brightness by:\n{}".format(action) )
 				except Exception as e:
-					self.indiLOG.log(30,u"device increase brightness by: (Unable to display action data due to error: {}  line#:{})".format(e,sys.exc_info()[2].tb_lineno))
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice increase brightness by: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = currentBrightness + action.actionValue
 				if brightnessLevel > 100:
 					brightnessLevel = 100
@@ -3019,8 +3278,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device decrease brightness by:\n{}".format(action) )
 				except Exception as e:
-					self.indiLOG.log(30,u"device decrease brightness by: (Unable to display action data due to error: {}  line#:{})".format(e,sys.exc_info()[2].tb_lineno))
-					self.exceptionHandler(30, e, extraText="device decrease brightnes: Unable to display action data")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice decrease brightnes: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = currentBrightness - action.actionValue
 				if brightnessLevel < 0:
 					brightnessLevel = 0
@@ -3036,7 +3294,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device request status:\n{}".format(action))
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device request status: Unable to display action data")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice request status: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 				actionColorVals = action.actionValue
 
@@ -3124,7 +3382,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device request status:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device request status: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice request status: Unable to display action data ".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Log the new brightnss.
 				self.indiLOG.log(20,u"Sent Hue Lights  \"{}\" status request (received: {})".format( device.name, device.states['brightnessLevel']))
 
@@ -3143,7 +3401,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device on:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device on: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice on: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Turn it on.
 				self.doOnOff(device, True)
 
@@ -3152,7 +3410,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device off:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device off: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice off: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Turn it off by setting the brightness to minimum.
 				self.doOnOff(device, False)
 
@@ -3161,7 +3419,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device toggle:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device toggle: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice toggle: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				if currentOnState :
 					# It's on. Turn it off.
 					self.doOnOff(device, False)
@@ -3174,7 +3432,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device set brightness:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device set brightness: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice set brightness: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = int(round(action.actionValue / 100.0 * 255.0))
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
@@ -3188,7 +3446,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device increase brightness by:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device increase brightness by: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice increase brightness by: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = currentBrightness + action.actionValue
 				if brightnessLevel > 100:
 					brightnessLevel = 100
@@ -3204,7 +3462,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device decrease brightness by:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device decrease brightness by: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice decrease brightness by: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = currentBrightness - action.actionValue
 				if brightnessLevel < 0:
 					brightnessLevel = 0
@@ -3220,7 +3478,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device request status:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device request status: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice request status: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 				actionColorVals = action.actionValue
 
@@ -3307,7 +3565,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device request status:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device request status: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice request status: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Log the new brightnss.
 				if logChanges: self.indiLOG.log(20,u"Sent Hue Lights  \"{}\" status request (received: {})".format( device.name, device.states['brightnessLevel']))
 
@@ -3327,7 +3585,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device on:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device on: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice on: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Turn it on.
 				self.doOnOff(device, True)
 
@@ -3336,7 +3594,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device off:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device off: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice off: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Turn it off by setting theSendCommandsToBridgebrightness to minimum.
 				self.doOnOff(device, False)
 
@@ -3345,7 +3603,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device toggle:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device toggle: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice toggle: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				if currentOnState :
 					# It's on. Turn it off.
 					self.doOnOff(device, False)
@@ -3358,7 +3616,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device set brightness:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device set brightness: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice set brightness: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = int(round(action.actionValue / 100.0 * 255.0))
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
@@ -3372,7 +3630,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device increase brightness by:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device increase brightness by: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice increase brightness by: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = currentBrightness + action.actionValue
 				if brightnessLevel > 100:
 					brightnessLevel = 100
@@ -3388,7 +3646,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device decrease brightness by:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device decrease brightness by: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice decrease brightness by: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = currentBrightness - action.actionValue
 				if brightnessLevel < 0:
 					brightnessLevel = 0
@@ -3404,7 +3662,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device request status:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device request status: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice request status: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 				actionColorVals = action.actionValue
 
@@ -3498,7 +3756,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device request status:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device request status: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice request status: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Log the new brightnss.
 				if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"Sent Hue Lights  \"{}\" status request (received: {})".format( device.name, device.states['brightnessLevel']))
 
@@ -3518,7 +3776,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device on:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device on: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice on: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Turn it on.
 				self.doOnOff(device, True)
 
@@ -3527,7 +3785,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device off:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device off: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice off: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Turn it off by setting the brightness to minimum.
 				self.doOnOff(device, False)
 
@@ -3536,7 +3794,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device toggle:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device toggle: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice toggle: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				if currentOnState :
 					# It's on. Turn it off.
 					self.doOnOff(device, False)
@@ -3549,7 +3807,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device set brightness:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device set brightness: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice set brightness: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = int(round(action.actionValue / 100.0 * 255.0))
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
@@ -3563,7 +3821,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device increase brightness by:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device increase brightness by: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice increase brightness by: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = currentBrightness + action.actionValue
 				if brightnessLevel > 100:
 					brightnessLevel = 100
@@ -3579,7 +3837,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device decrease brightness by:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device decrease brightness by: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice decrease brightness by: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = currentBrightness - action.actionValue
 				if brightnessLevel < 0:
 					brightnessLevel = 0
@@ -3595,7 +3853,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device request status:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device request status: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice request status: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 				actionColorVals = action.actionValue
 
@@ -3689,7 +3947,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device request status:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device request status: Unable to display action data ")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice request status: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Log the new brightnss.
 				if logChanges: self.indiLOG.log(20,u"Sent Hue Lights  \"{}\" status request (received: {})".format( device.name, device.states['brightnessLevel']))
 
@@ -3710,7 +3968,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device on:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device on: Unable to display action data ")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice on: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Turn it on.
 				self.doOnOff(device, True)
 
@@ -3719,7 +3977,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device off:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device off: Unable to display action data ")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice off: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Turn it off by setting the brightness to minimum.
 				self.doOnOff(device, False)
 
@@ -3728,7 +3986,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device toggle:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device toggle: Unable to display action data ")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice toggle: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				if currentOnState :
 					# It's on. Turn it off.
 					self.doOnOff(device, False)
@@ -3741,7 +3999,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device set brightness:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device set brightness: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice set brightness: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = int(round(action.actionValue / 100.0 * 255.0))
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
@@ -3755,7 +4013,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device increase brightness by:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device increase brightness by: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice increase brightness by: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = currentBrightness + action.actionValue
 				if brightnessLevel > 100:
 					brightnessLevel = 100
@@ -3771,7 +4029,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device decrease brightness by:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device decrease brightness by: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice decrease brightness by: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = currentBrightness - action.actionValue
 				if brightnessLevel < 0:
 					brightnessLevel = 0
@@ -3800,7 +4058,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device request status:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device request status: Unable to display action data ")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice request status: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Log the new brightnss.
 				if logChanges: self.indiLOG.log(20,u"Sent Hue Lights  \"{}\" status request (received: {})".format( device.name, device.states['brightnessLevel']))
 
@@ -3816,7 +4074,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device on:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device on: Unable to display action data ")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice on: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Turn it on.
 				self.doOnOff(device, True)
 
@@ -3825,7 +4083,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device off:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device off: Unable to display action data ")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice off: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Turn it off by setting the brightness to minimum.
 				self.doOnOff(device, False)
 
@@ -3834,7 +4092,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device toggle:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device toggle: Unable to display action data ")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice toggle: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				if currentOnState :
 					# It's on. Turn it off.
 					self.doOnOff(device, False)
@@ -3850,7 +4108,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device set brightness:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device set brightness: Unable to display action data ")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice set brightness: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = int(action.actionValue)
 				if brightnessLevel > 0:
 					# Turn it on.
@@ -3867,7 +4125,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device increase brightness by:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device increase brightness by: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice increase brightness by: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = int(action.actionValue)
 				# If brightnessLevel (i.e. amount to brighten by) is greater than 0, turn on the device.
 				if brightnessLevel > 0:
@@ -3882,7 +4140,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device decrease brightness by:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device decrease brightness by: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice decrease brightness by: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = int(action.actionValue)
 				# If brightnessLevel (i.e. amount to dim by) is greater than 0, turn off the device.
 				if brightnessLevel > 0:
@@ -3898,7 +4156,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device set color:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device set color: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice set color: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 				self.doErrorLog(u"The \"{}\" device does not support color. The requested change was not applied.".format(device.name))
 
@@ -3907,7 +4165,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device request status:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device request status: Unable to display action data ")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice request status: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Log the new brightnss.
 				if logChanges: self.indiLOG.log(20,u"Sent Hue Lights  \"{}\" status request (received: {})".format(device.name, device.states['onOffState']))
 
@@ -3929,7 +4187,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device on:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device on: Unable to display action data ")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice on: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Turn it on.
 				self.doOnOff(device, True)
 
@@ -3938,7 +4196,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device off:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device off: Unable to display action data ")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice off: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Turn it off by setting the brightness to minimum.
 				self.doOnOff(device, False)
 
@@ -3947,7 +4205,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device toggle:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device toggle: Unable to display action data ")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice toggle: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				if currentOnState :
 					# It's on. Turn it off.
 					self.doOnOff(device, False)
@@ -3960,7 +4218,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device set brightness:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device set brightness: Unable to display action data ")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice set brightness: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = int(round(action.actionValue / 100.0 * 255.0))
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
@@ -3974,7 +4232,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device increase brightness by:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device increase brightness by: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice increase brightness by: Unable to display action data ".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = currentBrightness + action.actionValue
 				if brightnessLevel > 100:
 					brightnessLevel = 100
@@ -3990,7 +4248,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device decrease brightness by:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device decrease brightness by: Unable to display action data ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\ndevice decrease brightness by: Unable to display action data ".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				brightnessLevel = currentBrightness - action.actionValue
 				if brightnessLevel < 0:
 					brightnessLevel = 0
@@ -4006,7 +4264,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device request status:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device request status: Unable to display action data ")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice request status: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 				actionColorVals = action.actionValue
 
@@ -4095,7 +4353,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device request status:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device request status: Unable to display action data ")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice request status: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Log the new brightnss.
 				if logChanges: self.indiLOG.log(20,u"Sent Hue Lights  \"{}\" status request (received: {})".format( device.name, device.states['brightnessLevel']))
 
@@ -4148,7 +4406,7 @@ class Plugin(indigo.PluginBase):
 						# If the rate is less than 0 or greater than 540, that's an invalid value. Use default.
 						rate = -1
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="Invalid rate ")
+					self.indiLOG.log(30,u"{}\nline#,Module,Statement:{}\nInvalid rate".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 					rate = -1
 
 			if onLevel == "":
@@ -4172,7 +4430,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device on:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device on: Unable to display action data")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice on: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Set the destination attribute to maximum.
 				if attributeToControl == "hue":
 					# Hue
@@ -4218,7 +4476,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device off:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device off: Unable to display action data")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice off: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Set the destination attribute to minimum.
 				if attributeToControl == "hue":
 					# Hue
@@ -4252,7 +4510,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device toggle:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device toggle: Unable to display action data")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice toggle: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Set the destination attribute to either maximum or minimum.
 				if attributeToControl == "hue":
 					# Hue
@@ -4331,7 +4589,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device set brightness:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device set brightness: Unable to display action data")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice set brightness: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Set the destination attribute to maximum.
 				if attributeToControl == "hue":
 					# Hue
@@ -4365,7 +4623,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device increase brightness by:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device increase brightness by: Unable to display action data")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice increase brightness by: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Calculate the new brightness.
 				newValue = currentBrightness + action.actionValue
 				if newValue > 100:
@@ -4403,7 +4661,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device decrease brightness by:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device decrease brightness by: Unable to display action data")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice decrease brightness by: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# Calculate the new brightness.
 				newValue = currentBrightness - action.actionValue
 				if newValue < 0:
@@ -4441,7 +4699,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"device request status:\n{}".format(action) )
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText="device request status: Unable to display action data")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\ndevice request status: Unable to display action data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				# This actually requests the status of the virtual dimmer device's destination Hue device/group.
 				# Show the current virtual dimmer level in the log.  There will likely be a delay for
 				#   the destination Hue device status, so we're not going to wait for that status update.
@@ -4466,7 +4724,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"Starting actionControlSensor for device {}. action: {}\n\ndevice: ".format(device.name, action, device))
 		except Exception as e:
-			self.exceptionHandler(30, e, extraText=u"Starting actionControlSensor for device {}. Unable to display action or device data".format(device.name))
+			self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\nStarting actionControlSensor for device {}. Unable to display action or device data".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:], device.name))
 		# Get the current sensor value and on-state of the device.
 		sensorValue = device.states.get('sensorValue', None)
 		sensorOnState = device.states.get('onOffState', None)
@@ -4883,7 +5141,7 @@ class Plugin(indigo.PluginBase):
 		else:
 			hubNumbers = {self.hubNumberSelected:True}
 
-		for hubNumber in hubNumbers:
+		for hubNumber in self.hueConfigDict:
 			if self.hueConfigDict[hubNumber]['users'] != None:
 				for userId, userData in self.hueConfigDict[hubNumber]['users'].items():
 					userName = userData.get('name', "(unknown)")
@@ -4913,7 +5171,7 @@ class Plugin(indigo.PluginBase):
 		else:
 			hubNumbers = {self.hubNumberSelected:True}
 
-		for hubNumber in hubNumbers:
+		for hubNumber in self.hueConfigDict:
 	
 			if self.hueConfigDict[hubNumber]['scenes'] != None:
 				for sceneId, sceneData in self.hueConfigDict[hubNumber]['scenes'].items():
@@ -4966,7 +5224,7 @@ class Plugin(indigo.PluginBase):
 		else:
 			hubNumbers = {self.hubNumberSelected:True}
 
-		for hubNumber in hubNumbers:
+		for hubNumber in self.hueConfigDict:
 			if sceneId == "":
 				# The sceneId is blank. This only happens when the action/menu dialog is
 				#   called for the first time (or without any settings already saved). This
@@ -5110,27 +5368,6 @@ class Plugin(indigo.PluginBase):
 		return xList
 
 
-	# HUB List Generator
-	########################################
-	def gwListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
-		# Used in actions and device configuration windows that need a list of sensor devices.
-		if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"Starting gwListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, valuesDict, typeId, targetId))
-
-		xList = list()
-
-		# pick the gateway for this device scenario ... is associtated with
-		if "hubNumber" not in valuesDict: valuesDict['hubNumber'] = "0"
-		for hubNumber in self.ipAddresses:
-			if hubNumber != valuesDict['hubNumber']:
-				xList.append((hubNumber, hubNumber))
-		xList.append((valuesDict['hubNumber'], valuesDict['hubNumber']))
-				
-			
-		# Debug
-		if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"gwListGenerator: Return hubNumber list is {}".format(xList) )
-
-		return xList
-
 
 	# confirm hub number selection
 	########################################
@@ -5213,7 +5450,7 @@ class Plugin(indigo.PluginBase):
 					try:
 						if self.decideMyLog(u"UpdateIndigoDevices"): self.indiLOG.log(10,u"updateDeviceState: Updating device \"{}\" state: {}. Old value = {}. New value = {}".format(device.name, stateKey, device.states.get(stateKey, ""), newValue))
 					except Exception as e:
-						if self.decideMyLog(u"UpdateIndigoDevices"): self.exceptionHandler(30, e, extraText=u"updateDeviceState: Updating device \"{}\" state: Unable to display state".format(device.name))
+						self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\nupdateDeviceState: Updating device \"{}\" state: Unable to display state".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:], device.name))
 
 				# Update the device UI icon if one was specified.
 				if newUiImage != None:
@@ -5271,7 +5508,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					if logChanges and self.decideMyLog(u"UpdateIndigoDevices"): self.indiLOG.log(20,u"updateDeviceState: Updating device \"{}\" state: \"{}\". Old value = {}. New value = {}".format(device.name , state, device.states.get(state, ""), newValue))
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText=u"updateDeviceState: Updating device \"{}\" state: Unable to display state".format(device.name))
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\nupdateDeviceState: Updating device \"{}\" state: Unable to display state".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:], device.name))
 
 				# Actually update the device state now.
 				if device.id not in self.updateList: self.updateList[device.id] = []
@@ -5583,6 +5820,7 @@ class Plugin(indigo.PluginBase):
 
 					# Make sure the plugin knows it's actually paired now.
 					self.paired[hubNumber] = True
+					self.notPairedMsg[hubNumber] = time.time() - 90
 
 				elif isinstance(responseData, list):
 					# Get the first item
@@ -5596,16 +5834,18 @@ class Plugin(indigo.PluginBase):
 
 						# Is this a link button not pressed error?
 						if errorCode == 1:
-							self.doErrorLog(u"getHueConfig: Not paired with the Hue bridge. Press the middle button on the Hue bridge, then press the Pair Now button in the Hue Lights Configuration window (Plugins menu).")
-							# Remember the error.
+							if self.checkForLastNotPairedMessage(hubNumber):
+								self.doErrorLog(u"getHueConfig: Not paired with the Hue bridge. Press the middle button on the Hue bridge, then press the Pair Now button in the Hue Lights Configuration window (Plugins menu).")
+						# Remember the error.
 							self.paired[hubNumber] = False
-
+	
 						else:
-							self.doErrorLog(u"Error #{} from Hue bridge when getting the Hue bridge configuration. Description is \"{}\"." .format(errorCode, errorDict.get('description', u"(no description")))
+							if self.checkForLastNotPairedMessage(hubNumber):
+								self.doErrorLog(u"Error #{} from Hue bridge when getting the Hue bridge configuration. Description is \"{}\"." .format(errorCode, errorDict.get('description', u"(no description")))
 							self.paired[hubNumber] = False
 
 			except Exception as e:
-				self.exceptionHandler(30, e, extraText=u"Unable to obtain the configuration from the Hue bridge.{}".format(hubNumber))
+				self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\nUnable to obtain the configuration from the Hue bridge.{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:], hubNumber))
 		return
 
 
@@ -5630,69 +5870,79 @@ class Plugin(indigo.PluginBase):
 		# 
 		lastCount = {}
 
-		for hubNumber in self.ipAddresses:
-			# Sanity check for an IP address
-			ipAddress, hostId, errorCode = self.getadresses(hubNumber)
-			if errorCode >0: return
+		try:
+			for hubNumber in self.ipAddresses:
+				# Sanity check for an IP address
+				ipAddress, hostId, errorCode = self.getadresses(hubNumber)
+				if errorCode >0: return
 
-			# Remember the current number of Hue groups to see if new ones have been added.
-			if hubNumber not in self.hueConfigDict[hubNumber][theType]:
-				self.hueConfigDict[hubNumber][theType] = {}
-			lastCount[hubNumber] = len(self.hueConfigDict[hubNumber][theType])
+				# Remember the current number of Hue groups to see if new ones have been added.
+				if hubNumber not in self.hueConfigDict:
+					self.hueConfigDict[hubNumber] = {theType:{}}
+				if theType not in self.hueConfigDict[hubNumber]:
+					self.hueConfigDict[hubNumber][theType] = {}
 
-			try:
-				retCode, responseData, errorsDict =  self.commandToHub_HTTP( hubNumber, theType)
+				lastCount[hubNumber] = len(self.hueConfigDict[hubNumber][theType])
 
-				# We should have a dictionary. If so, it's a group list
-				if isinstance(responseData, dict):
-					#if self.decideMyLog(u"Special") and theType =="groups": self.indiLOG.log(10,u"Loaded {} list - {}".format(theType, json.dumps(responseData, sort_keys=True, indent=2)) )
-					if self.decideMyLog(u"ReadFromBridge"): self.indiLOG.log(10,u"Loaded {} list - {}".format(theType, json.dumps(responseData, sort_keys=True, indent=2)) )
-					self.hueConfigDict[hubNumber][theType] = responseData
+				try:
+					retCode, responseData, errorsDict =  self.commandToHub_HTTP( hubNumber, theType)
 
-					# See if there are more groups now than there were last time we checked.
-					if len(self.hueConfigDict[hubNumber][theType]) > lastCount[hubNumber] and lastCount[hubNumber] is not 0:
-						countChange = len(self.hueConfigDict[hubNumber][theType]) - lastCount[hubNumber]
-						if countChange == 1:
-							self.indiLOG.log(20,u"{} new Hue {} found and loaded. Be sure to create an Indigo device to control the new Hue group.".format(theType, countChange) )
-						else:
-							self.indiLOG.log(20,u"{} new Hue {} found and loaded. Be sure to create Indigo devices to control the new Hue groups.".format(theType, countChange) )
-					elif len(self.hueConfigDict[hubNumber][theType]) < lastCount[hubNumber]:
-						countChange = lastCount[hubNumber] - len(self.hueConfigDict[hubNumber][theType])
-						if countChange == 1:
-							self.indiLOG.log(20,u"{} less Hue {} was found on the Hue bridge. Check your Hue Lights Indigo devices. One of them may have been controlling the missing Hue group.".format(theType, countChange) )
-						elif countChange !=0:
-							self.indiLOG.log(20,u"{} fewer Hue {} were found on the Hue bridge. Check your Hue Lights Indigo devices. Some of them may have been controlling the missing Hue groups.".format(theType, countChange) )
-					# Make sure the plugin knows it's actually paired now.
-					self.paired[hubNumber] = True
+					# We should have a dictionary. If so, it's a group list
+					if isinstance(responseData, dict):
+						#if self.decideMyLog(u"Special") and theType =="groups": self.indiLOG.log(10,u"Loaded {} list - {}".format(theType, json.dumps(responseData, sort_keys=True, indent=2)) )
+						if self.decideMyLog(u"ReadFromBridge"): self.indiLOG.log(10,u"Loaded {} list - {}".format(theType, json.dumps(responseData, sort_keys=True, indent=2)) )
+						self.hueConfigDict[hubNumber][theType] = responseData
 
-				elif isinstance(responseData, list):
-					# Get the first item
-					firstResponseItem = responseData[0]
+						# See if there are more groups now than there were last time we checked.
+						if len(self.hueConfigDict[hubNumber][theType]) > lastCount[hubNumber] and lastCount[hubNumber] is not 0:
+							countChange = len(self.hueConfigDict[hubNumber][theType]) - lastCount[hubNumber]
+							if countChange == 1:
+								self.indiLOG.log(20,u"{} new Hue {} found and loaded. Be sure to create an Indigo device to control the new Hue group.".format(theType, countChange) )
+							else:
+								self.indiLOG.log(20,u"{} new Hue {} found and loaded. Be sure to create Indigo devices to control the new Hue groups.".format(theType, countChange) )
+						elif len(self.hueConfigDict[hubNumber][theType]) < lastCount[hubNumber]:
+							countChange = lastCount[hubNumber] - len(self.hueConfigDict[hubNumber][theType])
+							if countChange == 1:
+								self.indiLOG.log(20,u"{} less Hue {} was found on the Hue bridge #{}. Check your Hue Lights Indigo devices. One of them may have been controlling the missing Hue group.".format(theType, countChange, hubNumber) )
+							elif countChange !=0:
+								self.indiLOG.log(20,u"{} fewer Hue {} were found on the Hue bridge#{}. Check your Hue Lights Indigo devices. Some of them may have been controlling the missing Hue groups.".format(theType, countChange, hubNumber) )
+						# Make sure the plugin knows it's actually paired now.
+						self.paired[hubNumber] = True
+						self.notPairedMsg[hubNumber] = time.time() - 90
 
-					# Did we get an error?
-					errorDict = firstResponseItem.get('error', None)
-					if errorDict is not None:
+					elif isinstance(responseData, list):
+						# Get the first item
+						firstResponseItem = responseData[0]
 
-						errorCode = errorDict.get('type', None)
+						# Did we get an error?
+						errorDict = firstResponseItem.get('error', None)
+						if errorDict is not None:
 
-						# Is this a link button not pressed error?
-						if errorCode == 1:
-							self.doErrorLog(u"update{}List: Not paired with the Hue bridge. Press the middle button on the Hue bridge, then press the Pair Now button in the Hue Lights Configuration window (Plugins menu).".format(theType))
-							self.paired[hubNumber] = False
+							errorCode = errorDict.get('type', None)
 
-						else:
-							self.doErrorLog(u"Error #{} from Hue bridge when loading available {}. Description is \"{}\".".format(errorCode, errorDict.get('description', u"(no description"),theType))
-							self.paired[hubNumber] = False
+							# Is this a link button not pressed error?
+							if errorCode == 1:
+								if self.checkForLastNotPairedMessage(hubNumber):
+									self.doErrorLog(u"update{}List: Not paired with the Hue bridge#{}. Press the middle button on the Hue bridge, then press the Pair Now button in the Hue Lights Configuration window (Plugins menu).".format(theType, hubNumber))
+								self.paired[hubNumber] = False
 
-			except requests.exceptions.Timeout:
-				self.doErrorLog(u"Failed to load {} list from the Hue bridge at {} after {} seconds - check settings and retry.".format(theType, ipAddress, kTimeout))
+							else:
+								if self.checkForLastNotPairedMessage(hubNumber):
+									self.doErrorLog(u"Error #{} from Hue bridge#{} when loading available {}. Description is \"{}\".".format(errorCode, hubNumber, errorDict.get('description', u"(no description"), theType))
+								self.paired[hubNumber] = False
 
-			except requests.exceptions.ConnectionError:
-				self.doErrorLog(u"Failed to connect to the Hue bridge at {}. - Check that the bridge is connected, turned on and the network settings are correct.".format(ipAddress))
-				return
+				except requests.exceptions.Timeout:
+					self.doErrorLog(u"Failed to load {} list from the Hue bridge#{} at {} after {} seconds - check settings and retry.".format(theType, hubNumber, ipAddress, kTimeout))
 
-			except Exception as e:
-				self.exceptionHandler(30, e, extraText=u"Unable to obtain list from the bridge {}".format(hubNumber))
+				except requests.exceptions.ConnectionError:
+					self.doErrorLog(u"Failed to connect to the Hue bridge#{} at {}. - Check that the bridge is connected, turned on and the network settings are correct.".format(hubNumber, ipAddress))
+					return
+
+				except Exception as e:
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\nUnable to obtain list from the bridge# {}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:], hubNumber))
+		except Exception as e:
+			if unicode(e).find('changed size') ==-1:# in case hub was added / removed in config, skip error message
+				self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\nUnable to obtain list from the bridge# {}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:], hubNumber))
 		return 
 
 
@@ -5706,21 +5956,29 @@ class Plugin(indigo.PluginBase):
 		#   as needed.  This method does no actual Hue bridge communication.  It just updates
 		#   Indigo devices with information already obtained through the use of the
 		#   self.updateLightsList.
-
-		for hubNumber in self.hueConfigDict:
-			if self.decideMyLog(u"UpdateIndigoDevices"): self.indiLOG.log(10,u"parseAllHueLightsData: on Bridge:{} There are {} lights on the Hue bridge.".format(hubNumber, len(self.hueConfigDict[hubNumber]['lights'] )))
-		if self.decideMyLog(u"UpdateIndigoDevices"): self.indiLOG.log(10,u"parseAllHueLightsData:  and Indigo devices controlling Hue devices.".format(len(self.deviceList)))
-		for deviceId in self.deviceList:
-			#indigo.server.log("refresh              lights parse 0.0 time:{}".format( time.time()))
-			device = indigo.devices[deviceId]
-			if device.deviceTypeId in kLightDeviceTypeIDs:
-				hubNumber = device.pluginProps['hubNumber']
-				for bulbId in self.hueConfigDict[hubNumber]['lights'] :
-					if bulbId == device.pluginProps['bulbId']:
-						#indigo.server.log("refresh              lights parse 1.0 time:{}".format(time.time()))
-						self.parseOneHueLightData(self.hueConfigDict[hubNumber]['lights'][bulbId], device)
-						#indigo.server.log("refresh              lights parse 2.0 time:{}".format( time.time()))
-						break
+		try:
+			for hubNumber in self.hueConfigDict:
+				if self.decideMyLog(u"UpdateIndigoDevices"): self.indiLOG.log(10,u"parseAllHueLightsData: on Bridge:{} There are {} lights on the Hue bridge.".format(hubNumber, len(self.hueConfigDict[hubNumber]['lights'] )))
+			if self.decideMyLog(u"UpdateIndigoDevices"): self.indiLOG.log(10,u"parseAllHueLightsData:  and Indigo devices controlling Hue devices.".format(len(self.deviceList)))
+			for deviceId in self.deviceList:
+				#indigo.server.log("refresh              lights parse 0.0 time:{}".format( time.time()))
+				device = indigo.devices[deviceId]
+				if device.deviceTypeId in kLightDeviceTypeIDs:
+					hubNumber = device.pluginProps['hubNumber']
+					if hubNumber not in self.hueConfigDict:
+						if time.time() - self.lastReminderHubNumberNotPresent > 200: 
+							self.indiLOG.log(30,u"parseAllHueLightsData hubNumber:{} / dev>{}< not in dict".format(hubNumber, device.name))
+							self.lastReminderHubNumberNotPresent = time.time()
+						continue
+					if "lights" in self.hueConfigDict[hubNumber]:
+						for bulbId in self.hueConfigDict[hubNumber]['lights'] :
+							if bulbId == device.pluginProps['bulbId']:
+								#indigo.server.log("refresh              lights parse 1.0 time:{}".format(time.time()))
+								self.parseOneHueLightData(self.hueConfigDict[hubNumber]['lights'][bulbId], device)
+								#indigo.server.log("refresh              lights parse 2.0 time:{}".format( time.time()))
+								break
+		except Exception as e:
+			self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\n".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 	# Parse One Hue Light Data
 	########################################
@@ -6431,14 +6689,23 @@ class Plugin(indigo.PluginBase):
 
 		# Start going through all the devices in the self.deviceList and update any Indigo
 		#   devices that are controlling the Hue group devices.
-		for deviceId in self.deviceList:
-			device = indigo.devices[deviceId]
-			if device.deviceTypeId in kGroupDeviceTypeIDs:
-				hubNumber = device.pluginProps['hubNumber']
-				for groupId in self.hueConfigDict[hubNumber]['groups'] :
-					if groupId == device.pluginProps['groupId']:
-						self.parseOneHueGroupData(self.hueConfigDict[hubNumber]['groups'][groupId], device)
-						break
+		try:
+			for deviceId in self.deviceList:
+				device = indigo.devices[deviceId]
+				if device.deviceTypeId in kGroupDeviceTypeIDs:
+					hubNumber = device.pluginProps['hubNumber']
+					if hubNumber not in self.hueConfigDict:
+						if time.time() - self.lastReminderHubNumberNotPresent > 200: 
+							self.indiLOG.log(30,u"parseAllHueGroupsData hubNumber:{} / dev>{}< not in dict".format(hubNumber, device.name))
+							self.lastReminderHubNumberNotPresent = time.time()
+						continue
+					if "groups" in self.hueConfigDict[hubNumber]:
+						for groupId in self.hueConfigDict[hubNumber]['groups'] :
+							if groupId == device.pluginProps['groupId']:
+								self.parseOneHueGroupData(self.hueConfigDict[hubNumber]['groups'][groupId], device)
+								break
+		except Exception as e:
+			self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\n".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 
 	# Parse One Hue Group Data
 	########################################
@@ -6675,13 +6942,22 @@ class Plugin(indigo.PluginBase):
 
 		# Start going through all the devices in the self.deviceList and update any Indigo
 		#   devices that are controlling the Hue sensors devices.
-		for deviceId in self.deviceList:
-			device = indigo.devices[deviceId]
-			if device.deviceTypeId in kSensorTypeList:
-				hubNumber = device.pluginProps['hubNumber']
-				for sensorId in self.hueConfigDict[hubNumber]['sensors'] :
-					if sensorId == device.pluginProps['sensorId']:
-						self.parseOneHueSensorData(self.hueConfigDict[hubNumber]['sensors'][sensorId], device)
+		try:
+			for deviceId in self.deviceList:
+				device = indigo.devices[deviceId]
+				if device.deviceTypeId in kSensorTypeList:
+					hubNumber = device.pluginProps['hubNumber']
+					if hubNumber not in self.hueConfigDict:
+						if time.time() - self.lastReminderHubNumberNotPresent > 200: 
+							self.indiLOG.log(30,u"parseAllHueSensorsData hubNumber:{} / dev>{}< not in dict".format(hubNumber, device.name))
+							self.lastReminderHubNumberNotPresent = time.time()
+						continue
+					if "sensors" in self.hueConfigDict[hubNumber]:
+						for sensorId in self.hueConfigDict[hubNumber]['sensors'] :
+							if sensorId == device.pluginProps['sensorId']:
+								self.parseOneHueSensorData(self.hueConfigDict[hubNumber]['sensors'][sensorId], device)
+		except Exception as e:
+			self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\n".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return 
 
 	# Parse One Hue theDict Data
@@ -7674,7 +7950,7 @@ class Plugin(indigo.PluginBase):
 						#   it must be converted to 10th seconds here.
 						rampRate = int(round(float(device.pluginProps['rate']) * 10))
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText=u"Default ramp rate could not be obtained")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\nDefault ramp rate could not be obtained".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 					rampRate = 5
 			else:
 				# Convert the passed rampRate from seconds to 1/10th-seconds.
@@ -7856,7 +8132,7 @@ class Plugin(indigo.PluginBase):
 						#   it must be converted to 10th seconds here.
 						rampRate = int(round(float(device.pluginProps['rate']) * 10))
 				except Exception as e:
-					self.exceptionHandler(30, e, extraText=u"Default ramp rate could not be obtained")
+					self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\nDefault ramp rate could not be obtained".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 					rampRate = 5
 			else:
 				rampRate = int(round(float(rampRate) * 10))
@@ -7995,7 +8271,7 @@ class Plugin(indigo.PluginBase):
 					#   it must be converted to 10th seconds here.
 					rampRate = int(round(float(device.pluginProps['rate']) * 10))
 			except Exception as e:
-				self.exceptionHandler(40, e, extraText=u"Default ramp rate could not be obtained")
+				self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\nDefault ramp rate could not be obtained".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				rampRate = 5
 		else:
 			rampRate = int(round(float(rampRate) * 10))
@@ -8149,7 +8425,7 @@ class Plugin(indigo.PluginBase):
 					#   it must be converted to 10th seconds here.
 					rampRate = int(round(float(device.pluginProps['rate']) * 10))
 			except Exception as e:
-				self.exceptionHandler(40, e, extraText=u"Default ramp rate could not be obtained")
+				self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\nDefault ramp rate could not be obtained".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				rampRate = 5
 		else:
 			rampRate = int(round(float(rampRate) * 10.0))
@@ -8287,7 +8563,7 @@ class Plugin(indigo.PluginBase):
 					#   it must be converted to 10th seconds here.
 					rampRate = int(round(float(device.pluginProps['rate']) * 10))
 			except Exception as e:
-				self.exceptionHandler(40, e, extraText=u"Default ramp rate could not be obtained")
+				self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\nDefault ramp rate could not be obtained".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				rampRate = 5
 		else:
 			rampRate = int(round(float(rampRate) * 10.0))
@@ -8424,7 +8700,7 @@ class Plugin(indigo.PluginBase):
 					#   it must be converted to 10th seconds here.
 					rampRate = int(round(float(device.pluginProps['rate']) * 10))
 			except Exception as e:
-				self.exceptionHandler(40, e, extraText=u"Default ramp rate could not be obtained")
+				self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\nDefault ramp rate could not be obtained".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 				rampRate = 5
 		else:
 			rampRate = int(round(float(rampRate) * 10))
@@ -8736,16 +9012,14 @@ class Plugin(indigo.PluginBase):
 		#    be used to force a reload of everything from the Hue bridge.
 
 	   # Do we have a unique Hue username (a.k.a. key or host ID)?
+
 		if self.hostIds == {"0":""}:
 			self.hostIds = {"0": self.hostId}
-		if self.pluginState == "init": self.indiLOG.log(20,u"hostIds read:  {}".format(self.hostIds))
 
 		for hubNumber in  self.hostIds:
 			hueUsername = self.hostIds[hubNumber]
 			if hueUsername is None :
 				self.indiLOG.log(10,u"Hue Lights doesn't appear to be paired with the Hue bridge.")
-			elif self.pluginState == "init":
-				self.indiLOG.log(10,u"The username Hue Lights uses to connect to the Hue bridge is {}" .format(hueUsername) )
 
 		# Get the entire Hue bridge configuration and report the results.
 
@@ -8754,207 +9028,50 @@ class Plugin(indigo.PluginBase):
 		## old if only one hub, expaned to option of having multiple hubs
 		ipAddress = self.pluginPrefs.get('address', None)
 		tempIP= json.loads(self.pluginPrefs.get('addresses', '{"0":""}'))
-		if tempIP == {"0":""}:
+
+
+		if tempIP == {"0":""} and ipAddress != {}:
 			tempIP['0'] = ipAddress
 
-		for hubNumber in tempIP:
-			if hubNumber not in khubNumbersAvailable: continue
-			if tempIP[hubNumber] is None:
-				self.doErrorLog(u"No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com.")
-				return
+		try:
+			for hubNumber in copy.copy(tempIP):
+				if hubNumber not in khubNumbersAvailable: continue
+				if tempIP[hubNumber] is None:
+					self.doErrorLog(u"No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com.".format(tempIP))
+					del tempIP[hubNumber]
+					continue
 
-			if not self.isValidIP(tempIP[hubNumber]):
-				self.doErrorLog(u"IP address\"{}\" set for the Hue bridge is not valid, please set in config".format(tempIP[hubNumber]))
-				return
+				if not self.isValidIP(tempIP[hubNumber]):
+					self.doErrorLog(u"IP address\"{}\" set for the Hue bridge is not valid, please set in config,".format(tempIP))
+					del tempIP[hubNumber]
+					continue
 
-			self.ipAddresses[hubNumber] = tempIP[hubNumber]
-		if self.pluginState == "init": 
-			self.indiLOG.log(20,u"ipAddresses loaded:{} ".format(self.ipAddresses))
+		except Exception as e:
+			self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\nConnection error".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
+		self.ipAddresses = copy.copy(tempIP)
 
 		self.pluginPrefs['addresses'] = json.dumps(self.ipAddresses)
 
 		# Get the entire configuration from the Hue bridge.
 		self.getHueConfig()
 		if self.pluginState == "init": 
-			self.indiLOG.log(20,u"bridges paired:  {}".format(self.paired))
-			for hubNumber in self.hueConfigDict:
-				self.indiLOG.log(20,u"bridge: {}  loaded: light(s): {:2d}; group(s): {:2d}; scene(s): {:2d}; user(s): {:2d};  resource(s): {:2d}; rule(s): {:3d}; schedule(s): {:2d}; sensor(s): {:2d}".format(
-					hubNumber, len(self.hueConfigDict[hubNumber]['lights'] ), len(self.hueConfigDict[hubNumber]['groups'] ), len(self.hueConfigDict[hubNumber]['users'] ), len(self.hueConfigDict[hubNumber]['scenes'] ), len(self.hueConfigDict[hubNumber]['resourcelinks'] ), len(self.hueConfigDict[hubNumber]['rules'] ), len(self.hueConfigDict[hubNumber]['schedules'] ), len(self.hueConfigDict[hubNumber]['sensors'] )) )
-		return
-
-
-
-	########################################
-	# Hue bridge Pairing Methods
-	########################################
-
-	# Start/Restart Pairing with Hue bridge
-	########################################
-	def restartPairing(self, valuesDict):
-		# This method should only be used as a callback method from the
-		#   plugin configuration dialog's "Pair Now" button.
-		if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Starting restartPairing.")
-		isError = False
-		errorsDict = indigo.Dict()
-		errorsDict['showAlertText'] = ""
-		hubNumber = valuesDict['hubNumber']
-		if hubNumber not in khubNumbersAvailable: 
-			if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Starting restartPairing. bad hubNumber given {}".format(hubNumber))
-			return 
-		self.hubNumberSelected = valuesDict['hubNumber']
-
-		# Validate the IP Address field.
-		if valuesDict.get('address', "") == "":
-			# The field was left blank.
-			if self.decideMyLog(u"Init"): self.indiLOG.log(30,u"IP address \"{}\" is blank.".format(valuesDict['address']))
-			isError = True
-			errorsDict['address'] = u"The IP Address field is blank. Please enter an IP Address for the Hue bridge."
-			errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
-
-		else:
-			# The field wasn't blank. Check to see if the format is valid.
-			# Try to format the IP Address as a 32-bit binary value. If this fails, the format was invalid.
-			if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Validating IP address \"{}\".".format(valuesDict['address']))
-			if not self.isValidIP(valuesDict['address']):
-				self.indiLOG.log(30,u"IP address format is invalid.")
-				isError = True
-				errorsDict['address'] = u"The IP Address is not valid. Please enter a valid IP address."
-				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
-
-		# If there haven't been any errors so far, try to connect to the Hue bridge to see
-		#   if it's actually a Hue bridge.
-		if not isError:
-			try:
-				if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Verifying that a Hue bridge exists at IP address \"{}\".".format(valuesDict['address']))
-				command = "http://{}/description.xml".format(valuesDict['address'])
-				if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"Accessing URL: {}".format(command))
-				r = requests.get(command, timeout=kTimeout, headers={'Connection':'close'})
-				if self.decideMyLog(u"ReadFromBridge"): self.indiLOG.log(10,u"Got response:\n{}".format(r.content))
-
-				# Quick and dirty check to see if this is a Philips Hue bridge.
-				if "Philips hue bridge" not in r.content:
-					# If "Philips hue bridge" doesn't exist in the response, it's not a Hue bridge.
-					if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"No \"Philips hue bridge\" string found in response. This isn't a Hue bridge.")
-					isError = True
-					errorsDict['address'] = u"This doesn't appear to be a Philips Hue bridge.  Please verify the IP address."
-					errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
-
+			#self.indiLOG.log(20,u"bridge paired status:  {}".format(self.paired))
+			self.indiLOG.log(20,u"bridge lights groups scenes users resources rules schedules sensors hostIds / user names ------------------- ip Numbers -----")
+			hublist = []
+			for hubNumber in self.ipAddresses:
+				hublist.append(hubNumber)
+			for hubNumber in sorted(hublist):
+				if hubNumber in self.hueConfigDict:
+					if "lights" in self.hueConfigDict[hubNumber]:
+						self.indiLOG.log(20,u"#{:5s} {:6d} {:6d} {:6d} {:5d} {:9d} {:5d} {:9d} {:7d} {:20s} {:20s}".format(
+						hubNumber, len(self.hueConfigDict[hubNumber]['lights'] ), len(self.hueConfigDict[hubNumber]['groups'] ), len(self.hueConfigDict[hubNumber]['users'] ), len(self.hueConfigDict[hubNumber]['scenes'] ), 
+						len(self.hueConfigDict[hubNumber]['resourcelinks'] ), len(self.hueConfigDict[hubNumber]['rules'] ), len(self.hueConfigDict[hubNumber]['schedules'] ), len(self.hueConfigDict[hubNumber]['sensors'] ), self.hostIds[hubNumber],self.ipAddresses[hubNumber]) )
+					else:
+						self.indiLOG.log(30,u"#{:5s}; ipNumber:{} --- not properly setup".format(hubNumber, self.ipAddresses[hubNumber]))
 				else:
-					# This is likely a Hue bridge.
-					if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Verified that this is a Hue bridge.")
-
-			except requests.exceptions.Timeout:
-				self.doErrorLog(u"Connection to {} timed out after {} seconds.".format(valuesDict['address'], kTimeout))
-				isError = True
-				errorsDict['address'] = u"Unable to reach the bridge. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
-				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
-
-			except requests.exceptions.ConnectionError:
-				self.doErrorLog(u"Connection to {} failed. There was a connection error.".format(valuesDict['address']))
-				isError = True
-				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
-				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
-
-			except Exception as e:
-				self.exceptionHandler(40, e, extraText=u"Connection error")
-				isError = True
-				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
-				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
-
-		# Check for errors and act accordingly.
-		if isError:
-			# There was at least 1 error.
-			errorsDict['showAlertText'] = errorsDict['showAlertText'].strip()
-			return (valuesDict, errorsDict)
-		else:
-			# There weren't any errors, so...
-
-			# Request a username/key.
-			try:
-				self.ipAddresses[hubNumber] = valuesDict['address']
-				self.indiLOG.log(20,u"Attempting to pair with the Hue bridge at \"{}\".".format(valuesDict['address']))
-				requestData = json.dumps({"devicetype": "Indigo Hue Lights"})
-				if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"Request is {}".format(requestData) )
-				command = "http://{}/api".format(valuesDict['address'])
-				if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"Sending request to {} (via HTTP POST).".format(command))
-				r = requests.post(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
-				responseData = json.loads(r.content)
-				if self.decideMyLog(u"ReadFromBridge"): self.indiLOG.log(10,u"Got response {}".format(responseData))
-
-				# We should have a single response item
-				if len(responseData) == 1:
-					# Get the first item
-					firstResponseItem = responseData[0]
-
-					# See if we got an error.
-					errorDict = firstResponseItem.get('error', None)
-					if errorDict is not None:
-						# We got an error.
-						errorCode = errorDict.get('type', None)
-
-						if errorCode == 101:
-							# Center link button wasn't pressed on bridge yet.
-							errorText = self.doErrorLog(u"Unable to pair with the Hue bridge. Press the center button on the Hue bridge, then click the \"Pair Now\" button.")
-							isError = True
-							errorsDict['startPairingButton'] = errorText
-							errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
-
-						else:
-							errorText = self.doErrorLog(u"Error #{} from the Hue bridge. Description: \"{}\".".format(errorCode, errorDict.get('description', u"(No Description)")))
-							isError = True
-							errorsDict['startPairingButton'] = errorText
-							errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
-
-					# See if we got a success response.
-					successDict = firstResponseItem.get('success', None)
-					if successDict is not None:
-						# Pairing was successful.
-						self.indiLOG.log(20,u"Paired with Hue bridge successfully.")
-						# The plugin was paired with the Hue bridge.
-						self.paired[hubNumber] = True
-						# Get the username provided by the bridge.
-						hueUsername = successDict['username']
-						if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Username (a.k.a. key) assigned by Hue bridge to Hue Lights plugin: {}".format(hueUsername))
-						# Set the plugin's hostId to the new username.
-						self.hostIds[hubNumber] = hueUsername
-						# Make sure the new username is returned to the config dialog.
-						valuesDict['hostId'] = hueUsername
-						valuesDict['hostIds'] = json.dumps(self.hostIds)
-
-				else:
-					# The Hue bridge is acting weird.  There should have been only 1 response.
-					errorText = self.doErrorLog(u"Invalid response from Hue bridge. Check the IP address and try again.")
-					if self.decideMyLog(u"ReadFromBridge"): self.indiLOG.log(10,u"Response from Hue bridge contained {} items.".format(len(responseData)))
-					isError = True
-					errorsDict['startPairingButton'] = errorText
-					errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
-
-			except requests.exceptions.Timeout:
-				self.exceptionHandler(40, e, extraText=u"Connection to {}  failed,timed out after {} seconds.".format(valuesDict['address'], kTimeout))
-				isError = True
-				errorsDict['startPairingButton'] = u"Unable to reach the bridge. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
-				errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
-
-			except requests.exceptions.ConnectionError:
-				self.exceptionHandler(40, e, extraText=u"Connection to {} There was a connection error".format(valuesDict['address']))
-				isError = True
-				errorsDict['startPairingButton'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
-				errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
-
-			except Exception as e:
-				self.exceptionHandler(40, e, extraText=u"Connection to {}  failed".format(valuesDict['address']))
-				isError = True
-				errorsDict['startPairingButton'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
-				errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
-
-			# Check again for errors.
-			if isError:
-				# There was at least 1 error.
-				errorsDict['showAlertText'] = errorsDict['showAlertText'].strip()
-				return (valuesDict, errorsDict)
-
-			valuesDict['addresses'] = json.dumps(self.ipAddresses)
-			return valuesDict
+					self.indiLOG.log(30,u"#{:5s}; ipNumber:{} --- not paired or connected".format(hubNumber, self.ipAddresses[hubNumber]))
+				
+ 		return
 
 
 
@@ -10014,7 +10131,7 @@ class Plugin(indigo.PluginBase):
 				self.doErrorLog(u"Ramp Rate must be a number between 0 and 540 seconds and can be in increments of 0.1 seconds. Value \"{}\" ignored.".format(rampRate))
 				rampRate = -1
 			except Exception as e:
-				self.exceptionHandler(40, e, extraText=u"Invalid Ramp Rate value \"{}\"".format(rampRate))
+				self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\nInvalid Ramp Rate value \"{}\"".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:], rampRate))
 				rampRate = -1
 		else:
 			# No Ramp Rate submitted. Use -1 to indicate this.
@@ -10125,7 +10242,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			preset = self.pluginPrefs['presets'][presetId]
 		except Exception as e:
-			self.exceptionHandler(40, e, extraText=u"Preset number {} couldn't be recalled.".format(presetId + 1))
+			self.indiLOG.log(40,u"{}\nline#,Module,Statement:{}\nPreset number {} couldn't be recalled.".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:], presetId + 1))
 			return
 
 		# Get the data from the preset in the plugin prefs.
@@ -10362,6 +10479,7 @@ class Plugin(indigo.PluginBase):
 
 			outs = [u"\n======================= print Hue Lights ====================="]
 			for hubNumber in sorted(self.ipAddresses):
+				if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
 				theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
 				outs.append(u"==  Bridge:{}, ipNumber:{}, hostId:{}, paired:{}, #of lights:{}, sorted by:{}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], self.paired[hubNumber], len(theDict), sortBy))
 							 #123 12345678901 12345678901234567890123456 12345678901234567890123456789 12345678901234567890123456789 1234567890123456789012345 12345678901234567890123456789 12345678901 1234567890123456789012345 123456789 12345 
@@ -10396,6 +10514,7 @@ class Plugin(indigo.PluginBase):
 
 			outs = [u"\n======================= print Hue Sensors ====================="]
 			for hubNumber in sorted(self.ipAddresses):
+				if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
 				theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
 				outs.append( u"==   Bridge:{}, ipNumber:{}, hostId:{}, paired:{}, #of Sensors:{}, sorted by:{}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], self.paired[hubNumber], len(theDict), sortBy))
 						#1234 12345678901     12345678901234567890123456789 12345678901234567890123456789 12345678901234567890123456789 1234567890123456789     123456 123456 123456 1234567890123456789    1234567890 
@@ -10431,7 +10550,7 @@ class Plugin(indigo.PluginBase):
 			hueIdToIndigoName, indigoNameToHueId = self.getIndigoDevDict("groupId")
 			outs = [u"\n======================= print Hue Groups ====================="]
 			for hubNumber in sorted(self.ipAddresses):
-
+				if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
 				theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
 				outs.append(u"==  Bridge: {}, ipNumber: {}, hostId: {}, #of Groups: {}, paired: {}, sortedby: {}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], len(theDict), self.paired[hubNumber], sortBy))
 							 #123 123456789 123456789 123456789 123456789 1 123456789 12345678901234567890123456789 12345678901234567890123456789 1234567890123456789012345
@@ -10457,6 +10576,7 @@ class Plugin(indigo.PluginBase):
 		elif valuesDict['whatToPrint'] == "scenes":
 			outs = [u"\n======================= print Hue Scenes ====================="]
 			for hubNumber in sorted(self.ipAddresses):
+				if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
 				theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
 				outs.append(u"== Bridge: {}, ipNumber: {}, hostId: {}, #of Scenes: {}, paired: {}, sortedby: {}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], len(theDict), self.paired[hubNumber], sortBy))
 							  #123456789 1234 123456789 123456789  123456789 123456789 1234 1234567890123456789 123456789 
@@ -10480,6 +10600,7 @@ class Plugin(indigo.PluginBase):
 		elif valuesDict['whatToPrint'] == "resourcelinks":
 			outs = [u"\n======================= print Hue resourcelinks ====================="]
 			for hubNumber in sorted(self.ipAddresses):
+				if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
 				theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
 				outs.append(u"== Bridge: {}, ipNumber: {}, hostId: {}, #of Scenes: {}, paired: {}, sortedby: {}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], len(theDict), self.paired[hubNumber], sortBy))
 							 #123456789 1 123456789 123456789  123456789 12345 123456789 123456789 123456789 
@@ -10502,6 +10623,7 @@ class Plugin(indigo.PluginBase):
 		elif valuesDict['whatToPrint'] == "rules":
 			outs = [u"\n======================= print Hue Rules ====================="]
 			for hubNumber in sorted(self.ipAddresses):
+				if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
 				theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
 				outs.append(u"== Bridge: {}, ipNumber: {}, hostId: {}, #of Scenes: {}, paired: {}, sortedby: {}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], len(theDict), self.paired[hubNumber], sortBy))
 							  #   123456789 123456789 123456789 1234 123456789 123456789 1234567890  123456789 1 123456789 
@@ -10524,6 +10646,7 @@ class Plugin(indigo.PluginBase):
 		elif valuesDict['whatToPrint'] == "schedules":
 			outs = [u"\n======================= print Hue Schedules ====================="]
 			for hubNumber in sorted(self.ipAddresses):
+				if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
 				theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
 				outs.append(u"== Bridge: {}, ipNumber: {}, hostId: {}, #of Scenes: {}, paired: {}, sortedby: {}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], len(theDict), self.paired[hubNumber], sortBy))
 							  #   123456789 123456789 123456789 123456789 123456789 1234567890123456789 123456789 
@@ -10542,12 +10665,11 @@ class Plugin(indigo.PluginBase):
 			self.indiLOG.log(20,"\n".join(outs)+"\n")
 
 
-
-
-		elif valuesDict['whatToPrint'] == "config":
+		elif  valuesDict['whatToPrint'] == "config":
 			outs = [u"\n======================= print Hue Config ====================="]
 			for hubNumber in sorted(self.ipAddresses):
-				
+				if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
+
 				theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
 				outs.append(u"===== Bridge#:    {:1}                ipNumber:  {:<15}      mac:        {}".format(hubNumber, self.ipAddresses[hubNumber], theDict['mac']))
 				outs.append(u" zigbee channel: {:2}                swversion: {:<15}      apiversion: {}".format(theDict['zigbeechannel'], theDict['swversion'], theDict['apiversion']))
@@ -10581,12 +10703,14 @@ class Plugin(indigo.PluginBase):
 
 		elif valuesDict['whatToPrint'].find("configJson") >-1:
 			for hubNumber in self.ipAddresses:
+				if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
 				self.indiLOG.log(20,"printHueData --- complete config bridge:{}   json=\n{} ".format(hubNumber, json.dumps(self.hueConfigDict[hubNumber]['config'], indent=2, sort_keys=True)))
 
 
-		elif valuesDict['whatToPrint'] == "orphens":
-			self.indiLOG.log(20,"======================= print Hue orphens =====================")
-
+		elif valuesDict['whatToPrint'] == "orphans":
+			out = ""
+			out += "\n======================= print Hue orphans ====================="
+			anyorphan = 0
 			tests = [['bulbId','lights'],['groupId','groups'],['sensorId','sensors']]
 			for tt in tests:
 				hueIdToIndigoName, indigoNameToHueId = self.getIndigoDevDict(tt[0])
@@ -10595,10 +10719,20 @@ class Plugin(indigo.PluginBase):
 					for indigoName in indigoNameToHueId[hubNumber]:
 						hueIdToFind = indigoNameToHueId[hubNumber][indigoName]
 						if  hueIdToFind not in self.hueConfigDict[hubNumber][tt[1]]:
-							self.indiLOG.log(20," orphen indigo {:7s} device: == {:47s} ==   ID:{:3} does not exist on bridge: {} - {}".format(tt[1], indigoName, hueIdToFind, hubNumber, self.ipAddresses[hubNumber]))
-			self.indiLOG.log(20,"======================= print Hue orphens END =================")
+							anyorphan += 1
+							out += "\n orphan indigo {:7s} device: == {:47s} ==   ID:{:3} does not exist on bridge: {} - {}".format(tt[1], indigoName, hueIdToFind, hubNumber, self.ipAddresses[hubNumber])
 
+			for deviceId in self.deviceList:
+				device = indigo.devices[deviceId]
+				if device.deviceTypeId in kSensorTypeList:
+					hubNumber = device.pluginProps['hubNumber']
+					if hubNumber not in self.hueConfigDict:
+						anyorphan += 1
+						out +=u"\norphaned indigo device:{:45s};  Bridge # {} not configured ".format(device.name, hubNumber )
+			out += "\n======================= print Hue orphans END ================="
 
+			if anyorphan > 0 or "other"in valuesDict and valuesDict['other'] == "force":
+				self.indiLOG.log(20,out)
 
 
 		elif valuesDict['whatToPrint'].find("specific") >-1:
@@ -10665,18 +10799,11 @@ class Plugin(indigo.PluginBase):
 		for dev in indigo.devices.iter(self.pluginId):
 			if typeName in dev.pluginProps:
 				hubNumber = dev.pluginProps.get('hubNumber','0')
-				hueIdToIndigoName[hubNumber][dev.pluginProps[typeName]] = dev.name
-				indigoNameToHueId[hubNumber][dev.name] = dev.pluginProps[typeName]
+				if hubNumber in hueIdToIndigoName:
+					hueIdToIndigoName[hubNumber][dev.pluginProps[typeName]] = dev.name
+					indigoNameToHueId[hubNumber][dev.name] = dev.pluginProps[typeName]
 		return hueIdToIndigoName, indigoNameToHueId
 
-	# Toggle Debug Logging Menu Action
-	########################################
-	def setDebugAreas(self, valuesDict, item=""):
-
-		for d in _debugAreas:
-			self.pluginPrefs[u"debug"+d] =  valuesDict[u"debug"+d]
-		self.getDebugLevels()
-		return 
 ####-----------------	 ---------
 	def completePath(self,inPath):
 		if len(inPath) == 0: return u""
@@ -10684,12 +10811,25 @@ class Plugin(indigo.PluginBase):
 		if inPath[-1] != "/": inPath +="/"
 		return inPath
 
+####-----------------	 ---------
+	# Toggle Debug Logging Menu Action
+	########################################
+	def setDebugAreas(self, valuesDict, item=""):
+		self.getDebugLevels( useMe={"debugall": not self.pluginPrefs[u"debugall"]} )
+		self.pluginPrefs[u"debugall"] = not self.pluginPrefs.get(u"debugall",False)
+		return 
+
 ####-------------------------------------------------------------------------####
-	def getDebugLevels(self):
+	def getDebugLevels(self, useMe={}):
 		try:
-			self.debugLevel			= []
-			for d in _debugAreas:
-				if self.pluginPrefs.get(u"debug"+d, False): self.debugLevel.append(d)
+			self.debugLevel	= []
+			if useMe == {}:
+				for d in _debugAreas:
+					if self.pluginPrefs.get(u"debug"+d, False): self.debugLevel.append(d)
+			else:
+				for d in _debugAreas:
+					if useMe.get(u"debug"+d, False): self.debugLevel.append(d)
+
 			self.indiLOG.log(20,u"debug areas:{}".format(self.debugLevel))
 		except Exception as e:
 			self.indiLOG.log(50,u"--------------------------------------------------------------------------------------------------------------")
@@ -10705,16 +10845,28 @@ class Plugin(indigo.PluginBase):
 			if msgArea in self.debugLevel:							 return True
 			return False
 		except	Exception as e:
-			self.exceptionHandler(40, e)
+			self.indiLOG.log(40,u"{}line#,Module,Statement:{}".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:]))
 		return False
 
 ####----------------- print to log as error only if different from last error message ---------
-	def doErrorLog(self, errorText, level=40):
-		if errorText != self.lastErrorMessage:
+	def doErrorLog(self, errorText, level=40, force=False):
+		if errorText != self.lastErrorMessage or force:
 			self.indiLOG.log(level, errorText)
 			self.lastErrorMessage = errorText
 		return errorText
 
+
+	########################################
+	def checkForLastNotPairedMessage(self, hubNumber):
+		#self.indiLOG.log(20,u"checkForLastNotPairedMessage, hubnumber, notPairedMsg:{}, {}, paired:{}".format(hubNumber, self.notPairedMsg, self.paired))
+		if hubNumber not in self.notPairedMsg:
+			#self.indiLOG.log(20,u"checkForLastNotPairedMessage, hubnumber not in notPairedMsg:{}, {}".format(hubNumber, self.notPairedMsg))
+			self.notPairedMsg[hubNumber]  = time.time() - 99
+
+		ret = time.time() - self.notPairedMsg[hubNumber] > 100
+		if ret:
+			self.notPairedMsg[hubNumber]  = time.time()
+		return ret 
 
 ####-----------------	 ---------
 	def normalizeHue(self, hueIn, device):
@@ -10725,18 +10877,23 @@ class Plugin(indigo.PluginBase):
 
 ####-----------------	 ---------
 	def isValidIP(self, ip0):
-		if ip0 == u"localhost": 						return True
+		try:
+			if ip0 == u"localhost": 						return True
 
-		ipx = ip0.split(u".")
-		if len(ipx) != 4:								return False
+			ipx = ip0.split(u".")
+			if len(ipx) != 4:								return False
 
-		else:
-			for ip in ipx:
-				try:
-					if int(ip) < 0 or  int(ip) > 255: 	return False
-				except:
-														return False
-		return True
+			else:
+				for ip in ipx:
+					try:
+						if int(ip) < 0 or  int(ip) > 255: 	return False
+					except:
+															return False
+			if True:										return True
+
+		except:
+			pass
+		if True:											return False
 
 
 	# get ip numbers etc
@@ -10758,32 +10915,6 @@ class Plugin(indigo.PluginBase):
 		else:
 			return "http://{}/api/{}".format(self.ipAddresses['0'], self.hostIds['0'])
 
-####-----------------  exception logging ---------
-	def exceptionHandler(self, level, exception_error_message, extraText=""):
-
-		try:
-			try: 
-				if u"{}".format(exception_error_message).find("None") >-1: return exception_error_message
-			except: 
-				pass
-
-			filename, line_number, method, statement = traceback.extract_tb(sys.exc_info()[2])[-1]
-			#module = filename.split('/')
-			log_message = "'{}'".format(exception_error_message )
-
-			if extraText !="":
-				log_message +=  "\n{} @line {}: '{}'".format(method, line_number, statement)
-			else:
-				log_message +=  "\n{} @line {}: '{}'\n{}".format(method, line_number, statement, extraText)
-			if self.lastErrorMessage == log_message: return 
-			self.lastErrorMessage = log_message
-
-			if level > 0:
-				self.indiLOG.log(level, log_message)
-
-			return "'{}'".format(log_message )
-		except Exception as e:
-			indigo.server.log( "{}".format(e))
 
 
 

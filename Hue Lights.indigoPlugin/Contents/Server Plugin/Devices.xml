@@ -7,7 +7,7 @@
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 			<Field id="confirmGWNumber" type="button">
 				<Label>click to</Label>
@@ -190,7 +190,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 			<Field id="confirmGWNumber" type="button">
 				<Label>click to</Label>
@@ -310,7 +310,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 			<Field id="confirmGWNumber" type="button">
 				<Label>click to</Label>
@@ -466,7 +466,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 			<Field id="confirmGWNumber" type="button">
 				<Label>click to</Label>
@@ -614,7 +614,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 			<Field id="confirmGWNumber" type="button">
 				<Label>click to</Label>
@@ -722,7 +722,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 			<Field id="confirmGWNumber" type="button">
 				<Label>click to</Label>
@@ -794,7 +794,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 			<Field id="confirmGWNumber" type="button">
 				<Label>click to</Label>
@@ -972,7 +972,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 			<Field id="confirmGWNumber" type="button">
 				<Label>click to</Label>
@@ -1065,7 +1065,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 			<Field id="confirmGWNumber" type="button">
 				<Label>click to</Label>
@@ -1180,7 +1180,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 			<Field id="confirmGWNumber" type="button">
 				<Label>click to</Label>
@@ -1299,7 +1299,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 			<Field id="confirmGWNumber" type="button">
 				<Label>click to</Label>
@@ -1396,7 +1396,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 			<Field id="confirmGWNumber" type="button">
 				<Label>click to</Label>
@@ -1560,7 +1560,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 			<Field id="confirmGWNumber" type="button">
 				<Label>click to</Label>
@@ -1659,7 +1659,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 			<Field id="confirmGWNumber" type="button">
 				<Label>click to</Label>
@@ -1784,7 +1784,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 			<Field id="confirmGWNumber" type="button">
 				<Label>click to</Label>
@@ -1961,7 +1961,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 			<Field id="confirmGWNumber" type="button">
 				<Label>click to</Label>

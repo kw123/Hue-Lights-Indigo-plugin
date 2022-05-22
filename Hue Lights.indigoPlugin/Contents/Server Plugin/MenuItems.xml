@@ -91,7 +91,7 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway his Scene is associated with">
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"> </List>
+				<List class="self" method="gwListGenerator" filter="acive" dynamicReload="true"> </List>
 			</Field>
 			<Field id="userId" type="menu" defaultValue=""
 				tooltip="Scene Creators are the applications on various devices that have connected to the Hue Bridge and created Scenes.">
@@ -144,7 +144,7 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 	</MenuItem>
 	<MenuItem id="sep2.1" />
 	<MenuItem id="createNewLightDevicesFromGWDict">
-		<Name>Create all HUE devices in indigo if they do not exist already</Name>
+		<Name>Add New Hue Devices...</Name>
 		<ConfigUI>
 			<Field id="hueFolderName" type="textfield" default ="New Hue Devices"
 				tooltip="If left empty it will be:  Hue New Devices ">
@@ -154,21 +154,21 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 			<Field id="createSensors" type="checkbox" default ="true"> <Label>create Sensor devices:</Label> 	</Field>
 			<Field id="createGroups"  type="checkbox" default ="true"> <Label>create Group devices:</Label> 	</Field>
 			<Field id="doCreate" type="button">
-				<Label>click to</Label>
+				<Label>Click to</Label>
 				<Title>Create folder and devices</Title>
 				<CallbackMethod>autocreateNewDevices</CallbackMethod>
 			</Field>
 			<Field id="infoLabel" type="label" fontSize="small" fontColor="darkgray">
-				<Label>This might take a while if you have a lot of Hue devices, that do not have a corresponding indigo device
+				<Label>Use this to add ALL hue lights/sensors ,... that do not have a corresponding indigo device
+This might take a while if you have a lot of Hue devices, that do not have a corresponding indigo device
 It is a good idea to restart the plugin to get all states etc created properly</Label>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
 	<MenuItem id="sep3" />
 	<MenuItem id="printHueDataMenu">
-		<Name>Print hue config data to log ...</Name>
+		<Name>Print hue config data to log...</Name>
 		<ConfigUI>
-
 			<Field  id="whatToPrint" 
 					type="menu" 
 					defaultValue="lights">
@@ -190,7 +190,7 @@ It is a good idea to restart the plugin to get all states etc created properly</
 					<Option value="specificRules">all info for one specific Bridge-RULES-id</Option>
 					<Option value="specificSchedules">all info for one specific Bridge-SCHEDULE-id</Option>
 					<Option value="specificResourcelinks">all info for one specific Bridge-RESOURCE-LINK-id</Option>
-					<Option value="orphens">Orphened indigo devices</Option>
+					<Option value="orphans">orphaned indigo devices</Option>
 				</List>
 			</Field>
 			<Field  id="sortBy" 
@@ -242,7 +242,7 @@ It is a good idea to restart the plugin to get all states etc created properly</
 				<List class="self" method="printsListGenerator" filter="resourcelinks"/>
 			</Field>
 			<Field id="doPrint" type="button">
-				<Label>click to</Label>
+				<Label>Click to</Label>
 				<Title>Print</Title>
 				<CallbackMethod>printHueData</CallbackMethod>
 			</Field>
@@ -250,20 +250,15 @@ It is a good idea to restart the plugin to get all states etc created properly</
 	</MenuItem>
 	<MenuItem id="sep4" />
 	<MenuItem id="toggleDebug">
-		<Name>Set debug areas ...</Name>
+		<Name>Toggle debug...</Name>
 		<ConfigUI>
-			<Field    id="debugInit"          			type="checkbox"         > <Label> Debug...                   ... (1)  Init:</Label>  </Field>
-			<Field    id="debugLoop"          			type="checkbox"         > <Label>     ... (2)  Loop:</Label>  </Field>
-			<Field    id="debugEditSetup"          		type="checkbox"         > <Label>     ... (3)  Edit indigo devs config etc:</Label>  </Field>
-			<Field    id="debugReadFromBridge"          type="checkbox"         > <Label>     ... (4)  Read From Bridge:</Label>  </Field>
-			<Field    id="debugSendCommandsToBridge"    type="checkbox"         > <Label>     ... (5)  Send Commands To Bridge:</Label>  </Field>
-			<Field    id="debugUpdateIndigoDevices"     type="checkbox"         > <Label>     ... (6)  Update Indigo Devices:</Label>  </Field>
-			<Field    id="debugSpecial"       			type="checkbox"         > <Label>     ... (S)  special debug (only for development):</Label>  </Field>
-			<Field    id="debugall"            			type="checkbox"         > <Label>     ... (99) all of the above .. everything:</Label>  </Field>
 			<Field id="doSetdebug" type="button">
-				<Label>click to</Label>
-				<Title>set debug areas</Title>
+				<Label>Click to</Label>
+				<Title>toggle debug (all areas)</Title>
 				<CallbackMethod>setDebugAreas</CallbackMethod>
+			</Field>
+			<Field id="infoLabel" type="label">
+				<Label>In most cases, leave it on for just a few seconds and check the plugin.log file in the indigo directory</Label>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
