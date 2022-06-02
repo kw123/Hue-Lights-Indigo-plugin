@@ -415,7 +415,7 @@ ksupportsSensorValue = 			{
 								"runLessWireSwitch":			False
 							}
 
-ksupportsBatteryLevel = 			{
+ksupportsBatteryLevel = 	{
 								"hueMotionSensor": 				True,
 								"hueMotionTemperatureSensor": 	True,
 								"hueMotionLightSensor": 		True,
@@ -425,5 +425,84 @@ ksupportsBatteryLevel = 			{
 								"hueWallSwitchModule": 			True,
 								"runLessWireSwitch":			False
 							}
+
+kSupportsColor = 			{
+								"hueBulb": 						True,
+								"hueAmbiance":					True,
+								"hueLightStrips":				True,
+								"hueLivingColorsBloom":			True,
+								"hueOnOffDevice":				False,
+								"hueGroup":						True
+							}
+
+kSupportsRGB = 				{
+								"hueBulb": 						True,
+								"hueAmbiance":					False,
+								"hueLightStrips":				True,
+								"hueLivingWhites":				False,
+								"hueLivingColorsBloom":			True,
+								"hueOnOffDevice":				False,
+								"hueGroup":						True
+							}
+
+kSupportsWhite = 			{
+								"hueBulb": 						True,
+								"hueAmbiance":					True,
+								"hueLightStrips":				True,
+								"hueLivingWhites":				False,
+								"hueLivingColorsBloom":			False,
+								"hueOnOffDevice":				False,
+								"hueGroup":						True
+							}
+
+kSupportsWhiteTemperature = {
+								"hueBulb": 						True,
+								"hueAmbiance":					True,
+								"hueLightStrips":				True,
+								"hueLivingWhites":				False,
+								"hueLivingColorsBloom":			False,
+								"hueOnOffDevice":				False,
+								"hueGroup":						True
+							}
+
+kWhiteTemperatureMin = 		{
+								"hueBulb": 						2000,
+								"hueAmbiance":					2000,
+								"hueLightStrips":				2000,
+								"hueLivingColorsBloom":			2000,
+								"hueGroup":						2000
+							}
+
+kWhiteTemperatureMax = 		{
+								"hueBulb": 						6500,
+								"hueAmbiance":					6500,
+								"hueLightStrips":				6500,
+								"hueLivingColorsBloom":			6500,
+								"hueGroup":						6500
+							}
+
+kSupportsRGBandWhiteSimultaneously = 		{
+								"hueBulb": 						False,
+								"hueAmbiance":					False,
+								"hueLightStrips":				False,
+								"hueLivingWhites":				False,
+								"hueLivingColorsBloom":			False,
+								"hueOnOffDevice":				False,
+								"hueGroup":						True
+							}
+					
+kIsDimmerDevice =			{
+								"hueBulb": 						True,
+								"hueAmbiance":					True,
+								"hueLightStrips":				True,
+								"hueLivingWhites":				True,
+								"hueLivingColorsBloom":			True,
+								"hueOnOffDevice":				False,
+								"hueGroup":						True
+							}
+
+
+
+
 
 

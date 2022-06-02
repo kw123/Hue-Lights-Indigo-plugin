@@ -17,7 +17,7 @@
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu only shows lights that support both full color and color temperature (a.k.a. Ambiance) features, except for the LightStrips.">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator"  dynamicReload="true"/> 
+				<List class="self" method="bulbListGenerator" filter="Extended color light" dynamicReload="true"/> 
 			</Field>
 			<Field id="defaultBrightness" type="textfield"
 				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
@@ -52,48 +52,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
 			<Field id="savedBrightness" type="textfield" hidden="true" />
-			<Field id="modelId" type="textfield" hidden="true" />
-			<Field id="manufacturerName" type="textfield" hidden="true" />
-			<Field id="swVersion" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="uniqueId" type="textfield" hidden="true" />
-			<!-- By default dimmer type devices automatically inherit these
-			device properties which describe the characteristics of a specific
-			dimmer instance:
-
-				SupportsColor:								True or False
-				-> SupportsRGB:								True or False (requires SupportsColor to be True)
-				-> SupportsWhite:							True or False (requires SupportsColor to be True)
-				   -> SupportsTwoWhiteLevels:				True or False (requires SupportsWhite to be True)
-				   -> SupportsTwoWhiteLevelsSimultaneously:	True or False (requires SupportsTwoWhiteLevels to be True)
-				   -> SupportsWhiteTemperature:				True or False (requires SupportsWhite to be True)
-					  -> WhiteTemperatureMin				Integer (lower limit of usable white point temperature. e.g. 2000)
-					  -> WhiteTemperatureMax				Integer (upper limit of usable white point temperature. e.g. 6500)
-				   -> SupportsRGBandWhiteSimultaneously:	True or False (requires SupportsRGB and SupportsWhite to be True)
-			
-			Plugins can update these properties either in device ConfigUI
-			(like below), or can update them from python by using the
-			dev.replacePluginPropsOnServer() method, most likely inside your
-			deviceStartComm method. Both will trigger the Indigo Server to
-			automatically rebuild the device's states list based on the needed
-			changes.
-
-			Two white level fields (SupportsTwoWhiteLevels) is used by some hardware
-			to mix cool and warm white levels. Other hardware provides this capability
-			by using a white temperature value (SupportsWhiteTemperature). The two
-			techniques are mutually exlcusive, so choosing to enable two white levels
-			will override (and not show) the white temperature UI.
-			-->
-			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="WhiteTemperatureMin" type="textfield" hidden="true" defaultValue="2000" />
-			<Field id="WhiteTemperatureMax" type="textfield" hidden="true" defaultValue="6500" />
-			<Field id="SupportsRGBandWhiteSimultaneously" type="checkbox" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
 			<State id="hue">
@@ -200,7 +159,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu only shows color temperature (a.k.a. Ambiance) lights. Lights that also support full color will appear in the Hue Color/Ambiance device list.">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator"  dynamicReload="true"/> 
+				<List class="self" method="bulbListGenerator"  filter="Color temperature light" dynamicReload="true"/> 
 			</Field>
 			<Field id="defaultBrightness" type="textfield"
 				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
@@ -235,20 +194,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
 			<Field id="savedBrightness" type="textfield" hidden="true" />
-			<Field id="modelId" type="textfield" hidden="true" />
-			<Field id="manufacturerName" type="textfield" hidden="true" />
-			<Field id="swVersion" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="uniqueId" type="textfield" hidden="true" />
-			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="WhiteTemperatureMin" type="textfield" hidden="true" defaultValue="2000" />
-			<Field id="WhiteTemperatureMax" type="textfield" hidden="true" defaultValue="6500" />
 		</ConfigUI>
 		<States>
 			<State id="colorTemp">
@@ -320,7 +266,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu only shows light strips.">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator"  dynamicReload="true"/> 
+				<List class="self" method="bulbListGenerator" filter="Color temperature light" dynamicReload="true"/> 
 			</Field>
 			<Field id="defaultBrightness" type="textfield"
 				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
@@ -355,21 +301,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
 			<Field id="savedBrightness" type="textfield" hidden="true" />
-			<Field id="modelId" type="textfield" hidden="true" />
-			<Field id="manufacturerName" type="textfield" hidden="true" />
-			<Field id="swVersion" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="uniqueId" type="textfield" hidden="true" />
-			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="WhiteTemperatureMin" type="textfield" hidden="true" defaultValue="2000" />
-			<Field id="WhiteTemperatureMax" type="textfield" hidden="true" defaultValue="6500" />
-			<Field id="SupportsRGBandWhiteSimultaneously" type="checkbox" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
 			<State id="hue">
@@ -476,7 +408,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu shows color lights such as the Bloom, StoryLight and other color lights. It does not include LightStrips or color temperature lights.">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator"  dynamicReload="true"/> 
+				<List class="self" method="bulbListGenerator" filter="Color temperature light" dynamicReload="true"/> 
 			</Field>
 			<Field id="defaultBrightness" type="textfield"
 				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
@@ -511,18 +443,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
 			<Field id="savedBrightness" type="textfield" hidden="true" />
-			<Field id="modelId" type="textfield" hidden="true" />
-			<Field id="manufacturerName" type="textfield" hidden="true" />
-			<Field id="swVersion" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="uniqueId" type="textfield" hidden="true" />
-			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
 			<State id="hue">
@@ -624,7 +545,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu shows basic dimming lights that don't support any color changes.">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator" filter="hueLivingWhites"  dynamicReload="true" />
+				<List class="self" method="bulbListGenerator" filter="Dimmable light" dynamicReload="true" />
 			</Field>
 			<Field id="defaultBrightness" type="textfield"
 				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
@@ -659,18 +580,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
 			<Field id="savedBrightness" type="textfield" hidden="true" />
-			<Field id="modelId" type="textfield" hidden="true" />
-			<Field id="manufacturerName" type="textfield" hidden="true" />
-			<Field id="swVersion" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="uniqueId" type="textfield" hidden="true" />
-			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
 			<State id="alertMode">
@@ -732,22 +642,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="bulbId" type="menu"
 				tooltip="Select an on/off device to control. This menu shows basic on/off devices that don't support any color changes or dimming capabilities.">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator" filter="hueOnOffDevice" dynamicReload="true"/>
+				<List class="self" method="bulbListGenerator" filter="On/Off" dynamicReload="true"/>
 			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
-			<Field id="modelId" type="textfield" hidden="true" />
-			<Field id="manufacturerName" type="textfield" hidden="true" />
-			<Field id="swVersion" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="uniqueId" type="textfield" hidden="true" />
-			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
 			<State id="alertMode">
@@ -804,7 +703,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="groupId" type="menu"
 				tooltip="Select a Hue Group to control. This menu contains all the groups saved in the Hue hub. Groups can contain any combination of Hue supported lights.">
 				<Label>Hue Group:</Label>
-				<List class="self" method="groupListGenerator" dynamicReload="true"/>
+				<List class="self" method="groupListGenerator" filter ="" dynamicReload="true"/>
 				<CallbackMethod>groupsListItemSelected</CallbackMethod>
 			</Field>
 			<Field id="groupLights" type="list" defaultValue="" readonly="true" enabledBindingId="groupLightsDisabler"
@@ -855,18 +754,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
 			<Field id="savedBrightness" type="textfield" hidden="true" />
-			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="WhiteTemperatureMin" type="textfield" hidden="true" defaultValue="2000" />
-			<Field id="WhiteTemperatureMax" type="textfield" hidden="true" defaultValue="6500" />
-			<Field id="SupportsRGBandWhiteSimultaneously" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="groupClass" type="textfield" hidden="true" />
 		</ConfigUI>
 		<States>
 			<State id="hue">
@@ -987,18 +875,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
-			<Field id="enabledOnHub" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="modelId" type="textfield" hidden="true" />
-			<Field id="manufacturerName" type="textfield" hidden="true" />
-			<Field id="swVersion" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="uniqueId" type="textfield" hidden="true" />
-			<Field id="productId" type="textfield" hidden="true" />
-			<Field id="SupportsBatteryLevel" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsSensorValue" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsOnState" type="checkbox" hidden="true" defaultValue="true" />
 		</ConfigUI>
 		<States>
 			<State id="alertMode">
@@ -1097,18 +973,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
-			<Field id="enabledOnHub" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="modelId" type="textfield" hidden="true" />
-			<Field id="manufacturerName" type="textfield" hidden="true" />
-			<Field id="swVersion" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="uniqueId" type="textfield" hidden="true" />
-			<Field id="productId" type="textfield" hidden="true" />
-			<Field id="SupportsBatteryLevel" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsSensorValue" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsOnState" type="checkbox" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
 			<State id="alertMode">
@@ -1195,18 +1059,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
-			<Field id="enabledOnHub" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="modelId" type="textfield" hidden="true" />
-			<Field id="manufacturerName" type="textfield" hidden="true" />
-			<Field id="swVersion" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="uniqueId" type="textfield" hidden="true" />
-			<Field id="productId" type="textfield" hidden="true" />
-			<Field id="SupportsBatteryLevel" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsSensorValue" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsOnState" type="checkbox" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
 			<State id="alertMode">
@@ -1314,16 +1166,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
-			<Field id="enabledOnHub" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="modelId" type="textfield" hidden="true" />
-			<Field id="manufacturerName" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="uniqueId" type="textfield" hidden="true" />
-			<Field id="SupportsBatteryLevel" type="checkbox" hidden="true" defaultValue="false" />
-            <Field id="SupportsSensorValue" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsOnState" type="checkbox" hidden="true" defaultValue="true" />
 		</ConfigUI>
 		<States>
             <State id="button1On">
@@ -1411,18 +1253,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
-			<Field id="enabledOnHub" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="modelId" type="textfield" hidden="true" />
-			<Field id="manufacturerName" type="textfield" hidden="true" />
-			<Field id="swVersion" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="uniqueId" type="textfield" hidden="true" />
-			<Field id="productId" type="textfield" hidden="true" />
-			<Field id="SupportsBatteryLevel" type="checkbox" hidden="true" defaultValue="true" />
-            <Field id="SupportsSensorValue" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsOnState" type="checkbox" hidden="true" defaultValue="true" />
 		</ConfigUI>
 		<States>
             <State id="button1On">
@@ -1575,18 +1405,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
-			<Field id="enabledOnHub" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="modelId" type="textfield" hidden="true" />
-			<Field id="manufacturerName" type="textfield" hidden="true" />
-			<Field id="swVersion" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="uniqueId" type="textfield" hidden="true" />
-			<Field id="productId" type="textfield" hidden="true" />
-			<Field id="SupportsBatteryLevel" type="checkbox" hidden="true" defaultValue="true" />
-            <Field id="SupportsSensorValue" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsOnState" type="checkbox" hidden="true" defaultValue="true" />
 		</ConfigUI>
 		<States>
             <State id="button1On">
@@ -1674,19 +1492,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
-			<Field id="enabledOnHub" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="modelId" type="textfield" hidden="true" />
-			<Field id="manufacturerName" type="textfield" hidden="true" />
-			<Field id="swVersion" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="uniqueId" type="textfield" hidden="true" />
-			<Field id="productId" type="textfield" hidden="true" />
-			<Field id="deviceMode" type="textfield" hidden="true" />
-			<Field id="SupportsBatteryLevel" type="checkbox" hidden="true" defaultValue="true" />
-            <Field id="SupportsSensorValue" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsOnState" type="checkbox" hidden="true" defaultValue="true" />
 		</ConfigUI>
 		<States>
             <State id="button1On">
@@ -1799,17 +1604,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
-			<Field id="enabledOnHub" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="modelId" type="textfield" hidden="true" />
-			<Field id="manufacturerName" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="uniqueId" type="textfield" hidden="true" />
-			<Field id="productId" type="textfield" hidden="true" />
-			<Field id="SupportsBatteryLevel" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsSensorValue" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsOnState" type="checkbox" hidden="true" defaultValue="true" />
 			<!-- The buttonBeingHeld property is used by the plugin to track when a button is being held down since the Hue bridge doesn't do that for us, but the switch does report button release events, so we can figure it out ourselves. -->
 			<Field id="buttonBeingHeld" type="checkbox" hidden="true" defaultValue="false" />
 		</ConfigUI>

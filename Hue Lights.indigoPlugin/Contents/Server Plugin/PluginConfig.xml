@@ -14,6 +14,24 @@ After the IP address has been entered, go to the Hue Bridge and press the center
 Once this is done, click the "Save" button.</Label>
 	</Field>
 
+
+
+	<Field id="updateBridgesavailable"
+			type="button" 
+			tooltip="using bonjour the plugin will find new bridges on your network. This will take  about:  3s + 4s*#of bridges = 7 secs for one bridge and 15s for 3 bridges.
+The plugin will do it in the background every 5 minutes automatically. With this button you can request to do it right now ">
+		<Label>Update the list of available bridges (use only after you added one):</Label>
+		<Title>Exec search now</Title>
+		<CallbackMethod>updateBridges</CallbackMethod>
+    </Field>
+
+	<Field id="showbridgesUpdateText" type="textfield" fontColor="darkgray" fontSize="small" visibleBindingId="enableshownNewBridges" visibleBindingValue="true" >
+	</Field>
+	<Field id="enableshownNewBridges" type="checkbox" defaultValue="false" hidden="true">
+    </Field>
+
+
+
 	<Field id="hubNumber" type="menu" defaultValue="0"
 	tooltip="Bridge number use 0 if you have just one. If you have several, repeat steps below for each after selection the Bridge number
 You must start with  nummer 0">

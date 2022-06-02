@@ -1,6 +1,31 @@
+
+========================================
+2022.11.24 @ 2022-06-02
+*bug fix: auto create hue devices did not set rgb white etc properties correctly
+*bug fix: save preset error 
+*minor menu text changes
+*in device light and group edit:
+ - only current device is shown
+ - if not created yet (=new dev) only NOT used hue devices (ie no indigo dev) are shown
+*additions to menu print hue info 
+  ie print hue dev but no corresponding indigo dev and visa versa, some more formatted info for other print xxx menu options  
+*made MANY more things table driven, not hard coded in plugin, 
+ ie supports-xx xx= batterylevel rgb, white, onoff, sensorvalue, is dimmerdevice  etc. 
+ all is set in file supportedDevices.py
+*added functionality to scan network for hue bridges.
+ this done in the backgroud every 5 minutes (using /usr/bin/dns-sd functionality )
+ the list of network scan found bridges is available in config when you want to add a new bridge
+ in config you can ask to have the scan run immediately.
+ if you already know the ipnumber of your bridge this is not needed, but the ip # field is filled out automatically
+
+* *** this version now requires python3 ie only runs uder indigo 2022.1 and later  ***
+  it might still work under py2 (earlier than indigo 2022.1) You need to change api version to 2.0 from 3.0 in info.plist, but no support for that
+
+
+
 ========================================
 1.10.24 @ 2022-05-22
-*sevral bug fixes
+*several bug fixes
 *config menu was rewritten, should make it much easier to setup / modify bridge settings etc
   reduces error messages if wrong parameters are set etc.
 *logging/debug toggle in menu and detailed logging selection in config

@@ -181,8 +181,9 @@ It is a good idea to restart the plugin to get all states etc created properly</
 					<Option value="rules">rules</Option>
 					<Option value="schedules">schedules</Option>
 					<Option value="resourcelinks">resource links</Option>
-					<Option value="config">config</Option>
-					<Option value="configJson">config, complete Dict</Option>
+					<Option value="config">config, bridges config overview</Option>
+					<Option value="configJson">config, bridges complete config Dict</Option>
+					<Option value="configDict">complete hue Dict</Option>
 					<Option value="specificLights">all info for one specific Bridge-LIGHT-id</Option>
 					<Option value="specificSensors">all info for one specific Bridge-SENSOR-id</Option>
 					<Option value="specificGroups">all info for one specific Bridge-GROUP-id</Option>
@@ -190,7 +191,8 @@ It is a good idea to restart the plugin to get all states etc created properly</
 					<Option value="specificRules">all info for one specific Bridge-RULES-id</Option>
 					<Option value="specificSchedules">all info for one specific Bridge-SCHEDULE-id</Option>
 					<Option value="specificResourcelinks">all info for one specific Bridge-RESOURCE-LINK-id</Option>
-					<Option value="orphans">orphaned indigo devices</Option>
+					<Option value="NoHudevice">Indigo devices w no Hue dev</Option>
+					<Option value="NoIndigoDevice">Hue devices w no Indigo dev</Option>
 				</List>
 			</Field>
 			<Field  id="sortBy" 
@@ -206,6 +208,7 @@ It is a good idea to restart the plugin to get all states etc created properly</
 					<Option value="group">group (scenes)</Option>
 				</List>
 			</Field>
+
 			<Field  id="lights" type="menu" 
 					visibleBindingId="whatToPrint" visibleBindingValue="specificLights" >
 				<Label>Select the LIGHT you want to print all info:</Label>
