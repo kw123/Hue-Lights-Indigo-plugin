@@ -1,57 +1,92 @@
 <?xml version="1.0"?>
 <PluginConfig>
 	<SupportURL></SupportURL>
+
+
+	<Field id="ipvisible" type="checkbox" defaultValue="false" hidden="true">
+    </Field>
+	
+
+
 	<Field id="title" type="label" alignText="center" fontColor="blue">
 		<Label>Hue Lights Configuration</Label>
 	</Field>
+
 	<Field id="instructions0" type="label" >
-		<Label>INSTRUCTION to setup a Hue Bridge:</Label>
-	</Field>
-	<Field id="instructions1" type="label" fontColor="darkgray" fontSize="small">
-		<Label>First select the bridge number (0-9), selct action, then click on confirm. 
-Then Enter the IP address assigned to the Hue Bridge by your router.  If you are unable to find the IP address given to your Hue Bridge using your router's administrative interface, you can obtain the Hue hub's IP address by registering on and using the www.meethue.com web site, then viewing your Bridge settings.
-After the IP address has been entered, go to the Hue Bridge and press the center button.  Within 30 seconds, come back to this dialog and click the "Pair Now" button
-Once this is done, click the "Save" button.</Label>
+		<Label>INSTRUCTIONS:
+1. you can add/modify/delete a bridge
+2. change genaral parameters
+3. change debuggling levels</Label>
 	</Field>
 
 
+	<Field id="sep00" type="separator"/>
+
+	<Field id="step1" type="label" visibleBindingId="ipvisible" >
+		<Label>1. Change any aspect of a hue bridge (add/remove/mod):</Label>
+	</Field>
+
+	<Field id="changeHub" type="checkbox" defaultValue="false" hidden="false">
+	<Label>Add/remove/mod a bridge:</Label>
+    </Field>
+
+	<Field id="step1a" type="label" visibleBindingId="ipvisible" visibleBindingValue="true">
+		<Label>       1. search for new bridges
+       2. select the bridge number (0-9), 
+       3. select action, then click on confirm. 
+           Then Enter the IP address assigned to the Hue Bridge by your router.  If you are unable to find the IP address given to your Hue Bridge using your router's administrative interface, you can obtain the Hue hub's IP address by registering on and using the www.meethue.com web site, then viewing your Bridge settings.
+           After the IP address has been entered, go to the Hue Bridge and press the center button.  Within 30 seconds, come back to this dialog and click the "Pair Now" button
+           Once this is done, click the "Save" button</Label>
+	</Field>
 
 	<Field id="updateBridgesavailable"
 			type="button" 
+			visibleBindingId="changeHub" visibleBindingValue="true"
 			tooltip="using bonjour the plugin will find new bridges on your network. This will take  about:  3s + 4s*#of bridges = 7 secs for one bridge and 15s for 3 bridges.
 The plugin will do it in the background every 5 minutes automatically. With this button you can request to do it right now ">
-		<Label>Update the list of available bridges (use only after you added one):</Label>
+		<Label>Update the list of available bridges:</Label>
 		<Title>Exec search now</Title>
 		<CallbackMethod>updateBridges</CallbackMethod>
     </Field>
 
+	<Field id="labeUpdateBr" type="label" alignWithControl="true" fontColor="darkgray" fontSize="small"
+			visibleBindingId="changeHub" visibleBindingValue="true"
+	>
+		<Label>click on Exec search now if you have added a bridge, that has not been configured</Label>
+	</Field>
+
+
 	<Field id="showbridgesUpdateText" type="textfield" fontColor="darkgray" fontSize="small" visibleBindingId="enableshownNewBridges" visibleBindingValue="true" >
 	</Field>
+
 	<Field id="enableshownNewBridges" type="checkbox" defaultValue="false" hidden="true">
     </Field>
 
 
 
 	<Field id="hubNumber" type="menu" defaultValue="0"
-	tooltip="Bridge number use 0 if you have just one. If you have several, repeat steps below for each after selection the Bridge number
+		visibleBindingId="changeHub" visibleBindingValue="true"
+		tooltip="Bridge number use 0 if you have just one. If you have several, repeat steps below for each after selection the Bridge number
 You must start with  nummer 0">
-	<Label>Hub Bridge/gateway number:</Label>
-		<List class="self" method="gwListGenerator" filter="" dynamicReload="true" />
+		<Label>Select a Hub Bridge/gateway  to act upon:</Label>
+			<List class="self" method="gwListGenerator" filter="" dynamicReload="true" />
  	</Field>
 
 	<Field id="gwAction"
+			visibleBindingId="changeHub" visibleBindingValue="true"
 			type="menu" defaultValue="keep"
 			tooltip="">
-		<Label>select:</Label>
+		<Label>Select action for the bridge:</Label>
 	  <List>
-		<Option value="modify">modify</Option>
-		<Option value="add">add</Option>
-		<Option value="delete">delete</Option>
-		<Option value="keep">keep</Option>
+		<Option value="modify">change the ip number</Option>
+		<Option value="add">add a new bridge</Option>
+		<Option value="delete">delete an existing bridge</Option>
+		<Option value="keep">don't change anything</Option>
 	  </List>
     </Field>
 
 	<Field id="selecthubNumber"
+			visibleBindingId="changeHub" visibleBindingValue="true"
 			type="button" 
 			tooltip="">
 		<Label>click:</Label>
@@ -70,17 +105,15 @@ You must start with  nummer 0">
 		<Label>IP address of Hue Bridge (e.g. 192.168.1.15)</Label>
 	</Field>
 
-
-	<Field id="ipvisible" type="checkbox" defaultValue="false" hidden="true">
-    </Field>
-	
 	<Field id="hostId" type="textfield" visibleBindingId="ipvisible" visibleBindingValue="true"  defaultValue="" readonly="true"
 		tooltip="(read-only). Generated host ID assigned by the Hue Bridge to Hue Lights plugin. Provided here for troubleshooting purposes only.">
 		<Label>Host ID:</Label>
 	</Field>
+
 	<Field id="labelHostId" type="label" visibleBindingId="ipvisible" visibleBindingValue="true"  alignWithControl="true" fontColor="darkgray" fontSize="small">
 		<Label>(read-only). Generated host ID assigned by the Hue hub.</Label>
 	</Field>
+
 
 	<Field id="startPairingButton"
 			type="button" visibleBindingId="ipvisible" visibleBindingValue="true" 
@@ -90,10 +123,21 @@ You must start with  nummer 0">
 		<CallbackMethod>restartPairing</CallbackMethod>
     </Field>
 
-	<Field id="sep00" type="separator"/>
-	<Field id="othersettings" type="label" visibleBindingId="ipvisible" >
-		<Label>Other settings for all bridges etc:</Label>
+	<Field id="labelUpdatePair" type="label" alignWithControl="true" ype="label" fontColor="darkgray" fontSize="small"
+			visibleBindingId="ipvisible" visibleBindingValue="true"
+	>
+		<Label>Pair if you add a bridge or old pair does not work
+First click on button on top of bridge then click on PAIR button</Label>
 	</Field>
+
+
+
+	<Field id="sepothersettings" type="separator"/>
+
+	<Field id="othersettings" type="label" visibleBindingId="ipvisible" >
+		<Label>2. Other settings:</Label>
+	</Field>
+
 	<Field id="logAnyChanges" type="menu" 
 			tooltip="you can set to NO = do not log anything, yes = log everything or leave it to device = edit each dev and set log level there">
 	<Label>Log changes received from Hue Bridge:</Label>
@@ -127,14 +171,22 @@ You must start with  nummer 0">
 		tooltip="Enter how many Preset memories you'd like Hue Lights to keep saved (a number from 1 to 100). See warning below.">
 		<Label>Preset Memories:</Label>
 	</Field>
+
 	<Field id="maxPresetCountLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 		<Label>Enter how many Preset memories you'd like Hue Lights to keep saved (a number from 1 to 100). See warning below.</Label>
 	</Field>
+
 	<Field id="noticeLabel0" type="label" fontSize="small" fontColor="darkgray">
 		<Label>WARNING: Lowering the Preset Memories number will cause the highest Preset memory spaces to be permanently deleted. All actions that reference deleted Presets will result in Indigo errors when attempting to recall those Presets. Don't lower the number unless you're sure nothing uses the Presets that will be deleted.</Label>
 	</Field>
   
+
+
 	<Field id="sepdeb" type="separator"/>
+
+	<Field id="debLabel" type="label" visibleBindingId="ipvisible" >
+		<Label>3. Debugging settings:</Label>
+	</Field>
 	<Field id="setdebug" type="label" >	<Label>Set debug areas ...</Label></Field>
 	<Field    id="debugInit"          			type="checkbox"         > <Label> Debug...                   ... (1)  Init:</Label>  </Field>
 	<Field    id="debugLoop"          			type="checkbox"         > <Label>     ... (2)  Loop:</Label>  </Field>
