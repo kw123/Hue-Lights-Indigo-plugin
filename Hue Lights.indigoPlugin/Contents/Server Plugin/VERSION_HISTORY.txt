@@ -1,9 +1,18 @@
 ========================================
-2022.11.25 @ 2022-06-04
+2022.11.26 @ 2022-06-04
+*fix bug:  is not a dimmer device 
 *restructured config menu to make it easier to understand 
-* changed error logging to std python error logging
-* added code to check if devices are "orphaned" ie have no bridge or a non existing bridge associated
+  for manaing bridges in config flow is now
+  - select action (add(pair) / modify(IP) / delete)
+  - select select bridge #
+  - then set new Ip# ..
+  - confirm
+  with success / failure popup messages
+  ==> should be easy to understand now 
 
+*changed error logging to std python error logging
+*added code to check if devices are "orphaned" ie have no bridge or a non existing bridge associated
+* *** this version  requires python3 ie only runs uder indigo 2022.1 and later  ***
 
 
 ========================================

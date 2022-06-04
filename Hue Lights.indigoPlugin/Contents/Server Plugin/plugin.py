@@ -122,6 +122,7 @@ class Plugin(indigo.PluginBase):
 
 		self.hubNumberSelected 			= "0"    # default hub number 
 		self.lastErrorMessage 			= u""	    # last error message displayed in log
+		self.selHubNumberLast			= 0
 		self.unsupportedDeviceWarned 	= False	# Boolean. Was user warned this device isn't supported?
 		self.usersListSelection 		= ""	# String. The Hue whilelist user ID selected in action UIs.
 		self.sceneListSelection 		= ""	# String. The Hue scene ID selected in action UIs.
@@ -133,7 +134,6 @@ class Plugin(indigo.PluginBase):
 		self.bridgeRequestsSession		= {}
 		self.bridgesAvailable 			= {}
 		self.bridgesAvailableSelected	= ""
-
 ##############  common for all plugins ############
 		self.getInstallFolderPath		= indigo.server.getInstallFolderPath()+"/"
 		self.indigoPath					= indigo.server.getInstallFolderPath()+"/"
@@ -413,7 +413,7 @@ class Plugin(indigo.PluginBase):
 		self.goAllRefresh		= 200.1 # is used in self.restartPairing() after pairing to force reload of all info from hub
 		self.lastTimeForAll		= 0  	#  that is why this is not a local variable, but self....
 		# Set the maximum loop counter value based on the highest of the above activity threshold variables.
-		self.printHueData({"whatToPrint":"NoHudevice", "sortBy":"", "other":"skipIfEmpty"},"")
+		self.printHueData({"whatToPrint":"NoHudevice", "sortBy":""},"")
 
 		try:
 			while True:
@@ -2342,176 +2342,6 @@ class Plugin(indigo.PluginBase):
 
 
 
-	########################################
-	# Hue bridge Pairing Methods
-	########################################
-
-	# Start/Restart Pairing with Hue bridge
-	########################################
-	def restartPairing(self, valuesDict):
-		# This method should only be used as a callback method from the
-		#   plugin configuration dialog's "Pair Now" button.
-		if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Starting restartPairing.")
-		isError = False
-		errorsDict = indigo.Dict()
-		errorsDict['showAlertText'] = ""
-		hubNumber = valuesDict['hubNumber']
-		if hubNumber not in khubNumbersAvailable: 
-			if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Starting restartPairing. bad hubNumber given {}".format(hubNumber))
-			return 
-		self.hubNumberSelected = valuesDict['hubNumber']
-
-		valuesDict['enableshownNewBridges'] = False
-
-		# Validate the IP Address field.
-		if not self.isValidIP(valuesDict['address']):
-			# The field wasn't blank. Check to see if the format is valid.
-			# Try to format the IP Address as a 32-bit binary value. If this fails, the format was invalid.
-			if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Validating IP address \"{}\".".format(valuesDict['address']))
-			if not self.isValidIP(valuesDict['address']):
-				self.indiLOG.log(30,u"IP address format is invalid.")
-				isError = True
-				errorsDict['address'] = u"The IP Address is not valid. Please enter a valid IP address."
-				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
-
-		# If there haven't been any errors so far, try to connect to the Hue bridge to see
-		#   if it's actually a Hue bridge.
-		if not isError:
-			try:
-				if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Verifying that a Hue bridge exists at IP address \"{}\".".format(valuesDict['address']))
-				command = "http://{}/description.xml".format(valuesDict['address'])
-				if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"Accessing URL: {}".format(command))
-				r = requests.get(command, timeout=kTimeout, headers={'Connection':'close'})
-				if self.decideMyLog(u"ReadFromBridge"): self.indiLOG.log(10,u"Got response:\n{}".format(r.content))
-
-				# Quick and dirty check to see if this is a Philips Hue bridge.
-				if b"Philips hue bridge" not in r.content:
-					# If "Philips hue bridge" doesn't exist in the response, it's not a Hue bridge.
-					if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"No \"Philips hue bridge\" string found in response. This isn't a Hue bridge.")
-					isError = True
-					errorsDict['address'] = u"This doesn't appear to be a Philips Hue bridge.  Please verify the IP address."
-					errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
-
-				else:
-					# This is likely a Hue bridge.
-					if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Verified that this is a Hue bridge.")
-
-			except requests.exceptions.Timeout:
-				self.doErrorLog(u"Connection to {} timed out after {} seconds.".format(valuesDict['address'], kTimeout))
-				isError = True
-				errorsDict['address'] = u"Unable to reach the bridge. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
-				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
-
-			except requests.exceptions.ConnectionError:
-				self.doErrorLog(u"Connection to {} failed. There was a connection error.".format(valuesDict['address']))
-				isError = True
-				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
-				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
-
-			except Exception as e:
-				self.logger.error("", exc_info=True)
-				isError = True
-				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
-				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
-
-		# Check for errors and act accordingly.
-		if isError:
-			# There was at least 1 error.
-			errorsDict['showAlertText'] = errorsDict['showAlertText'].strip()
-			return (valuesDict, errorsDict)
-		else:
-			# There weren't any errors, so...
-
-			# Request a username/key.
-			try:
-				self.ipAddresses[hubNumber] = valuesDict['address']
-				self.indiLOG.log(20,u"Attempting to pair with the Hue bridge at \"{}\".".format(valuesDict['address']))
-				requestData = json.dumps({"devicetype": "Indigo Hue Lights"})
-				if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"Request is {}".format(requestData) )
-				command = "http://{}/api".format(valuesDict['address'])
-				if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"Sending request to {} (via HTTP POST).".format(command))
-				r = requests.post(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
-				responseData = json.loads(r.content)
-				if self.decideMyLog(u"ReadFromBridge"): self.indiLOG.log(10,u"Got response {}".format(responseData))
-
-				# We should have a single response item
-				if len(responseData) == 1:
-					# Get the first item
-					firstResponseItem = responseData[0]
-
-					# See if we got an error.
-					errorDict = firstResponseItem.get('error', None)
-					if errorDict is not None:
-						# We got an error.
-						errorCode = errorDict.get('type', None)
-
-						if errorCode == 101:
-							# Center link button wasn't pressed on bridge yet.
-							errorText = self.doErrorLog(u"Unable to pair with the Hue bridge. Press the center button on the Hue bridge, then click the \"Pair Now\" button.")
-							isError = True
-							errorsDict['startPairingButton'] = errorText
-							errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
-
-						else:
-							errorText = self.doErrorLog(u"Error #{} from the Hue bridge. Description: \"{}\".".format(errorCode, errorDict.get('description', u"(No Description)")))
-							isError = True
-							errorsDict['startPairingButton'] = errorText
-							errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
-
-					# See if we got a success response.
-					successDict = firstResponseItem.get('success', None)
-					if successDict is not None:
-						# Pairing was successful.
-						self.indiLOG.log(20,u"Paired with Hue bridge successfully.")
-						# The plugin was paired with the Hue bridge.
-						self.paired[hubNumber] = True
-						self.notPairedMsg[hubNumber] = time.time() - 90
-						# Get the username provided by the bridge.
-						hueUsername = successDict['username']
-						if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Username (a.k.a. key) assigned by Hue bridge to Hue Lights plugin: {}".format(hueUsername))
-						# Set the plugin's hostId to the new username.
-						self.hostIds[hubNumber] = hueUsername
-						# Make sure the new username is returned to the config dialog.
-						valuesDict['hostId'] = hueUsername
-						valuesDict['hostIds'] = json.dumps(self.hostIds)
-
-				else:
-					# The Hue bridge is acting weird.  There should have been only 1 response.
-					errorText = self.doErrorLog(u"Invalid response from Hue bridge. Check the IP address and try again.")
-					if self.decideMyLog(u"ReadFromBridge"): self.indiLOG.log(10,u"Response from Hue bridge contained {} items.".format(len(responseData)))
-
-					isError = True
-					errorsDict['startPairingButton'] = errorText
-					errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
-
-			except requests.exceptions.Timeout:
-				self.logger.error(u"Connection to {}  failed,timed out after {} seconds.".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:], valuesDict['address'], kTimeout))
-				isError = True
-				errorsDict['startPairingButton'] = u"Unable to reach the bridge. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
-				errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
-
-			except requests.exceptions.ConnectionError:
-				self.logger.error(u"Connection to {} There was a connection error".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:], valuesDict['address']))
-				isError = True
-				errorsDict['startPairingButton'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
-				errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
-
-			except Exception as e:
-				self.logger.error(u"Connection to {}  failed".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:], valuesDict['address']))
-				isError = True
-				errorsDict['startPairingButton'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
-				errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
-
-			# Check again for errors.
-			if isError:
-				# There was at least 1 error.
-				errorsDict['showAlertText'] = errorsDict['showAlertText'].strip()
-				return (valuesDict, errorsDict)
-
-			valuesDict['addresses'] = json.dumps(self.ipAddresses)
-			self.lastTimeForAll = time.time() - (self.goAllRefresh-25)# force rereading hub config in 20 secs, wait for dialog to save 
-			return valuesDict
-
 
 	# HUB List Generator
 	########################################
@@ -2541,13 +2371,13 @@ class Plugin(indigo.PluginBase):
 
 		for hubNumber in khubNumbersAvailable:
 			if hubNumber in self.ipAddresses and  hubNumber in self.hueConfigDict and "lights" in self.hueConfigDict[hubNumber]:
-				if filter == "" or filter == "active":
+				if filter == "" or filter in["active", "notEmpty"]:
 					xList.append((hubNumber, "{}-{} fully configured and used".format(hubNumber, self.ipAddresses[hubNumber])))
 			elif hubNumber in self.ipAddresses and  hubNumber in self.hueConfigDict:
 				if filter == "":
 					xList.append((hubNumber, "{}-{} configured, not contacted ".format(hubNumber, self.ipAddresses[hubNumber])))
 			elif hubNumber in self.ipAddresses:
-				if filter == "":
+				if filter == "" or filter == "notEmpty":
 					xList.append((hubNumber,  "{}-{} ip# set, not configured yet".format(hubNumber, self.ipAddresses[hubNumber])))
 			elif len(availableIPHubs) > 0 and self.isValidIP(availableIPHubs[0][0]):
 					xList.append((hubNumber,  "{}  detected, IP#{}, id:{} ".format(hubNumber, availableIPHubs[0][0], availableIPHubs[0][1])) )
@@ -2561,6 +2391,8 @@ class Plugin(indigo.PluginBase):
 
 		return xList
 
+
+
 	# set deflaut Preferences Configuration.
 	########################################
 	def getPrefsConfigUiValues(self):
@@ -2573,8 +2405,13 @@ class Plugin(indigo.PluginBase):
 			valuesDict['labelHostId'] 				= self.hostIds.get('0',"")
 			valuesDict['gwAction'] 					= "keep"
 			valuesDict['enableshownNewBridges'] 	= False
-			valuesDict['changeHub'] 				= False
-			valuesDict['ipvisible'] 				= False
+			valuesDict['refreshCallbackMethod'] 	= "refreshPrefs"
+			valuesDict['changeGW'] 					= False
+			valuesDict['showGwAdd'] 				= False
+			valuesDict['showGwMod'] 				= False
+			valuesDict['showGwDel'] 				= False
+			valuesDict['pairMsg'] 					= ""
+			valuesDict['gwModNewIp'] 				= ""
 			#valuesDict['maxPresetCount'] 			= self.pluginPrefs.get('maxPresetCount', "30")
 			#valuesDict['timeScaleFactor'] 			= self.pluginPrefs.get('timeScaleFactor',"1.0")
 			#valuesDict['debugInit'] 				= self.pluginPrefs.get('debugInit',False)
@@ -2591,110 +2428,355 @@ class Plugin(indigo.PluginBase):
 		return (valuesDict, errorsDict)
 
 
+
 	# set hubNumber etc after button press 
 	########################################
-	def selHubNumberCallback(self, valuesDict):
+	def refreshPrefs(self, valuesDict):
+		errorsDict = indigo.Dict()
+
 		try:
-			if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"Starting selHubNumberCallback.")
-			if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"selHubNumberCallback: Values passed:\n{}".format(valuesDict))
-			if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"selHubNumberCallback: ipAddresses {}".format(self.ipAddresses))
-			isError = False
-			errorsDict = indigo.Dict()
-			errorsDict['showAlertText'] = ""
-			if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"selHubNumberCallback: selecthubNumber   {}".format(valuesDict['hubNumber']))
-			if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"selHubNumberCallback: hubNumberSelected {}".format(self.hubNumberSelected))
-			self.hubNumberSelected = valuesDict['hubNumber']
-			valuesDict['enableshownNewBridges'] 	= False
+			
+			if  valuesDict["changeGW"]:
+				valuesDict['showGWAction'] 				= True
+				valuesDict['showGwAdd'] 				= False
+				valuesDict['showGwMod'] 				= False
+				valuesDict['showGwDel'] 				= False
+				if valuesDict['gwAction'] == "modify":
+					valuesDict['showGwMod'] 			= True
+				elif valuesDict['gwAction'] == "add":
+					valuesDict['showGwAdd'] 			= True
+				elif valuesDict['gwAction'] == "delete":
+					valuesDict['showGwDel'] 			= True
 
-			valuesDict['ipvisible'] = True
-			gwAction = valuesDict['gwAction']
-			if gwAction == "delete":
-				if self.hubNumberSelected in self.ipAddresses:
-					for bridgeId in self.bridgesAvailable:
-						if self.ipAddresses[self.hubNumberSelected] == self.bridgesAvailable[bridgeId]["ipAddress"]:
-							self.bridgesAvailable[bridgeId]["linked"] = False
-					del self.ipAddresses[self.hubNumberSelected]
+			else:
+				valuesDict['showGWAction'] 				= False
+				valuesDict['showGwAdd'] 				= False
+				valuesDict['showGwMod'] 				= False
+				valuesDict['showGwDel'] 				= False
+				valuesDict["gwModNewIp"] 				= ""
+				valuesDict["gwDelResponse"] 			= ""
+				valuesDict['pairMsg'] 					= ""
 
-				if self.hubNumberSelected in self.hueConfigDict:
-					del self.hueConfigDict[self.hubNumberSelected]
-
-				if self.hubNumberSelected in self.paired:
-					del self.paired[self.hubNumberSelected]
-
-				if self.hubNumberSelected in self.notPairedMsg:
-					del self.notPairedMsg[self.hubNumberSelected]
-
-
-				valuesDict['changeHub'] = False
-				valuesDict['ipvisible'] = False
-				if self.hubNumberSelected != "0":
-					valuesDict['address'] = self.ipAddresses['0']
-					valuesDict['hostId'] = self.hostIds['0']
-					valuesDict['hostIds'] = json.dumps(self.hostIds)
-					valuesDict['hubNumber'] = "0"
-					self.hubNumberSelected = "0"
-					valuesDict['gwAction'] = "deleted"
-				else:
-					valuesDict['ipvisible'] = False
-					valuesDict['address'] = ""
-					valuesDict['hostId'] = ""
-					valuesDict['hostIds'] = json.dumps(self.hostIds)
-					valuesDict['gwAction'] = "deleted"
-				#self.printHueData({"whatToPrint":"orphans", "sortBy":"","other":"force"}, "")
-				self.findHueBridgesNow = time.time()
-				self.printHueData({"whatToPrint":"NoHudevice", "sortBy":"", "other":"skipIfEmpty"},"")
-				return valuesDict
-
-			## option keep / create
-			elif gwAction  == "add":
-				if self.bridgesAvailableSelected == "":
-					if self.hubNumberSelected in self.ipAddresses:
-						valuesDict['address'] = self.ipAddresses[self.hubNumberSelected]
-						if self.hubNumberSelected not in self.hostIds:
-							self.hostIds[self.hubNumberSelected] = ""
-						valuesDict['hostId'] = self.hostIds[self.hubNumberSelected]
-						valuesDict['hostIds'] = json.dumps(self.hostIds)
-						self.notPairedMsg[self.hubNumberSelected] = time.time() - 90
-					elif self.hubNumberSelected == "0":
-						pass
-					else:
-						self.ipAddresses[self.hubNumberSelected] = ""
-						self.paired[self.hubNumberSelected] = False
-						self.notPairedMsg[self.hubNumberSelected] = time.time()
-						self.hostIds[self.hubNumberSelected] = ""
-						self.hueConfigDict[self.hubNumberSelected] = {}
-
-						valuesDict['hostIds'] = json.dumps(self.hostIds)
-						valuesDict['address'] = ""
-						valuesDict['hostId'] = ""
-				else:
-						bridgeId = self.bridgesAvailableSelected
-						if self.isValidIP(self.bridgesAvailable[bridgeId]["ipAddress"]):
-							self.ipAddresses[self.hubNumberSelected] = self.bridgesAvailable[bridgeId]["ipAddress"]
-							valuesDict["address"] = self.bridgesAvailable[bridgeId]["ipAddress"]
-							self.bridgesAvailable[bridgeId]["linked"] = True
-						else:
-							if self.isValidIP(valuesDict["address"]):
-								self.ipAddresses[self.hubNumberSelected] = valuesDict["address"]
-						self.paired[self.hubNumberSelected] = False
-						self.notPairedMsg[self.hubNumberSelected] = time.time()
-						self.hostIds[self.hubNumberSelected] = ""
-						self.hueConfigDict[self.hubNumberSelected] = {}
-						valuesDict['address'] = self.ipAddresses[self.hubNumberSelected]
-						valuesDict['hostIds'] = json.dumps(self.hostIds)
-						valuesDict['hostId'] = ""
-						self.findHueBridgesNow = time.time() +10
-					
-
-			elif gwAction == "modify":
-				if self.hubNumberSelected in self.ipAddresses:
-					valuesDict['address'] = self.ipAddresses[self.hubNumberSelected]
-				valuesDict['changeHub'] = False
-				valuesDict['ipvisible'] = False
 
 		except Exception as e:
 				self.indiLOG.log(30,u"", exc_info=True)
 		return valuesDict
+
+
+
+
+	# delete existing gateway
+	########################################
+	def confirmGWDel(self, valuesDict):
+		try:
+			isError = False
+			errorsDict = indigo.Dict()
+			errorsDict['showAlertText'] = ""
+			#self.indiLOG.log(10,u"confirmGWMod valuesDict:{}".format(valuesDict))
+			if valuesDict['delGWList'] not in khubNumbersAvailable:
+				errorsDict['showAlertText'] = "bridge# not selected"
+				return valuesDict, errorsDict
+
+			self.hubNumberSelected = valuesDict['delGWList']
+
+			if self.hubNumberSelected in self.ipAddresses:
+				for bridgeId in self.bridgesAvailable:
+					if self.ipAddresses[self.hubNumberSelected] == self.bridgesAvailable[bridgeId]["ipAddress"]:
+						self.bridgesAvailable[bridgeId]["linked"] = False
+				del self.ipAddresses[self.hubNumberSelected]
+
+			if self.hubNumberSelected in self.hueConfigDict:
+				del self.hueConfigDict[self.hubNumberSelected]
+
+			if self.hubNumberSelected in self.paired:
+				del self.paired[self.hubNumberSelected]
+
+			if self.hubNumberSelected in self.hueConfigDict:
+				del self.hueConfigDict[self.hubNumberSelected]
+
+			if self.hubNumberSelected in self.notPairedMsg:
+				del self.notPairedMsg[self.hubNumberSelected]
+
+			if self.hubNumberSelected != "0":
+				self.hubNumberSelected = "0"
+
+			self.printHueData({"whatToPrint":"NoHudevice", "sortBy":""},"")
+			errorsDict['showAlertText'] = "bridge deleted from indigo"
+
+			return valuesDict, errorsDict
+		except Exception as e:
+				self.indiLOG.log(30,u"", exc_info=True)
+		valuesDict["gwDelResponse"] = "check logfile"
+		errorsDict['showAlertText'] = "check logfile for error message"
+		return valuesDict, errorsDict
+
+
+	# modify existing gateway
+	########################################
+	def confirmGWMod(self, valuesDict):
+		try:
+			errorsDict = indigo.Dict()
+			errorsDict['showAlertText'] = ""
+			self.indiLOG.log(10,u"confirmGWMod valuesDict:{}".format(valuesDict))
+			if valuesDict['modGWList'] not in khubNumbersAvailable:
+				errorsDict['showAlertText'] = "bridge# not selected"
+				return valuesDict, errorsDict
+
+			self.hubNumberSelected = valuesDict['modGWList']
+			newIpNumber = valuesDict['gwModNewIp']
+
+			if not self.isValidIP(newIpNumber):
+				valuesDict["gwModNewIp"] = "not a valid Ip address"
+				self.indiLOG.log(10,u"confirmGWMod not a valid Ip address")
+				errorsDict['showAlertText'] = "Not a valid IP# entered"
+				return valuesDict, errorsDict
+
+			if self.hubNumberSelected in self.ipAddresses:
+				self.ipAddresses[self.hubNumberSelected] = newIpNumber
+				errorsDict['showAlertText'] = "IP# changed successfully"
+				return valuesDict, errorsDict
+
+			else:
+				errorsDict['showAlertText'] = "Not a valid IP# entered"
+				return valuesDict, errorsDict
+
+			return valuesDict
+		except Exception as e:
+				self.indiLOG.log(30,u"", exc_info=True)
+
+		errorsDict['showAlertText'] = "check logfile for error message"
+		return valuesDict, errorsDict
+
+	
+	# set hubNumber etc after button press 
+	########################################
+	def selHubNumberGWPair(self, valuesDict):
+		try:
+			errorsDict = indigo.Dict()
+			errorsDict['showAlertText'] = ""
+
+			if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"selHubNumberGWPair: Values passed:\n{}".format(valuesDict))
+			self.hubNumberSelected = valuesDict['hubNumber']
+			if self.hubNumberSelected  not in khubNumbersAvailable: 
+				if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"selHubNumberGWPair bad hubNumber given {}".format(self.hubNumberSelected ))
+				valuesDict["showAlertText"] = "hub# wrong"
+				return valuesDict, errorsDict
+
+
+			## option keep / create
+			if self.bridgesAvailableSelected == "":
+				if self.hubNumberSelected in self.ipAddresses:
+					valuesDict['address'] = self.ipAddresses[self.hubNumberSelected]
+					self.selHubNumberLast = time.time()
+				else:
+					valuesDict['address'] = ""
+					valuesDict["showAlertText"] = "Enter IP # Manually"
+					self.selHubNumberLast = 0
+			else:
+					bridgeId = self.bridgesAvailableSelected
+					if self.isValidIP(self.bridgesAvailable[bridgeId]["ipAddress"]):
+						valuesDict["address"] = self.bridgesAvailable[bridgeId]["ipAddress"]
+						self.selHubNumberLast = time.time()
+					else:
+						valuesDict['address'] = ""
+						valuesDict["showAlertText"] = "Enter IP # Manually"
+						self.selHubNumberLast = 0
+
+					self.findHueBridgesNow = time.time() +10
+			valuesDict['hostId'] = ""
+			
+		except Exception as e:
+				self.indiLOG.log(30,u"", exc_info=True)
+		return valuesDict
+
+	########################################
+	# Hue bridge Pairing Methods
+	########################################
+
+	# Start/Restart Pairing with Hue bridge
+	########################################
+	def restartPairing(self, valuesDict):
+		# This method should only be used as a callback method from the
+		#   plugin configuration dialog's "Pair Now" button.
+		if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Starting restartPairing.")
+		isError = False
+		errorsDict = indigo.Dict()
+		errorsDict['showAlertText'] = ""
+
+
+		if not self.isValidIP(valuesDict['address']):
+			self.indiLOG.log(20,u"starting restartPairing. not a valid ip address \"{}\".".format(valuesDict['address']))
+			errorsDict['showAlertText'] = "ip number is wrong"
+			return valuesDict, errorsDict
+
+		if self.hubNumberSelected  not in khubNumbersAvailable or time.time() - self.selHubNumberLast > 15: 
+			self.indiLOG.log(20,u"Starting restartPairing. Bridge not confirmed {}".format(self.hubNumberSelected ))
+			errorsDict['showAlertText'] = "\"Select Hub Bridge\" not confirmed"
+			return valuesDict, errorsDict
+
+		# If there haven't been any errors so far, try to connect to the Hue bridge to see
+		#   if it's actually a Hue bridge.
+		try:
+			if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Verifying that a Hue bridge exists at IP address \"{}\".".format(valuesDict['address']))
+			command = "http://{}/description.xml".format(valuesDict['address'])
+			if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"Accessing URL: {}".format(command))
+			r = requests.get(command, timeout=kTimeout, headers={'Connection':'close'})
+			if self.decideMyLog(u"ReadFromBridge"): self.indiLOG.log(10,u"Got response:\n{}".format(r.content))
+
+			# Quick and dirty check to see if this is a Philips Hue bridge.
+			if b"Philips hue bridge" not in r.content:
+				# If "Philips hue bridge" doesn't exist in the response, it's not a Hue bridge.
+				self.indiLOG.log(20,u"No \"Philips hue bridge\" string found in response. This isn't a Hue bridge.")
+				errorsDict["showAlertText"] = "hue response string not found, not Hue Bridge"
+				return valuesDict, errorsDict
+			else:
+				# This is likely a Hue bridge.
+				if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Verified that this is a Hue bridge.")
+
+		except requests.exceptions.Timeout:
+			self.doErrorLog(u"Connection to {} timed out after {} seconds.".format(valuesDict['address'], kTimeout))
+			errorsDict["showAlertText"] = "timeout connecting to bridge"
+			return valuesDict, errorsDict
+
+		except requests.exceptions.ConnectionError:
+			self.doErrorLog(u"Connection to {} failed. There was a connection error.".format(valuesDict['address']))
+			isError = True
+			errorsDict["showAlertText"] = "error connecting to bridge"
+			return valuesDict, errorsDict
+
+		except Exception as e:
+			self.logger.error("", exc_info=True)
+			errorsDict["showAlertText"] = "general error  connecting to bridge"
+			return valuesDict, errorsDict
+
+		# There weren't any errors, so...
+		# Request a username/key.
+		try:
+	
+			self.indiLOG.log(20,u"Attempting to pair with the Hue bridge at \"{}\".".format(valuesDict['address']))
+			requestData = json.dumps({"devicetype": "Indigo Hue Lights"})
+			if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"Request is {}".format(requestData) )
+			command = "http://{}/api".format(valuesDict['address'])
+			if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"Sending request to {} (via HTTP POST).".format(command))
+			r = requests.post(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
+			responseData = json.loads(r.content)
+			if self.decideMyLog(u"ReadFromBridge"): self.indiLOG.log(10,u"Got response {}".format(responseData))
+
+			# We should have a single response item
+			if len(responseData) == 1:
+				# Get the first item
+				firstResponseItem = responseData[0]
+
+				# See if we got an error.
+				errorDict = firstResponseItem.get('error', None)
+				if errorDict is not None:
+					# We got an error.
+					errorCode = errorDict.get('type', None)
+
+					if errorCode == 101:
+						# Center link button wasn't pressed on bridge yet.
+						errorText = self.doErrorLog(u"Unable to pair with the Hue bridge. Press the center button on the Hue bridge, then click the \"Pair Now\" button.")
+						isError = True
+						errorsDict['startPairingButton'] = errorText
+						errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
+						return valuesDict, errorsDict
+
+					else:
+						errorText = self.doErrorLog(u"Error #{} from the Hue bridge. Description: \"{}\".".format(errorCode, errorDict.get('description', u"(No Description)")))
+						errorsDict['showAlertText'] += errorText
+						return valuesDict, errorsDict
+
+				# See if we got a success response.
+				successDict = firstResponseItem.get('success', None)
+				if successDict is not None:
+					# Pairing was successful.
+					self.indiLOG.log(20,u"Paired with Hue bridge successfully.")
+					# The plugin was paired with the Hue bridge.
+					self.paired[self.hubNumberSelected] = True
+					self.notPairedMsg[self.hubNumberSelected] = time.time() - 90
+					# Get the username provided by the bridge.
+					hueUsername = successDict['username']
+					if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Username (a.k.a. key) assigned by Hue bridge to Hue Lights plugin: {}".format(hueUsername))
+					# Set the plugin's hostId to the new username.
+					self.hostIds[self.hubNumberSelected] = hueUsername
+					# Make sure the new username is returned to the config dialog.
+					valuesDict['hostId'] = hueUsername
+					valuesDict['hostIds'] = json.dumps(self.hostIds)
+					self.ipAddresses[self.hubNumberSelected ] = valuesDict['address']
+			else:
+				# The Hue bridge is acting weird.  There should have been only 1 response.
+				errorText = self.doErrorLog(u"Invalid response from Hue bridge. Check the IP address and try again.")
+				if self.decideMyLog(u"ReadFromBridge"): self.indiLOG.log(20,u"Response from Hue bridge contained {} items.".format(len(responseData)))
+				errorsDict['showAlertText'] += errorText
+				return valuesDict, errorsDict
+
+		except requests.exceptions.Timeout:
+			self.logger.error(u"Connection to {}  failed,timed out after {} seconds.".format(valuesDict['address'], kTimeout), exc_info=True)
+			errorText = u"Unable to reach the bridge. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
+			errorsDict['showAlertText'] += errorText
+			return valuesDict, errorsDict
+
+		except requests.exceptions.ConnectionError:
+			self.logger.error(u"Connection to ip#:{} There was a connection error".format( valuesDict['address']), exc_info=True)
+			errorsDict['startPairingButton'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
+			errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
+			return valuesDict, errorsDict
+
+		except Exception as e:
+			self.logger.error(u"Connection to  ip#:{}  failed".format(valuesDict['address']), exc_info=True)
+			errorsDict['startPairingButton'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
+			errorsDict['showAlertText'] += errorsDict['startPairingButton'] + u"\n\n"
+			return valuesDict, errorsDict
+
+		try:
+			if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"validatePrefsConfigUi: Verifying that a Hue bridge exists at IP address \"{}\".".format(valuesDict['address']) )
+			command = "http://{}/description.xml".format(valuesDict['address'])
+			if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"validatePrefsConfigUi: Accessing URL: {}".format(command))
+			r = requests.get(command, timeout=kTimeout, headers={'Connection':'close'})
+			if self.decideMyLog(u"ReadFromBridge"): self.indiLOG.log(10,u"validatePrefsConfigUi: Got response:\n{}".format(r.content) )
+
+			# Quick and dirty check to see if this is a Philips Hue bridge.
+			if b"Philips hue bridge" not in r.content:
+				# If "Philips hue bridge" doesn't exist in the response, it's not a Hue bridge.
+				if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"validatePrefsConfigUi: No \"Philips hue bridge\" string found in response. This isn't a Hue bridge.")
+				isError = True
+				errorsDict['address'] = u"This doesn't appear to be a Philips Hue bridge.  Please verify the IP address."
+				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
+				return valuesDict, errorsDict
+
+			else:  # ********** This is likely a Hue bridge. ********** 
+				self.indiLOG.log(10,u"validatePrefsConfigUi: Verified that this is a Hue bridge.")
+				errorsDict['showAlertText'] = "parring done successfully"
+				valuesDict['addresses'] = json.dumps(self.ipAddresses)
+				return valuesDict, errorsDict
+
+		except requests.exceptions.Timeout:
+			if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"validatePrefsConfigUi: Connection to {} timed out after {} seconds.".format(valuesDict['address'], kTimeout))
+			isError = True
+			errorsDict['address'] = u"Unable to reach the bridge. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
+			errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
+			return valuesDict, errorsDict
+
+		except requests.exceptions.ConnectionError:
+			if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"validatePrefsConfigUi: Connection to {} failed. There was a connection error.".format(valuesDict['address']) )
+			isError = True
+			errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
+			errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
+			return valuesDict, errorsDict
+
+		except Exception as e:
+			self.indiLOG.log(30,u"validatePrefsConfigUi: Connection error", exc_info=True)
+			isError = True
+			errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
+			errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
+			return valuesDict, errorsDict
+
+
+		valuesDict['addresses'] = json.dumps(self.ipAddresses)
+		self.lastTimeForAll = time.time() - (self.goAllRefresh-25)
+# force rereading hub config in 20 secs, wait for dialog to save 
+		return valuesDict, errorsDict
+
 
 
 	# Validate Preferences Configuration.
@@ -2710,22 +2792,6 @@ class Plugin(indigo.PluginBase):
 		self.timeScaleFactor = float(valuesDict['timeScaleFactor'])
 
 		self.getDebugLevels(valuesDict)
-
-		# Validate the IP Address field.
-		if valuesDict['gwAction'] in ['add','modify']:
-			if valuesDict.get('address', "") == "":
-				# The field was left blank.
-				if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"validatePrefsConfigUi: IP address \"{}\" is blank.".format(valuesDict['address']) )
-				isError = True
-				errorsDict['address'] = u"The IP Address field is blank. Please enter an IP Address for the Hue bridge."
-				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
-
-			else:
-				if not self.isValidIP(valuesDict['address']):
-					if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"validatePrefsConfigUi: IP address format is invalid.")
-					isError = True
-					errorsDict['address'] = u"The IP Address is not valid. Please enter a valid IP address."
-					errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
 
 		if maxPresetCount == "":
 			# The field was left blank.
@@ -2749,48 +2815,6 @@ class Plugin(indigo.PluginBase):
 				errorsDict['maxPresetCount'] = u"The Preset Memories must be a number between 1 and 100. Error: {}  @line#:{})".format(e,sys.exc_info()[2].tb_lineno)
 				errorsDict['showAlertText'] += errorsDict['maxPresetCount'] + "\n\n"
 
-		# If there haven't been any errors so far, try to connect to the Hue bridge to see
-		#   if it's actually a Hue bridge.
-		if not isError and valuesDict['gwAction'] in ['add','modify']:
-			try:
-				if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"validatePrefsConfigUi: Verifying that a Hue bridge exists at IP address \"{}\".".format(valuesDict['address']) )
-				command = "http://{}/description.xml".format(valuesDict['address'])
-				if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"validatePrefsConfigUi: Accessing URL: {}".format(command))
-				r = requests.get(command, timeout=kTimeout, headers={'Connection':'close'})
-				if self.decideMyLog(u"ReadFromBridge"): self.indiLOG.log(10,u"validatePrefsConfigUi: Got response:\n{}".format(r.content) )
-
-				# Quick and dirty check to see if this is a Philips Hue bridge.
-				if b"Philips hue bridge" not in r.content:
-					# If "Philips hue bridge" doesn't exist in the response, it's not a Hue bridge.
-					if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"validatePrefsConfigUi: No \"Philips hue bridge\" string found in response. This isn't a Hue bridge.")
-					isError = True
-					errorsDict['address'] = u"This doesn't appear to be a Philips Hue bridge.  Please verify the IP address."
-					errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
-
-				else:
-					# This is likely a Hue bridge.
-					if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"validatePrefsConfigUi: Verified that this is a Hue bridge.")
-
-			except requests.exceptions.Timeout:
-				if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"validatePrefsConfigUi: Connection to {} timed out after {} seconds.".format(valuesDict['address'], kTimeout))
-				isError = True
-				errorsDict['address'] = u"Unable to reach the bridge. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
-				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
-
-			except requests.exceptions.ConnectionError:
-				if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"validatePrefsConfigUi: Connection to {} failed. There was a connection error.".format(valuesDict['address']) )
-				isError = True
-				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
-				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
-
-			except Exception as e:
-				self.indiLOG.log(30,u"validatePrefsConfigUi: Connection error", exc_info=True)
-				isError = True
-				errorsDict['address'] = u"Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
-				errorsDict['showAlertText'] += errorsDict['address'] + u"\n\n"
-
-
-
 
 		# Return an error if one exists.
 		if isError:
@@ -2798,7 +2822,6 @@ class Plugin(indigo.PluginBase):
 			self.findHueBridgesNow = time.time()  +10
 			return (False, valuesDict, errorsDict)
 		else:
-			valuesDict['addresses'] = json.dumps(self.ipAddresses)
 			self.findHueBridgesNow = time.time()  +10
 			self.lastTimeForAll = time.time() - (self.goAllRefresh-25)# force rereading hub config in 5 secs, wait for dialog to save 
 			return (True, valuesDict)
@@ -4611,19 +4634,11 @@ class Plugin(indigo.PluginBase):
 		if self.decideMyLog(u"Loop"): self.indiLOG.log(10,u"Starting isIntCompat.")
 		if self.decideMyLog(u"Loop"): self.indiLOG.log(10,u"someValue: {}".format(someValue))
 		# Check if a value is an integer or not.
-		try:
-			if type(someValue) == int:
-				# It's already an integer. Return right away.
-				return True
-			# It's not an integer, so try to convert it to one.
-			int(u"{}".format(someValue))
-			# It converted okay, so return True.
+		try:	
+			int(someValue)
 			return True
-		except (TypeError, ValueError):
-			# The value didn't convert to an integer, so return False.
+		except:	
 			return False
-
-		return False
 
 	def calcRgbHexValsFromRgbLevels(self, valuesDict):
 		if self.decideMyLog(u"Loop"): self.indiLOG.log(10,u"Starting calcRgbHexValsFromRgbLevels.")
@@ -8879,7 +8894,7 @@ class Plugin(indigo.PluginBase):
 				self.doErrorLog(u"No device was selected for the \"{}\" action. Please edit the action and select a Hue Light device.".format(action.name))
 				return
 			# Catch if the device is an on/off only device.
-			if device.pluginProps.get('isDimmerDevice', False):
+			if not  device.pluginProps.get('isDimmerDevice', False):
 					self.doErrorLog(u"startStopBrightening \"{}\" is not a dimmable device".format(device.name))
 					return
 
@@ -8925,7 +8940,7 @@ class Plugin(indigo.PluginBase):
 				self.doErrorLog(u"No device was selected for the \"{}\" action. Please edit the action and select a Hue Light device.".format(action.name))
 				return
 			# Catch if the device is an on/off only device.
-			if device.pluginProps.get('isDimmerDevice', False):
+			if not  device.pluginProps.get('isDimmerDevice', False):
 					self.doErrorLog(u"startStopDimming \"{}\" is not a dimmable device".format(device.name))
 					return
 
@@ -8970,7 +8985,7 @@ class Plugin(indigo.PluginBase):
 				self.doErrorLog(u"No device was selected for the \"{}\" action. Please edit the action and select a Hue Light device.".format(action))
 				return
 			# Catch if the device is an on/off only device.
-			if device.pluginProps.get('isDimmerDevice', False):
+			if not device.pluginProps.get('isDimmerDevice', False):
 					self.doErrorLog(u"stopBrighteningAndDimming \"{}\" is not a dimmable device".format(device.name))
 					return
 
@@ -9017,7 +9032,8 @@ class Plugin(indigo.PluginBase):
 				if bulbId is None or bulbId == 0:
 					self.doErrorLog(u"No bulb ID selected for device \"{}\". Check settings for this device and select a Hue Device to control.".format(device.name))
 					return
-			if device.pluginProps.get('isDimmerDevice', False):
+
+			if not device.pluginProps.get('isDimmerDevice', False):
 					self.doErrorLog(u"setBrightness \"{}\" is not a dimmable device".format(device.name))
 					return
 
@@ -9191,7 +9207,7 @@ class Plugin(indigo.PluginBase):
 				if bulbId is None or bulbId == 0:
 					self.doErrorLog(u"No bulb ID selected for device \"{}\". Check settings for this device and select a Hue Device to control.".format(device.name))
 					return
-			if device.pluginProps.get('isDimmerDevice', False):
+			if not device.pluginProps.get('isDimmerDevice', False):
 					self.doErrorLog(u"setRGB \"{}\" is not a dimmable device".format(device.name))
 					return
 
@@ -9292,7 +9308,7 @@ class Plugin(indigo.PluginBase):
 				if bulbId is None or bulbId == 0:
 					self.doErrorLog(u"No bulb ID selected for device \"{}\". Check settings for this device and select a Hue Device to control.".format(device.name))
 					return
-			if device.pluginProps.get('isDimmerDevice', False):
+			if not device.pluginProps.get('isDimmerDevice', False):
 					self.doErrorLog(u"setHSB \"{}\" is not a dimmable device".format(device.name))
 					return
 
@@ -9450,7 +9466,7 @@ class Plugin(indigo.PluginBase):
 					self.doErrorLog(u"No bulb ID selected for device \"{}\". Check settings for this device and select a Hue Device to control.".format(device.name))
 					return
 
-			if device.pluginProps.get('isDimmerDevice', False):
+			if not device.pluginProps.get('isDimmerDevice', False):
 					self.doErrorLog(u"setXYY \"{}\" is not a dimmable device".format(device.name))
 					return
 
@@ -9545,7 +9561,7 @@ class Plugin(indigo.PluginBase):
 	def setColorTemperature(self, action, device):
 		if self.decideMyLog(u"SendCommandsToBridge"): self.indiLOG.log(10,u"setColorTemperature: device:\"{}\", action:\n{}".format(device.name, action))
 		try:
-			if device.pluginProps.get('isDimmerDevice', False):
+			if not device.pluginProps.get('isDimmerDevice', False):
 					self.doErrorLog(u"setXYY \"{}\" is not a dimmable device".format(device.name))
 					return
 			# Act based on device type.
@@ -10446,11 +10462,15 @@ class Plugin(indigo.PluginBase):
 						break 
 
 					#end of loop wait 1 secs each for shutdown commend intercept 
-					self.sleep(1)
-
+					try:
+						self.sleep(1)
+					except:
+						break
 			except Exception as e:
 				self.logger.error("", exc_info=True)
-				self.sleep(1)
+				try:
+					self.sleep(1)
+				except: pass
 		return 
 
 
@@ -10461,344 +10481,347 @@ class Plugin(indigo.PluginBase):
 	def printHueData(self, valuesDict, menuItem):
 		if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Starting printHueData. ")
  
-		indigoList = {}
-		sortBy = valuesDict["sortBy"]
-		if valuesDict['whatToPrint'] == "lights":
-			hueIdToIndigoName, indigoNameToHueId = self.getIndigoDevDict("bulbId")
+		try:
+			indigoList = {}
+			sortBy = valuesDict["sortBy"]
+			if valuesDict['whatToPrint'] == "lights":
+				hueIdToIndigoName, indigoNameToHueId = self.getIndigoDevDict("bulbId")
 
-			outs = [u"\n======================= print Hue Lights ====================="]
-			for hubNumber in sorted(self.ipAddresses):
-				if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
-				theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
-				outs.append(u"==  Bridge:{}, ipNumber:{}, hostId:{}, paired:{}, #of lights:{}, sorted by:{}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], self.paired[hubNumber], len(theDict), sortBy))
-							 #123 12345678901 12345678901234567890123456 12345678901234567890123456789 12345678901234567890123456789 1234567890123456789012345 12345678901234567890123456789 12345678901 1234567890123456789012345 123456789 12345 
-				outs.append(u" ID ONoff Reach modelId--------- type--------------------- uniqueid------------------ Name------------------------------- ProductId-------------------- manufacturername------------- ProductName------------------ Group indigoDevName-----")
+				outs = [u"\n======================= print Hue Lights ====================="]
+				for hubNumber in sorted(self.ipAddresses):
+					if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
+					theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
+					outs.append(u"==  Bridge:{}, ipNumber:{}, hostId:{}, paired:{}, #of lights:{}, sorted by:{}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], self.paired[hubNumber], len(theDict), sortBy))
+								 #123 12345678901 12345678901234567890123456 12345678901234567890123456789 12345678901234567890123456789 1234567890123456789012345 12345678901234567890123456789 12345678901 1234567890123456789012345 123456789 12345 
+					outs.append(u" ID ONoff Reach modelId--------- type--------------------- uniqueid------------------ Name------------------------------- ProductId-------------------- manufacturername------------- ProductName------------------ Group indigoDevName-----")
 
-				if   sortBy in["type","name","modelid"]: 	IDlist = self.makeSortedIDList(theDict, sortBy)
-				else:										IDlist = sorted(theDict, key=lambda key: int(key))
+					if   sortBy in["type","name","modelid"]: 	IDlist = self.makeSortedIDList(theDict, sortBy)
+					else:										IDlist = sorted(theDict, key=lambda key: int(key))
 
-				for IDi in IDlist:
-					ID = str(IDi)
-					temp = theDict[ID]
-					out  = 										 u'{:>3s} '.format(ID)
-					if "state" in temp:
-						out += self.printColumns(temp['state'],	 u'  {:<4}',	'reachable') 
-						out += self.printColumns(temp['state'],	 u'  {:<4}',	'on') 
-					else:
-						out += 									 u' {:12s}'.format(' ')
-					out += self.printColumns(temp,				 u'{:17s}',	'modelid') 
-					out += self.printColumns(temp,				 u'{:26s}',	'type') 
-					out += self.printColumns(temp,				 u'{:27s}',	'uniqueid') 
-					out += self.printColumns(temp,				 u'{:36s}',	'name') 
-					out += self.printColumns(temp,				 u'{:30s}',	'productid') 
-					out += self.printColumns(temp,				 u'{:30s}',	'manufacturername') 
-					out += self.printColumns(temp,				 u'{:30s}',	'productname') 
-					out += self.getMemberOfGroup(hubNumber, IDi, valuesDict['whatToPrint'])
-					out += self.printColumns(hueIdToIndigoName[hubNumber], u'{:20s}',	ID) 
-					outs.append(out)
-			self.indiLOG.log(20,"\n".join(outs))
+					for IDi in IDlist:
+						ID = str(IDi)
+						temp = theDict[ID]
+						out  = 										 u'{:>3s} '.format(ID)
+						if "state" in temp:
+							out += self.printColumns(temp['state'],	 u'  {:<4}',	'reachable') 
+							out += self.printColumns(temp['state'],	 u'  {:<4}',	'on') 
+						else:
+							out += 									 u' {:12s}'.format(' ')
+						out += self.printColumns(temp,				 u'{:17s}',	'modelid') 
+						out += self.printColumns(temp,				 u'{:26s}',	'type') 
+						out += self.printColumns(temp,				 u'{:27s}',	'uniqueid') 
+						out += self.printColumns(temp,				 u'{:36s}',	'name') 
+						out += self.printColumns(temp,				 u'{:30s}',	'productid') 
+						out += self.printColumns(temp,				 u'{:30s}',	'manufacturername') 
+						out += self.printColumns(temp,				 u'{:30s}',	'productname') 
+						out += self.getMemberOfGroup(hubNumber, IDi, valuesDict['whatToPrint'])
+						out += self.printColumns(hueIdToIndigoName[hubNumber], u'{:20s}',	ID) 
+						outs.append(out)
+				self.indiLOG.log(20,"\n".join(outs))
 
-		elif valuesDict['whatToPrint'] == "sensors":
-			hueIdToIndigoName, indigoNameToHueId = self.getIndigoDevDict("sensorId")
+			elif valuesDict['whatToPrint'] == "sensors":
+				hueIdToIndigoName, indigoNameToHueId = self.getIndigoDevDict("sensorId")
 
-			outs = [u"\n======================= print Hue Sensors ====================="]
-			for hubNumber in sorted(self.ipAddresses):
-				if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
-				theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
-				outs.append( u"==   Bridge:{}, ipNumber:{}, hostId:{}, paired:{}, #of Sensors:{}, sorted by:{}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], self.paired[hubNumber], len(theDict), sortBy))
-						#1234 12345678901     12345678901234567890123456789 12345678901234567890123456789 12345678901234567890123456789 1234567890123456789     123456 123456 123456 1234567890123456789    1234567890 
-				outs.append(u" ID ONoff Reach Status lastupdated-------- modelid----------------------- type--------------- Name------------------------- productname------------------  manufacturername------------- Group Indigo Device")
+				outs = [u"\n======================= print Hue Sensors ====================="]
+				for hubNumber in sorted(self.ipAddresses):
+					if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
+					theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
+					outs.append( u"==   Bridge:{}, ipNumber:{}, hostId:{}, paired:{}, #of Sensors:{}, sorted by:{}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], self.paired[hubNumber], len(theDict), sortBy))
+							#1234 12345678901     12345678901234567890123456789 12345678901234567890123456789 12345678901234567890123456789 1234567890123456789     123456 123456 123456 1234567890123456789    1234567890 
+					outs.append(u" ID ONoff Reach Status lastupdated-------- modelid----------------------- type--------------- Name------------------------- productname------------------  manufacturername------------- Group Indigo Device")
 				
-				if   sortBy in["type","name","modelid"]: 	IDlist = self.makeSortedIDList(theDict, sortBy)
-				else:										IDlist = sorted(theDict, key=lambda key: int(key))
+					if   sortBy in["type","name","modelid"]: 	IDlist = self.makeSortedIDList(theDict, sortBy)
+					else:										IDlist = sorted(theDict, key=lambda key: int(key))
 
-				for IDi in IDlist:
-					ID = str(IDi)
-					temp = theDict[ID]
-					out  = 										 u'{:>3s} '.format(ID)
-					if "config" in temp: 
-						out += self.printColumns(temp['config'], u'  {:<4}', 'on') 
-						out += self.printColumns(temp['config'], u'  {:<4}', 'reachable') 
-					else:								  out += u'{:<12}'.format(" ")
-					if "state" in temp: 
-						out += self.printColumns(temp['state'],  u'   {:<4}', 'status') 
-						out += self.printColumns(temp['state'],  u'{:21s}',	'lastupdated') 
-					else:								  out += u'{:24s}'.format(" ")
-					out += self.printColumns(temp,				 u'{:31s}',	'modelid') 
-					out += self.printColumns(temp,				 u'{:20s}',	'type') 
-					out += self.printColumns(temp,				 u'{:30s}',	'name') 
-					out += self.printColumns(temp,				 u'{:31s}',	'productname') 
-					out += self.printColumns(temp,				 u'{:30s}',	'manufacturername') 
-					out += self.getMemberOfGroup(hubNumber, IDi, valuesDict['whatToPrint'])
-					out += self.printColumns(hueIdToIndigoName[hubNumber], u'{:20s}', ID) 
-					outs.append(out)
-			self.indiLOG.log(20,"\n".join(outs)+"\n")
+					for IDi in IDlist:
+						ID = str(IDi)
+						temp = theDict[ID]
+						out  = 										 u'{:>3s} '.format(ID)
+						if "config" in temp: 
+							out += self.printColumns(temp['config'], u'  {:<4}', 'on') 
+							out += self.printColumns(temp['config'], u'  {:<4}', 'reachable') 
+						else:								  out += u'{:<12}'.format(" ")
+						if "state" in temp: 
+							out += self.printColumns(temp['state'],  u'   {:<4}', 'status') 
+							out += self.printColumns(temp['state'],  u'{:21s}',	'lastupdated') 
+						else:								  out += u'{:24s}'.format(" ")
+						out += self.printColumns(temp,				 u'{:31s}',	'modelid') 
+						out += self.printColumns(temp,				 u'{:20s}',	'type') 
+						out += self.printColumns(temp,				 u'{:30s}',	'name') 
+						out += self.printColumns(temp,				 u'{:31s}',	'productname') 
+						out += self.printColumns(temp,				 u'{:30s}',	'manufacturername') 
+						out += self.getMemberOfGroup(hubNumber, IDi, valuesDict['whatToPrint'])
+						out += self.printColumns(hueIdToIndigoName[hubNumber], u'{:20s}', ID) 
+						outs.append(out)
+				self.indiLOG.log(20,"\n".join(outs)+"\n")
 
  
-		elif valuesDict['whatToPrint'] == "groups":
-			hueIdToIndigoName, indigoNameToHueId = self.getIndigoDevDict("groupId")
-			outs = [u"\n======================= print Hue Groups ====================="]
-			for hubNumber in sorted(self.ipAddresses):
-				if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
-				theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
-				outs.append(u"==  Bridge: {}, ipNumber: {}, hostId: {}, #of Groups: {}, paired: {}, sortedby: {}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], len(theDict), self.paired[hubNumber], sortBy))
-							 #123 123456789 123456789 123456789 123456789 1 123456789 12345678901234567890123456789 12345678901234567890123456789 1234567890123456789012345
-				outs.append(u" ID Name------------------------- Name------- Lights---------------------------- IndigoDevName------ ")
+			elif valuesDict['whatToPrint'] == "groups":
+				hueIdToIndigoName, indigoNameToHueId = self.getIndigoDevDict("groupId")
+				outs = [u"\n======================= print Hue Groups ====================="]
+				for hubNumber in sorted(self.ipAddresses):
+					if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
+					theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
+					outs.append(u"==  Bridge: {}, ipNumber: {}, hostId: {}, #of Groups: {}, paired: {}, sortedby: {}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], len(theDict), self.paired[hubNumber], sortBy))
+								 #123 123456789 123456789 123456789 123456789 1 123456789 12345678901234567890123456789 12345678901234567890123456789 1234567890123456789012345
+					outs.append(u" ID Name------------------------- Name------- Lights---------------------------- IndigoDevName------ ")
 
-				if   sortBy in["type","name"]: 	IDlist = self.makeSortedIDList(theDict, sortBy)
-				else:							IDlist = sorted(theDict, key=lambda key: int(key))
+					if   sortBy in["type","name"]: 	IDlist = self.makeSortedIDList(theDict, sortBy)
+					else:							IDlist = sorted(theDict, key=lambda key: int(key))
 
-				for IDi in IDlist:
-					ID = str(IDi)
-					temp = theDict[ID]
-					out  = 										 u'{:>3s} '.format(ID)
-					out += self.printColumns(temp,				 u'{:30s}',	'name') 
-					out += self.printColumns(temp,				 u'{:12s}',	'type') 
-					if "lights" in temp:
-						out += u"{:35s}".format(",".join(sorted(temp['lights'])))
-					out += self.printColumns(hueIdToIndigoName[hubNumber],		 u'{:<20}',	ID) 
-					outs.append(out)
-			self.indiLOG.log(20,"\n".join(outs)+"\n")
-
-
-		elif valuesDict['whatToPrint'] == "scenes":
-			outs = [u"\n======================= print Hue Scenes ====================="]
-			for hubNumber in sorted(self.ipAddresses):
-				if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
-				theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
-				outs.append(u"== Bridge: {}, ipNumber: {}, hostId: {}, #of Scenes: {}, paired: {}, sortedby: {}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], len(theDict), self.paired[hubNumber], sortBy))
-							  #123456789 1234 123456789 123456789  123456789 123456789 1234 1234567890123456789 123456789 
-				outs.append(u"ID------------- Group Type---------- Lights---------------------------- Name------------------------- ")
-
-				if   sortBy in["name"]:	IDlist = self.makeSortedIDList(theDict, sortBy)
-				else:					IDlist = sorted(theDict, key=lambda key: key)
-
-				for ID in IDlist:
-					temp = theDict[ID]
-					out  = 										 u'{:15s} '.format(ID)
-					out += self.printColumns(temp,				 u'{:6s}',	'group') 
-					out += self.printColumns(temp,				 u'{:15s}',	'type') 
-					if "lights" in temp:
-						out += u"{:35s}".format(",".join(sorted(temp['lights'])))
-					out += self.printColumns(temp,				 u'{:30s}',	'name') 
-					outs.append(out)
-			self.indiLOG.log(20,"\n".join(outs)+"\n")
+					for IDi in IDlist:
+						ID = str(IDi)
+						temp = theDict[ID]
+						out  = 										 u'{:>3s} '.format(ID)
+						out += self.printColumns(temp,				 u'{:30s}',	'name') 
+						out += self.printColumns(temp,				 u'{:12s}',	'type') 
+						if "lights" in temp:
+							out += u"{:35s}".format(",".join(sorted(temp['lights'])))
+						out += self.printColumns(hueIdToIndigoName[hubNumber],		 u'{:<20}',	ID) 
+						outs.append(out)
+				self.indiLOG.log(20,"\n".join(outs)+"\n")
 
 
-		elif valuesDict['whatToPrint'] == "resourcelinks":
-			outs = [u"\n======================= print Hue resourcelinks ====================="]
-			for hubNumber in sorted(self.ipAddresses):
-				if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
-				theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
-				outs.append(u"== Bridge: {}, ipNumber: {}, hostId: {}, #of Scenes: {}, paired: {}, sortedby: {}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], len(theDict), self.paired[hubNumber], sortBy))
-							 #123456789 1 123456789 123456789  123456789 12345 123456789 123456789 123456789 
-				outs.append(u"ID--------- Name-------------------------- Type- Links- description------------------ ")
+			elif valuesDict['whatToPrint'] == "scenes":
+				outs = [u"\n======================= print Hue Scenes ====================="]
+				for hubNumber in sorted(self.ipAddresses):
+					if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
+					theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
+					outs.append(u"== Bridge: {}, ipNumber: {}, hostId: {}, #of Scenes: {}, paired: {}, sortedby: {}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], len(theDict), self.paired[hubNumber], sortBy))
+								  #123456789 1234 123456789 123456789  123456789 123456789 1234 1234567890123456789 123456789 
+					outs.append(u"ID------------- Group Type---------- Lights---------------------------- Name------------------------- ")
 
-				if   sortBy in["name"]:	IDlist = self.makeSortedIDList(theDict, sortBy)
-				else:					IDlist = sorted(theDict, key=lambda key: int(key))
+					if   sortBy in["name"]:	IDlist = self.makeSortedIDList(theDict, sortBy)
+					else:					IDlist = sorted(theDict, key=lambda key: key)
 
-				for ID in IDlist:
-					temp = theDict[ID]
-					out  = 										 u'{:12s} '.format(ID)
-					out += self.printColumns(temp,				 u'{:30s}',	'name') 
-					out += self.printColumns(temp,				 u'{:6s}',	'type') 
-					out += u'{:>4d}   '.format(len(temp['links'])) 
-					out += self.printColumns(temp,				 u'{:30s}',	'description') 
-					outs.append(out)
-			self.indiLOG.log(20,"\n".join(outs)+"\n")
-
-
-		elif valuesDict['whatToPrint'] == "rules":
-			outs = [u"\n======================= print Hue Rules ====================="]
-			for hubNumber in sorted(self.ipAddresses):
-				if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
-				theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
-				outs.append(u"== Bridge: {}, ipNumber: {}, hostId: {}, #of Scenes: {}, paired: {}, sortedby: {}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], len(theDict), self.paired[hubNumber], sortBy))
-							  #   123456789 123456789 123456789 1234 123456789 123456789 1234567890  123456789 1 123456789 
-				outs.append(u"ID- Name------------------------------ Status--- last triggered------- ")
-
-				if   sortBy in["name"]:	IDlist = self.makeSortedIDList(theDict, sortBy)
-				else:					IDlist = sorted(theDict, key=lambda key: int(key))
-
-				for ID in IDlist:
-					temp = theDict[ID]
-					out  = 										 u'{:>3s} '.format(ID)
-					out += self.printColumns(temp,				 u'{:35s}',	'name') 
-					out += self.printColumns(temp,				 u'{:10s}',	'status') 
-					out += self.printColumns(temp,				 u'{:22s}',	'lasttriggered') 
-					outs.append(out)
-			self.indiLOG.log(20,"\n".join(outs)+"\n")
+					for ID in IDlist:
+						temp = theDict[ID]
+						out  = 										 u'{:15s} '.format(ID)
+						out += self.printColumns(temp,				 u'{:6s}',	'group') 
+						out += self.printColumns(temp,				 u'{:15s}',	'type') 
+						if "lights" in temp:
+							out += u"{:35s}".format(",".join(sorted(temp['lights'])))
+						out += self.printColumns(temp,				 u'{:30s}',	'name') 
+						outs.append(out)
+				self.indiLOG.log(20,"\n".join(outs)+"\n")
 
 
-		elif valuesDict['whatToPrint'] == "schedules":
-			outs = [u"\n======================= print Hue Schedules ====================="]
-			for hubNumber in sorted(self.ipAddresses):
-				if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
-				theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
-				outs.append(u"== Bridge: {}, ipNumber: {}, hostId: {}, #of Scenes: {}, paired: {}, sortedby: {}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], len(theDict), self.paired[hubNumber], sortBy))
-							  #   123456789 123456789 123456789 123456789 123456789 1234567890123456789 123456789 
-				outs.append(u"ID- Name------------------------- Status--- starttime ------- ")
+			elif valuesDict['whatToPrint'] == "resourcelinks":
+				outs = [u"\n======================= print Hue resourcelinks ====================="]
+				for hubNumber in sorted(self.ipAddresses):
+					if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
+					theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
+					outs.append(u"== Bridge: {}, ipNumber: {}, hostId: {}, #of Scenes: {}, paired: {}, sortedby: {}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], len(theDict), self.paired[hubNumber], sortBy))
+								 #123456789 1 123456789 123456789  123456789 12345 123456789 123456789 123456789 
+					outs.append(u"ID--------- Name-------------------------- Type- Links- description------------------ ")
 
-				if   sortBy in["name"]:	IDlist = self.makeSortedIDList(theDict, sortBy)
-				else:					IDlist = sorted(theDict, key=lambda key: int(key))
+					if   sortBy in["name"]:	IDlist = self.makeSortedIDList(theDict, sortBy)
+					else:					IDlist = sorted(theDict, key=lambda key: int(key))
 
-				for ID in IDlist:
-					temp = theDict[ID]
-					out  = 										 u'{:>3s} '.format(ID)
-					out += self.printColumns(temp,				 u'{:30s}',	'name') 
-					out += self.printColumns(temp,				 u'{:10s}',	'status') 
-					out += self.printColumns(temp,				 u'{:22s}',	'starttime') 
-					outs.append(out)
-			self.indiLOG.log(20,"\n".join(outs)+"\n")
-
-
-		elif  valuesDict['whatToPrint'] == "config":
-			outs = [u"\n======================= print Hue Config ====================="]
-			for hubNumber in sorted(self.ipAddresses):
-				if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
-
-				theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
-				outs.append(u"===== Bridge#:    {:1}                ipNumber:  {:<15}      mac:        {}".format(hubNumber, self.ipAddresses[hubNumber], theDict['mac']))
-				outs.append(u" zigbee channel: {:2}                swversion: {:<15}      apiversion: {}".format(theDict['zigbeechannel'], theDict['swversion'], theDict['apiversion']))
-				outs.append(u" bridgeid:       {:15}  modelid:   {:<15}      paired:     {}  ".format(theDict['bridgeid'], theDict['modelid'], self.paired[hubNumber]))
-
-				outs.append(" swupdates available: ")
-				for tt in theDict['swupdate']['devicetypes']:
-					xx = str(theDict['swupdate']['devicetypes'][tt]).replace('[','').replace(']','').replace("u'",'').replace("'",'')
-					outs.append(u"    {}: {}".format(tt, xx))
+					for ID in IDlist:
+						temp = theDict[ID]
+						out  = 										 u'{:12s} '.format(ID)
+						out += self.printColumns(temp,				 u'{:30s}',	'name') 
+						out += self.printColumns(temp,				 u'{:6s}',	'type') 
+						out += u'{:>4d}   '.format(len(temp['links'])) 
+						out += self.printColumns(temp,				 u'{:30s}',	'description') 
+						outs.append(out)
+				self.indiLOG.log(20,"\n".join(outs)+"\n")
 
 
-				self.maxHueItems = {'lights':63, 'sensors':20, 'groups':60, 'scenes':60, 'rules':60, 'schedules':60, 'resourcelinks':60}
-				for xx in ['lights', 'sensors', 'groups', 'scenes', 'rules', 'schedules', 'resourcelinks']:
-					outs.append(" # of {:15s} {:3d}".format(xx, len(self.hueConfigDict[hubNumber][xx])))
+			elif valuesDict['whatToPrint'] == "rules":
+				outs = [u"\n======================= print Hue Rules ====================="]
+				for hubNumber in sorted(self.ipAddresses):
+					if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
+					theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
+					outs.append(u"== Bridge: {}, ipNumber: {}, hostId: {}, #of Scenes: {}, paired: {}, sortedby: {}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], len(theDict), self.paired[hubNumber], sortBy))
+								  #   123456789 123456789 123456789 1234 123456789 123456789 1234567890  123456789 1 123456789 
+					outs.append(u"ID- Name------------------------------ Status--- last triggered------- ")
 
-				IDlist = self.makeSortedIDList(theDict['whitelist'], 'last use date')
+					if   sortBy in["name"]:	IDlist = self.makeSortedIDList(theDict, sortBy)
+					else:					IDlist = sorted(theDict, key=lambda key: int(key))
 
-							  #123456789 123456789 123456789 123456789  123456789 123456789 123456789 
-				outs.append(u"registered users (Whitelist), go to https://account.meethue.com/ to manage/ remove users ")
-				outs.append(u"ID--------------------------------------- name------------------------- create date---------- last use date-------- ")
-				for ID in IDlist:
-					temp = theDict['whitelist'][ID]
-					out  = 										 u'{:41s} '.format(ID)
-					out += self.printColumns(temp,				 u'{:30s}',	'name') 
-					out += self.printColumns(temp,				 u'{:22s}',	'create date') 
-					out += self.printColumns(temp,				 u'{:22s}',	'last use date') 
-					outs.append(out)
-				outs.append("")
-			outs.append("---- bridges detected on network:")
-			for bridgeId in self.bridgesAvailable:
-				outs.append(u"bridgeId: {}, ipAddress:{},  used in plugin:{}, hubNumber:{}".format(bridgeId, self.bridgesAvailable[bridgeId]["ipAddress"], self.bridgesAvailable[bridgeId]["linked"], self.bridgesAvailable[bridgeId]["hubNumber"]))
-
-			self.indiLOG.log(20,"\n".join(outs)+"\n")
+					for ID in IDlist:
+						temp = theDict[ID]
+						out  = 										 u'{:>3s} '.format(ID)
+						out += self.printColumns(temp,				 u'{:35s}',	'name') 
+						out += self.printColumns(temp,				 u'{:10s}',	'status') 
+						out += self.printColumns(temp,				 u'{:22s}',	'lasttriggered') 
+						outs.append(out)
+				self.indiLOG.log(20,"\n".join(outs)+"\n")
 
 
-		elif valuesDict['whatToPrint'].find("configJson") > -1:
-			for hubNumber in self.ipAddresses:
-				if hubNumber not in self.hueConfigDict: continue
-				self.indiLOG.log(20,"printHueData --- complete config bridge#: {}   json=\n{} ".format(hubNumber, json.dumps(self.hueConfigDict[hubNumber]['config'], indent=2, sort_keys=True)))
+			elif valuesDict['whatToPrint'] == "schedules":
+				outs = [u"\n======================= print Hue Schedules ====================="]
+				for hubNumber in sorted(self.ipAddresses):
+					if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
+					theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
+					outs.append(u"== Bridge: {}, ipNumber: {}, hostId: {}, #of Scenes: {}, paired: {}, sortedby: {}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], len(theDict), self.paired[hubNumber], sortBy))
+								  #   123456789 123456789 123456789 123456789 123456789 1234567890123456789 123456789 
+					outs.append(u"ID- Name------------------------- Status--- starttime ------- ")
+
+					if   sortBy in["name"]:	IDlist = self.makeSortedIDList(theDict, sortBy)
+					else:					IDlist = sorted(theDict, key=lambda key: int(key))
+
+					for ID in IDlist:
+						temp = theDict[ID]
+						out  = 										 u'{:>3s} '.format(ID)
+						out += self.printColumns(temp,				 u'{:30s}',	'name') 
+						out += self.printColumns(temp,				 u'{:10s}',	'status') 
+						out += self.printColumns(temp,				 u'{:22s}',	'starttime') 
+						outs.append(out)
+				self.indiLOG.log(20,"\n".join(outs)+"\n")
 
 
-		elif valuesDict['whatToPrint'].find("configDict") > -1:
-			for hubNumber in self.ipAddresses:
-				if hubNumber not in self.hueConfigDict: continue
-				self.indiLOG.log(20,"printHueData --- complete Hue bridge info #{}   json=\n{} ".format(hubNumber, json.dumps(self.hueConfigDict[hubNumber], indent=2, sort_keys=True)))
+			elif  valuesDict['whatToPrint'] == "config":
+				outs = [u"\n======================= print Hue Config ====================="]
+				for hubNumber in sorted(self.ipAddresses):
+					if valuesDict['whatToPrint'] not in self.hueConfigDict[hubNumber]: continue
+
+					theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
+					outs.append(u"===== Bridge#:    {:1}                ipNumber:  {:<15}      mac:        {}".format(hubNumber, self.ipAddresses[hubNumber], theDict['mac']))
+					outs.append(u" zigbee channel: {:2}                swversion: {:<15}      apiversion: {}".format(theDict['zigbeechannel'], theDict['swversion'], theDict['apiversion']))
+					outs.append(u" bridgeid:       {:15}  modelid:   {:<15}      paired:     {}  ".format(theDict['bridgeid'], theDict['modelid'], self.paired[hubNumber]))
+
+					outs.append(" swupdates available: ")
+					for tt in theDict['swupdate']['devicetypes']:
+						xx = str(theDict['swupdate']['devicetypes'][tt]).replace('[','').replace(']','').replace("u'",'').replace("'",'')
+						outs.append(u"    {}: {}".format(tt, xx))
 
 
-		elif valuesDict['whatToPrint'] == "NoHudevice":
-			out = ""
-			out += "\n======================= print Hue {} =====================".format(valuesDict['whatToPrint'])
-			anyorphan = 0
-			tests = [['bulbId','lights'],['groupId','groups'],['sensorId','sensors']]
-			for tt in tests:
-				hueIdToIndigoName, indigoNameToHueId = self.getIndigoDevDict(tt[0])
+					self.maxHueItems = {'lights':63, 'sensors':20, 'groups':60, 'scenes':60, 'rules':60, 'schedules':60, 'resourcelinks':60}
+					for xx in ['lights', 'sensors', 'groups', 'scenes', 'rules', 'schedules', 'resourcelinks']:
+						outs.append(" # of {:15s} {:3d}".format(xx, len(self.hueConfigDict[hubNumber][xx])))
+
+					IDlist = self.makeSortedIDList(theDict['whitelist'], 'last use date')
+
+								  #123456789 123456789 123456789 123456789  123456789 123456789 123456789 
+					outs.append(u"registered users (Whitelist), go to https://account.meethue.com/ to manage/ remove users ")
+					outs.append(u"ID--------------------------------------- name------------------------- create date---------- last use date-------- ")
+					for ID in IDlist:
+						temp = theDict['whitelist'][ID]
+						out  = 										 u'{:41s} '.format(ID)
+						out += self.printColumns(temp,				 u'{:30s}',	'name') 
+						out += self.printColumns(temp,				 u'{:22s}',	'create date') 
+						out += self.printColumns(temp,				 u'{:22s}',	'last use date') 
+						outs.append(out)
+					outs.append("")
+				outs.append("---- bridges detected on network:")
+				for bridgeId in self.bridgesAvailable:
+					outs.append(u"bridgeId: {}, ipAddress:{},  used in plugin:{}, hubNumber:{}".format(bridgeId, self.bridgesAvailable[bridgeId]["ipAddress"], self.bridgesAvailable[bridgeId]["linked"], self.bridgesAvailable[bridgeId]["hubNumber"]))
+
+				self.indiLOG.log(20,"\n".join(outs)+"\n")
+
+
+			elif valuesDict['whatToPrint'].find("configJson") > -1:
 				for hubNumber in self.ipAddresses:
-					# go through all indigop devices 
-					for indigoName in indigoNameToHueId[hubNumber]:
-						hueIdToFind = indigoNameToHueId[hubNumber][indigoName]
-						if  hueIdToFind not in self.hueConfigDict[hubNumber][tt[1]]:
+					if hubNumber not in self.hueConfigDict: continue
+					self.indiLOG.log(20,"printHueData --- complete config bridge#: {}   json=\n{} ".format(hubNumber, json.dumps(self.hueConfigDict[hubNumber]['config'], indent=2, sort_keys=True)))
+
+
+			elif valuesDict['whatToPrint'].find("configDict") > -1:
+				for hubNumber in self.ipAddresses:
+					if hubNumber not in self.hueConfigDict: continue
+					self.indiLOG.log(20,"printHueData --- complete Hue bridge info #{}   json=\n{} ".format(hubNumber, json.dumps(self.hueConfigDict[hubNumber], indent=2, sort_keys=True)))
+
+
+			elif valuesDict['whatToPrint'] == "NoHudevice":
+				out = ""
+				out += "\n======================= print Hue {} =====================".format(valuesDict['whatToPrint'])
+				anyorphan = 0
+				tests = [['bulbId','lights'],['groupId','groups'],['sensorId','sensors']]
+				for tt in tests:
+					hueIdToIndigoName, indigoNameToHueId = self.getIndigoDevDict(tt[0])
+					for hubNumber in self.hueConfigDict:
+						# go through all indigop devices 
+						for indigoName in indigoNameToHueId[hubNumber]:
+							hueIdToFind = indigoNameToHueId[hubNumber][indigoName]
+							if  hueIdToFind not in self.hueConfigDict[hubNumber][tt[1]]:
+								anyorphan += 1
+								out += "\n orphan indigo {:7s} device: == {:47s} ==   ID:{:3} does not exist on bridge: {} - {}".format(tt[1], indigoName, hueIdToFind, hubNumber, self.ipAddresses[hubNumber])
+
+				for deviceId in self.deviceList:
+					device = indigo.devices[deviceId]
+					if device.deviceTypeId in kSensorTypeList:
+						hubNumber = device.pluginProps['hubNumber']
+						if hubNumber not in self.hueConfigDict:
 							anyorphan += 1
-							out += "\n orphan indigo {:7s} device: == {:47s} ==   ID:{:3} does not exist on bridge: {} - {}".format(tt[1], indigoName, hueIdToFind, hubNumber, self.ipAddresses[hubNumber])
+							out +=u"\nIndigo device :{:45s}  has no corresponding device on Hue Bridge# {:}".format(device.name, hubNumber )
+				out += "\n======================= print Hue {} END =================".format(valuesDict['whatToPrint'])
 
-			for deviceId in self.deviceList:
-				device = indigo.devices[deviceId]
-				if device.deviceTypeId in kSensorTypeList:
-					hubNumber = device.pluginProps['hubNumber']
-					if hubNumber not in self.hueConfigDict:
-						anyorphan += 1
-						out +=u"\nIndigo device :{:45s}  has no corresponding device on Hue Bridge# {:}".format(device.name, hubNumber )
-			out += "\n======================= print Hue {} END =================".format(valuesDict['whatToPrint'])
+				if anyorphan > 0 or menuItem == "printHueDataMenu":
+					self.indiLOG.log(20,out)
+				elif menuItem == "printHueDataMenu":
+					out = ""
+					out += "\n======================= print Hue {} =====================".format(valuesDict['whatToPrint'])
+					out += "\n     no Indigo devices found that have no corrsponding Hue device "
+					out += "\n======================= print Hue {} END =================".format(valuesDict['whatToPrint'])
+					self.indiLOG.log(20,out)
 
-			if anyorphan > 0 or menuItem == "printHueDataMenu":
-				self.indiLOG.log(20,out)
-			else:
+
+			elif valuesDict['whatToPrint'] == "NoIndigoDevice":
 				out = ""
 				out += "\n======================= print Hue {} =====================".format(valuesDict['whatToPrint'])
-				out += "\n     no Indigo devices found that have no corrsponding Hue device "
+				anyorphan = 0
+				HIT =  self.getIndigoHIT([['bulbId','lights'],['groupId','groups'],['sensorId','sensors']])
+				#self.indiLOG.log(20,"HIT: {}".format(HIT))
+				for hubNumber in self.hueConfigDict:
+					#self.indiLOG.log(20,"H:{}".format(hubNumber))
+					for idX, hType in [['bulbId','lights'],['groupId','groups'],['sensorId','sensors']]:
+						self.indiLOG.log(20,"idX:{} hType:{}".format(idX, hType))
+						if hType not in self.hueConfigDict[hubNumber]: continue
+						for ID in self.hueConfigDict[hubNumber][hType]:
+							test = hType+"-"+hubNumber+"-"+ID
+							#self.indiLOG.log(20,test)
+							if test in HIT: continue
+							if hType == "sensors" and self.hueConfigDict[hubNumber][hType][ID].get("type","xxx") not in kSupportedSensorTypes: addText = "--- Plugin does not support THIS Hue device type"
+							else: addText = "====  missing in Indigo:  use menu \"Add new Hue device\" or create manually"
+							theName = self.hueConfigDict[hubNumber][hType][ID].get("name","")
+							out += "\nNo corresponding indigo dev for   hub#:{:}   type:{:7s},   ID:{:3}   {:32} {:}".format(hubNumber, hType, ID, theName, addText)
+							anyorphan +=1
 				out += "\n======================= print Hue {} END =================".format(valuesDict['whatToPrint'])
-				self.indiLOG.log(20,out)
+
+				if anyorphan > 0 or menuItem == "printHueDataMenu":
+					self.indiLOG.log(20,out)
+				elif menuItem == "printHueDataMenu":
+					out = ""
+					out += "\n======================= print Hue {} =====================".format(valuesDict['whatToPrint'])
+					out += "\n     no Hue devices found that have no corrsponding Indigo device "
+					out += "\n======================= print Hue {} END =================".format(valuesDict['whatToPrint'])
+					self.indiLOG.log(20,out)
 
 
-		elif valuesDict['whatToPrint'] == "NoIndigoDevice":
-			out = ""
-			out += "\n======================= print Hue {} =====================".format(valuesDict['whatToPrint'])
-			anyorphan = 0
-			HIT =  self.getIndigoHIT([['bulbId','lights'],['groupId','groups'],['sensorId','sensors']])
-			#self.indiLOG.log(20,"HIT: {}".format(HIT))
-			for hubNumber in self.hueConfigDict:
-				#self.indiLOG.log(20,"H:{}".format(hubNumber))
-				for idX, hType in [['bulbId','lights'],['groupId','groups'],['sensorId','sensors']]:
-					self.indiLOG.log(20,"idX:{} hType:{}".format(idX, hType))
-					if hType not in self.hueConfigDict[hubNumber]: continue
-					for ID in self.hueConfigDict[hubNumber][hType]:
-						test = hType+"-"+hubNumber+"-"+ID
-						#self.indiLOG.log(20,test)
-						if test in HIT: continue
-						if hType == "sensors" and self.hueConfigDict[hubNumber][hType][ID].get("type","xxx") not in kSupportedSensorTypes: addText = "--- Plugin does not support THIS Hue device type"
-						else: addText = "====  missing in Indigo:  use menu \"Add new Hue device\" or create manually"
-						theName = self.hueConfigDict[hubNumber][hType][ID].get("name","")
-						out += "\nNo corresponding indigo dev for   hub#:{:}   type:{:7s},   ID:{:3}   {:32} {:}".format(hubNumber, hType, ID, theName, addText)
-						anyorphan +=1
-			out += "\n======================= print Hue {} END =================".format(valuesDict['whatToPrint'])
+			elif valuesDict['whatToPrint'].find("specific") >-1:
+				whatToPrint = valuesDict['whatToPrint'].lower().split("specific")[1]
+				ID, hubNumber = valuesDict[whatToPrint].split("-")
 
-			if anyorphan > 0 or menuItem == "printHueDataMenu":
-				self.indiLOG.log(20,out)
-			else:
-				out = ""
-				out += "\n======================= print Hue {} =====================".format(valuesDict['whatToPrint'])
-				out += "\n     no Hue devices found that have no corrsponding Indigo device "
-				out += "\n======================= print Hue {} END =================".format(valuesDict['whatToPrint'])
-				self.indiLOG.log(20,out)
+				if whatToPrint not in self.hueConfigDict[hubNumber]:
+					self.indiLOG.log(30,"ERROR printHueData --- bad input ".format(valuesDict))
+					return valuesDict
 
-
-		elif valuesDict['whatToPrint'].find("specific") >-1:
-			whatToPrint = valuesDict['whatToPrint'].lower().split("specific")[1]
-			ID, hubNumber = valuesDict[whatToPrint].split("-")
-
-			if whatToPrint not in self.hueConfigDict[hubNumber]:
-				self.indiLOG.log(30,"ERROR printHueData --- bad input ".format(valuesDict))
-				return valuesDict
-
-			if	 whatToPrint == "lights":	idType = "bulbId"
-			elif whatToPrint == "groups":	idType = "groupId"
-			elif whatToPrint == "sensors":	idType = "sensorId"
-			elif whatToPrint == "scenes":	idType = "sceneId"
-			else: idType = ""
-			self.indiLOG.log(20,"printHueData --- {}: hub:{}, {}={}: Hue-Dict\n{} ".format(whatToPrint, hubNumber, idType, ID, json.dumps(self.hueConfigDict[hubNumber][whatToPrint][ID], indent=2, sort_keys=True)))
-			if idType !="":
-				devFound = False
-				for devId in self.deviceList:
-					try:
-						dev = indigo.devices[devId]
-						props = dev.pluginProps
-						if props["hubNumber"] == hubNumber and idType in props and props[idType] == ID:
-							self.indiLOG.log(20,"printHueData --- {}, indigo props:\n{} ".format(dev.name, dev.pluginProps))
-							self.indiLOG.log(20,"printHueData --- {}, indigo states:\n{} ".format(dev.name, dev.states))
-							devFound = True
-							break
-					except	Exception as e:
-						self.logger.error("", exc_info=True)
-				if not devFound: 
-							self.indiLOG.log(20,"printHueData --- *****  has not indigo device assigned *****")
+				if	 whatToPrint == "lights":	idType = "bulbId"
+				elif whatToPrint == "groups":	idType = "groupId"
+				elif whatToPrint == "sensors":	idType = "sensorId"
+				elif whatToPrint == "scenes":	idType = "sceneId"
+				else: idType = ""
+				self.indiLOG.log(20,"printHueData --- {}: hub:{}, {}={}: Hue-Dict\n{} ".format(whatToPrint, hubNumber, idType, ID, json.dumps(self.hueConfigDict[hubNumber][whatToPrint][ID], indent=2, sort_keys=True)))
+				if idType !="":
+					devFound = False
+					for devId in self.deviceList:
+						try:
+							dev = indigo.devices[devId]
+							props = dev.pluginProps
+							if props["hubNumber"] == hubNumber and idType in props and props[idType] == ID:
+								self.indiLOG.log(20,"printHueData --- {}, indigo props:\n{} ".format(dev.name, dev.pluginProps))
+								self.indiLOG.log(20,"printHueData --- {}, indigo states:\n{} ".format(dev.name, dev.states))
+								devFound = True
+								break
+						except	Exception as e:
+							self.logger.error("", exc_info=True)
+					if not devFound: 
+								self.indiLOG.log(20,"printHueData --- *****  has not indigo device assigned *****")
+		except	Exception as e:
+			self.logger.error("", exc_info=True)
 
 		return valuesDict
 
