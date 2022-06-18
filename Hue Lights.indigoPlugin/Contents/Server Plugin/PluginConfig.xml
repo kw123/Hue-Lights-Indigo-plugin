@@ -6,6 +6,8 @@
 	<Field id="showGWAction" 			type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showPair"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showGwAdd"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
+	<Field id="showGwClick"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
+	<Field id="showGwClickConfirm"		type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showGwMod"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showGwDel"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showGwKeep"	 			type="checkbox" defaultValue="false" hidden="true">    </Field>
@@ -21,6 +23,8 @@
 A. Add/modify/delete a bridge
    when you start you must first add (register) the plugin with the bridge
    later you can change bridge settings or delete a bridge 
+    ::: If you change any setting for a hue bridge, you must click on
+        &lt;Save&gt; not &lt;Cancel&gt; at exit to fully save settings :::
 B. Change general parameters
 C. Change debugging levels</Label>
 	</Field>
@@ -72,7 +76,7 @@ C. Change debugging levels</Label>
 			type="button" 
 			visibleBindingId="showGwMod" visibleBindingValue="true"
 			tooltip="">
-		<Label>click to CONFIRM to modify</Label>
+		<Label>click to modify IP#</Label>
 		<Title>CONFIRM</Title>
 		<CallbackMethod>confirmGWMod</CallbackMethod>
     </Field>
@@ -95,7 +99,7 @@ C. Change debugging levels</Label>
 			type="button" 
 			visibleBindingId="showGwDel" visibleBindingValue="true"
 			tooltip="">
-		<Label>click to CONFIRM to delete</Label>
+		<Label>click to delete</Label>
 		<Title>CONFIRM</Title>
 		<CallbackMethod>confirmGWDel</CallbackMethod>
     </Field>
@@ -145,52 +149,59 @@ You must start with  nummer 0">
 			visibleBindingId="showGwAdd" visibleBindingValue="true"
 			type="button" 
 			tooltip="">
-		<Label>click CONFIRM to select:</Label>
+		<Label>click to select:</Label>
 		<Title>CONFIRM</Title>
 		<CallbackMethod>selHubNumberGWPair</CallbackMethod>
     </Field>
-
-	
-	<Field id="step1a" type="label" visibleBindingId="showGwAdd" visibleBindingValue="true">
-		<Label> 
-       Use suggested IP# or Enter the IP# address manually: 
-           - or use your router info, 
-           - or you can obtain the Hue Bridge IP# address by registering on and 
-             using the www.meethue.com web site check your Hue Bridge settings.</Label>
+	<Field id="step10" type="label" visibleBindingId="showGwClickConfirm" visibleBindingValue="true">
+		<Label>After click on CONFIRM next steps will be shown</Label>
 	</Field>
 
-	<Field id="address" type="textfield" visibleBindingId="showGwAdd" visibleBindingValue="true"  defaultValue=""
+
+	<Field id="step1a" type="label" visibleBindingId="showGwClick" visibleBindingValue="true">
+		<Label> 
+         AFTER CONFIRM use suggested IP# or Enter the IP# address manually: 
+             - or use your router info, 
+             - or you can obtain the Hue Bridge IP# address by registering on and 
+                 using the www.meethue.com web site check your Hue Bridge settings.</Label>
+	</Field>
+
+	<Field id="address" type="textfield" visibleBindingId="showGwClick" visibleBindingValue="true"  defaultValue=""
 		tooltip="IP address of the Hue Bridge (e.g. 192.168.1.15. If the Bridge is given a different IP address by your router later on, you'll need to enter the new address here each time it changes.">
 		<Label>IP Address:</Label>
 	</Field>
 
-	<Field id="labelAddress" type="label" visibleBindingId="showGwAdd" visibleBindingValue="true"  alignWithControl="true" fontColor="darkgray" fontSize="small">
+	<Field id="labelAddress" type="label" visibleBindingId="showGwClick" visibleBindingValue="true"  alignWithControl="true" fontColor="darkgray" fontSize="small">
 		<Label>IP address of Hue Bridge (e.g. 192.168.1.15)</Label>
 	</Field>
 
-	<Field id="hostId" type="textfield" visibleBindingId="showGwAdd" visibleBindingValue="true"  defaultValue="" readonly="true"
+	<Field id="labelUpdatePair0" type="label" visibleBindingId="showGwClick" visibleBindingValue="true"  >
+		<Label>.     After IP# set, click on PHILIPS button on top of bridge</Label>
+	</Field>
+
+	<Field id="startPairingButton"
+			type="button" visibleBindingId="showGwClick" visibleBindingValue="true" 
+			tooltip="Before clicking this button, press the center button on the Hue hub.  Within 30 seconds of doing that, come back here and click this button to pair with the Hue hub.">
+		<Label>Start pairing process:</Label>
+		<Title>Execute</Title>
+		<CallbackMethod>restartPairing</CallbackMethod>
+    </Field>
+	<Field id="labelUpdatePair1" type="label" alignWithControl="true" ype="label" fontColor="darkgray" fontSize="small"
+			visibleBindingId="showGwClick" visibleBindingValue="true"	>
+		<Label>Pair if you add a Hue Bridge or old pair does not work</Label>
+	</Field>
+
+
+	<Field id="hostId" type="textfield" visibleBindingId="showGwClick" visibleBindingValue="true"  defaultValue="" readonly="true"
 		tooltip="(read-only). Generated host ID assigned by the Hue Bridge to Hue Lights plugin. Provided here for troubleshooting purposes only.">
 		<Label>Host ID:</Label>
 	</Field>
 
-	<Field id="labelHostId" type="label" visibleBindingId="showGwAdd" visibleBindingValue="true"  alignWithControl="true" fontColor="darkgray" fontSize="small">
-		<Label>(read-only). Generated host ID assigned by the Hue Bridge.</Label>
+	<Field id="labelHostId" type="label" visibleBindingId="showGwClick" visibleBindingValue="true"  alignWithControl="true" fontColor="darkgray" fontSize="small">
+		<Label>(read-only). Generated host ID assigned by the Hue Bridge. 
+Shown after successful pairing process</Label>
 	</Field>
 
-
-	<Field id="startPairingButton"
-			type="button" visibleBindingId="showGwAdd" visibleBindingValue="true" 
-			tooltip="Before clicking this button, press the center button on the Hue hub.  Within 30 seconds of doing that, come back here and click this button to pair with the Hue hub.">
-		<Label>click to execute:</Label>
-		<Title>PAIR</Title>
-		<CallbackMethod>restartPairing</CallbackMethod>
-    </Field>
-
-	<Field id="labelUpdatePair" type="label" alignWithControl="true" ype="label" fontColor="darkgray" fontSize="small"
-			visibleBindingId="showGwAdd" visibleBindingValue="true"	>
-		<Label>Pair if you add a Hue Bridge or old pair does not work
-First click on button on top of Hue Bridge then click on PAIR</Label>
-	</Field>
 
 	<Field id="sepothersettings" type="separator"/>
 	<Field id="sepothersettings2" type="separator"/>

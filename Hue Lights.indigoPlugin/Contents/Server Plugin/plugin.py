@@ -130,6 +130,8 @@ class Plugin(indigo.PluginBase):
 		self.maxPresetCount 			= int(pluginPrefs.get('maxPresetCount', "30"))	# Integer. The maximum number of Presets to use and store.
 
 		self.lastReminderHubNumberNotPresent = time.time()
+		self.lastGWConfirmClick 		= 0
+
 		self.updateList 				= {}
 		self.bridgeRequestsSession		= {}
 		self.bridgesAvailable 			= {}
@@ -2437,25 +2439,33 @@ class Plugin(indigo.PluginBase):
 		try:
 			
 			if  valuesDict["changeGW"]:
-				valuesDict['showGWAction'] 				= True
-				valuesDict['showGwAdd'] 				= False
-				valuesDict['showGwMod'] 				= False
-				valuesDict['showGwDel'] 				= False
+				valuesDict['showGWAction']					= True
+				valuesDict['showGwAdd']						= False
+				valuesDict['showGwClick']					= False
+				valuesDict['showGwClickConfirm']			= False
+				valuesDict['showGwMod']						= False
+				valuesDict['showGwDel']						= False
 				if valuesDict['gwAction'] == "modify":
-					valuesDict['showGwMod'] 			= True
+					valuesDict['showGwMod']					= True
 				elif valuesDict['gwAction'] == "add":
-					valuesDict['showGwAdd'] 			= True
+					valuesDict['showGwAdd']					= True
+					valuesDict['showGwClickConfirm']		= True
+					if time.time() - self.lastGWConfirmClick < 0:
+						valuesDict['showGwClick']			= True
+						valuesDict['showGwClickConfirm']	= False
 				elif valuesDict['gwAction'] == "delete":
-					valuesDict['showGwDel'] 			= True
+					valuesDict['showGwDel']					= True
 
 			else:
-				valuesDict['showGWAction'] 				= False
-				valuesDict['showGwAdd'] 				= False
-				valuesDict['showGwMod'] 				= False
-				valuesDict['showGwDel'] 				= False
-				valuesDict["gwModNewIp"] 				= ""
-				valuesDict["gwDelResponse"] 			= ""
-				valuesDict['pairMsg'] 					= ""
+				valuesDict['showGWAction']					= False
+				valuesDict['showGwAdd']						= False
+				valuesDict['showGwClick']					= False
+				valuesDict['showGwClickConfirm']			= False
+				valuesDict['showGwMod']						= False
+				valuesDict['showGwDel']						= False
+				valuesDict["gwModNewIp"]					= ""
+				valuesDict["gwDelResponse"]					= ""
+				valuesDict['pairMsg']						= ""
 
 
 		except Exception as e:
@@ -2501,7 +2511,7 @@ class Plugin(indigo.PluginBase):
 				self.hubNumberSelected = "0"
 
 			self.printHueData({"whatToPrint":"NoHudevice", "sortBy":""},"")
-			errorsDict['showAlertText'] = "bridge deleted from indigo"
+			errorsDict['showAlertText'] = "bridge deleted from indigo. Dont forget to <Save> at exit"
 
 			return valuesDict, errorsDict
 		except Exception as e:
@@ -2533,7 +2543,7 @@ class Plugin(indigo.PluginBase):
 
 			if self.hubNumberSelected in self.ipAddresses:
 				self.ipAddresses[self.hubNumberSelected] = newIpNumber
-				errorsDict['showAlertText'] = "IP# changed successfully"
+				errorsDict['showAlertText'] = "IP# changed successfully, dont forget to <Save> at exit"
 				return valuesDict, errorsDict
 
 			else:
@@ -2559,7 +2569,7 @@ class Plugin(indigo.PluginBase):
 			self.hubNumberSelected = valuesDict['hubNumber']
 			if self.hubNumberSelected  not in khubNumbersAvailable: 
 				if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"selHubNumberGWPair bad hubNumber given {}".format(self.hubNumberSelected ))
-				valuesDict["showAlertText"] = "hub# wrong"
+				valuesDict["showAlertText"] = "Bridge# wrong"
 				return valuesDict, errorsDict
 
 
@@ -2584,6 +2594,7 @@ class Plugin(indigo.PluginBase):
 
 					self.findHueBridgesNow = time.time() +10
 			valuesDict['hostId'] = ""
+			self.lastGWConfirmClick  = time.time() + 120
 			
 		except Exception as e:
 				self.indiLOG.log(30,u"", exc_info=True)
@@ -2611,7 +2622,7 @@ class Plugin(indigo.PluginBase):
 
 		if self.hubNumberSelected  not in khubNumbersAvailable or time.time() - self.selHubNumberLast > 15: 
 			self.indiLOG.log(20,u"Starting restartPairing. Bridge not confirmed {}".format(self.hubNumberSelected ))
-			errorsDict['showAlertText'] = "\"Select Hub Bridge\" not confirmed"
+			errorsDict['showAlertText'] = "\"Select Bridge\" not confirmed, click on CONFIRM to select the bridge # you like to add "
 			return valuesDict, errorsDict
 
 		# If there haven't been any errors so far, try to connect to the Hue bridge to see
@@ -2745,8 +2756,8 @@ class Plugin(indigo.PluginBase):
 				return valuesDict, errorsDict
 
 			else:  # ********** This is likely a Hue bridge. ********** 
-				self.indiLOG.log(10,u"validatePrefsConfigUi: Verified that this is a Hue bridge.")
-				errorsDict['showAlertText'] = "parring done successfully"
+				self.indiLOG.log(10,u"validatePrefsConfigUi: Verified that this is a Hue bridge. Dont forget to <Save> at exit")
+				errorsDict['showAlertText'] = "parring done successfully. Dont forget to <Save> at exit"
 				valuesDict['addresses'] = json.dumps(self.ipAddresses)
 				return valuesDict, errorsDict
 
@@ -2838,7 +2849,6 @@ class Plugin(indigo.PluginBase):
 		if not userCancelled:
 			# Configuration was saved.
 
-
 			self.pluginPrefs['addresses'] = json.dumps(self.ipAddresses)
 
 			# If the number of Preset Memories was changed, add or remove Presets as needed.
@@ -2897,6 +2907,9 @@ class Plugin(indigo.PluginBase):
 				# Replace the list of Presets in the prefs with the new list.
 				self.pluginPrefs['presets'] = presets
 				if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"closedPrefsConfigUi: pluginPrefs now contains {} Presets.".format(self.maxPresetCount) )
+		else:
+			self.indiLOG.log(30,u"Configuration changes not saved! ie any bridge add/del/mod not saved")
+		return 
 
 
 
@@ -5367,8 +5380,8 @@ class Plugin(indigo.PluginBase):
 					self.logger.error(u"updateDeviceState: Updating device \"{}\" state: Unable to display state".format(e, traceback.extract_tb(sys.exc_info()[2])[-1][1:], device.name))
 
 				# Actually update the device state now.
-				if device.id not in self.updateList: self.updateList[device.id] = []
-				self.updateList[device.id].append({"key":state, "value":newValue, "decimalPlaces":decimals, "uiValue":newUiValue})
+				if device.id not in self.updateList: self.updateList[device.id] = 	  [{"key":state, "value":newValue, "decimalPlaces":decimals, "uiValue":newUiValue}]
+				else:								 self.updateList[device.id].append({"key":state, "value":newValue, "decimalPlaces":decimals, "uiValue":newUiValue})
 				# Update the device UI icon if one was specified.
 				if newUiImage is not None:
 					device.updateStateImageOnServer(newUiImage)
@@ -5380,11 +5393,12 @@ class Plugin(indigo.PluginBase):
 	# execute the update of all states of each device
 	########################################
 	def excecStatesUpdate(self):
-		for devId in self.updateList:
-			indigo.devices[devId].updateStatesOnServer(self.updateList[devId])
+		temp = copy.deepcopy(self.updateList)
+		self.updateList = {}
+		for devId in temp:
+			indigo.devices[devId].updateStatesOnServer(temp[devId])
 			#self.indiLOG.log(10,u" devid:{} chlist:{}".format(devId,self.updateList[devId] ))
-		self.updateList = {} 
-			
+		return 		
 
 	# Update Device Properties
 	########################################
@@ -5756,9 +5770,12 @@ class Plugin(indigo.PluginBase):
 
 		# Take the bulb passed to this method, look up the data already obtained from the Hue bridge
 		# and parse the bridge data for this bulb, making changes to the Indigo device as needed.
+		deviceId = "no set"
+		devName = "not set"
 		try:
 			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
 			deviceId = device.id
+			devName = device.name
 			tt = time.time()
 
 			# Separate out the specific Hue bulb data.
@@ -6442,7 +6459,7 @@ class Plugin(indigo.PluginBase):
 			# End of model ID matching if/then test.
 
 		except Exception as e:
-			self.logger.error("", exc_info=True)
+			self.logger.error("for devId:{}; devName:{}".format(deviceId, devName), exc_info=True)
 
 		return
 
@@ -9564,6 +9581,8 @@ class Plugin(indigo.PluginBase):
 			if not device.pluginProps.get('isDimmerDevice', False):
 					self.doErrorLog(u"setXYY \"{}\" is not a dimmable device".format(device.name))
 					return
+			bulbId = device.pluginProps.get('bulbId', None)
+			groupId = device.pluginProps.get('groupId', None)
 			# Act based on device type.
 			if device.deviceTypeId == "hueGroup":
 				# Sanity check on group ID
@@ -9576,8 +9595,6 @@ class Plugin(indigo.PluginBase):
 					self.doErrorLog(u"No bulb ID selected for device \"{}\". Check settings for this device and select a Hue Device to control.".format(device.name))
 					return
 
-			bulbId = device.pluginProps.get('bulbId', None)
-			groupId = device.pluginProps.get('groupId', None)
 
 			# Get the Hue "color recipe" selection. Use "custom" if not specified.
 			#   (The use of the property name "preset" pre-dates the implementation
@@ -10228,54 +10245,6 @@ class Plugin(indigo.PluginBase):
 		if actionType == "menu":
 			return (True, action)
 
-	# Display Preset Menu Action
-	########################################
-	def displayPreset(self, valuesDict, typeId):
-		if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Starting displayPreset. action values:\n{}\nType ID:{}\n".format(valuesDict, typeId) )
-		errorsDict = indigo.Dict()
-		errorsDict['showAlertText'] = u""
-
-		# Get the presetId.
-		presetId = valuesDict.get('presetId', False)
-
-		if not presetId:
-			errorsDict['presetId'] = u"No Preset is selected."
-			errorsDict['showAlertText'] += errorsDict['presetId']
-			return (False, valuesDict, errorsDict)
-
-		else:
-			# Convert to integer.
-			presetId = int(presetId)
-			# Subtract 1 because key values are 0-based.
-			presetId -= 1
-
-		# Get the data from the preset in the plugin prefs.
-		presetName = self.pluginPrefs['presets'][presetId][0]
-		presetData = self.pluginPrefs['presets'][presetId][1]
-		try:
-			# Prior to version 1.2.4, this key did not exist in the presets.
-			presetRate = self.pluginPrefs['presets'][presetId][2]
-			# Round the saved preset ramp rate to the nearest 10th.
-			presetRate = round(presetRate, 1)
-		except Exception as e:
-			# Key probably doesn't exist. Proceed as if no rate was saved.
-			presetRate = -1
-			pass
-
-		# Return an error if the Preset is empty (since there's nothing to display).
-		if len(presetData) < 1:
-			errorsDict['presetId'] = u"This Preset is empty. Please select a Preset that contains data (the number will have an asterisk (*) next to it)."
-			errorsDict['showAlertText'] += errorsDict['presetId']
-			return (False, valuesDict, errorsDict)
-
-		# Display the Preset data in the Indigo log.
-		logRampRate = u"{} sec".format(presetRate)
-		if presetRate == -1:
-			logRampRate = u"(none specified)"
-		self.indiLOG.log(20,u"Displaying Preset {} ({}) stored data:\nRamp Rate: {} {}\n".format(presetId + 1, presetName, logRampRate, presetData))
-
-		# Return a tuple to dismiss the menu item dialog.
-		return (True, valuesDict)
 
 	# Recall Hue Scene Action
 	########################################
@@ -10442,14 +10411,14 @@ class Plugin(indigo.PluginBase):
 										self.bridgesAvailable[bridgeId]["hubNumber"] = hubNumber
 										self.bridgesAvailable[bridgeId]["linked"] = True
 									else:
-										self.bridgesAvailable[bridgeId]["linked"] = False
-										self.bridgesAvailable[bridgeId]["hubNumber"] = ""
+										pass
+										# self.bridgesAvailable[bridgeId] = {"ipAddress":"","hubNumber":"", "linked": False}
 			
 					for bridgeId in self.bridgesAvailable:
 						if bridgeId not in bridgesAvailableOld:
 							newBridge = True
 							if not first:
-								self.indiLOG.log(20,u"findHueBridges: new bridgeId={}".format(bridgeId))
+								self.indiLOG.log(20,u"findHueBridges: new bridge found, bridgeId={}".format(bridgeId))
 								self.lastTimeForAll = 0
 					bridgesAvailableOld = copy.deepcopy(self.bridgesAvailable)
 
@@ -10474,9 +10443,58 @@ class Plugin(indigo.PluginBase):
 		return 
 
 
+	# print  Preset Menu Action to log 
+	########################################
+	def displayPreset(self, valuesDict, typeId):
+		if self.decideMyLog(u"EditSetup"): self.indiLOG.log(10,u"Starting displayPreset. action values:\n{}\nType ID:{}\n".format(valuesDict, typeId) )
+		errorsDict = indigo.Dict()
+		errorsDict['showAlertText'] = u""
 
- 
-	# print lights
+		# Get the presetId.
+		presetId = valuesDict.get('presetId', False)
+
+		if not presetId:
+			errorsDict['presetId'] = u"No Preset is selected."
+			errorsDict['showAlertText'] += errorsDict['presetId']
+			return (False, valuesDict, errorsDict)
+
+		else:
+			# Convert to integer.
+			presetId = int(presetId)
+			# Subtract 1 because key values are 0-based.
+			presetId -= 1
+
+		# Get the data from the preset in the plugin prefs.
+		presetName = self.pluginPrefs['presets'][presetId][0]
+		presetData = self.pluginPrefs['presets'][presetId][1]
+		try:
+			# Prior to version 1.2.4, this key did not exist in the presets.
+			presetRate = self.pluginPrefs['presets'][presetId][2]
+			# Round the saved preset ramp rate to the nearest 10th.
+			presetRate = round(presetRate, 1)
+		except Exception as e:
+			# Key probably doesn't exist. Proceed as if no rate was saved.
+			presetRate = -1
+			pass
+
+		# Return an error if the Preset is empty (since there's nothing to display).
+		if len(presetData) < 1:
+			errorsDict['presetId'] = u"This Preset is empty. Please select a Preset that contains data (the number will have an asterisk (*) next to it)."
+			errorsDict['showAlertText'] += errorsDict['presetId']
+			return (False, valuesDict, errorsDict)
+
+		# Display the Preset data in the Indigo log.
+		logRampRate = u"{} sec".format(presetRate)
+		if presetRate == -1:
+			logRampRate = u"(none specified)"
+		self.indiLOG.log(20,u"Displaying Preset {} ({}) stored data:\nRamp Rate: {} {}\n".format(presetId + 1, presetName, logRampRate, presetData))
+
+		# Return a tuple to dismiss the menu item dialog.
+		return (True, valuesDict)
+
+
+
+	# print config etc
 	########################################
 	def printHueData(self, valuesDict, menuItem):
 		if self.decideMyLog(u"Init"): self.indiLOG.log(10,u"Starting printHueData. ")

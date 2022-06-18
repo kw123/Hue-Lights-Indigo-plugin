@@ -67,19 +67,6 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 			</Field>
 		</ConfigUI>
 	</MenuItem>
-	<MenuItem id="displayPreset">
-		<Name>Print Preset to Log...</Name>
-		<CallbackMethod>displayPreset</CallbackMethod>
-		<ConfigUI>
-			<Field id="presetId" type="menu" defaultValue="">
-				<Label>Preset:</Label>
-				<List class="self" method="presetListGenerator"></List>
-			</Field>
-			<Field id="presetLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>Select the Preset whose data you'd like to view in the Indigo log. Presets with an asterisk (*) next to them have data saved in them.</Label>
-			</Field>
-		</ConfigUI>
-	</MenuItem>
 	<MenuItem id="sep2" />
 	<MenuItem id="recallScene">
 		<Name>Recall Hue Scene...</Name>
@@ -166,14 +153,31 @@ It is a good idea to restart the plugin to get all states etc created properly</
 		</ConfigUI>
 	</MenuItem>
 	<MenuItem id="sep3" />
+	<MenuItem id="print">
+		<Name>Print ...</Name>
+	</MenuItem>
+	<MenuItem id="displayPreset">
+		<Name>... preset to Log...</Name>
+		<CallbackMethod>displayPreset</CallbackMethod>
+		<ConfigUI>
+			<Field id="presetId" type="menu" defaultValue="">
+				<Label>Preset:</Label>
+				<List class="self" method="presetListGenerator"></List>
+			</Field>
+			<Field id="presetLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Select the Preset whose data you'd like to view in the Indigo log. Presets with an asterisk (*) next to them have data saved in them.</Label>
+			</Field>
+		</ConfigUI>
+	</MenuItem>
 	<MenuItem id="printHueDataMenu">
-		<Name>Print hue config data to log...</Name>
+		<Name>... hue config data to log...</Name>
 		<ConfigUI>
 			<Field  id="whatToPrint" 
 					type="menu" 
 					defaultValue="lights">
 				<Label>Select what to print:</Label>
 				<List>
+					<Option value="lights">Presets</Option>
 					<Option value="lights">lights</Option>
 					<Option value="sensors">sensors </Option>
 					<Option value="groups">groups</Option>
@@ -244,7 +248,10 @@ It is a good idea to restart the plugin to get all states etc created properly</
 				<Label>Select the RESOURCE LINKS links you want to print all info:</Label>
 				<List class="self" method="printsListGenerator" filter="resourcelinks"/>
 			</Field>
-			<Field id="doPrint" type="button">
+			<Field id="doPrint" type="button"
+					visibleBindingId="whatToPrint" 
+					visibleBindingValue="lights,sensors,scenes,groups,rules,resourcelinks,schedules" >
+
 				<Label>Click to</Label>
 				<Title>Print</Title>
 				<CallbackMethod>printHueData</CallbackMethod>
@@ -261,7 +268,9 @@ It is a good idea to restart the plugin to get all states etc created properly</
 				<CallbackMethod>setDebugAreas</CallbackMethod>
 			</Field>
 			<Field id="infoLabel" type="label">
-				<Label>In most cases, leave it on for just a few seconds and check the plugin.log file in the indigo directory</Label>
+				<Label>In most cases, leave it on for just a few seconds and check the 
+/Library/... .../Indigo x.y/Logs/com.nath...HueLights/plugin.log file
+!! There will be a LOT of lines written to the logfile !!</Label>
 			</Field>
 		</ConfigUI>
 	</MenuItem>

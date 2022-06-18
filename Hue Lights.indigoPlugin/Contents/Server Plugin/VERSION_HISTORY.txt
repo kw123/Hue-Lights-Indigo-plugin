@@ -1,4 +1,18 @@
 ========================================
+2022.11.27 @ 2022-06-18 
+*fix bugs: 
+- line 5383, in excecStatesUpdate;  type: dictionary changed size during iteration
+- line 9575, in setColorTemperature:  if bulbId is None or bulbId == 0:
+
+*added debug statement to ID the device for error msg:
+-  line 6397, .... 'key brightnessLevel not found in dict'
+
+* added some more config edit controls to make sure data is entered properly
+- fields appear only when previous steps taken.
+
+
+
+========================================
 2022.11.26 @ 2022-06-04
 *fix bug:  is not a dimmer device 
 *restructured config menu to make it easier to understand 
