@@ -2512,6 +2512,7 @@ class Plugin(indigo.PluginBase):
 
 			self.printHueData({"whatToPrint":"NoHudevice", "sortBy":""},"")
 			errorsDict['showAlertText'] = "bridge deleted from indigo. Dont forget to <Save> at exit"
+			valuesDict['gwAction'] = "keep"
 
 			return valuesDict, errorsDict
 		except Exception as e:
@@ -2544,6 +2545,7 @@ class Plugin(indigo.PluginBase):
 			if self.hubNumberSelected in self.ipAddresses:
 				self.ipAddresses[self.hubNumberSelected] = newIpNumber
 				errorsDict['showAlertText'] = "IP# changed successfully, dont forget to <Save> at exit"
+				valuesDict['gwAction'] = "keep"
 				return valuesDict, errorsDict
 
 			else:
@@ -2577,7 +2579,7 @@ class Plugin(indigo.PluginBase):
 			if self.bridgesAvailableSelected == "":
 				if self.hubNumberSelected in self.ipAddresses:
 					valuesDict['address'] = self.ipAddresses[self.hubNumberSelected]
-					self.selHubNumberLast = time.time()
+					self.selHubNumberLast = time.time() + 120
 				else:
 					valuesDict['address'] = ""
 					valuesDict["showAlertText"] = "Enter IP # Manually"
@@ -2586,13 +2588,13 @@ class Plugin(indigo.PluginBase):
 					bridgeId = self.bridgesAvailableSelected
 					if self.isValidIP(self.bridgesAvailable[bridgeId]["ipAddress"]):
 						valuesDict["address"] = self.bridgesAvailable[bridgeId]["ipAddress"]
-						self.selHubNumberLast = time.time()
+						self.selHubNumberLast = time.time() + 120
 					else:
 						valuesDict['address'] = ""
 						valuesDict["showAlertText"] = "Enter IP # Manually"
 						self.selHubNumberLast = 0
 
-					self.findHueBridgesNow = time.time() +10
+					self.findHueBridgesNow = time.time() + 10
 			valuesDict['hostId'] = ""
 			self.lastGWConfirmClick  = time.time() + 120
 			
@@ -2620,9 +2622,9 @@ class Plugin(indigo.PluginBase):
 			errorsDict['showAlertText'] = "ip number is wrong"
 			return valuesDict, errorsDict
 
-		if self.hubNumberSelected  not in khubNumbersAvailable or time.time() - self.selHubNumberLast > 15: 
+		if self.hubNumberSelected  not in khubNumbersAvailable or time.time() - self.selHubNumberLast > 0: 
 			self.indiLOG.log(20,u"Starting restartPairing. Bridge not confirmed {}".format(self.hubNumberSelected ))
-			errorsDict['showAlertText'] = "\"Select Bridge\" not confirmed, click on CONFIRM to select the bridge # you like to add "
+			errorsDict['showAlertText'] = "\"Select Bridge\" not confirmed (or last select is expired), click on CONFIRM (again) to select the bridge # you like to add "
 			return valuesDict, errorsDict
 
 		# If there haven't been any errors so far, try to connect to the Hue bridge to see
@@ -2759,6 +2761,8 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(10,u"validatePrefsConfigUi: Verified that this is a Hue bridge. Dont forget to <Save> at exit")
 				errorsDict['showAlertText'] = "parring done successfully. Dont forget to <Save> at exit"
 				valuesDict['addresses'] = json.dumps(self.ipAddresses)
+				valuesDict['gwAction'] = "keep"
+				self.lastGWConfirmClick  = 0
 				return valuesDict, errorsDict
 
 		except requests.exceptions.Timeout:

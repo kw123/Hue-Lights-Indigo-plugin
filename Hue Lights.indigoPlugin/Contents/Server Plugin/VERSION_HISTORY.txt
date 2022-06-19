@@ -1,4 +1,11 @@
 ========================================
+2022.11.28 @ 2022-06-19 
+*extended expiration time for confirming bridge # to 120 secs (from 15 secs) 
+ that should deal with message bridge confirm popup error message 
+ Also now after successfull delete / change IP# and (re-)pair bridge 
+ the config menu goes back to first step: "Select action for the bridge"
+
+========================================
 2022.11.27 @ 2022-06-18 
 *fix bugs: 
 - line 5383, in excecStatesUpdate;  type: dictionary changed size during iteration
