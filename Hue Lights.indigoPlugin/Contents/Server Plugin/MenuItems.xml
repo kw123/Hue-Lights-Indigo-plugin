@@ -78,12 +78,12 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway his Scene is associated with">
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter="acive" dynamicReload="true"> </List>
+				<List class="self" method="gwListGenerator" filter="active" dynamicReload="false"> </List>
 			</Field>
 			<Field id="userId" type="menu" defaultValue=""
 				tooltip="Scene Creators are the applications on various devices that have connected to the Hue Bridge and created Scenes.">
 				<Label>Scene Creator:</Label>
-				<List class="self" method="usersListGenerator"></List>
+				<List class="self" method="usersListGenerator" dynamicReload="false"></List>
 				<CallbackMethod>usersListItemSelected</CallbackMethod>
 			</Field>
 			<Field id="userLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -103,7 +103,7 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 			<Field id="groupId" type="menu" defaultValue=""
 				tooltip="The Hue bridge allows you to limit a Scene to just one Group, as long as at least one light in the Scene is part of the Group. Lights that are part of a Scene but NOT part of the selected Group Limit will not be affected.">
 				<Label>Group Limit:</Label>
-				<List class="self" method="groupListGenerator"></List>
+				<List class="self" method="groupListGenerator" dynamicReload="true" ></List>
 				<CallbackMethod>groupsListItemSelected</CallbackMethod>
 			</Field>
 			<Field id="groupLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -153,11 +153,8 @@ It is a good idea to restart the plugin to get all states etc created properly</
 		</ConfigUI>
 	</MenuItem>
 	<MenuItem id="sep3" />
-	<MenuItem id="print">
-		<Name>Print ...</Name>
-	</MenuItem>
 	<MenuItem id="displayPreset">
-		<Name>... preset to Log...</Name>
+		<Name>Print preset to Log...</Name>
 		<CallbackMethod>displayPreset</CallbackMethod>
 		<ConfigUI>
 			<Field id="presetId" type="menu" defaultValue="">
@@ -170,14 +167,13 @@ It is a good idea to restart the plugin to get all states etc created properly</
 		</ConfigUI>
 	</MenuItem>
 	<MenuItem id="printHueDataMenu">
-		<Name>... hue config data to log...</Name>
+		<Name>Print hue config data to log...</Name>
 		<ConfigUI>
 			<Field  id="whatToPrint" 
 					type="menu" 
 					defaultValue="lights">
 				<Label>Select what to print:</Label>
 				<List>
-					<Option value="lights">Presets</Option>
 					<Option value="lights">lights</Option>
 					<Option value="sensors">sensors </Option>
 					<Option value="groups">groups</Option>
@@ -248,9 +244,10 @@ It is a good idea to restart the plugin to get all states etc created properly</
 				<Label>Select the RESOURCE LINKS links you want to print all info:</Label>
 				<List class="self" method="printsListGenerator" filter="resourcelinks"/>
 			</Field>
+
 			<Field id="doPrint" type="button"
 					visibleBindingId="whatToPrint" 
-					visibleBindingValue="lights,sensors,scenes,groups,rules,resourcelinks,schedules" >
+					visibleBindingValue="lights,sensors,scenes,groups,rules,resourcelinks,schedules,config,configJson,configDict,specificLights,specificSensors,specificGroups,specificScenes,specificRules,specificSchedules,specificResourcelinks,NoHudevice,NoIndigoDevice" >
 
 				<Label>Click to</Label>
 				<Title>Print</Title>

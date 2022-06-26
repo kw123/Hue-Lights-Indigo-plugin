@@ -1,4 +1,29 @@
 ========================================
+2022.11.29 @ 2022-06-22 
+New functions:
+* added state "created". It shows date-time stamp of when device was created, or if it is empty put current stamp in, ie for old devices, as we don't know when they were created.
+  this is only useful for new devices created after this release  
+
+* added config option for default logging level(print received value updates to indigo log) for individual devices when they get auto created through "menu/create new devices...", which scannes all bridges and adds missing devices to indigo.
+
+Improvements:
+* hue bridge adoption now semi-automatic in background 
+  in config after bridgeNumber and ip number confirmed it will try to pair/link to bridge and will show positive result in a popup window
+  you still need to press the philips button on top of the bridge
+  This way the plugin trys to link to the bridge every 5 seconds. It should succeeed as soon as you go to the bridge and press the button there.
+  In case that process fails there is still the execute pair button in the config menu, which starts the paring process after you press the execute pair button
+
+*streamlined device updates: instead of 10+ individual state updates, now it checks if there is a change in state value and then combines updates to a list. 
+    That should reduce server load from updates significantly
+
+Fixes:
+* fixed some issues in print hue config menu
+
+* lots of little clean-up of typos etc
+
+
+
+========================================
 2022.11.28 @ 2022-06-19 
 *extended expiration time for confirming bridge # to 120 secs (from 15 secs) 
  that should deal with message bridge confirm popup error message 

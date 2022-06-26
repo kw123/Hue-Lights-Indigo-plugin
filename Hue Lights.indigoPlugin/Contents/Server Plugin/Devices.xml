@@ -55,6 +55,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="savedBrightness" type="textfield" hidden="true" />
 		</ConfigUI>
 		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
 			<State id="hue">
 				<ValueType>Number</ValueType>
 				<TriggerLabel>Hue (°)</TriggerLabel>
@@ -197,6 +202,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="savedBrightness" type="textfield" hidden="true" />
 		</ConfigUI>
 		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
 			<State id="colorTemp">
 				<ValueType>Number</ValueType>
 				<TriggerLabel>Color Temperature (K)</TriggerLabel>
@@ -304,6 +314,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="savedBrightness" type="textfield" hidden="true" />
 		</ConfigUI>
 		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
 			<State id="hue">
 				<ValueType>Number</ValueType>
 				<TriggerLabel>Hue (°)</TriggerLabel>
@@ -446,6 +461,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="savedBrightness" type="textfield" hidden="true" />
 		</ConfigUI>
 		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
 			<State id="hue">
 				<ValueType>Number</ValueType>
 				<TriggerLabel>Hue (°)</TriggerLabel>
@@ -583,6 +603,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="savedBrightness" type="textfield" hidden="true" />
 		</ConfigUI>
 		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
 			<State id="alertMode">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Alert Mode</TriggerLabel>
@@ -649,6 +674,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</Field>
 		</ConfigUI>
 		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
 			<State id="alertMode">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Alert Mode</TriggerLabel>
@@ -757,6 +787,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="savedBrightness" type="textfield" hidden="true" />
 		</ConfigUI>
 		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
 			<State id="hue">
 				<ValueType>Number</ValueType>
 				<TriggerLabel>Hue (°)</TriggerLabel>
@@ -857,6 +892,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="sensor" id="hueMotionSensor">
 		<Name>Hue Motion Sensor (Motion)</Name>
 		<ConfigUI>
+
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
@@ -877,6 +913,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</Field>
 		</ConfigUI>
 		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
 			<State id="alertMode">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Alert Mode</TriggerLabel>
@@ -975,6 +1016,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</Field>
 		</ConfigUI>
 		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
 			<State id="alertMode">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Alert Mode</TriggerLabel>
@@ -1061,6 +1107,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</Field>
 		</ConfigUI>
 		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
 			<State id="alertMode">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Alert Mode</TriggerLabel>
@@ -1168,6 +1219,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</Field>
 		</ConfigUI>
 		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
             <State id="button1On">
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>Button 1 Press</TriggerLabel>
@@ -1255,6 +1311,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</Field>
 		</ConfigUI>
 		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
             <State id="button1On">
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>ON Button Press</TriggerLabel>
@@ -1407,6 +1468,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</Field>
 		</ConfigUI>
 		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
             <State id="button1On">
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>Button Press</TriggerLabel>
@@ -1494,6 +1560,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</Field>
 		</ConfigUI>
 		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
             <State id="button1On">
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>Button 1 Press</TriggerLabel>
@@ -1586,6 +1657,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<Device type="sensor" id="runLessWireSwitch">
 		<Name>Run Less Wire, Niko Switch, FriendsOfHue</Name>
 		<ConfigUI>
+			
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
@@ -1608,6 +1680,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="buttonBeingHeld" type="checkbox" hidden="true" defaultValue="false" />
 		</ConfigUI>
 		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
             <State id="button1On">
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>LEFT TOP Button Press</TriggerLabel>

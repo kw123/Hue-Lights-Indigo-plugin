@@ -492,12 +492,12 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Hue Bridge with which this Scene is associated">
 				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="gwListGenerator" filter="acive" dynamicReload="true"> </List>
+				<List class="self" method="gwListGenerator" filter="active" dynamicReload="false"> </List>
 			</Field>
 			<Field id="userId" type="menu" defaultValue=""
 				tooltip="Scene Creators are the applications on your devices that have connected to the Hue Bridge and created Scenes.">
 				<Label>Scene Creator:</Label>
-				<List class="self" method="usersListGenerator" dynamicReload="true"></List>
+				<List class="self" method="usersListGenerator" dynamicReload="false"></List>
 				<CallbackMethod>usersListItemSelected</CallbackMethod>
 			</Field>
 			<Field id="userLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">

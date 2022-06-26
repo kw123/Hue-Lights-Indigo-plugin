@@ -415,6 +415,53 @@ ksupportsSensorValue = 			{
 								"runLessWireSwitch":			False
 							}
 
+kSupportsStatusRequest = 			{
+								"hueMotionSensor": 				False,
+								"hueMotionTemperatureSensor": 	False,
+								"hueMotionLightSensor": 		False,
+								"hueDimmerSwitch": 				False,
+								"hueSmartButton": 				False,
+								"hueTapSwitch": 				False,
+								"hueWallSwitchModule": 			False,
+								"runLessWireSwitch":			False,
+								"hueBulb": 						False,
+								"hueAmbiance":					False,
+								"hueLightStrips":				False,
+								"hueLivingWhites":				False,
+								"hueLivingColorsBloom":			False,
+								"hueOnOffDevice":				False,
+								"hueGroup":						False
+							}
+
+kAllowOnStateChange = 			{
+								"hueMotionSensor": 				False,
+								"hueMotionTemperatureSensor": 	False,
+								"hueMotionLightSensor": 		False,
+								"hueDimmerSwitch": 				False,
+								"hueSmartButton": 				False,
+								"hueTapSwitch": 				False,
+								"hueWallSwitchModule": 			False,
+								"runLessWireSwitch":			False,
+								"hueBulb": 						True,
+								"hueAmbiance":					True,
+								"hueLightStrips":				True,
+								"hueLivingWhites":				True,
+								"hueLivingColorsBloom":			True,
+								"hueOnOffDevice":				True,
+								"hueGroup":						True
+							}
+
+ksupportsSensorValue = 			{
+								"hueMotionSensor": 				False,
+								"hueMotionTemperatureSensor": 	True,
+								"hueMotionLightSensor": 		True,
+								"hueDimmerSwitch": 				False,
+								"hueSmartButton": 				False,
+								"hueTapSwitch": 				False,
+								"hueWallSwitchModule": 			False,
+								"runLessWireSwitch":			False
+							}
+
 ksupportsBatteryLevel = 	{
 								"hueMotionSensor": 				True,
 								"hueMotionTemperatureSensor": 	True,

@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
 <PluginConfig>
-	<SupportURL></SupportURL>
-
 
 	<Field id="showGWAction" 			type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showPair"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
@@ -11,7 +9,6 @@
 	<Field id="showGwMod"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showGwDel"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showGwKeep"	 			type="checkbox" defaultValue="false" hidden="true">    </Field>
-	
 
 
 	<Field id="title" type="label" alignText="center" fontColor="orange" >
@@ -141,7 +138,7 @@ The plugin will do it in the background every 5 minutes automatically. With this
 		visibleBindingId="showGwAdd" visibleBindingValue="true"
 		tooltip="Bridge number use 0 if you have just one. If you have several, repeat steps below for each after selection the Bridge number
 You must start with  nummer 0">
-		<Label>Select a Hue Bridge to (re-) Pair:</Label>
+		<Label>Select a Hue Bridge # for (re-) Pairing:</Label>
 			<List class="self" method="gwListGenerator" filter="" dynamicReload="true" />
  	</Field>
 
@@ -154,41 +151,36 @@ You must start with  nummer 0">
 		<CallbackMethod>selHubNumberGWPair</CallbackMethod>
     </Field>
 	<Field id="step10" type="label" visibleBindingId="showGwClickConfirm" visibleBindingValue="true">
-		<Label>After click on CONFIRM next steps will be shown</Label>
+		<Label>After click on CONFIRM the plugin will start to link to the bridge</Label>
 	</Field>
-
 
 	<Field id="step1a" type="label" visibleBindingId="showGwClick" visibleBindingValue="true">
 		<Label> 
          AFTER CONFIRM use suggested IP# or Enter the IP# address manually: 
              - or use your router info, 
              - or you can obtain the Hue Bridge IP# address by registering on and 
-                 using the www.meethue.com web site check your Hue Bridge settings.</Label>
+                 using the www.meethue.com web site check your Hue Bridge settings.
+     Cick on PHILIPS button on top of bridge
+      The plugin will automatically try every 5s to pair with the IP# and bridge# 
+      It should work once you have pressed the button on the bridge
+ </Label>
 	</Field>
 
 	<Field id="address" type="textfield" visibleBindingId="showGwClick" visibleBindingValue="true"  defaultValue=""
 		tooltip="IP address of the Hue Bridge (e.g. 192.168.1.15. If the Bridge is given a different IP address by your router later on, you'll need to enter the new address here each time it changes.">
-		<Label>IP Address:</Label>
-	</Field>
-
-	<Field id="labelAddress" type="label" visibleBindingId="showGwClick" visibleBindingValue="true"  alignWithControl="true" fontColor="darkgray" fontSize="small">
-		<Label>IP address of Hue Bridge (e.g. 192.168.1.15)</Label>
-	</Field>
-
-	<Field id="labelUpdatePair0" type="label" visibleBindingId="showGwClick" visibleBindingValue="true"  >
-		<Label>.     After IP# set, click on PHILIPS button on top of bridge</Label>
+		<Label>IP Address of Hue Bridge (e.g. 192.168.1.15):</Label>
 	</Field>
 
 	<Field id="startPairingButton"
 			type="button" visibleBindingId="showGwClick" visibleBindingValue="true" 
 			tooltip="Before clicking this button, press the center button on the Hue hub.  Within 30 seconds of doing that, come back here and click this button to pair with the Hue hub.">
-		<Label>Start pairing process:</Label>
+		<Label>Start manual pairing process:</Label>
 		<Title>Execute</Title>
 		<CallbackMethod>restartPairing</CallbackMethod>
     </Field>
 	<Field id="labelUpdatePair1" type="label" alignWithControl="true" ype="label" fontColor="darkgray" fontSize="small"
 			visibleBindingId="showGwClick" visibleBindingValue="true"	>
-		<Label>Pair if you add a Hue Bridge or old pair does not work</Label>
+		<Label>If the auto connect does not work press the &lt;Execute&gt; button </Label>
 	</Field>
 
 
@@ -216,7 +208,16 @@ Shown after successful pairing process</Label>
 	 	 <List>
 			<Option value="no">do not log any changes</Option>
 			<Option value="yes">log anychange</Option>
-			<Option value="leaveToDevice">configure in each device</Option>
+			<Option value="leaveToDevice">configure in each device individually</Option>
+	 	 </List>
+	</Field>
+
+	<Field id="logDefaultForNewDevices" type="menu" 
+			tooltip="">
+	<Label>Log changes, set default for NEW devices:</Label>
+	 	 <List>
+			<Option value="off">off</Option>
+			<Option value="on">on</Option>
 	 	 </List>
 	</Field>
 
