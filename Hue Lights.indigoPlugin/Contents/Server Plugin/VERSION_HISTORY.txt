@@ -1,4 +1,12 @@
 ========================================
+2022.11.30 @ 2022-07-01
+fixed
+* on/off state and bright ness not properly updating for dimmable lamps 
+* fixed on/offstate for all lamps made it consitent
+* fixed # of decimal point for RGB, White level, Color Temperature in indigo dev status display
+
+
+========================================
 2022.11.29 @ 2022-06-22 
 New functions:
 * added state "created". It shows date-time stamp of when device was created, or if it is empty put current stamp in, ie for old devices, as we don't know when they were created.
