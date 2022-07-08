@@ -5434,18 +5434,18 @@ class Plugin(indigo.PluginBase):
 		if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"Device details before rebuild check:\n{}".format(device))
 
 		props = device.pluginProps
-		hubNumber = props.get('hubNumber', "-1")
+		hubNumber = props.get('hubNumber', "0")
 		if hubNumber == "-1":
 			if vd is not None:
 				hubNumber = vd.get('hubNumber', "-1")
 				if hubNumber == "-1":
-					self.indiLOG.log(30,"Device {} is new has no props yet, skipping rebuldDevice".format(device.name))
+					self.indiLOG.log(20,"Device {} is new has no props yet, skipping rebuildDevice".format(device.name))
 					return # this is at creation point, props not filled yet 
 				else:
 					props = copy.deepcopy(vd)
 
 		if hubNumber not in self.ipAddresses or not self.isValidIP(self.ipAddresses[hubNumber]):
-			self.indiLOG.log(30,"Device {} has no active hue bridge associated, used bridge# is:{}".format(device.name, hubNumber))
+			self.indiLOG.log(30,"bridge number {} not registered in ip-addresses {}, please try to re-pair bridge in config ".format(hubNumber, self.ipAddresses))
 			return 
 
 		newProps = self.validateRGBWhiteOnOffetc(props, deviceTypeId=device.deviceTypeId, devId=device.id, devName=device.name)
@@ -5767,16 +5767,23 @@ class Plugin(indigo.PluginBase):
 		#   self.updateLightsList.
 		try:
 			for hubNumber in self.hueConfigDict:
-				if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"parseAllHueLightsData: on Bridge:{} There are {} lights on the Hue bridge.".format(hubNumber, len(self.hueConfigDict[hubNumber]['lights'] )))
+				if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"parseAllHueLightsData: on Bridge#:{} There are {} lights on the Hue bridge.".format(hubNumber, len(self.hueConfigDict[hubNumber]['lights'] )))
 			if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"parseAllHueLightsData:  and Indigo devices controlling Hue devices.".format(len(self.deviceList)))
 			for deviceId in self.deviceList:
 				#indigo.server.log("refresh              lights parse 0.0 time:{}".format( time.time()))
 				device = indigo.devices[deviceId]
+				pluginProps = device.pluginProps
 				if device.deviceTypeId in kLightDeviceTypeIDs:
-					hubNumber = device.pluginProps['hubNumber']
+					if "hubNumber" not in pluginProps:
+						if time.time() - self.lastReminderHubNumberNotPresent > 100: 
+							self.indiLOG.log(30,"parseAllHueLightsData device>{}< not properly setup, please select bridge# in device edit".format(device.name))
+						self.lastReminderHubNumberNotPresent = time.time()
+						continue
+
+					hubNumber = pluginProps['hubNumber']
 					if hubNumber not in self.hueConfigDict:
-						if time.time() - self.lastReminderHubNumberNotPresent > 200: 
-							self.indiLOG.log(30,"parseAllHueLightsData hubNumber:{} / dev>{}< not in dict".format(hubNumber, device.name))
+						if time.time() - self.lastReminderHubNumberNotPresent > 100: 
+							self.indiLOG.log(30,"parseAllHueLightsData bridge#:{} not in hue Bridge data".format(hubNumber))
 							self.lastReminderHubNumberNotPresent = time.time()
 						continue
 					if "lights" in self.hueConfigDict[hubNumber]:
@@ -6357,16 +6364,20 @@ class Plugin(indigo.PluginBase):
 		try:
 			for deviceId in self.deviceList:
 				device = indigo.devices[deviceId]
+				pluginProps = device.pluginProps
 				if device.deviceTypeId in kGroupDeviceTypeIDs:
-					hubNumber = device.pluginProps['hubNumber']
+					if "hubNumber" not in pluginProps:
+						self.indiLOG.log(30,"parseAllHueGroupsData device>{}< not properly setup, please select bridge# in device edit".format(device.name))
+						continue
+					hubNumber = pluginProps['hubNumber']
 					if hubNumber not in self.hueConfigDict:
 						if time.time() - self.lastReminderHubNumberNotPresent > 200: 
-							self.indiLOG.log(30,"parseAllHueGroupsData hubNumber:{} / dev>{}< not in dict".format(hubNumber, device.name))
+							self.indiLOG.log(30,"parseAllHueGroupsData bridge#:{} not in hue Bridge data".format(hubNumber))
 							self.lastReminderHubNumberNotPresent = time.time()
 						continue
 					if "groups" in self.hueConfigDict[hubNumber]:
-						for groupId in self.hueConfigDict[hubNumber]['groups'] :
-							if groupId == device.pluginProps['groupId']:
+						for groupId in self.hueConfigDict[hubNumber]['groups']:
+							if groupId == pluginProps['groupId']:
 								self.parseOneHueGroupData(self.hueConfigDict[hubNumber]['groups'][groupId], device)
 								break
 		except Exception:

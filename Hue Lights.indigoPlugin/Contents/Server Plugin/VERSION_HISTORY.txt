@@ -1,4 +1,10 @@
 ========================================
+2022.11.32 @ 2022-07-08
+
+* added debug statement for 'hubNumber' error
+
+
+========================================
 2022.11.31 @ 2022-07-01
 fixed
 * on/off state and bright ness not properly updating for dimmable lamps 
