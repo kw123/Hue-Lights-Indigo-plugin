@@ -329,7 +329,7 @@ kmapIndigoDevTypeToHueType = {
 ###############
 # added switch: "LXN-3S27LX1.0" ==  "Nue Zigbee Switch EP01 3A Smart Home DE LXN3S27LX1.0 Escritorio" 
 # Supported Sensor Types
-kSupportedSensorTypes = ['ZLLPresence', 'ZLLTemperature', 'ZLLLightLevel', 'ZGPSwitch', 'ZLLSwitch']
+kSupportedSensorTypes = ['ZLLPresence', 'ZLLTemperature', 'ZLLLightLevel', 'ZGPSwitch', 'ZLLSwitch', 'ZLLRelativeRotary']
 #
 # Specific Sensor Models...
 # Compatible motion sensors
@@ -339,7 +339,9 @@ kLightSensorDeviceIDs = 'SML'
 # Compatible temperature sensors
 kTemperatureSensorDeviceIDs = 'SML'
 # Compatible switches/dimmers
-kSwitchDeviceIDs = ['ZGPSWITCH', 'SWT001', 'RWL020', 'RWL021', 'RWL022', 'ROM001', 'RDM001', 'FOHSWITCH', 'PTM215Z','LXN-3S27LX1.0']
+#						ZGPSWITCH should not be here
+## kSwitchDeviceIDs = ['ZGPSWITCH', 					'SWT001', 'RWL020', 'RWL021', 'RWL022', 'ROM001', 'RDM001', 'RDM002', 'FOHSWITCH', 'PTM215Z','LXN-3S27LX1.0']
+kSwitchDeviceIDs = ['SWT001', 'RWL020', 'RWL021', 'RWL022', 'ROM001', 'RDM001', 'RDM002', 'FOHSWITCH', 'PTM215Z','LXN-3S27LX1.0']
 
 
 ### Other Constants ###
@@ -355,9 +357,80 @@ kTemperatureSensorTypeIDs = ['hueMotionTemperatureSensor']
 # All Light Sensor Type IDs.
 kLightSensorTypeIDs = ['hueMotionLightSensor']
 # All Switch Type IDs.
-kSwitchTypeIDs = ['hueTapSwitch', 'hueDimmerSwitch', 'hueSmartButton', 'runLessWireSwitch']
+kSwitchTypeWithButtonsIDs = ['hueDimmerSwitch', 'hueRotaryWallSwitches','hueWallSwitchModule', 'hueSmartButton','hueTapSwitch','runLessWireSwitch']
+kSwitchTypeRotaryIDs =  ['hueRotaryWallRing']
+kSwitchTypeIDs = kSwitchTypeWithButtonsIDs + kSwitchTypeRotaryIDs
 # possible hub numbers
 khubNumbersAvailable = ["0","1","2","3","4","5","6","7","8","9"]
+
+# this is used to parse button sonsors
+# find button number and event type 
+# most follow schema button number 1000 2000 3000 4000
+# most event types are +0,1 2 3 4
+#   so eg 1000 = button1 and event type 0
+#   2003 = button2 and event type 3
+# most event types are on, hold, release short ...
+#   but not all, eg hueSmartButton is differnt 
+# buttons are diffently coded for hueTapSwitch, runLessWireSwitch, they are explicitely listed, not deducted by //1000 etc 
+# see dict below 
+keventButtonSettings = {
+	'hueDimmerSwitch':{
+		'stateNames':			['','button1', 'button2', 'button3', 'button4'],# this is for dev states
+		'stateSuffix':			['','On', 'Hold', 'ReleaseShort','ReleaseLong'],# this is for dev states eg button1On
+		'buttontexts':			['','On', 'dim Up', 'dim Down', 'Hue/off'], # this is for logfile
+		'textSuffix':			['','press', 'press and hold', 'press with short release', 'press with long release'],# this is for logfile 
+		'findbuttonNumbers':	{'//':1000,'buttonNumbers':{1:1,2:2,3:3,4:4}}, # 1000,1001...4003
+		'findEventType':		{'%':1000,'evType':{0:0,1:1,2:2,3:3}},  # use the x000,1,2,3
+		'eventTypesEnabled':	{0:True,1:True,2:True,3:True,4:False,5:False,6:False,7:False,8:False,9:False,10:False}
+		},
+	'hueRotaryWallSwitches':{
+		'stateNames':			['','button1', 'button2', 'button3', 'button4'],
+		'stateSuffix':			['','On', 'Hold', 'ReleaseShort', 'ReleaseLong'],
+		'buttontexts':			['','top Left', 'top Right', 'bottom Left', 'bottom Right'],
+		'textSuffix':			['','press', 'press and hold', 'press with short release', 'press with long release'],
+		'findbuttonNumbers':	{'//':1000,'buttonNumbers':{1:1,2:2,3:3,4:4}}, # 1000,1001...4003
+		'findEventType': 		{'%':1000,'evType':{0:0,1:1,2:2,3:3}},# use the x000,1,2,3
+		'eventTypesEnabled':	{0:True,1:True,2:True,3:True,4:False,5:False,6:False,7:False,8:False,9:False,10:False}
+		},
+	'hueWallSwitchModule':{
+		'stateNames':			['','button1', 'button2'],
+		'stateSuffix':			['','On', 'Hold', 'ReleaseShort','ReleaseLong'],
+		'buttontexts':			['','button1', 'button2'],
+		'textSuffix':			['','press', 'press and hold', 'press with short release', 'press with long release'],
+		'findbuttonNumbers':	{'//':1000,'buttonNumbers':{1:1,2:2}},# 1000,1001...2003
+		'findEventType':		{'%':1000,'evType':{0:0,1:1,2:2,3:3}},# use the x000,1,2,3
+		'eventTypesEnabled':	{0:True,1:True,2:True,3:True,4:False,5:False,6:False,7:False,8:False,9:False,10:False}
+		},
+	'hueSmartButton':{
+		'stateNames':			['','button1'],
+		'stateSuffix':			['','On', 'Repeat', 'ReleaseShort','ReleaseLong','Hold'],
+		'buttontexts':			['','button1'],
+		'textSuffix':			['','press', 'press and repeat', 'press with short release', 'press with long release', 'press and hold'],
+		'findbuttonNumbers':	{'//':1000,'buttonNumbers':{1:1}}, # 1001,2,3,10
+		'findEventType':		{'%':1000,'evType':{0:0,1:1,2:2,3:3,10:4}},
+		'eventTypesEnabled':	{0:True,1:True,2:True,3:True,4:True,5:False,6:False,7:False,8:False,9:False,10:False}
+		},
+	'hueTapSwitch':{
+		'stateNames':			['','button1', 'button2', 'button3', 'button4'],
+		'stateSuffix':			['','On'],
+		'buttontexts':			['','button1', 'button2', 'button3', 'button4'],
+		'textSuffix':			['','press'],
+		'findbuttonNumbers':	{'//':1,'buttonNumbers':{34:1,16:2,17:3,18:4}}, # 34,16,17,18  --> button 1,2,3,4
+		'findEventType':		{'%':1,'evType':{0:0}},  # only on / press --> evtype = 0
+		'eventTypesEnabled':	{0:True,1:False,2:False,3:False,4:False,5:False,6:False,7:False,8:False,9:False,10:False}
+		},
+	'runLessWireSwitch':{
+		'stateNames':			['','button1', 'button2', 'button3', 'button4', 'button5', 'button6'],
+		'stateSuffix':			['','On','Hold','','','','BeingHeld', 'Release'],
+		'buttontexts':			['','button1', 'button2', 'button3', 'button4', 'combined bottom', 'combined top'],
+		'textSuffix':			['','Press','press and hold','','','','being held', 'release'],
+		'findbuttonNumbers':	{'//':1,'buttonNumbers': {16:1,20:1, 17:2,21:2, 18:3,22:3, 19:4,23:4, 96:5,97:5, 98:5,99:5, 100:6,101:6 }}, #map eventid to button # used this is done explicitely as there is not easy algorithm to use
+		'findEventType':		{'%':9999,		'evType':{16:5,20:6, 17:5,21:6, 18:5,22:6, 19:5,23:6, 96:5,97:6, 98:5,99:6, 100:5,101:6}},  #map eventid to event type used
+		'eventTypesEnabled':	{0:True,1:True,2:False,3:False,4:False,5:True,6:True,7:False,8:False,9:False,10:False}
+		}
+	}
+
+
 
 kSensorTypeList = kSwitchTypeIDs + kMotionSensorTypeIDs + kTemperatureSensorTypeIDs + kLightSensorTypeIDs
 
@@ -366,7 +439,8 @@ kmapSensorTypeToIndigoDevType = {
 								"ZLLPresence":				["hueMotionSensor"],  
 								"ZLLTemperature":			["hueMotionTemperatureSensor"],  
 								"ZLLLightLevel":			["hueMotionLightSensor"],  			
-								"ZLLSwitch":				["hueDimmerSwitch", "hueSmartButton", "hueWallSwitchModule"], 				
+								"ZLLSwitch":				["hueDimmerSwitch", "hueSmartButton", "hueWallSwitchModule","hueRotaryWallSwitches"], 				
+								"ZLLRelativeRotary":		["hueRotaryWallRing"], 				
 								"ZGPSwitch":				["hueTapSwitch", "runLessWireSwitch"] 				
 							}
 
@@ -378,7 +452,8 @@ kmapSensordevTypeToModelId = {
 								"hueSmartButton": 			['ROM001'],
 								"hueWallSwitchModule": 		['RDM001'],
 								"hueTapSwitch": 			['ZGPSWITCH', 'SWT001'],
-								"hueWallSwitchModule": 		['RDM001'],
+								"hueRotaryWallRing": 		['RDM002'],
+								"hueRotaryWallSwitches": 	['RDM002'],
 								"runLessWireSwitch": 		['FOHSWITCH', 'PTM215Z']
 							}
 
@@ -389,7 +464,9 @@ kmapIndigoDevTypeToSensorType = {
 								"hueDimmerSwitch":				"ZLLSwitch",
 								"hueSmartButton":				"ZLLSwitch",
 								"hueTapSwitch":					"ZGPSwitch",
-								"hueWallSwitchModule":			"ZGPSwitch",
+								"hueWallSwitchModule":			"ZLLSwitch",
+								"hueRotaryWallRing":			"ZLLRelativeRotary",
+								"hueRotaryWallSwitches":		"ZLLSwitch",
 								"runLessWireSwitch":			"ZGPSwitch"
 							}
 
@@ -401,46 +478,54 @@ ksupportsOnState = 			{
 								"hueSmartButton": 				True,
 								"hueTapSwitch": 				True,
 								"hueWallSwitchModule": 			True,
+								"hueRotaryWallRing": 			True,
+								"hueRotaryWallSwitches": 		True,
 								"runLessWireSwitch":			True
 							}
 
 ksupportsSensorValue = 			{
-								"hueMotionSensor": 				False,
+								"hueMotionSensor": 				True,
 								"hueMotionTemperatureSensor": 	True,
 								"hueMotionLightSensor": 		True,
 								"hueDimmerSwitch": 				False,
 								"hueSmartButton": 				False,
 								"hueTapSwitch": 				False,
 								"hueWallSwitchModule": 			False,
+								"hueRotaryWallRing": 			False,
+								"hueRotaryWallSwitches": 		False,
 								"runLessWireSwitch":			False
 							}
 
 kSupportsStatusRequest = 			{
-								"hueMotionSensor": 				False,
-								"hueMotionTemperatureSensor": 	False,
+								"hueMotionSensor": 				True,
+								"hueMotionTemperatureSensor": 	True,
 								"hueMotionLightSensor": 		False,
 								"hueDimmerSwitch": 				False,
 								"hueSmartButton": 				False,
 								"hueTapSwitch": 				False,
 								"hueWallSwitchModule": 			False,
+								"hueRotaryWallRing": 			False,
 								"runLessWireSwitch":			False,
 								"hueBulb": 						False,
 								"hueAmbiance":					False,
 								"hueLightStrips":				False,
 								"hueLivingWhites":				False,
 								"hueLivingColorsBloom":			False,
+								"hueRotaryWallSwitches": 		False,
 								"hueOnOffDevice":				False,
 								"hueGroup":						False
 							}
 
 kAllowOnStateChange = 			{
-								"hueMotionSensor": 				False,
-								"hueMotionTemperatureSensor": 	False,
-								"hueMotionLightSensor": 		False,
+								"hueMotionSensor": 				True,
+								"hueMotionTemperatureSensor": 	True,
+								"hueMotionLightSensor": 		True,
 								"hueDimmerSwitch": 				False,
 								"hueSmartButton": 				False,
 								"hueTapSwitch": 				False,
 								"hueWallSwitchModule": 			False,
+								"hueRotaryWallRing": 			False,
+								"hueRotaryWallSwitches": 		False,
 								"runLessWireSwitch":			False,
 								"hueBulb": 						True,
 								"hueAmbiance":					True,
@@ -451,17 +536,6 @@ kAllowOnStateChange = 			{
 								"hueGroup":						True
 							}
 
-ksupportsSensorValue = 			{
-								"hueMotionSensor": 				False,
-								"hueMotionTemperatureSensor": 	True,
-								"hueMotionLightSensor": 		True,
-								"hueDimmerSwitch": 				False,
-								"hueSmartButton": 				False,
-								"hueTapSwitch": 				False,
-								"hueWallSwitchModule": 			False,
-								"runLessWireSwitch":			False
-							}
-
 ksupportsBatteryLevel = 	{
 								"hueMotionSensor": 				True,
 								"hueMotionTemperatureSensor": 	True,
@@ -470,6 +544,8 @@ ksupportsBatteryLevel = 	{
 								"hueSmartButton": 				True,
 								"hueTapSwitch": 				False,
 								"hueWallSwitchModule": 			True,
+								"hueRotaryWallRing": 			True,
+								"hueRotaryWallSwitches": 		True,
 								"runLessWireSwitch":			False
 							}
 

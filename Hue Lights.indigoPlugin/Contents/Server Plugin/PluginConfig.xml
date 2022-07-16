@@ -16,7 +16,7 @@
 	</Field>
 
 	<Field id="instructions0" type="label" >
-		<Label>INSTRUCTIONS, you can:
+		<Label>INSTRUCTIONS.  You can:
 A. Add/modify/delete a bridge
    when you start you must first add (register) the plugin with the bridge
    later you can change bridge settings or delete a bridge 
@@ -202,42 +202,28 @@ Shown after successful pairing process</Label>
 		<Label>B. Other settings:</Label>
 	</Field>
 
-	<Field id="logAnyChanges" type="menu" 
-			tooltip="you can set to NO = do not log anything, yes = log everything or leave it to device = edit each dev and set log level there">
-	<Label>Log changes received from Hue Bridge:</Label>
-	 	 <List>
-			<Option value="no">do not log any changes</Option>
-			<Option value="yes">log anychange</Option>
-			<Option value="leaveToDevice">configure in each device individually</Option>
-	 	 </List>
-	</Field>
-
-	<Field id="logDefaultForNewDevices" type="menu" 
-			tooltip="">
-	<Label>Log changes, set default for NEW devices:</Label>
-	 	 <List>
-			<Option value="off">off</Option>
-			<Option value="on">on</Option>
-	 	 </List>
-	</Field>
-
 	<Field id="timeScaleFactor" type="menu" default="1.0"
-		tooltip="scale factor 1= std, 2 = twice as often, change to lower value if you have cpu load issues, higher if you like faster response time, default: sensors every 1 sec, lights,groups every 5 secs, all = every 5 minutes  ">
+		tooltip="scale factor for light, sensors, groups: set higher if you have cpu load issues, lower if you like faster response time, default: sensors every 1 sec, lights,groups every 5 secs, other = every 3..5 minutes fixed  ">
 		<Label>How often the Hue Bridge should be read:</Label>
 	  <List>
-		<Option value="0.10">lights every 50 secs</Option>
-		<Option value="0.25">lights every 20 secs</Option>
-		<Option value="0.50">lights every 10 secs</Option>
-		<Option value="0.75">lights every 7.5 secs</Option>
-		<Option value="1.00">lights = every 5 secs (default)</Option>
-		<Option value="1.50">lights = every 3.3 secs</Option>
-		<Option value="2.00">lights = every 2.5 secs </Option>
-		<Option value="3.00">lights = every 1.6 secs</Option>
-		<Option value="5.00">lights = every 1 secs, sensors every .25 secs </Option>
-		<Option value="8.00">lights = every 0.7 secs</Option>
-		<Option value="10.0">lights = every 0.5 secs</Option>
+		<Option value="10.">lights every 50 secs, sensors 20secs, likley too slow </Option>
+		<Option value="4.0">lights every 20 secs, sensors 8 secs, likley too slow</Option>
+		<Option value="2.0">lights every 10 secs, sensors 4 secs</Option>
+		<Option value="1.5">lights every 7.5 secs, sensors 3 secs</Option>
+		<Option value="1.0">lights = every 5 secs, sensors 2 secs(default)</Option>
+		<Option value="0.5">lights = every 2.5 secs, sensors 1 sec</Option>
+		<Option value="0.2">lights = every 1 secs, sensors every .4 secs</Option>
+		<Option value="0.1">lights = every 0.5 secs, sensors every .2 secs, likely too fast for several reasons</Option>
 	 </List>
  	</Field>
+	<Field id="timeScaleFactorLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+		<Label>In the plugin loop device are polled from the bridge(s) every
+sensors: 2 secs,
+lights and groups: 5 secs
+with this scale factor you can make that more frequent or less frequent
+others: fixed at 3-5 minutes 
+ </Label>
+	</Field>
 
 
 	<Field id="maxPresetCount" type="textfield"
@@ -259,8 +245,36 @@ Shown after successful pairing process</Label>
 	<Field id="sepdeb2" type="separator"/>
 
 	<Field id="debLabel" type="label"  fontColor="green">
-		<Label>C. Debugging settings:</Label>
+		<Label>C. Logging settings:</Label>
 	</Field>
+
+	<Field id="logAnyChanges" type="menu" 
+			tooltip="you can set to NO = do not log anything, yes = log everything or leave it to device = edit each dev and set log level there">
+	<Label>Log changes received from Hue Bridge:</Label>
+	 	 <List>
+			<Option value="no">do not log any changes</Option>
+			<Option value="yes">log anychange</Option>
+			<Option value="leaveToDevice">configure in each device individually</Option>
+	 	 </List>
+	</Field>
+
+	<Field id="logDefaultForNewDevices" type="menu" 
+			tooltip="">
+	<Label>Log changes, set default for NEW devices:</Label>
+	 	 <List>
+			<Option value="off">off</Option>
+			<Option value="on">on</Option>
+	 	 </List>
+	</Field>
+	<Field id="sendDeviceUpdatesTo" type="menu" default="20" tooltip="either indigo log AND plugin.log or only in plugin.log file ">
+	<Label>Log messages in:</Label>
+	 	 <List>
+			<Option value="20">regular indigo log + plugin.log</Option> <!-- 10/20 = loglevel used to log text, 20= info (enabled for indigo), 10=debug only enabled for plugin.log-->
+			<Option value="10">ONLY in plugin.log file in the indigo log directory </Option>
+	 	 </List>
+	</Field>
+
+
 	<Field id="setdebug" type="label" >	<Label>Set debug areas ...</Label></Field>
 	<Field    id="debugInit"          			type="checkbox"         > <Label> Debug...                   ... (1)  Init:</Label>  </Field>
 	<Field    id="debugLoop"          			type="checkbox"         > <Label>     ... (2)  Loop:</Label>  </Field>

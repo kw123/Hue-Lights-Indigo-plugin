@@ -62,6 +62,7 @@ kDefaultPluginPrefs = {
 				'selecthubNumber':						'0',
 				'ipvisible':							False,
 				'timeScaleFactor':						'1.0',
+				'sendDeviceUpdatesTo':					'20',
 				'logAnyChanges':						'leaveToDevice' # can be leaveToDevice / no / yes
 				}
 
@@ -82,8 +83,8 @@ class Plugin(indigo.PluginBase):
 		self.pluginShortName 			= "Hue Lights"
 
 		### one list for all devices on all bridges related to indigo devices 
-		self.deviceList 				= []			# list of device IDs to monitor (one list for all devices on all bridges)
-		self.controlDeviceList 			= []	    # list of virtual dimmer device IDs that control bulb devices
+		self.deviceList 				= {}			# list of device IDs to monitor (one list for all devices on all bridges)
+		self.controlDeviceList 			= {}	    # list of virtual dimmer device IDs that control bulb devices
 		self.brighteningList 			= []	    # list of device IDs being brightened
 		self.dimmingList 				= []			# list of device IDs being dimmed
 		### one for each bridge read from bridge
@@ -276,7 +277,8 @@ class Plugin(indigo.PluginBase):
 		if self.decideMyLog("Init"): self.indiLOG.log(10,"pluginPrefs are:\n{}".format(self.pluginPrefs))
 
 		self.timeScaleFactor = float(self.pluginPrefs.get('timeScaleFactor',"1.0"))
-
+		self.sendDeviceUpdatesTo = int(self.pluginPrefs.get('sendDeviceUpdatesTo',20))
+		self.trackSpecificDevice = 0
 		self.updateAllHueLists()
 
 		self.findHueBridgesDict = {"status":"init"}
@@ -298,6 +300,7 @@ class Plugin(indigo.PluginBase):
 
 			# Update the device lists and the device states and props.
 
+			pluginProps = device.pluginProps
 			# Hue Device Attribute Controller
 			if device.deviceTypeId == "hueAttributeController":
 				if device.id not in self.controlDeviceList:
@@ -305,7 +308,7 @@ class Plugin(indigo.PluginBase):
 						if self.decideMyLog("Init"): self.indiLOG.log(10,"Attribute Control device definition:\n{}".format(device))
 					except Exception:
 						self.indiLOG.log(30,"Attribute Control device definition cannot be displayed", exc_info=True)
-					self.controlDeviceList.append(device.id)
+					self.controlDeviceList[device.id] = [device.deviceTypeId, '0','0']
 			# Hue Groups
 			elif device.deviceTypeId in kGroupDeviceTypeIDs:
 				if device.id not in self.deviceList:
@@ -313,8 +316,12 @@ class Plugin(indigo.PluginBase):
 						if self.decideMyLog("Init"): self.indiLOG.log(10,"Hue Group device definition:\n{}".format(device))
 					except Exception:
 						self.indiLOG.log(30,"Hue Group device definition cannot be displayed", exc_info=True)
-					self.deviceList.append(device.id)
-			# Other Hue Devices
+					if "groupId" in pluginProps:
+						self.deviceList[device.id] = {'typeId':device.deviceTypeId, 'hubNumber':pluginProps.get('hubNumber','0'), 'groupId':pluginProps.get('groupId','0')}
+					else:
+						self.deviceList[device.id] = {'typeId':device.deviceTypeId, 'hubNumber':'0', 'groupId':'0'}
+					if self.decideMyLog("Init"): self.indiLOG.log(10,"Hue device deviceList:\n{}".format(device.id, self.deviceList[device.id] ))
+			# Other Hue Devices, bulbs, sensors
 			else:
 				if device.id not in self.deviceList:
 					try:
@@ -324,7 +331,16 @@ class Plugin(indigo.PluginBase):
 						#   non-ASCII characters, the above "try" will fail, so we have to show
 						#   this error instead of the actual bulb definition.
 						self.indiLOG.log(30,"Hue Group device definition cannot be displayed", exc_info=True)
-					self.deviceList.append(device.id)
+					#self.indiLOG.log(20,"Hue adding devid for light {}, #:{}".format(device.name, device.id ))
+					if "bulbId" in pluginProps:
+						self.deviceList[device.id] = {'typeId':device.deviceTypeId, 'hubNumber':pluginProps.get('hubNumber','0'), 'bulbId':pluginProps.get('bulbId','0')}
+					elif "sensorId" in pluginProps:
+						self.deviceList[device.id] = {'typeId':device.deviceTypeId, 'hubNumber':pluginProps.get('hubNumber','0'), 'sensorId':pluginProps.get('sensorId','0')}
+					elif "groupId" in pluginProps:
+						self.deviceList[device.id] = {'typeId':device.deviceTypeId, 'hubNumber':pluginProps.get('groupId','0'), 'bulbId':pluginProps.get('groupId','0')}
+					else:
+						self.deviceList[device.id] = {'typeId':device.deviceTypeId, 'hubNumber':'-1', '':'0'}
+					if self.decideMyLog("Init"): self.indiLOG.log(10,"Hue device deviceList:\n{}".format(device.id, self.deviceList[device.id] ))
 		except Exception:
 			self.indiLOG.log(30,"", exc_info=True)
 		return 
@@ -336,13 +352,13 @@ class Plugin(indigo.PluginBase):
 		if self.decideMyLog("Init"): self.indiLOG.log(10,"Stopping device: {}".format(device.name) )
 		if device.deviceTypeId == "hueAttributeController":
 			if device.id in self.controlDeviceList:
-				self.controlDeviceList.remove(device.id)
+				del self.controlDeviceList[device.id]
 		else:
 			if device.id in self.deviceList:
-				self.deviceList.remove(device.id)
+				del self.deviceList[device.id]
 			## must also be removed from control dev list KW
 			if device.id in self.controlDeviceList:
-				self.controlDeviceList.remove(device.id)
+				del self.controlDeviceList[device.id]
 
 	# Shutdown
 	########################################
@@ -389,7 +405,7 @@ class Plugin(indigo.PluginBase):
 
 				## Brightening and Dimming Devices ##
 				# Go through the devices waiting to be brightened
-				if time.time() - lastTimeForBrightenDim >= goBrightenDim / self.timeScaleFactor:
+				if time.time() - lastTimeForBrightenDim >= goBrightenDim:
 					lastTimeForBrightenDim = time.time()
 					for brightenDeviceId in self.brighteningList:
 						# Make sure the device is in the deviceList.
@@ -454,31 +470,31 @@ class Plugin(indigo.PluginBase):
 				# End it's time to go through brightening and dimming loops.
 
 				# for get hub complete dict = all data
-				if time.time() - self.lastTimeForAll >= max(30., self.goAllRefresh / self.timeScaleFactor):
+				if time.time() - self.lastTimeForAll >= max(30., self.goAllRefresh * self.timeScaleFactor):
 					self.lastTimeForAll = time.time()
 					self.updateAllHueLists()
 
-				if time.time() - lastTimeForSensorRefresh >= max(0.2, goSensorRefresh / self.timeScaleFactor):
+				if time.time() - lastTimeForSensorRefresh >= max(0.2, goSensorRefresh * self.timeScaleFactor):
 					lastTimeForSensorRefresh = time.time()
 					self.updateTheTypeList("sensors")
 					self.parseAllHueSensorsData()
 
-				if time.time() - lastTimeForLightsRefresh >= max(0.2, goLightsRefresh / self.timeScaleFactor):
+				if time.time() - lastTimeForLightsRefresh >= max(0.5, goLightsRefresh * self.timeScaleFactor):
 					lastTimeForLightsRefresh = time.time()
 					self.updateTheTypeList("lights")
 					self.parseAllHueLightsData()
 
-				if time.time() - lastTimeForGroupsRefresh >= max(0.2, goGroupsRefresh / self.timeScaleFactor):
+				if time.time() - lastTimeForGroupsRefresh >= max(0.5, goGroupsRefresh * self.timeScaleFactor):
 					lastTimeForGroupsRefresh = time.time()
 					self.updateTheTypeList("groups")
 					self.parseAllHueGroupsData()
 
 				# for error message supressing 
-				if time.time() - lastTimeForErrorReset >= max(20, goErrorReset / self.timeScaleFactor):
+				if time.time() - lastTimeForErrorReset >=  goErrorReset:
 					lastTimeForErrorReset = time.time()
 					self.lastErrorMessage = ""
 
-				if time.time() - lastTimeForexcecStatesUpdate >= max(0.3, goexcecStatesUpdate / self.timeScaleFactor):
+				if time.time() - lastTimeForexcecStatesUpdate >= goexcecStatesUpdate:
 					lastTimeForexcecStatesUpdate = time.time()
 					self.excecStatesUpdate()
 
@@ -529,6 +545,7 @@ class Plugin(indigo.PluginBase):
 		createdGroups = 0
 		if valuesDict['createLights']:
 			for hubNumber in self.hueConfigDict:
+				if "lights" not in self.hueConfigDict[hubNumber]: continue
 				theDict = self.hueConfigDict[hubNumber]['lights']
 				for theID in theDict:
 					deviceTypeId = ""
@@ -590,15 +607,17 @@ class Plugin(indigo.PluginBase):
 
 		if valuesDict['createSensors']:
 			for hubNumber in self.hueConfigDict:
+				if "sensors" not in self.hueConfigDict[hubNumber]: continue
 				theDict = self.hueConfigDict[hubNumber]['sensors']
 				for theID in theDict:
 					deviceTypeIdCandidates = []
+					theType = theDict[theID]['type'] # eg ZLLRelativeRotary, ZLLSwitch, ..
 					for indigoTypes in kmapIndigoDevTypeToSensorType: #  eg: "hueDimmerSwitch": 			['RWL020', 'RWL021', 'RWL022'],
-						if theDict[theID]['type'].find(kmapIndigoDevTypeToSensorType[indigoTypes]) ==0:
+						if theType.find(kmapIndigoDevTypeToSensorType[indigoTypes]) == 0:
 							deviceTypeIdCandidates.append(indigoTypes)
 
 					if deviceTypeIdCandidates == []:
-						self.indiLOG.log(10,"autocreateNewDevices sensor hub:{:>2s}; id:{:>3s}; type:{:25s}      not supported".format(hubNumber, theID, theDict[theID]['type']))
+						self.indiLOG.log(10,"autocreateNewDevices sensor hub:{:>2s}; id:{:>3s}; type:{:25s}      not supported(1)".format(hubNumber, theID, theDict[theID]['type']))
 						continue
 					found = ""
 					for devT in deviceTypeIdCandidates: # eg: "runLessWireSwitch"
@@ -608,7 +627,7 @@ class Plugin(indigo.PluginBase):
 									found = devT
 									break
 					if found == "":
-						self.indiLOG.log(10,"autocreateNewDevices sensor hub:{:>2s}; id:{:>3s}; type:{:25s}      not supported".format(hubNumber, theID, theDict[theID]['type']))
+						self.indiLOG.log(10,"autocreateNewDevices sensor hub:{:>2s}; id:{:>3s}; type:{:25s}      not supported(2)".format(hubNumber, theID, theDict[theID]['type']))
 						continue
 					deviceTypeId = found
 
@@ -656,6 +675,7 @@ class Plugin(indigo.PluginBase):
 		if valuesDict['createGroups']:
 			deviceTypeId = "hueGroup" 
 			for hubNumber in self.hueConfigDict:
+				if "groups" not in self.hueConfigDict[hubNumber]: continue
 				theDict = self.hueConfigDict[hubNumber]['groups']
 				for theID in theDict:
 					found = False
@@ -1067,7 +1087,7 @@ class Plugin(indigo.PluginBase):
 					if valuesDict['groupId'] == otherDevice.pluginProps.get('groupId', 0) and hubNumber == otherDevice.pluginProps.get('hubNumber', 0):
 						otherDevice = indigo.devices[otherDeviceId]
 						isError = True
-						errorsDict['groupId'] = "This Hue group is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different Hue group to control."
+						errorsDict['groupId'] = "This Hue group is already being controlled by the \"{}\" Indigo device. Choose a different Hue group to control.".format(otherDevice.name)
 						errorsDict['showAlertText'] += errorsDict['groupId'] + "\n\n"
 
 			isError, errorsDict = self.checkBrightness(valuesDict, isError, errorsDict)
@@ -1142,7 +1162,7 @@ class Plugin(indigo.PluginBase):
 					if sensorId == otherDevice.pluginProps.get('sensorId', 0) and hubNumber == otherDevice.pluginProps.get('hubNumber', 0):
 						otherDevice = indigo.devices[otherDeviceId]
 						isError = True
-						errorsDict['sensorId'] = "This Hue device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different Hue Motion Sensor."
+						errorsDict['sensorId'] = "This Hue device is already being controlled by the \"{}\" Indigo device. Choose a different Hue Motion Sensor.".format(otherDevice.name)
 						errorsDict['showAlertText'] += errorsDict['sensorId'] + "\n\n"
 
 			# Show errors if there are any.
@@ -1187,7 +1207,7 @@ class Plugin(indigo.PluginBase):
 					if valuesDict['sensorId'] == otherDevice.pluginProps.get('sensorId', 0) and hubNumber == otherDevice.pluginProps.get('hubNumber', 0):
 						otherDevice = indigo.devices[otherDeviceId]
 						isError = True
-						errorsDict['sensorId'] = "This Hue device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different temperature sensor."
+						errorsDict['sensorId'] = "This Hue device is already being controlled by the \"{}\" Indigo device. Choose a different temperature sensor.".format(otherDevice.name)
 						errorsDict['showAlertText'] += errorsDict['sensorId'] + "\n\n"
 
 			# Validate the sensor offset (calibration offset).
@@ -1255,7 +1275,7 @@ class Plugin(indigo.PluginBase):
 					if valuesDict['sensorId'] == otherDevice.pluginProps.get('sensorId', 0) and hubNumber == otherDevice.pluginProps.get('hubNumber', 0):
 						otherDevice = indigo.devices[otherDeviceId]
 						isError = True
-						errorsDict['sensorId'] = "This Hue device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different light sensor."
+						errorsDict['sensorId'] = "This Hue device is already being controlled by the \"{}\" Indigo device. Choose a different light sensor.".format(otherDevice.name)
 						errorsDict['showAlertText'] += errorsDict['sensorId'] + "\n\n"
 
 			# Show errors if there are any.
@@ -1294,7 +1314,7 @@ class Plugin(indigo.PluginBase):
 					if sensorId == otherDevice.pluginProps.get('sensorId', 0) and hubNumber == otherDevice.pluginProps.get('hubNumber', 0):
 						otherDevice = indigo.devices[otherDeviceId]
 						isError = True
-						errorsDict['sensorId'] = "This Hue device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different Hue Tap Switch."
+						errorsDict['sensorId'] = "This Hue device is already being controlled by the \"{}\" Indigo device. Choose a different Hue Tap Switch.".format(otherDevice.name)
 						errorsDict['showAlertText'] += errorsDict['sensorId'] + "\n\n"
 
 			# Show errors if there are any.
@@ -1328,7 +1348,7 @@ class Plugin(indigo.PluginBase):
 					if sensorId == otherDevice.pluginProps.get('sensorId', 0) and hubNumber == otherDevice.pluginProps.get('hubNumber', 0):
 						otherDevice = indigo.devices[otherDeviceId]
 						isError = True
-						errorsDict['sensorId'] = "This Hue device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different Hue Dimmer Switch."
+						errorsDict['sensorId'] = "This Hue device is already being controlled by the \"{}\" Indigo device. Choose a different Hue Dimmer Switch.".format(otherDevice.name)
 						errorsDict['showAlertText'] += errorsDict['sensorId'] + "\n\n"
 
 			# Show errors if there are any.
@@ -1362,7 +1382,7 @@ class Plugin(indigo.PluginBase):
 					if sensorId == otherDevice.pluginProps.get('sensorId', 0) and hubNumber == otherDevice.pluginProps.get('hubNumber', 0):
 						otherDevice = indigo.devices[otherDeviceId]
 						isError = True
-						errorsDict['sensorId'] = "This Hue device is already being controlled by the \"" + otherDevice.name + "\" Indigo device. Choose a different Hue Smart Button."
+						errorsDict['sensorId'] = "This Hue device is already being controlled by the \"{}\" Indigo device. Choose a different Hue Smart Button.".format(otherDevice.name)
 						errorsDict['showAlertText'] += errorsDict['sensorId'] + "\n\n"
 
 			# Show errors if there are any.
@@ -1432,7 +1452,7 @@ class Plugin(indigo.PluginBase):
 					if sensorId == otherDevice.pluginProps.get('sensorId', 0) and hubNumber == otherDevice.pluginProps.get('hubNumber', 0):
 						otherDevice = indigo.devices[otherDeviceId]
 						isError = True
-						errorsDict['sensorId'] = "This Hue connected device is already being controlled by the \"\" Indigo device. Choose a different Run Less Wire Switch.".format(otherDevice.name)
+						errorsDict['sensorId'] = "This Hue connected device is already being controlled by the \"{}\" Indigo device. Choose a different Run Less Wire Switch.".format(otherDevice.name)
 						errorsDict['showAlertText'] += errorsDict['sensorId'] + "\n\n"
 
 			# Show errors if there are any.
@@ -1442,6 +1462,78 @@ class Plugin(indigo.PluginBase):
 
 			self.hubNumberSelected = ""
 			return (True, self.setDefaultSensorProps(valuesDict, sensor))
+
+
+		#  -- hueRotaryWallRing --
+		elif typeId == "hueRotaryWallRing":
+			# 
+			if valuesDict.get('sensorId', "") == "":
+				isError = True
+				errorsDict['sensorId'] = "Please select a Rotary Wall Ring."
+				errorsDict['showAlertText'] += errorsDict['sensorId']
+				return (False, valuesDict, errorsDict)
+
+			sensorId = valuesDict['sensorId']
+
+			# Make sure the device selected is a Hue sensor device.
+			#   Get the device info directly from the bridge.
+			retCode, sensor, errorsDict =  self.commandToHub_HTTP( hubNumber, "sensors/{}".format(sensorId), errorsDict, errDict1="sensorId", errDict2="showAlertText")
+			if not retCode:
+				return (False, valuesDict, errorsDict)
+
+			# Make sure the sensor ID isn't used by another device.
+			for otherDeviceId in self.deviceList:
+				if otherDeviceId != deviceId:
+					otherDevice = indigo.devices[otherDeviceId]
+					if sensorId == otherDevice.pluginProps.get('sensorId', 0) and hubNumber == otherDevice.pluginProps.get('hubNumber', 0):
+						otherDevice = indigo.devices[otherDeviceId]
+						isError = True
+						errorsDict['sensorId'] = "This Hue connected device is already being controlled by the \"{}\" Indigo device. Choose a different Rotary Wall Ring.".format(otherDevice.name)
+						errorsDict['showAlertText'] += errorsDict['sensorId'] + "\n\n"
+
+			# Show errors if there are any.
+			if isError:
+				errorsDict['showAlertText'] = errorsDict['showAlertText'].strip()
+				return (False, valuesDict, errorsDict)
+
+			self.hubNumberSelected = ""
+			return (True, self.setDefaultSensorProps(valuesDict, sensor))
+
+		#  -- hueRotaryWallRing --
+		elif typeId == "hueRotaryWallSwitches":
+			# 
+			if valuesDict.get('sensorId', "") == "":
+				isError = True
+				errorsDict['sensorId'] = "Please select a Rotary Wall ring - Switch."
+				errorsDict['showAlertText'] += errorsDict['sensorId']
+				return (False, valuesDict, errorsDict)
+
+			sensorId = valuesDict['sensorId']
+
+			# Make sure the device selected is a Hue sensor device.
+			#   Get the device info directly from the bridge.
+			retCode, sensor, errorsDict =  self.commandToHub_HTTP( hubNumber, "sensors/{}".format(sensorId), errorsDict, errDict1="sensorId", errDict2="showAlertText")
+			if not retCode:
+				return (False, valuesDict, errorsDict)
+
+			# Make sure the sensor ID isn't used by another device.
+			for otherDeviceId in self.deviceList:
+				if otherDeviceId != deviceId:
+					otherDevice = indigo.devices[otherDeviceId]
+					if sensorId == otherDevice.pluginProps.get('sensorId', 0) and hubNumber == otherDevice.pluginProps.get('hubNumber', 0):
+						otherDevice = indigo.devices[otherDeviceId]
+						isError = True
+						errorsDict['sensorId'] = "This Hue connected device is already being controlled by the \"{}\" Indigo device. Choose a different Rotary Wall Ring-Switch.".format(otherDevice.name)
+						errorsDict['showAlertText'] += errorsDict['sensorId'] + "\n\n"
+
+			# Show errors if there are any.
+			if isError:
+				errorsDict['showAlertText'] = errorsDict['showAlertText'].strip()
+				return (False, valuesDict, errorsDict)
+
+			self.hubNumberSelected = ""
+			return (True, self.setDefaultSensorProps(valuesDict, sensor))
+
 
 		else:
 			isError = True
@@ -1470,6 +1562,8 @@ class Plugin(indigo.PluginBase):
 		errorsDict['showAlertText'] = ""
 		descString = ""
 
+		if typeId == "actionEnableDisableSensor": return True, valuesDict
+
 		if deviceId == 0:
 			device = None
 			modelId = 0
@@ -1483,7 +1577,7 @@ class Plugin(indigo.PluginBase):
 
 		if hubNumber not in self.hueConfigDict:
 			errorsDict = indigo.Dict()
-			errorsDict['showAlertText'] = "hubNumber in device not in hue gateways listing {}".format(hubNumber)
+			errorsDict['showAlertText'] = "hubNumber in device not in hue bridge dict {}".format(hubNumber)
 			return (False, valuesDict, errorsDict)
 
 		# Make sure we're still paired with the Hue bridge.
@@ -2866,6 +2960,16 @@ class Plugin(indigo.PluginBase):
 		if not userCancelled:
 			# Configuration was saved.
 
+			try: 	self.sendDeviceUpdatesTo	= int(valuesDict['sendDeviceUpdatesTo'])
+			except:	self.sendDeviceUpdatesTo	= 20  # in case its is not a number
+			valuesDict['sendDeviceUpdatesTo']   = "{}".format(self.sendDeviceUpdatesTo)
+
+			self.logAnyChanges			= valuesDict['logAnyChanges']
+
+			try: 	self.timeScaleFactor	= float(valuesDict['timeScaleFactor'])
+			except:	self.timeScaleFactor	= 1.0  # in case its is not a number
+			valuesDict['timeScaleFactor']   = "{}".format(self.timeScaleFactor)
+
 			self.pluginPrefs['addresses'] = json.dumps(self.ipAddresses)
 
 			# If the number of Preset Memories was changed, add or remove Presets as needed.
@@ -3056,7 +3160,9 @@ class Plugin(indigo.PluginBase):
 		# Get key variables
 		command = action.deviceAction
 
-		logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+		logChanges =  (self.pluginPrefs['logAnyChanges'] == "yes")   or   self.trackSpecificDevice == device.id   or   (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True)) 
+		if self.trackSpecificDevice == device.id:	sendLog = 20
+		else: 										sendLog = self.sendDeviceUpdatesTo
 		#self.indiLOG.log(20,"action: {}".format(command))
 
 		bulbId = device.pluginProps.get('bulbId', None)
@@ -3424,7 +3530,7 @@ class Plugin(indigo.PluginBase):
 				except Exception:
 					self.indiLOG.log(30,"device request status: Unable to display action data", exc_info=True)
 				# Log the new brightness.
-				if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" status request (received: {})".format( device.name, device.states['brightnessLevel']))
+				if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" status request (received: {})".format( device.name, device.states['brightnessLevel']))
 
 			#### CATCH ALL #####
 			else:
@@ -3806,7 +3912,7 @@ class Plugin(indigo.PluginBase):
 				except Exception:
 					self.logger.error("device request status: Unable to display action data", exc_info=True)
 				# Log the new brightness.
-				if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" status request (received: {})".format( device.name, device.states['brightnessLevel']))
+				if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" status request (received: {})".format( device.name, device.states['brightnessLevel']))
 
 			#### CATCH ALL #####
 			else:
@@ -3918,7 +4024,7 @@ class Plugin(indigo.PluginBase):
 				except Exception:
 					self.logger.error("device request status: Unable to display action data", exc_info=True)
 				# Log the new brightness.
-				if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" status request (received: {})".format( device.name, device.states['brightnessLevel']))
+				if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" status request (received: {})".format( device.name, device.states['brightnessLevel']))
 
 		#
 		# -- On/Off Only Device --
@@ -4025,7 +4131,7 @@ class Plugin(indigo.PluginBase):
 				except Exception:
 					self.logger.error("device request status: Unable to display action data", exc_info=True)
 				# Log the new brightness.
-				if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" status request (received: {})".format(device.name, device.states['onOffState']))
+				if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" status request (received: {})".format(device.name, device.states['onOffState']))
 
 			#### CATCH ALL #####
 			else:
@@ -4213,7 +4319,7 @@ class Plugin(indigo.PluginBase):
 				except Exception:
 					self.logger.error("device request status: Unable to display action data", exc_info=True)
 				# Log the new brightness.
-				if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" status request (received: {})".format( device.name, device.states['brightnessLevel']))
+				if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" status request (received: {})".format( device.name, device.states['brightnessLevel']))
 
 			#### CATCH ALL #####
 			else:
@@ -4575,6 +4681,187 @@ class Plugin(indigo.PluginBase):
 
 		return 
 
+	# Sensor enable / disable 
+	######################
+	def actionEnableDisableSensor(self, actions=None, typeId=u"", devId=0):
+		try:
+			valuesDict = actions.props
+			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Starting actionEnableDisableSensor with {}.".format(valuesDict))
+			self.menuEnableDisableSensor(valuesDict=valuesDict, typeId=u"", devId=0)
+		except Exception:
+			self.indiLOG.log(30,"actionEnableDisableSensor  Unable to display action", exc_info=True)
+		return actions
+
+	######################
+	def menuEnableDisableSensor(self, valuesDict, typeId=u"", devId=0):
+		try:
+			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Starting actionEnableDisableSensor with {}.".format(valuesDict))
+			sensorId  = valuesDict.get('sensorId', "")
+			hubNumber = valuesDict.get('hubNumber', "")
+			onOff     = valuesDict.get('onOff', "")
+			if onOff not in ['on','off']: 
+				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(30,"actionEnableDisableSensor bad onoff command {}.".format(onOff))
+				return valuesDict
+
+			for deviceId in self.deviceList:
+				## if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(30,"actionEnableDisableSensor deviceId {}, hub#{}, sensorID:{}".format(self.deviceList[deviceId], hubNumber,sensorId))
+				if self.deviceList[deviceId]['typeId'] not in kmapSensordevTypeToModelId:	continue
+				if self.deviceList[deviceId]['hubNumber']  != hubNumber: 					continue
+				if 'sensorId' not in self.deviceList[deviceId]:								continue
+				if self.deviceList[deviceId]['sensorId']  != sensorId: 						continue
+				device = indigo.devices[deviceId]
+				devSensorId = device.pluginProps.get('sensorId', -1)
+
+				if devSensorId != sensorId: continue
+
+				hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+				#if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"valuesDict is {}".format(valuesDict))
+
+				command = "http://{}/api/{}/sensors/{}/config".format(ipAddress, self.hostIds[hubNumber], sensorId)
+				if onOff == 'on':
+					requestData = json.dumps({ "on": True})
+				else:
+					requestData = json.dumps({ "on": False})
+				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Sending URL request: {}, data:{}".format(command, requestData))
+				try:
+					r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
+				except requests.exceptions.Timeout:
+					self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout))
+					# Don't display the error if it's been displayed already.
+					return valuesDict
+				except requests.exceptions.ConnectionError:
+					self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress))
+					# Don't display the error if it's been displayed already.
+					return valuesDict
+				try:
+					response = json.loads(r.content)
+					if "success" in response[0]:
+						if self.decideMyLog("SendCommandsToBridge"):
+							self.indiLOG.log(20,"send {} to \"{}\" returned:OK".format(onOff, device.name ))
+					else:
+							self.indiLOG.log(20,"send {} to \"{}\" returned:{}".format(onOff, device.name, response ))
+				except Exception as e:
+					self.doErrorLog("Failed to switch {}. on/off, error:{}, Bridge response:{}".format(device.name,e , response))
+				return valuesDict
+
+			self.indiLOG.log(30,"actionEnableDisableSensor no matching device found, {}".format(valuesDict))
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return valuesDict
+
+
+	######################
+	def menuRenameSensorDevice(self, valuesDict, typeId=u"", devId=0):
+		try:
+			useId = "sensorId"
+			tag = "sensors"
+			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(30,"Starting rename{} with {}.".format(tag, valuesDict))
+			hubNumber	= valuesDict.get('hubNumber', "")
+			newName     = valuesDict.get('newName'+tag, "")
+			if newName == "": 
+				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(30,"rename{} bad newName command {}.".format(tag, newName))
+				return valuesDict
+			theID  		= valuesDict.get(useId, "")
+			if valuesDict['newNamelights']: removePrefix = "Hue_sensor_"
+			else:							removePrefix = ""
+			stdPrefix = "Hue_sensor_"
+			if newName == "*" or theID =="*":
+				for allIDs in self.hueConfigDict[hubNumber][tag]:
+					self.execRename(tag, useId, hubNumber, allIDs, "*", removePrefix, stdPrefix)
+			else:
+				self.execRename(tag, useId, hubNumber, theID, newName, removePrefix, stdPrefix)
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return valuesDict
+
+	######################
+	def menuRenameLightsDevice(self, valuesDict, typeId=u"", devId=0):
+		try:
+			useId = "bulbId"
+			tag = "lights"
+			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Starting rename{} with {}.".format(tag, valuesDict))
+			hubNumber	= valuesDict.get('hubNumber', "")
+			newName     = valuesDict.get('newName'+tag, "")
+			if newName == "": 
+				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(30,"rename{} bad newName command {}.".format(tag, newName))
+				return valuesDict
+			theID  		= valuesDict.get(useId, "")
+			if valuesDict['newNamelights']: removePrefix = "Hue_light_"
+			else:							removePrefix = ""
+			stdPrefix = "Hue_light_"
+			if newName == "*" or theID =="*":
+				for allIDs in self.hueConfigDict[hubNumber][tag]:
+					self.execRename(tag, useId, hubNumber, allIDs, "*", removePrefix, stdPrefix)
+			else:
+				self.execRename(tag, useId, hubNumber, theID, newName, removePrefix, stdPrefix)
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return valuesDict
+
+	######################
+	def execRename(self, tag, useId, hubNumber, theID, newName, removePrefix, stdPrefix):
+		try:
+			#self.indiLOG.log(30,"menu rename {} / {} / {} / {} / {}".format( tag, useId, hubNumber, theID, newName))
+			for deviceId in self.deviceList:
+				if useId not in self.deviceList[deviceId]:				continue
+				if self.deviceList[deviceId][useId]  != theID: 			continue
+				device = indigo.devices[deviceId]
+				if hubNumber != device.pluginProps.get('hubNumber', -1):	
+					self.indiLOG.log(0,"not passed 4,{}:  hubNumber:{},ID:{}, pb-hubNumber:{}".format(device.name, hubNumber, theID,  device.pluginProps.get(hubNumber, -1) ))
+					continue
+
+				if theID != device.pluginProps.get(useId, -1):			continue
+
+				hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+				#if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"valuesDict is {}".format(valuesDict))
+				if newName == "*": newName = device.name
+				oldName = self.hueConfigDict[hubNumber][tag][theID]['name']
+
+				#check if we need to shorten name, max len = 32, if std name: Hue_light
+				newName = newName.strip()
+				if len(newName) > 32 or removePrefix !="":
+					xName = copy.copy(newName)
+					shortTag = tag[:-1]
+					if xName.find(stdPrefix) == 0:
+						xName = xName.split(stdPrefix)[1]  # remove:  Hue_tag_Bridge#_Id#_
+						if xName.find("_") >-1:  # remove bridge#_
+							xName = xName[xName.find("_")+1:]
+						if xName.find("_") >-1: # remove id#_
+							xName = xName[xName.find("_")+1:]
+						newName = xName[-32:].strip()
+						if len(newName) > 32: self.indiLOG.log(30,"rename device:{}, new name:{}, is too long, max len is 32 char, reduced to:{}.".format(device.name, newName, xName))
+						else:				  self.indiLOG.log(30,"rename device:{}, new name:{}, remove std tag, changed to :{}.".format(device.name, newName, xName))
+					elif len(newName) > 32:
+							self.indiLOG.log(30,"rename device for:{}, new name:{}, is too long, max len is 32 char".format(device.name, newName))
+							continue
+				command = "http://{}/api/{}/{}/{}/".format(ipAddress, self.hostIds[hubNumber], tag, theID)
+				requestData = json.dumps({ "name": newName})
+				if self.decideMyLog("Special") or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Sending URL request: {}, data:{}".format(command, requestData))
+				try:
+					r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
+				except requests.exceptions.Timeout:
+					self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout))
+					# Don't display the error if it's been displayed already.
+					return 
+				except requests.exceptions.ConnectionError:
+					self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress))
+					# Don't display the error if it's been displayed already.
+					return 
+				try:
+					response = json.loads(r.content)
+					if "success" in response[0]:
+						self.indiLOG.log(20,"change {} to {} for \"{}\" Bridge returned:OK".format(oldName, newName, device.name ))
+					else:
+						self.indiLOG.log(20,"change {} to {} for \"{}\" Bridge returned:{}".format(oldName, newName, device.name, response ))
+				except Exception as e:
+					self.doErrorLog("Failed to switch {}. on/off, error:{}, Bridge response:{}".format(device.name, e, response))
+				return 
+
+			self.indiLOG.log(30,"menu rename {} no matching device found; {} / {} / {} / {}".format( tag, useId, hubNumber, theID, newName))
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return 
+
 
 	# Sensor Action callback
 	######################
@@ -4594,17 +4881,8 @@ class Plugin(indigo.PluginBase):
 		if device.deviceTypeId in kMotionSensorTypeIDs or device.deviceTypeId in kTemperatureSensorTypeIDs or device.deviceTypeId in kLightSensorTypeIDs or device.deviceTypeId in kSwitchTypeIDs:
 			sensorId = device.pluginProps.get('sensorId', False)
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
-			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Command is {}, Sensor is {}".format(action.sensorAction, sensorId))
+			if True or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Command is {}, Sensor is {}".format(action, sensorId))
 
-			###### TURN ON ######
-			# Ignore turn on/off/toggle requests from clients since this is a read-only sensor.
-			if action.sensorAction == indigo.kSensorAction.TurnOn:
-				self.indiLOG.log(20,"ignored \"{}\" {} request (sensor is read-only)".format(device.name, "on"))
-
-			###### TURN OFF ######
-			# Ignore turn on/off/toggle requests from clients since this is a read-only sensor.
-			elif action.sensorAction == indigo.kSensorAction.TurnOff:
-				self.indiLOG.log(20,"ignored \"{}\" {} request (sensor is read-only)".format(device.name, "off"))
 
 			###### TOGGLE ######
 			# Ignore turn on/off/toggle requests from clients since this is a read-only sensor.
@@ -4813,15 +5091,35 @@ class Plugin(indigo.PluginBase):
 		return (valuesDict)
 
 
+
+	########################################
+	def getActionConfigUiValues(self, pluginProps, typeId, devId):
+		valuesDict, errorsDict =  super(Plugin, self).getActionConfigUiValues(pluginProps, typeId, devId)
+		if True or  typeId in ['actionEnableDisableSensor']:
+			valuesDict['confirmHubNumberText'] = "first select hue bridge and click confirm"
+		return (valuesDict, errorsDict)
+
+	########################################
+	def getMenuActionConfigUiValues(self, menuId):
+		#self.indiLOG.log(10,u"getMenuActionConfigUiValues menuId".format(menuId) )
+
+		valuesDict = indigo.Dict()
+		errorMsgDict = indigo.Dict()
+		if True or  menuId in ['menuEnableDisableSensor','menuRenameHueDevice','trackSpecificDevice']:
+			valuesDict['confirmHubNumberText'] = "first select hue bridge and click confirm"
+		return (valuesDict, errorMsgDict)
+
+
 	########################################
 	# List Generation and Support Methods
 	########################################
 	def getDeviceConfigUiValues(self, pluginProps, typeId="", devId=0):
 		theDictList =  super(Plugin, self).getDeviceConfigUiValues(pluginProps, typeId, devId)
-		if "hubNumber" in theDictList:
-			self.hubNumberSelected = theDictList['hubNumber']
+		if "hubNumber" in theDictList[0]:
+			self.hubNumberSelected = theDictList[0]['hubNumber']
 		else:
 			self.hubNumberSelected = ""
+		theDictList[0]['confirmHubNumberText'] = "first select hue bridge and click confirm"
 		return theDictList
 
 	# Users List Item Selected (callback from action UI)
@@ -4913,6 +5211,10 @@ class Plugin(indigo.PluginBase):
 						xList.append([memberId, '{}-..{}'.format(details['name'], details['uniqueid'][-10:])])
 
 					elif typeId == "hueOnOffDevice" and details['type'][0:len(kOnOffOnlyDeviceIDType)] == kOnOffOnlyDeviceIDType:
+						xList.append([memberId, '{}-..{}'.format(details['name'], details['uniqueid'][-10:])])
+
+
+					elif filter.find('anyLight') > -1:
 						xList.append([memberId, '{}-..{}'.format(details['name'], details['uniqueid'][-10:])])
 
 			if addAtEnd !="": 	xList.append(addAtEnd)
@@ -5120,6 +5422,7 @@ class Plugin(indigo.PluginBase):
 		groupId = valuesDict.get('groupId', "")
 
 		for hubNumber in self.hueConfigDict:
+			if "scenes" not in self.hueConfigDict[hubNumber]: continue
 			if sceneId == "":
 				# The sceneId is blank. This only happens when the action/menu dialog is
 				#   called for the first time (or without any settings already saved). This
@@ -5205,6 +5508,7 @@ class Plugin(indigo.PluginBase):
 		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting sensorListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, valuesDict, typeId, targetId))
 
 		xList = list()
+		addAtEnd = []
 		if self.hubNumberSelected == "":
 			hubNumbers = self.ipAddresses
 		else:
@@ -5244,21 +5548,66 @@ class Plugin(indigo.PluginBase):
 								xList.append([sensorId, value['name']])
 
 				elif filter == "hueDimmerSwitch" and sensorDetails['type'] == "ZLLSwitch" and sensorDetails['modelid'] in kSwitchDeviceIDs and sensorDetails['modelid'] in kmapSensordevTypeToModelId['hueDimmerSwitch']:
-					xList.append([sensorId, sensorDetails['name']])
+					xList.append([sensorId, "{}".format(sensorDetails['name'])])
+
+				elif filter == "hueRotaryWallRing" and sensorDetails['type'] == "ZLLRelativeRotary" and sensorDetails['modelid'] in kSwitchDeviceIDs and sensorDetails['modelid'] in kmapSensordevTypeToModelId['hueRotaryWallRing']:
+					xList.append([sensorId, "{}".format(sensorDetails['name'])])
+
+				elif filter == "hueRotaryWallSwitches" and sensorDetails['type'] == "ZLLSwitch" and sensorDetails['modelid'] in kSwitchDeviceIDs and sensorDetails['modelid'] in kmapSensordevTypeToModelId['hueRotaryWallSwitches']:
+					xList.append([sensorId, "{}".format(sensorDetails['name'])])
 
 				elif filter == "hueSmartButton" and sensorDetails['type'] == "ZLLSwitch" and sensorDetails['modelid'] in kSwitchDeviceIDs and sensorDetails['modelid'] in kmapSensordevTypeToModelId['hueSmartButton']:
-					xList.append([sensorId, sensorDetails['name']])
+					xList.append([sensorId, "{}".format(sensorDetails['name'])])
 
 				elif filter == "hueWallSwitchModule" and sensorDetails['type'] == "ZLLSwitch" and sensorDetails['modelid'] in kSwitchDeviceIDs and sensorDetails['modelid'] in kmapSensordevTypeToModelId['hueWallSwitchModule']:
-					xList.append([sensorId, sensorDetails['name']])
+					xList.append([sensorId, "{}".format(sensorDetails['name'])])
 
 				elif filter == "hueTapSwitch" and sensorDetails['type'] == "ZGPSwitch" and sensorDetails['modelid'] in kSwitchDeviceIDs and sensorDetails['modelid'] in kmapSensordevTypeToModelId['hueTapSwitch']:
-					xList.append([sensorId, sensorDetails['name']])
+					xList.append([sensorId, "{}".format(sensorDetails['name'])])
 				# This also shows Niko switches...
 
 				elif filter == "runLessWireSwitch" and sensorDetails['type'] == "ZGPSwitch" and sensorDetails['modelid'] in kSwitchDeviceIDs and sensorDetails['modelid'] in kmapSensordevTypeToModelId['runLessWireSwitch']:
-					xList.append([sensorId, sensorDetails['name']])
+					xList.append([sensorId, "{}".format(sensorDetails['name'])])
 
+
+				elif filter.find('anySensor') > -1 and sensorDetails['type'] in kSupportedSensorTypes:
+					xList.append([sensorId, "{}".format(sensorDetails['name'])])
+					addAtEnd = ['*', 'all sensors, use * for new name']
+
+				elif filter.find('oneSensor') > -1 and sensorDetails['type'] in kSupportedSensorTypes:
+					xList.append([sensorId, "{}".format(sensorDetails['name'])])
+
+		if addAtEnd != []:
+			xList.append(addAtEnd)
+		xList = sorted(xList, key = lambda x: x[1])
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"sensorListGenerator: Return sensor list is {}".format(xList) )
+
+		return xList
+
+	# Sensor List Generator
+	########################################
+	def lightsListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
+		# Used in actions and device configuration windows that need a list of sensor devices.
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting lightsListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, valuesDict, typeId, targetId))
+
+		xList = list()
+		if self.hubNumberSelected == "":
+			hubNumbers = self.ipAddresses
+		else:
+			hubNumbers = {self.hubNumberSelected:True}
+		addAtEnd = []
+		for hubNumber in hubNumbers:
+			# Iterate over our sensors, and return a sorted list in Indigo's format
+			#   The "lambda" keyword in Python creates an inline function. Here it returns the device name.
+			for bulbId, lightDetails in self.hueConfigDict[hubNumber]['lights'].items():
+				if filter.find('oneLight') > -1:
+					xList.append([bulbId, "{}".format(lightDetails['name'])])
+				if filter.find('anyLight') > -1:
+					xList.append([bulbId, "{}".format(lightDetails['name'])])
+					addAtEnd = ['*', 'all lights, use * for new name']
+
+		if addAtEnd != []:
+			xList.append(addAtEnd)
 		xList = sorted(xList, key = lambda x: x[1])
 		# Debug
 		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"sensorListGenerator: Return sensor list is {}".format(xList) )
@@ -5269,9 +5618,11 @@ class Plugin(indigo.PluginBase):
 
 	# confirm hub number selection
 	########################################
-	def confirmGWNumber(self, valuesDict, dummy1, dummy2):
+	def confirmGWNumber(self, valuesDict, dummy1="", dummy2=""):
 		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting confirmGWNumber.\n  filter: {}".format(valuesDict) )
 		self.hubNumberSelected = valuesDict['hubNumber']
+		valuesDict['confirmHubNumberText'] = 'Bridge selected, continue with selections'
+		valuesDict['confirmHubNumberTextVisible'] = True
 		return valuesDict
 
 	########################################
@@ -5287,7 +5638,9 @@ class Plugin(indigo.PluginBase):
 			# Note that the uiImage value, if passed, should be a valid
 			# Indigo State Image Select Enumeration value as defined at
 			# http://wiki.indigodomo.com/doku.php?id=indigo_7_documentation:device_class.
-			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			if self.trackSpecificDevice == device.id:	sendLog = 20
+			else: 										sendLog = self.sendDeviceUpdatesTo
 
 			# First determine if we've been sent a key/value list or a device object.
 			if state.__class__ == list:
@@ -5378,7 +5731,7 @@ class Plugin(indigo.PluginBase):
 				# Now update the state if the new value (rounded if needed) is different.
 				if (value != device.states.get(state, None)):
 					try:
-						if logChanges and self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(20,"updateDeviceState: Updating device \"{}\" state: \"{}\". Old value = {}. New value = {}".format(device.name , state, device.states.get(state, ""), value))
+						if logChanges or self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(sendLog,"updateDeviceState: Updating device \"{}\" state: \"{}\". Old value = {}. New value = {}".format(device.name , state, device.states.get(state, ""), value))
 					except Exception:
 						self.indiLOG.log(30,"updateDeviceState: Updating device \"{}\" state: Unable to display state".format( device.name), exc_info=True)
 
@@ -5602,7 +5955,6 @@ class Plugin(indigo.PluginBase):
 			ipAddress, hostId, errorCode = self.getadresses(hubNumber)
 			if errorCode >0: return
 
-
 			try:
 
 				# Send the command and parse the response
@@ -5758,25 +6110,28 @@ class Plugin(indigo.PluginBase):
 	# Parse All Hue Lights Data
 	########################################
 	def parseAllHueLightsData(self):
-		if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"Starting parseAllHueLightsData.")
 
 		# Iterate through all the Indigo devices and look for Hue light changes in the
 		#   lights that changed, then update the Indigo device states and properties
 		#   as needed.  This method does no actual Hue bridge communication.  It just updates
 		#   Indigo devices with information already obtained through the use of the
-		#   self.updateLightsList.
+		#   self.hueConfigDict.
 		try:
-			for hubNumber in self.hueConfigDict:
-				if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"parseAllHueLightsData: on Bridge#:{} There are {} lights on the Hue bridge.".format(hubNumber, len(self.hueConfigDict[hubNumber]['lights'] )))
-			if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"parseAllHueLightsData:  and Indigo devices controlling Hue devices.".format(len(self.deviceList)))
+			if self.decideMyLog("UpdateIndigoDevices"):
+				for hubNumber in self.hueConfigDict:
+					if "lights" not in self.hueConfigDict[hubNumber]: continue
+					self.indiLOG.log(10,"parseAllHueLightsData: on Bridge#:{} There are {} lights on the Hue bridge.".format(hubNumber, len(self.hueConfigDict[hubNumber]['lights'] )))
+			if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"parseAllHueLightsData:  and Indigo devices controlling Hue devices:{}, \naccepted types:{}<<".format(self.deviceList, kLightDeviceTypeIDs))
+
 			for deviceId in self.deviceList:
-				#indigo.server.log("refresh              lights parse 0.0 time:{}".format( time.time()))
+				#self.indiLOG.log(10,"parseAllHueLightsData     deviceId:{},   deviceTypeId, hub#, id#:{}  ".format( deviceId, self.deviceList[deviceId]))
+				if self.deviceList[deviceId].get('typeId','') not in kLightDeviceTypeIDs: continue
 				device = indigo.devices[deviceId]
 				pluginProps = device.pluginProps
 				if device.deviceTypeId in kLightDeviceTypeIDs:
 					if "hubNumber" not in pluginProps:
 						if time.time() - self.lastReminderHubNumberNotPresent > 100: 
-							self.indiLOG.log(30,"parseAllHueLightsData device>{}< not properly setup, please select bridge# in device edit".format(device.name))
+							self.indiLOG.log(30,"parseAllHueLightsData device>{}< id:{} not properly setup, please select bridge# in device edit".format(device.name, deviceId))
 						self.lastReminderHubNumberNotPresent = time.time()
 						continue
 
@@ -5787,18 +6142,15 @@ class Plugin(indigo.PluginBase):
 							self.lastReminderHubNumberNotPresent = time.time()
 						continue
 					if "lights" in self.hueConfigDict[hubNumber]:
-						for bulbId in self.hueConfigDict[hubNumber]['lights'] :
-							if bulbId == device.pluginProps['bulbId']:
-								#indigo.server.log("refresh              lights parse 1.0 time:{}".format(time.time()))
-								self.parseOneHueLightData(self.hueConfigDict[hubNumber]['lights'][bulbId], device)
-								#indigo.server.log("refresh              lights parse 2.0 time:{}".format( time.time()))
-								break
+						if device.pluginProps['bulbId'] in self.hueConfigDict[hubNumber]['lights']:
+							self.parseOneHueLightData(self.hueConfigDict[hubNumber]['lights'][device.pluginProps['bulbId']], device, hubNumber, device.pluginProps['bulbId'] )
+							
 		except Exception:
 			self.logger.error("", exc_info=True)
 
 	# Parse One Hue Light Data
 	########################################
-	def parseOneHueLightData(self, bulb, device):
+	def parseOneHueLightData(self, bulb, device, hubNumber="", bulbId=""):
 		## if if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"Starting parseOneHueLightData.")
 
 		# Take the bulb passed to this method, look up the data already obtained from the Hue bridge
@@ -5810,12 +6162,19 @@ class Plugin(indigo.PluginBase):
 		colorMode = ""
 		colorTemp = ""
 		try:
-			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			if self.trackSpecificDevice == device.id:	
+				sendLog = 20
+				self.indiLOG.log(sendLog, "Hue Lights tracking:{}".format(bulb) )
+			else: 	sendLog = self.sendDeviceUpdatesTo
+
 			deviceId = device.id
 			devName = device.name
 			stateUpdateList = []
 			decimalPlaces = 4
 
+
+			#if device.id == 1144808261:   self.indiLOG.log(10,"parseOneHueLightData: {}, hubNumber:{}, bulbId:{},     hue dict:{} ".format(device.name, hubNumber, bulbId, bulb))
 			# Separate out the specific Hue bulb data.
 			# Data common to all device types...
 			#   Value assignments.
@@ -5834,17 +6193,15 @@ class Plugin(indigo.PluginBase):
 					device.setErrorStateOnServer("")
 				onState 			= bulb['state'].get('on', False)
 				if device.onState != onState:
-					if logChanges: self.indiLOG.log(20, "Updated  \"{}\"  on/off {} old:{}".format(device.name, onState, device.onState))
+					if logChanges: self.indiLOG.log(sendLog, "Updated  \"{}\"  on/off {} old:{}".format(device.name, onState, device.onState))
 				if "{}".format(onState) == "True":
 					stateUpdateList = self.checkIfUpdateState(device, 'onOffState', 'on', uiValue="on", stateUpdateList=stateUpdateList)
 				elif "{}".format(onState) == "False":
 					stateUpdateList = self.checkIfUpdateState(device, 'onOffState', 'off', uiValue="off", stateUpdateList=stateUpdateList)
 
-				alert 				= bulb['state'].get('alert', "")
-				effect 				= bulb['state'].get('effect', "none")
-				stateUpdateList = self.checkIfUpdateState(device, 'online', online,  stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'effect', effect, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'alertMode', alert, stateUpdateList=stateUpdateList)
+				stateUpdateList = self.checkIfUpdateState(device, 'online', True,  stateUpdateList=stateUpdateList)
+				stateUpdateList = self.checkIfUpdateState(device, 'effect', bulb['state'].get('effect', "none"), stateUpdateList=stateUpdateList)
+				stateUpdateList = self.checkIfUpdateState(device, 'alertMode', bulb['state'].get('alert', ""), stateUpdateList=stateUpdateList)
 
 			# Update the error state if needed.
 			else:
@@ -5970,7 +6327,7 @@ class Plugin(indigo.PluginBase):
 					# Update the brightness level if it's different.
 						
 					if device.states['brightnessLevel'] != brightnessLevel:
-						if logChanges: self.indiLOG.log(20, "Updated  \"{}\"  to {}".format(device.name, brightnessLevel))
+						if logChanges: self.indiLOG.log(sendLog, "Updated  \"{}\"  to {}".format(device.name, brightnessLevel))
 
 					stateUpdateList = self.checkIfUpdateState(device , 'brightnessLevel', brightnessLevel, stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'hue', hue, stateUpdateList=stateUpdateList )
@@ -5996,7 +6353,7 @@ class Plugin(indigo.PluginBase):
 				for controlDeviceId in self.controlDeviceList:
 					if controlDeviceId not in self.deviceList: continue 
 					if controlDeviceId not in indigo.devices:
-						if logChanges: self.indiLOG.log(20, " control dev id:{} not in indigo device list:{}, \ntry to restart plugin".format(controlDeviceId, self.controlDeviceList))
+						if logChanges: self.indiLOG.log(sendLog, " control dev id:{} not in indigo device list:{}, \ntry to restart plugin".format(controlDeviceId, self.controlDeviceList))
 					else:    
 						controlDevice = indigo.devices[int(controlDeviceId)]
 						attributeToControl = controlDevice.pluginProps.get('attributeToControl', None)
@@ -6053,7 +6410,7 @@ class Plugin(indigo.PluginBase):
 				# Update the Indigo device if the Hue device is on.
 				if str(onState) in ['True','False']:
 					if device.states['brightnessLevel'] != brightnessLevel:
-						if logChanges: self.indiLOG.log(20, "Updated  \"{}\" to {}".format(device.name, brightnessLevel))
+						if logChanges: self.indiLOG.log(sendLog, "Updated  \"{}\" to {}".format(device.name, brightnessLevel))
 					stateUpdateList = self.checkIfUpdateState(device , 'brightnessLevel', brightnessLevel, stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'colorTemp', colorTemp, stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'colorMode', colorMode, stateUpdateList=stateUpdateList )
@@ -6142,7 +6499,7 @@ class Plugin(indigo.PluginBase):
 				if str(onState) in ['True','False']:
 
 					if device.states['brightnessLevel'] != brightnessLevel:
-						if logChanges: self.indiLOG.log(20, "Updated  \"{}\" to {}".format(device.name, brightnessLevel))
+						if logChanges: self.indiLOG.log(sendLog, "Updated  \"{}\" to {}".format(device.name, brightnessLevel))
 						stateUpdateList = self.checkIfUpdateState(device , 'brightnessLevel', brightnessLevel, stateUpdateList=stateUpdateList )
 
 					if dType in ['Color light', 'Extended color light']:
@@ -6252,7 +6609,7 @@ class Plugin(indigo.PluginBase):
 				# Update the Indigo device if the Hue device is on.
 				if str(onState) in ['True','False']:
 					if device.states['brightnessLevel'] != brightnessLevel:
-						if logChanges: self.indiLOG.log(20, "Updated  \"{}\"  to {}".format(device.name, brightnessLevel))
+						if logChanges: self.indiLOG.log(sendLog, "Updated  \"{}\"  to {}".format(device.name, brightnessLevel))
 					stateUpdateList = self.checkIfUpdateState(device , 'brightnessLevel', brightnessLevel, stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'hue', hue, stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'saturation', saturation, stateUpdateList=stateUpdateList )
@@ -6310,13 +6667,13 @@ class Plugin(indigo.PluginBase):
 					# Update the brightness level if it's different.
 					if device.states['brightnessLevel'] != brightnessLevel:
 						# Log the update.
-						if logChanges: self.indiLOG.log(20, "Updated  \"{}\" type:{},  to {}, onoff={}".format(device.name, kLivingWhitesDeviceIDType, brightnessLevel, onState))
+						if logChanges: self.indiLOG.log(sendLog, "Updated  \"{}\" type:{},  to {}, onoff={}".format(device.name, kLivingWhitesDeviceIDType, brightnessLevel, onState))
 						stateUpdateList = self.checkIfUpdateState(device , 'brightnessLevel', brightnessLevel, stateUpdateList=stateUpdateList )
 				elif str(onState) == "False":
 					# Hue device is off. Set brightness to zero.
 					if device.states['brightnessLevel'] != 0:
 						# Log the update.
-						if logChanges: self.indiLOG.log(20, "Updated  \"{}\" type:{},  to {}, onoff={}".format(device.name, kLivingWhitesDeviceIDType, brightnessLevel, onState))
+						if logChanges: self.indiLOG.log(sendLog, "Updated  \"{}\" type:{},  to {}, onoff={}".format(device.name, kLivingWhitesDeviceIDType, brightnessLevel, onState))
 						stateUpdateList = self.checkIfUpdateState(device , 'brightnessLevel', brightnessLevel, stateUpdateList=stateUpdateList )
 				else:
 					# Unrecognized on state, but not important enough to mention in regular log.
@@ -6363,6 +6720,7 @@ class Plugin(indigo.PluginBase):
 		#   devices that are controlling the Hue group devices.
 		try:
 			for deviceId in self.deviceList:
+				if self.deviceList[deviceId].get('typeId',-1) in kGroupDeviceTypeIDs: continue
 				device = indigo.devices[deviceId]
 				pluginProps = device.pluginProps
 				if device.deviceTypeId in kGroupDeviceTypeIDs:
@@ -6376,10 +6734,9 @@ class Plugin(indigo.PluginBase):
 							self.lastReminderHubNumberNotPresent = time.time()
 						continue
 					if "groups" in self.hueConfigDict[hubNumber]:
-						for groupId in self.hueConfigDict[hubNumber]['groups']:
-							if groupId == pluginProps['groupId']:
-								self.parseOneHueGroupData(self.hueConfigDict[hubNumber]['groups'][groupId], device)
-								break
+						if pluginProps['groupId'] in self.hueConfigDict[hubNumber]['groups']:
+							self.parseOneHueGroupData(self.hueConfigDict[hubNumber]['groups'][pluginProps['groupId']], device)
+							
 		except Exception:
 			self.logger.error("", exc_info=True)
 
@@ -6393,8 +6750,12 @@ class Plugin(indigo.PluginBase):
 		# Take the groupId and device passed to this method, look up the data already obtained from the Hue bridge
 		# and parse the bridge data for this group, making changes to the Indigo device as needed.
 		try:
-			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
 			if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"Starting parseOneHueGroupData.")
+			if self.trackSpecificDevice == device.id:	
+				sendLog = 20
+				self.indiLOG.log(sendLog, "Hue Groups tracking:{}".format(group) ) 
+			else: 	sendLog = self.sendDeviceUpdatesTo
 
 			deviceId = device.id
 			decimalPlaces = 4
@@ -6413,8 +6774,6 @@ class Plugin(indigo.PluginBase):
 			onState = group['action'].get('on', False)
 			allOn = group['state'].get('all_on', False)
 			anyOn = group['state'].get('any_on', False)
-			effect = group['action'].get('effect', "")
-			alert = group['action'].get('alert', "")
 			# Use a generic yellow hue as default if there isn't a hue.
 			hue = group['action'].get('hue', 10920)
 			saturation = group['action'].get('sat', 0)
@@ -6433,8 +6792,8 @@ class Plugin(indigo.PluginBase):
 
 			stateUpdateList = self.checkIfUpdateState(device, 'nameOnBridge', nameOnBridge, stateUpdateList=stateUpdateList )
 			stateUpdateList = self.checkIfUpdateState(device, 'type', groupType, stateUpdateList=stateUpdateList )
-			stateUpdateList = self.checkIfUpdateState(device, 'alertMode', alert, stateUpdateList=stateUpdateList )
-			stateUpdateList = self.checkIfUpdateState(device, 'effect', effect, stateUpdateList=stateUpdateList )
+			stateUpdateList = self.checkIfUpdateState(device, 'alertMode', group['action'].get('alert', ""), stateUpdateList=stateUpdateList )
+			stateUpdateList = self.checkIfUpdateState(device, 'effect', group['action'].get('effect', ""), stateUpdateList=stateUpdateList )
 
 
 			i = 0		# To count members in group.
@@ -6504,7 +6863,7 @@ class Plugin(indigo.PluginBase):
 				# Update the brightness level if it's different.
 					
 				if device.states['brightnessLevel'] != brightnessLevel:
-					if logChanges: self.indiLOG.log(20, "Updated  \"{}\"  to {}".format(device.name, brightnessLevel))
+					if logChanges: self.indiLOG.log(sendLog, "Updated  \"{}\"  to {}".format(device.name, brightnessLevel))
 
 				stateUpdateList = self.checkIfUpdateState(device , 'brightnessLevel', brightnessLevel, stateUpdateList=stateUpdateList )
 				stateUpdateList = self.checkIfUpdateState(device , 'hue', hue, stateUpdateList=stateUpdateList )
@@ -6580,7 +6939,9 @@ class Plugin(indigo.PluginBase):
 		#   devices that are controlling the Hue sensors devices.
 		try:
 			for deviceId in self.deviceList:
+				if self.deviceList[deviceId].get('typeId',-1) not in kSensorTypeList: continue
 				device = indigo.devices[deviceId]
+				#self.indiLOG.log(20,"parseAllHueSensorsData  dev>{}< type:{}, devlisttype:{}".format(device.name, device.deviceTypeId, self.deviceList[deviceId]  ))
 				if device.deviceTypeId in kSensorTypeList:
 					hubNumber = device.pluginProps['hubNumber']
 					if hubNumber not in self.hueConfigDict:
@@ -6589,9 +6950,8 @@ class Plugin(indigo.PluginBase):
 							self.lastReminderHubNumberNotPresent = time.time()
 						continue
 					if "sensors" in self.hueConfigDict[hubNumber]:
-						for sensorId in self.hueConfigDict[hubNumber]['sensors'] :
-							if sensorId == device.pluginProps['sensorId']:
-								self.parseOneHueSensorData(self.hueConfigDict[hubNumber]['sensors'][sensorId], device)
+						if device.pluginProps['sensorId'] in self.hueConfigDict[hubNumber]['sensors'] :
+							self.parseOneHueSensorData(self.hueConfigDict[hubNumber]['sensors'][device.pluginProps['sensorId']], device)
 		except Exception:
 			self.logger.error("", exc_info=True)
 		return 
@@ -6602,12 +6962,22 @@ class Plugin(indigo.PluginBase):
 		#self.indiLOG.log(20,"Starting parseOneHueSensorData. device:{:25s}".format(device.name))
 		sensorValue = ""
 		try:
-			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			if self.trackSpecificDevice == device.id:	
+				sendLog = 20
+				self.indiLOG.log(sendLog, "Hue Sensors tracking:{}".format(sensor) ) 
+			else: 	
+				sendLog = self.sendDeviceUpdatesTo
+
 
 			stateUpdateList = []
 
+
+			#if device.id == 75886730: self.indiLOG.log(20,"parseOneHueSensorData  dev>{}< type:{}, sensor:{}".format(device.name, device.deviceTypeId, sensor ))
+
 			if "state" in sensor:
-				lastUpdated 	= sensor['state'].get('lastupdated', "")
+				try: 	lastUpdated = datetime.datetime.strptime(sensor['state'].get('lastupdated', ""),'%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S')
+				except:	lastUpdated = ""
 			else:
 				lastUpdated 	= ""
 
@@ -6627,15 +6997,11 @@ class Plugin(indigo.PluginBase):
 						return
 					else:
 						device.setErrorStateOnServer("")
-				batteryLevel 	= sensor['config'].get('battery', 0)
-				ledEnabled 		= sensor['config'].get('ledindication', False)
-				testMode 		= sensor['config'].get('usertest', False)
-				alert 			= sensor['config'].get('alert', "none")
 				stateUpdateList = self.checkIfUpdateState(device, 'online', 		True, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'ledEnabled', 	ledEnabled, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'testMode', 		testMode, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'alertMode', 		alert, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'batteryLevel',	batteryLevel, stateUpdateList=stateUpdateList )
+				stateUpdateList = self.checkIfUpdateState(device, 'ledEnabled', 	sensor['config'].get('ledindication', False), stateUpdateList=stateUpdateList )
+				stateUpdateList = self.checkIfUpdateState(device, 'testMode', 		sensor['config'].get('usertest', False), stateUpdateList=stateUpdateList )
+				stateUpdateList = self.checkIfUpdateState(device, 'alertMode', 		sensor['config'].get('alert', "none"), stateUpdateList=stateUpdateList )
+				stateUpdateList = self.checkIfUpdateState(device, 'batteryLevel',	sensor['config'].get('battery', 0), stateUpdateList=stateUpdateList )
 
 			else:
 				enabledOnHub 	= False
@@ -6665,6 +7031,12 @@ class Plugin(indigo.PluginBase):
 			tempProps['modelId'] = modelId
 			tempProps['enabledOnHub'] = enabledOnHub
 
+
+			changedTimeStamp = lastUpdated != device.states['lastUpdated']
+
+
+
+
 			# -- Hue Motion Sensor (Motion) --
 			if device.deviceTypeId == "hueMotionSensor":
 				## self.debugLog("parseOneHueSensorData: Parsing Hue sensor ID %s (\"%s\")." % (device.pluginProps.get('sensorId', ""), sensor.get('name', "no name")))
@@ -6691,7 +7063,7 @@ class Plugin(indigo.PluginBase):
 				if enabledOnHub:
 					# Log any change to the onState.
 					if onStateBool != device.onState:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: status update is {}".format(device.name, onState))
+						if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: status update is {}".format(device.name, onState))
 					stateUpdateList = self.checkIfUpdateState(device, 'onOffState', onStateBool, uiValue=onState, uiImage=sensorIcon, stateUpdateList=stateUpdateList )
 				# Update the error state if needed.
 			# End if this is a Hue motion sensor.
@@ -6744,12 +7116,10 @@ class Plugin(indigo.PluginBase):
 				if enabledOnHub:
 					# Log any change to the sensorValue.
 					if sensorValue != device.sensorValue:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: sensor update to {}".format(device.name, sensorUiValue))
+						if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: sensor update to {}".format(device.name, sensorUiValue))
 					stateUpdateList = self.checkIfUpdateState(device, 'temperatureC', temperatureC, decimalPlaces=sensorPrecision, stateUpdateList=stateUpdateList )
-					stateUpdateList = self.checkIfUpdateState(device, 'temperatureF', temperatureF,  decimalPlaces=sensorPrecision, stateUpdateList=stateUpdateList )
-					stateUpdateList = self.checkIfUpdateState(device, 'sensorValue', sensorValue, uiValue=sensorUiValue, decimalPlaces=sensorPrecision, uiImage=sensorIcon, stateUpdateList=stateUpdateList )
-					# Update the error state if needed.
-			# End if this is a Hue temperature sensor.
+					stateUpdateList = self.checkIfUpdateState(device, 'temperatureF', temperatureF, decimalPlaces=sensorPrecision, stateUpdateList=stateUpdateList )
+					stateUpdateList = self.checkIfUpdateState(device, 'sensorValue',  sensorValue, 	decimalPlaces=sensorPrecision, stateUpdateList=stateUpdateList,  uiValue=sensorUiValue, uiImage=sensorIcon )
 
 			# -- Hue Motion Sensor (Luninance) --
 			if device.deviceTypeId == "hueMotionLightSensor":
@@ -6836,695 +7206,189 @@ class Plugin(indigo.PluginBase):
 				else:
 					sensorIcon = indigo.kStateImageSel.LightSensor
 
-				# Update the states on the device.
-
-
-				stateUpdateList = self.checkIfUpdateState(device, 'dark', 				dark, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'darkThreshold', 		darkThreshold, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'daylight', 			daylight, stateUpdateList=stateUpdateList )
+				if True:
+					stateUpdateList = self.checkIfUpdateState(device, 'dark', 			dark, 			stateUpdateList=stateUpdateList )
+					stateUpdateList = self.checkIfUpdateState(device, 'darkThreshold',	darkThreshold,	stateUpdateList=stateUpdateList )
+					stateUpdateList = self.checkIfUpdateState(device, 'daylight', 		daylight, 		stateUpdateList=stateUpdateList )
 
 				# Update the sensor value, but only if the sensor is enabled on the bridge.
 				if enabledOnHub:
 					# Log any change to the sensorValue.
 					if sensorValue != device.sensorValue:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: sensor update to {}".format(device.name, sensorUiValue))
-					stateUpdateList = self.checkIfUpdateState(device, 'luminance', 		luminance, decimalPlaces=sensorPrecision, stateUpdateList=stateUpdateList )
-					stateUpdateList = self.checkIfUpdateState(device, 'luminanceRaw',	luminanceRaw, decimalPlaces=sensorPrecision, stateUpdateList=stateUpdateList )
-					stateUpdateList = self.checkIfUpdateState(device, 'sensorValue', 	sensorValue, uiValue=sensorUiValue, decimalPlaces=sensorPrecision, uiImage=sensorIcon, stateUpdateList=stateUpdateList )
-			# End if this is a Hue luminance sensor.
-
-			# -- Hue Tap Switch --
-			if device.deviceTypeId == "hueTapSwitch":
-				## self.debugLog("parseOneHueSensorData: Parsing Hue sensor ID %s (\"%s\")." % (device.pluginProps.get('sensorId', ""), sensor.get('name', "no name")))
-
-				# Separate out the specific Hue sensor data.
-				buttonEventID = sensor['state'].get('buttonevent', 0)
-				if buttonEventID is None: buttonEventID = 0
-				# The lastButtonPressed variable is used for the device state of the same name.
-				# 0 = No button has been pressed since device was paired with Hue bridge.
-				# 1 = Button 1
-				# 2 = Button 2
-				# 3 = Button 3
-				# 4 = Button 4
-				lastButtonPressed = 0
-				onStateBool = False
-				# Create initial value assignments for all the buttons.
-				button1On			= False
-				button2On			= False
-				button3On			= False
-				button4On			= False
-				# Populate the button on/off states based on this buttonEventID.
-				# -- BUTTON 1 --
-				if buttonEventID == 34:
-					# Update the last button pressed state variable.
-					lastButtonPressed = 1
-					# Only set the button ON condition if the lastUpdated value has changed.
-					if lastUpdated != device.states['lastUpdated']:
-						button1On = True
-						# Log any change to the onState.
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: button 1 press".format(device.name))
-				# -- BUTTON 2 --
-				elif buttonEventID == 16:
-					lastButtonPressed = 2
-					if lastUpdated != device.states['lastUpdated']:
-						button2On = True
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: button 2 press".format(device.name))
-				# -- BUTTON 3 --
-				elif buttonEventID == 17:
-					lastButtonPressed = 3
-					if lastUpdated != device.states['lastUpdated']:
-						button3On = True
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: button 3 press".format(device.name))
-				# -- BUTTON 4 --
-				elif buttonEventID == 18:
-					lastButtonPressed = 4
-					if lastUpdated != device.states['lastUpdated']:
-						button4On = True
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: button 4 press".format(device.name))
-
-				if button1On or button2On or button3On or button4On:
-					onStateBool = True
-
-				# Convert True/False onState to on/off values.
-				if onStateBool:
-					onState = "on"
-					sensorIcon = indigo.kStateImageSel.PowerOn
-				else:
-					onState = "off"
-					sensorIcon = indigo.kStateImageSel.PowerOff
-
-
-				# Update the states on the device.
-				stateUpdateList = self.checkIfUpdateState(device, 'button1On', 			button1On, 			stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button2On',			button2On, 			stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button3On', 			button3On, 			stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button4On', 			button4On, 			stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'lastButtonPressed', 	lastButtonPressed, 	stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'buttonEventID',		buttonEventID,		stateUpdateList=stateUpdateList )
-				# Update the device state.  Passing device object, state name, state value, decimal precision, display value, icon selection.
-				stateUpdateList = self.checkIfUpdateState(device, 'onOffState', 		onStateBool, 		uiValue=onState, uiImage=sensorIcon, stateUpdateList=stateUpdateList )
-			# End if this is a Hue Tap Switch sensor.
+						if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: sensor update to {}".format(device.name, sensorUiValue))
+					stateUpdateList = self.checkIfUpdateState(device, 'luminance', 		luminance, 		stateUpdateList=stateUpdateList, decimalPlaces=sensorPrecision )
+					stateUpdateList = self.checkIfUpdateState(device, 'luminanceRaw',	luminanceRaw,	stateUpdateList=stateUpdateList, decimalPlaces=sensorPrecision )
+					stateUpdateList = self.checkIfUpdateState(device, 'sensorValue', 	sensorValue,  	stateUpdateList=stateUpdateList, decimalPlaces=sensorPrecision,	uiValue=sensorUiValue, uiImage=sensorIcon, )
 
 			# -- Hue Dimmer Switch --
-			if device.deviceTypeId == "hueDimmerSwitch":
-				#if device.name =="Hue_sensor_0_113_Hue dimmer office 2":  self.indiLOG.log(10, "parseOneHueSensorData: Parsing Hue sensor buttonEventID:{}, lastUpdated:{}; sensor {}; devstates:{}.".format(buttonEventID, lastUpdated, sensor, device.states))
-		
-				# Separate out the specific Hue sensor data.
-				buttonEventID = sensor['state'].get('buttonevent', 0)
-				if buttonEventID is None: buttonEventID = 0
-				# The lastButtonPressed variable is used for the device state of the same name.
-				# 0 = No button has been pressed since device was paired with Hue bridge.
-				# 1 = ON button
-				# 2 = DIM UP button
-				# 3 = DIM DOWN button
-				# 4 = OFF button
-				lastButtonPressed = 0
-				onStateBool = False
-				# Create initial value assignments for all the buttons.
-				button1On			= False
-				button1Hold			= False
-				button1ReleaseShort	= False
-				button1ReleaseLong	= False
-				button2On			= False
-				button2Hold			= False
-				button2ReleaseShort	= False
-				button2ReleaseLong	= False
-				button3On			= False
-				button3Hold			= False
-				button3ReleaseShort	= False
-				button3ReleaseLong	= False
-				button4On			= False
-				button4Hold			= False
-				button4ReleaseShort	= False
-				button4ReleaseLong	= False
-				# Populate the button on/off states based on this buttonEventID.
-				# -- BUTTON 1 --
-				if buttonEventID == 1000:
-					# Update the last button pressed state variable.
-					lastButtonPressed = 1
-					# Sometimes the Hue bridge doesn't detect button releases from the Dimmer Switch and
-					#   will continue to show the most recent button event as the initial press event.
-					#   If the lastUpdated value from the Hue bridge hasn't changed, then allow the button
-					#   on state to revert back to OFF (False) as set above. But if the lastUpdated value
-					#   from the Hue bridge is different, then this must be a new initial button press,
-					#   so set the button on state to True.
-					if lastUpdated != device.states['lastUpdated']:
-						button1On = True
-						# Log any change to the onState.
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: ON button press".format(device.name))
-				elif buttonEventID == 1001:
-					lastButtonPressed = 1
-					button1On = True
-					button1Hold = True
-					# Don't write to the Indigo log unless this is the first time this status has been seen.
-					if button1Hold != device.states['button1Hold']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: ON button press and hold".format(device.name))
-				elif buttonEventID == 1002:
-					lastButtonPressed = 1
-					button1ReleaseShort = True
-					# We're checking to see if a button press event was missed since we can only check the
-					#   Hue bridge every 2 seconds or so.  If the last button event was a button release
-					#   but the current device state for the button shows it was never on, and the lastUpdated
-					#   time on the Hue bridge is different than that in the Indigo device, then the button
-					#   had to have been pressed at some point, so we'll set the button ON state to True.
-					if lastUpdated != device.states['lastUpdated']:
-						# Update the Indigo log about the received button event regardless of current on state.
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: ON button press with short release".format(device.name))
-						if not device.states['button1On']:
-							button1On = True
-					# Conversely, if the Indigo device state for the button is currently set to True, but
-					#   the lastUpdated time on the bridge is the same as on the Indigo device, that means
-					#   we set it to True the last time around and now we need to set it back to False.
-					#   so we'll just leave the button1On variable set to the initial False assignment above.
-				elif buttonEventID == 1003:
-					lastButtonPressed = 1
-					button1ReleaseLong = True
-					if lastUpdated != device.states['lastUpdated']:
-						# Update the Indigo log regardless of current button on state.
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: ON button press with long release".format(device.name))
-						if not device.states['button1On']:
-							button1On = True
-				# -- BUTTON 2 --
-				elif buttonEventID == 2000:
-					lastButtonPressed = 2
-					if lastUpdated != device.states['lastUpdated']:
-						button2On = True
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: DIM UP button press".format(device.name))
-				elif buttonEventID == 2001:
-					lastButtonPressed = 2
-					button2On = True
-					button2Hold = True
-					if button2Hold != device.states['button2Hold']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: DIM UP button press and hold".format(device.name))
-				elif buttonEventID == 2002:
-					lastButtonPressed = 2
-					button2ReleaseShort = True
-					if lastUpdated != device.states['lastUpdated']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: DIM UP button press with short release".format(device.name))
-						if not device.states['button2On'] :
-							button2On = True
-				elif buttonEventID == 2003:
-					lastButtonPressed = 2
-					button2ReleaseLong = True
-					if lastUpdated != device.states['lastUpdated']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: DIM UP button press with long release".format(device.name))
-						if not device.states['button2On'] :
-							button2On = True
-				# -- BUTTON 3 --
-				elif buttonEventID == 3000:
-					lastButtonPressed = 3
-					if lastUpdated != device.states['lastUpdated']:
-						button3On = True
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: DIM DOWN button press".format(device.name))
-				elif buttonEventID == 3001:
-					lastButtonPressed = 3
-					button3On = True
-					button3Hold = True
-					if button3Hold != device.states['button3Hold']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: DIM DOWN button press and hold".format(device.name))
-				elif buttonEventID == 3002:
-					lastButtonPressed = 3
-					button3ReleaseShort = True
-					if lastUpdated != device.states['lastUpdated']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: DIM DOWN button press with short release".format(device.name))
-						if not device.states['button3On'] :
-							button3On = True
-				elif buttonEventID == 3003:
-					lastButtonPressed = 3
-					button3ReleaseLong = True
-					if lastUpdated != device.states['lastUpdated']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: DIM DOWN button press with long release".format(device.name))
-						if not device.states['button3On'] :
-							button3On = True
-				# -- BUTTON 4 --
-				elif buttonEventID == 4000:
-					lastButtonPressed = 4
-					if lastUpdated != device.states['lastUpdated']:
-						button4On = True
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: OFF button press".format(device.name))
-				elif buttonEventID == 4001:
-					lastButtonPressed = 4
-					button4On = True
-					button4Hold = True
-					if button4Hold != device.states['button4Hold']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: OFF button press and hold".format(device.name))
-				elif buttonEventID == 4002:
-					lastButtonPressed = 4
-					button4ReleaseShort = True
-					if lastUpdated != device.states['lastUpdated']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: OFF button press with short release".format(device.name))
-						if not device.states['button4On'] :
-							button4On = True
-				elif buttonEventID == 4003:
-					lastButtonPressed = 4
-					button4ReleaseLong = True
-					if lastUpdated != device.states['lastUpdated']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: OFF button press with long release".format(device.name))
-						if not device.states['button4On'] :
-							button4On = True
+			if device.deviceTypeId in keventButtonSettings:
+				shortcut = keventButtonSettings[device.deviceTypeId]
+				#deviceMode = sensor['config'].get('devicemode', "") not used
 
-				# Set the overall sensor on state to True if any button was pressed.
-				if button1On or button2On or button3On or button4On:
-					onStateBool = True
+				errorFound 		= 0
+				lastButtonPressed 	= 0
+				onStateBool 		= False
+				buttonOn			= False
+				buttonHold			= False
+				buttonReleaseShort	= False
+				buttonReleaseLong	= False
+				buttonLongPress		= False
+				buttonRelease 		= False
+				buttonBeingHeld 	= False
+				eventType 			= -1
 
-				# Convert True/False onState to on/off values.
-				if onStateBool:
-					onState = "on"
-					sensorIcon = indigo.kStateImageSel.PowerOn
-				else:
-					onState = "off"
-					sensorIcon = indigo.kStateImageSel.PowerOff
+				buttonEventID	= sensor['state'].get('buttonevent', 0)
+				if buttonEventID is None:	buttonEventID = 0
+				if buttonEventID == 0: 		errorFound = 1
+
+				if errorFound == 0:
+					try:
+						ii = buttonEventID//shortcut['findbuttonNumbers']['//'] # for eg evtypeID = 3002 gives 3
+						if ii not in shortcut['findbuttonNumbers']['buttonNumbers']:
+							errorFound = 2
+						else:		
+							lastButtonPressed = shortcut['findbuttonNumbers']['buttonNumbers'][ii]
+							if  lastButtonPressed == 0: 
+								errorFound = 3
+							else:
+								kk = buttonEventID%shortcut['findEventType']['%']  # for eg evtypeID = 3002 gives 2
+								if kk not in shortcut['findEventType']['evType']:
+									errorFound = 4
+								else:
+									eventType = shortcut['findEventType']['evType'][kk]
+					except Exception:
+						errorFound = 5
+						self.indiLOG.log(self.sendDeviceUpdatesTo, "{:40s} dType:{}, buttonEID: {},  eventType:{}, lastButtonPressed:{}, errorFound:{}".format(device.name, device.deviceTypeId, buttonEventID, eventType, lastButtonPressed, errorFound))
+				
+					 
+				if errorFound == 0:
+					if eventType == 0 and shortcut['eventTypesEnabled'][eventType]:
+						# Update the last button pressed state variable.
+						# Sometimes the Hue bridge doesn't detect button releases from the Dimmer Switch and
+						#   will continue to show the most recent button event as the initial press event.
+						#   If the lastUpdated value from the Hue bridge hasn't changed, then allow the button
+						#   on state to revert back to OFF (False) as set above. But if the lastUpdated value
+						#   from the Hue bridge is different, then this must be a new initial button press,
+						#   so set the button on state to True.
+						if changedTimeStamp:
+							buttonOn = True
+							# Log any change to the onState.
+							if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: {}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed], shortcut['textSuffix'][eventType+1]))
+
+					elif eventType == 1 and shortcut['eventTypesEnabled'][eventType]:
+						buttonOn = True
+						buttonHold = True
+						# Don't write to the Indigo log unless this is the first time this status has been seen.
+						if buttonHold != device.states[shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][2]]:
+							if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: {}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType+1]))
+
+					elif eventType == 2 and shortcut['eventTypesEnabled'][eventType]:
+						buttonReleaseShort = True
+						# We're checking to see if a button press event was missed since we can only check the
+						#   Hue bridge every 2 seconds or so.  If the last button event was a button release
+						#   but the current device state for the button shows it was never on, and the lastUpdated
+						#   time on the Hue bridge is different than that in the Indigo device, then the button
+						#   had to have been pressed at some point, so we'll set the button ON state to True.
+						if changedTimeStamp:
+							# Update the Indigo log about the received button event regardless of current on state.
+							if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: {}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType+1]))
+							if not device.states[shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][1]]:
+								buttonOn = True
+						# Conversely, if the Indigo device state for the button is currently set to True, but
+						#   the lastUpdated time on the bridge is the same as on the Indigo device, that means
+						#   we set it to True the last time around and now we need to set it back to False.
+						#   so we'll just leave the button1On variable set to the initial False assignment above.
+
+					elif eventType == 3 and shortcut['eventTypesEnabled'][eventType]:
+						buttonReleaseLong = True
+						if changedTimeStamp:
+							# Update the Indigo log regardless of current button on state.
+							if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: {}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType+1]))
+							if not device.states[shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][1]]:
+								buttonOn = True
+
+					elif eventType == 4 and shortcut['eventTypesEnabled'][eventType]:
+						buttonLongPress = True
+						if changedTimeStamp:
+							# Update the Indigo log regardless of current button on state.
+							if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: {}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType+1]))
+							if not device.states[shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][1]]:
+								buttonOn = True
 
 
-				# Update the states on the device.
-				stateUpdateList = self.checkIfUpdateState(device, 'button1On', button1On, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button1Hold', button1Hold, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button1ReleaseShort', button1ReleaseShort, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button1ReleaseLong', button1ReleaseLong, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button2On', button2On, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button2Hold', button2Hold, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button2ReleaseShort', button2ReleaseShort, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button2ReleaseLong', button2ReleaseLong, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button3On', button3On, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button3Hold', button3Hold, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button3ReleaseShort', button3ReleaseShort, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button3ReleaseLong', button3ReleaseLong, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button4On', button4On, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button4Hold', button4Hold, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button4ReleaseShort', button4ReleaseShort, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button4ReleaseLong', button4ReleaseLong, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'lastButtonPressed', lastButtonPressed, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'buttonEventID', buttonEventID, stateUpdateList=stateUpdateList)
-				# Update the device state.  Passing device object, state name, state value, decimal precision, display value, icon selection.
-				stateUpdateList = self.checkIfUpdateState(device, 'onOffState', onStateBool, uiValue=onState, uiImage=sensorIcon, stateUpdateList=stateUpdateList )
-			# End if this is a Hue Dimmer Switch sensor.
+					elif eventType == 5 and shortcut['eventTypesEnabled'][eventType]:
+						buttonOn = True
+						# If the lastUpdated value is different, this is a new button press. Log it.
+						if changedTimeStamp:
+							if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received:{} press {}".format(device.name), shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType+1])
+						else:
+							# Looks like the button is being held down.
+							buttonHold = True
+							buttonBeingHeld = True
+							# If the Indigo device doesn't show that a button is already being held, report a button hold in the log.
+							if buttonBeingHeld != device.states['buttonBeingHeld']:
+								if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received:{} {}".format(device.name), shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType+1])
+
+					elif eventType == 6 and shortcut['eventTypesEnabled'][eventType]:
+						buttonRelease = True
+						if changedTimeStamp:
+							# Update the Indigo log about the received button event regardless of current on state.
+							if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received:{}  {}".format(device.name), shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType+1])
+							if not device.states['button1On']: buttonOn = True
+						else:
+							buttonRelease = False# reset at next cycle 
+
+					# Update the states on the device.
+					if shortcut['eventTypesEnabled'][0]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][1], buttonOn, 				stateUpdateList=stateUpdateList)
+					if shortcut['eventTypesEnabled'][1]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][2], buttonHold, 			stateUpdateList=stateUpdateList)
+					if shortcut['eventTypesEnabled'][2]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][3], buttonReleaseShort, 	stateUpdateList=stateUpdateList)
+					if shortcut['eventTypesEnabled'][3]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][4], buttonReleaseLong, 		stateUpdateList=stateUpdateList)
+					if shortcut['eventTypesEnabled'][4]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][5], buttonLongPress, 		stateUpdateList=stateUpdateList)
+					if shortcut['eventTypesEnabled'][5]:	stateUpdateList = self.checkIfUpdateState(device, 											shortcut['stateSuffix'][6], buttonBeingHeld, 		stateUpdateList=stateUpdateList)
+					if shortcut['eventTypesEnabled'][6]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][7], buttonRelease, 			stateUpdateList=stateUpdateList)
+					if True:
+															stateUpdateList = self.checkIfUpdateState(device, 'lastButtonPressed', 													lastButtonPressed, 		stateUpdateList=stateUpdateList)
+															stateUpdateList = self.checkIfUpdateState(device, 'buttonEventID', 														buttonEventID,			stateUpdateList=stateUpdateList)
+					if buttonOn:							stateUpdateList = self.checkIfUpdateState(device, 'onOffState', 														False,					stateUpdateList=stateUpdateList, uiValue="on",  uiImage=indigo.kStateImageSel.PowerOn )
+					else:									stateUpdateList = self.checkIfUpdateState(device, 'onOffState', 														True,  					stateUpdateList=stateUpdateList, uiValue="off", uiImage=indigo.kStateImageSel.PowerOff )
+
+				# End if this is a Switch sensor.
+
+
 
 			# -- Hue Smart Button --
-			if device.deviceTypeId == "hueSmartButton":
+			if device.deviceTypeId == "hueRotaryWallRing":
 				## self.debugLog("parseOneHueSensorData: Parsing Hue sensor ID %s (\"%s\")." % (device.pluginProps.get('sensorId', ""), sensor.get('name', "no name")))
 
 				# Separate out the specific Hue sensor data.
-				buttonEventID = sensor['state'].get('buttonevent', 0)
-				if buttonEventID is None: buttonEventID = 0
-				onStateBool = False
-				# Create initial value assignments for the button.
-				button1On			= False
-				button1Hold			= False
-				button1ReleaseShort	= False
-				button1ReleaseLong	= False
-				# Populate the button on/off state based on the buttonEventID.
-				if buttonEventID == 1000:
-					# Sometimes the Hue bridge doesn't detect button releases from the Dimmer Switch and
-					#   will continue to show the most recent button event as the initial press event.
-					#   If the lastUpdated value from the Hue bridge hasn't changed, then allow the button
-					#   on state to revert back to OFF (False) as set above. But if the lastUpdated value
-					#   from the Hue bridge is different, then this must be a new initial button press,
-					#   so set the button on state to True.
-					if lastUpdated != device.states['lastUpdated']:
-						button1On = True
-						# Log any change to the onState.
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: button press".format(device.name))
-				elif buttonEventID == 1001:
-					button1On = True
-					button1Hold = True
-					# Don't write to the Indigo log unless this is the first time this status has been seen.
-					if button1Hold != device.states['button1Hold']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: button press and hold".format(device.name))
-				elif buttonEventID == 1002:
-					button1ReleaseShort = True
-					# We're checking to see if a button press event was missed since we can only check the
-					#   Hue bridge every 2 seconds or so.  If the last button event was a button release
-					#   but the current device state for the button shows it was never on, and the lastUpdated
-					#   time on the Hue bridge is different than that in the Indigo device, then the button
-					#   had to have been pressed at some point, so we'll set the button ON state to True.
-					if lastUpdated != device.states['lastUpdated']:
-						# Update the Indigo log about the received button event regardless of current on state.
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: button press with short release".format(device.name))
-						if not device.states['button1On'] :
-							button1On = True
-					# Conversely, if the Indigo device state for the button is currently set to True, but
-					#   the lastUpdated time on the bridge is the same as on the Indigo device, that means
-					#   we set it to True the last time around and now we need to set it back to False.
-					#   so we'll just leave the button1On variable set to the initial False assignment above.
-				elif buttonEventID == 1003:
-					button1ReleaseLong = True
-					if lastUpdated != device.states['lastUpdated']:
-						# Update the Indigo log regardless of current button on state.
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: button press with long release".format(device.name))
-						if not device.states['button1On'] :
-							button1On = True
+				rotaryEventID = sensor['state'].get('rotaryevent', 1)
+				if   rotaryEventID is None:	rotaryEventID = "unknown"
+				elif rotaryEventID == 1: 	rotaryEventType= "single"
+				elif rotaryEventID == 2: 	rotaryEventType= "repeat"
 
-				# Set the overall sensor on state to True if any button was pressed.
-				if button1On:
+				expectedEventDuration = sensor['state'].get('expectedeventduration', 0)
+				if expectedEventDuration is None: expectedEventDuration = 0
+
+				expectedRotation = sensor['state'].get('expectedrotation', 0)
+				if expectedRotation is None: expectedRotation = 0
+
+
+				if changedTimeStamp:
+					# Update the Indigo log regardless of current button on state.
+					if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: rotationID:{}, duration:{}, rotation:{} ".format(device.name, rotaryEventID, expectedEventDuration, expectedRotation))
 					onStateBool = True
-
-				# Convert True/False onState to on/off values.
-				if onStateBool:
-					onState = "on"
-					sensorIcon = indigo.kStateImageSel.PowerOn
 				else:
-					onState = "off"
-					sensorIcon = indigo.kStateImageSel.PowerOff
-
+					onStateBool = False
 
 				# Update the states on the device.
-				stateUpdateList = self.checkIfUpdateState(device, 'button1On', button1On, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button1Hold', button1Hold, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button1ReleaseShort', button1ReleaseShort, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button1ReleaseLong', button1ReleaseLong, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'buttonEventID', buttonEventID, stateUpdateList=stateUpdateList)
+				if True:
+												stateUpdateList = self.checkIfUpdateState(device, 'rotaryEventID', 								rotaryEventID, 			stateUpdateList=stateUpdateList)
+												stateUpdateList = self.checkIfUpdateState(device, 'expectedEventDuration', 						expectedEventDuration,	stateUpdateList=stateUpdateList)
+												stateUpdateList = self.checkIfUpdateState(device, 'expectedRotation', 							expectedRotation, 		stateUpdateList=stateUpdateList)
+				if onStateBool:					stateUpdateList = self.checkIfUpdateState(device, 'onOffState', 								True, 					stateUpdateList=stateUpdateList, uiValue="on", uiImage=indigo.kStateImageSel.PowerOn )
+				else:							stateUpdateList = self.checkIfUpdateState(device, 'onOffState', 								False, 					stateUpdateList=stateUpdateList, uiValue="off", uiImage=indigo.kStateImageSel.PowerOff )
 
-				# Update the device state.  Passing device object, state name, state value, decimal precision, display value, icon selection.
-				stateUpdateList = self.checkIfUpdateState(device, 'onOffState', onStateBool, uiValue=onState, uiImage=sensorIcon, stateUpdateList=stateUpdateList )
 			# End if this is a Hue Smart Button sensor.
-
-			# -- Hue Wall Switch Module --
-			if device.deviceTypeId == "hueWallSwitchModule":
-
-				# Separate out the specific Hue sensor data.
-				deviceMode = sensor['config'].get('devicemode', "")
-				buttonEventID = sensor['state'].get('buttonevent', 0)
-				if buttonEventID is None: buttonEventID = 0
-				# The lastButtonPressed variable is used for the device state of the same name.
-				# 0 = No button has been pressed since device was paired with Hue bridge.
-				# 1 = Button 1
-				# 2 = Button 2
-				lastButtonPressed = 0
-				onStateBool = False
-				# Create initial value assignments for all the buttons.
-				button1On			= False
-				button1Hold			= False
-				button1ReleaseShort	= False
-				button1ReleaseLong	= False
-				button2On			= False
-				button2Hold			= False
-				button2ReleaseShort	= False
-				button2ReleaseLong	= False
-				# Populate the button on/off states based on the buttonEventID.
-				# -- BUTTON 1 --
-				if buttonEventID == 1000:
-					# Update the last button pressed state variable.
-					lastButtonPressed = 1
-					# Sometimes the Hue bridge doesn't detect button releases from the Dimmer Switch and
-					#   will continue to show the most recent button event as the initial press event.
-					#   If the lastUpdated value from the Hue bridge hasn't changed, then allow the button
-					#   on state to revert back to OFF (False) as set above. But if the lastUpdated value
-					#   from the Hue bridge is different, then this must be a new initial button press,
-					#   so set the button on state to True.
-					if lastUpdated != device.states['lastUpdated']:
-						button1On = True
-						# Log any change to the onState.
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: button 1 press".format(device.name))
-				elif buttonEventID == 1001:
-					lastButtonPressed = 1
-					button1On = True
-					button1Hold = True
-					# Don't write to the Indigo log unless this is the first time this status has been seen.
-					if button1Hold != device.states['button1Hold']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: button 1 press and hold".format(device.name))
-				elif buttonEventID == 1002:
-					lastButtonPressed = 1
-					button1ReleaseShort = True
-					# We're checking to see if a button press event was missed since we can only check the
-					#   Hue bridge every 2 seconds or so.  If the last button event was a button release
-					#   but the current device state for the button shows it was never on, and the lastUpdated
-					#   time on the Hue bridge is different than that in the Indigo device, then the button
-					#   had to have been pressed at some point, so we'll set the button ON state to True.
-					if lastUpdated != device.states['lastUpdated']:
-						# Update the Indigo log about the received button event regardless of current on state.
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: button 1 press with short release".format(device.name))
-						if not device.states['button1On'] :
-							button1On = True
-					# Conversely, if the Indigo device state for the button is currently set to True, but
-					#   the lastUpdated time on the bridge is the same as on the Indigo device, that means
-					#   we set it to True the last time around and now we need to set it back to False.
-					#   so we'll just leave the button1On variable set to the initial False assignment above.
-				elif buttonEventID == 1003:
-					lastButtonPressed = 1
-					button1ReleaseLong = True
-					if lastUpdated != device.states['lastUpdated']:
-						# Update the Indigo log regardless of current button on state.
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: button 1 press with long release".format(device.name))
-						if not device.states['button1On'] :
-							button1On = True
-				# -- BUTTON 2 --
-				elif buttonEventID == 2000:
-					lastButtonPressed = 2
-					if lastUpdated != device.states['lastUpdated']:
-						button2On = True
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: button 2 press".format(device.name))
-				elif buttonEventID == 2001:
-					lastButtonPressed = 2
-					button2On = True
-					button2Hold = True
-					if button2Hold != device.states['button2Hold']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: button 2 press and hold".format(device.name))
-				elif buttonEventID == 2002:
-					lastButtonPressed = 2
-					button2ReleaseShort = True
-					if lastUpdated != device.states['lastUpdated']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: button 2 press with short release".format(device.name))
-						if not device.states['button2On'] :
-							button2On = True
-				elif buttonEventID == 2003:
-					lastButtonPressed = 2
-					button2ReleaseLong = True
-					if lastUpdated != device.states['lastUpdated']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: button 2 press with long release".format(device.name))
-						if not device.states['button2On'] :
-							button2On = True
-
-				# Set the overall sensor on state to True if any button was pressed.
-				if button1On or button2On:
-					onStateBool = True
-
-				# Convert True/False onState to on/off values.
-				if onStateBool:
-					onState = "on"
-					sensorIcon = indigo.kStateImageSel.PowerOn
-				else:
-					onState = "off"
-					sensorIcon = indigo.kStateImageSel.PowerOff
-
-
-				# Update the states on the device.
-				stateUpdateList = self.checkIfUpdateState(device, 'button1On', button1On, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button1Hold', button1Hold, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button1ReleaseShort', button1ReleaseShort, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button1ReleaseLong', button1ReleaseLong, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button2On', button2On, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button2Hold', button2Hold, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button2ReleaseShort', button2ReleaseShort, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'button2ReleaseLong', button2ReleaseLong, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'lastButtonPressed', lastButtonPressed, stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'buttonEventID', buttonEventID, stateUpdateList=stateUpdateList)
-				# Update the device state.  Passing device object, state name, state value, decimal precision, display value, icon selection.
-				stateUpdateList = self.checkIfUpdateState(device, 'onOffState', onStateBool, uiValue=onState, uiImage=sensorIcon, stateUpdateList=stateUpdateList )
-			# End if this is a Hue Dimmer Switch sensor.
-
-			# -- Run Less Wire or Niko (Friends of Hue) Switch --
-			if device.deviceTypeId == "runLessWireSwitch":
-				#self.indiLOG.log(20, "parseOneHueSensorData: Parsing Hue sensor ID %s (\"%s\")." % (device.pluginProps.get('sensorId', ""), sensor.get('name', "no name")))
-
-				# Separate out the specific Hue sensor data.
-				buttonEventID = sensor['state'].get('buttonevent', 0)
-				if buttonEventID is None: buttonEventID = 0
-				# The lastButtonPressed variable is used for the device state of the same name.
-				# 0 = No button has been pressed since device was paired with Hue bridge.
-				# 1 = LEFT TOP button
-				# 2 = LEFT BOTTOM button
-				# 3 = RIGHT BOTTOM button
-				# 4 = RIGHT TOP button
-				# 14 = COMBINED TOP buttons
-				# 23 = COMBINED BOTTOM buttons
-				lastButtonPressed = 0
-				# Track whether a button is being held.
-				buttonBeingHeld = False
-				# Track overall device on state.
-				onStateBool = False
-				# Create initial value assignments for all the buttons.
-				button1On			= False
-				button1Hold			= False
-				button1Release		= False
-				button2On			= False
-				button2Hold			= False
-				button2Release		= False
-				button3On			= False
-				button3Hold			= False
-				button3Release		= False
-				button4On			= False
-				button4Hold			= False
-				button4Release		= False
-				button14On			= False
-				button14Hold		= False
-				button14Release		= False
-				button23On			= False
-				button23Hold		= False
-				button23Release		= False
-
-				#if device.name =="Hue_sensor_1_40_Friends of Hue Switch 1":  self.indiLOG.log(20, "parseOneHueSensorData: Parsing Hue sensor buttonEventID:{}, lastUpdated:{}; sensor {}; devstates:{}.".format(buttonEventID, lastUpdated, sensor, device.states))
-				# Populate the button on/off states based on this buttonEventID.
-				# -- BUTTON 1 --
-				if buttonEventID == 16:
-					lastButtonPressed = 1
-					button1On = True
-					# If the lastUpdated value is different, this is a new button press. Log it.
-					if lastUpdated != device.states['lastUpdated']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: LEFT TOP button press".format(device.name))
-					else:
-						# Looks like the button is being held down.
-						button1Hold = True
-						buttonBeingHeld = True
-						# If the Indigo device doesn't show that a button is already being held, report a button hold in the log.
-						if buttonBeingHeld != device.pluginProps.get('buttonBeingHeld', False):
-							if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: LEFT TOP button press and hold".format(device.name))
-				elif buttonEventID == 20:
-					lastButtonPressed = 1
-					button1Release = True
-					# We're checking to see if a button press event was missed since we can only check the
-					#   Hue bridge every 2 seconds or so.  If the last button event was a button release
-					#   but the current device state for the button shows it was never on, and the lastUpdated
-					#   time on the Hue bridge is different than that in the Indigo device, then the button
-					#   had to have been pressed at some point, so we'll set the button ON state to True.
-					if lastUpdated != device.states['lastUpdated']:
-						# Update the Indigo log about the received button event regardless of current on state.
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: LEFT TOP button press with release".format(device.name))
-						if not device.states['button1On'] :
-							button1On = True
-					# Conversely, if the Indigo device state for the button is currently set to True, but
-					#   the lastUpdated time on the bridge is the same as on the Indigo device, that means
-					#   we set it to True the last time around and now we need to set it back to False.
-					#   so we'll just leave the button1On variable set to the initial False assignment above.
-				# -- BUTTON 2 --
-				elif buttonEventID == 17:
-					lastButtonPressed = 2
-					button2On = True
-					if lastUpdated != device.states['lastUpdated']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: LEFT BOTTOM button press".format(device.name))
-					else:
-						button2Hold = True
-						buttonBeingHeld = True
-						if buttonBeingHeld != device.pluginProps.get('buttonBeingHeld', False):
-							if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: LEFT BOTTOM button press and hold".format(device.name))
-				elif buttonEventID == 21:
-					lastButtonPressed = 2
-					button2Release = True
-					if lastUpdated != device.states['lastUpdated']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: LEFT BOTTOM button press with release".format(device.name))
-						if not device.states['button2On'] :
-							button2On = True
-				# -- BUTTON 3 --
-				elif buttonEventID == 18:
-					lastButtonPressed = 3
-					button3On = True
-					if lastUpdated != device.states['lastUpdated']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: RIGHT BOTTOM button press".format(device.name))
-					else:
-						button3Hold = True
-						buttonBeingHeld = True
-						if buttonBeingHeld != device.pluginProps.get('buttonBeingHeld', False):
-							if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: RIGHT BOTTOM button press and hold".format(device.name))
-				elif buttonEventID == 22:
-					lastButtonPressed = 3
-					button3Release = True
-					if lastUpdated != device.states['lastUpdated']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: RIGHT BOTTOM button press with release".format(device.name))
-						if not device.states['button3On'] :
-							button3On = True
-				# -- BUTTON 4 --
-				elif buttonEventID == 19:
-					lastButtonPressed = 4
-					button4On = True
-					if lastUpdated != device.states['lastUpdated']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: RIGHT TOP button press".format(device.name))
-					else:
-						button4Hold = True
-						buttonBeingHeld = True
-						if buttonBeingHeld != device.pluginProps.get('buttonBeingHeld', False):
-							if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: RIGHT TOP button press and hold".format(device.name))
-				elif buttonEventID == 23:
-					lastButtonPressed = 4
-					button4Release = True
-					if lastUpdated != device.states['lastUpdated']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: RIGHT TOP button press with release".format(device.name))
-						if not device.states['button4On'] :
-							button4On = True
-				# -- BUTTONS 14 --
-				elif buttonEventID == 100:
-					lastButtonPressed = 14
-					button14On = True
-					if lastUpdated != device.states['lastUpdated']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: COMBINED TOP button press".format(device.name))
-					else:
-						button14Hold = True
-						buttonBeingHeld = True
-						if buttonBeingHeld != device.pluginProps.get('buttonBeingHeld', False):
-							if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: COMBINED TOP button press and hold".format(device.name))
-				elif buttonEventID == 101:
-					lastButtonPressed = 14
-					button14Release = True
-					if lastUpdated != device.states['lastUpdated']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: COMBINED TOP button press with release".format(device.name))
-						if not device.states['button14On'] :
-							button14On = True
-				# -- BUTTONS 23 --
-				elif buttonEventID == 98:
-					lastButtonPressed = 23
-					button23On = True
-					if lastUpdated != device.states['lastUpdated']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: COMBINED BOTTOM button press".format(device.name))
-					else:
-						button23Hold = True
-						buttonBeingHeld = True
-						if buttonBeingHeld != device.pluginProps.get('buttonBeingHeld', False):
-							if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: COMBINED BOTTOM button press and hold".format(device.name))
-				elif buttonEventID == 99:
-					lastButtonPressed = 23
-					button23Release = True
-					if lastUpdated != device.states['lastUpdated']:
-						if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received: COMBINED BOTTOM button press with release".format(device.name))
-						if not device.states['button23On'] :
-							button23On = True
-
-				# Set the overall sensor on state to True if any button was pressed.
-				if button1On or button2On or button3On or button4On or button14On or button23On:
-					onStateBool = True
-
-				# Convert True/False onState to on/off values.
-				if onStateBool:
-					onState = "on"
-					sensorIcon = indigo.kStateImageSel.PowerOn
-				else:
-					onState = "off"
-					sensorIcon = indigo.kStateImageSel.PowerOff
-
-				#   Update Indigo states and properties.
-				tempProps['buttonBeingHeld'] = buttonBeingHeld
-
-				# Update the states on the device.
-				stateUpdateList = self.checkIfUpdateState(device, 'button1On', button1On, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button1Hold', button1Hold, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button1Release', button1Release, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button2On', button2On, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button2Hold', button2Hold, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button2Release', button2Release, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button3On', button3On, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button3Hold', button3Hold, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button3Release', button3Release, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button4On', button4On, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button4Hold', button4Hold, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button4Release', button4Release, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button14On', button14On, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button14Hold', button14Hold, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button14Release', button14Release, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button23On', button23On, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button23Hold', button23Hold, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'button23Release', button23Release, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'lastButtonPressed', lastButtonPressed, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device, 'buttonEventID', buttonEventID, stateUpdateList=stateUpdateList )
-				# Update the device state.  Passing device object, state name, state value, decimal precision, display value, icon selection.
-				stateUpdateList = self.checkIfUpdateState(device, 'onOffState', onStateBool, uiValue=onState, uiImage=sensorIcon, stateUpdateList=stateUpdateList )
-			# End if this is a Run Less Wire Switch sensor.
 
 			if stateUpdateList != []:
 				stateUpdateList.append( {"key":"lastUpdated", "value":lastUpdated} )
@@ -7544,7 +7408,9 @@ class Plugin(indigo.PluginBase):
 		try:
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
 
-			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			if self.trackSpecificDevice == device.id:	sendLog = 20
+			else: 										sendLog = self.sendDeviceUpdatesTo
 
 			# Skip ramp rate and brightness stuff for on/off only devices.
 			if device.deviceTypeId != "hueOnOffDevice":
@@ -7652,7 +7518,7 @@ class Plugin(indigo.PluginBase):
 				if device.deviceTypeId == "hueOnOffDevice":
 					# Send the log to the console if showing the log is enabled.
 					if showLog:
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" on".format(device.name))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" on".format(device.name))
 					# Update the Indigo device.
 					self.updateDeviceState(device, 'onOffState', 'on')
 				else:
@@ -7664,9 +7530,9 @@ class Plugin(indigo.PluginBase):
 					if showLog:
 						# Customize the log based on whether the device supports ON transition time or not.
 						if device.pluginProps.get('noOnRampRate', False):
-							if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\"  to {}.".format(device.name,tempBrightness ))
+							if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {}.".format(device.name,tempBrightness ))
 						else:
-							if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\"  to {}, at ramp rate:{} sec".format( device.name, tempBrightness, rampRate / 10.0 ))
+							if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {}, at ramp rate:{} sec".format( device.name, tempBrightness, rampRate / 10.0 ))
 					# Update the Indigo device.
 					self.updateDeviceState(device, 'brightnessLevel', tempBrightness)
 			else:
@@ -7702,7 +7568,7 @@ class Plugin(indigo.PluginBase):
 				# Customize the log and device update based on whether this is an on/off device or other device.
 				if device.deviceTypeId == "hueOnOffDevice":
 					# Log the change.
-					if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" off".format(device.name))
+					if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" off".format(device.name))
 					# Update the Indigo device.
 					self.updateDeviceState(device, 'onOffState', 'off')
 				else:
@@ -7710,9 +7576,9 @@ class Plugin(indigo.PluginBase):
 					#   Some devices may not support transition times when turning off. Check for that.
 					if showLog:
 						if device.pluginProps.get('noOnRampRate', False):
-							if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" off.".format( device.name))
+							if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" off.".format( device.name))
 						else:
-							if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" off. At ramp rate {} sec.".format( device.name, rampRate / 10.0))
+							if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" off. At ramp rate {} sec.".format( device.name, rampRate / 10.0))
 					# Update the Indigo device.
 					self.updateDeviceState(device, 'brightnessLevel', 0)
 		except Exception:
@@ -7729,7 +7595,9 @@ class Plugin(indigo.PluginBase):
 		# showLog:		Optional boolean. False = hide change from Indigo log.
 		try:
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
-			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			if self.trackSpecificDevice == device.id:	sendLog = 20
+			else: 										sendLog = self.sendDeviceUpdatesTo
 
 			# Sanity check for an IP address
 			if ipAddress is None:
@@ -7812,9 +7680,9 @@ class Plugin(indigo.PluginBase):
 				# Only log changes if we're supposed to.
 				if showLog:
 					if device.pluginProps.get('noOnRampRate', False) and currentBrightness == 0:
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\"  to {}.".format( device.name, tempBrightness))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {}.".format( device.name, tempBrightness))
 					else:
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\"  to {}, at ramp rate:{} sec".format( device.name, tempBrightness, rampRate / 10.0 ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {}, at ramp rate:{} sec".format( device.name, tempBrightness, rampRate / 10.0 ))
 
 				# Update the device brightness (which automatically changes on state).
 				self.updateDeviceState(device, 'brightnessLevel', int(tempBrightness))
@@ -7852,9 +7720,9 @@ class Plugin(indigo.PluginBase):
 				# Log the change.
 				if showLog:
 					if device.pluginProps.get('noOnRampRate', False):
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" off".format( device.name ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" off".format( device.name ))
 					else:
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" off, at ramp rate:{} sec".format( device.name, rampRate / 10.0 ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" off, at ramp rate:{} sec".format( device.name, rampRate / 10.0 ))
 				# Update the device brightness (which automatically changes on state).
 				self.updateDeviceState(device, 'brightnessLevel', 0)
 		except Exception:
@@ -7870,7 +7738,9 @@ class Plugin(indigo.PluginBase):
 		# rampRate:		Optional float from 0 to 540.0 (higher values will probably work too).
 		try:
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
-			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			if self.trackSpecificDevice == device.id:	sendLog = 20
+			else: 										sendLog = self.sendDeviceUpdatesTo
 
 			# Get the model ID of the device.
 			modelId = device.pluginProps.get('modelId', "")
@@ -7993,9 +7863,9 @@ class Plugin(indigo.PluginBase):
 				if showLog:
 					# Exclude mention of ramp rate if none was used.
 					if device.pluginProps.get('noOnRampRate', False) and currentBrightness == 0:
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\"  to {}  with RGB values {},{},{}.".format( device.name, brightness, red , green, blue) )
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {}  with RGB values {},{},{}.".format( device.name, brightness, red , green, blue) )
 					else:
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\"  to {}  with RGB values {},{},{}.  at ramp rate  {} sec.".format( device.name, brightness, red , green, blue, rampRate / 10.0 ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {}  with RGB values {},{},{}.  at ramp rate  {} sec.".format( device.name, brightness, red , green, blue, rampRate / 10.0 ))
 				# Update the device state.
 				self.updateDeviceState(device, 'brightnessLevel', brightness)
 			else:
@@ -8003,9 +7873,9 @@ class Plugin(indigo.PluginBase):
 				if showLog:
 					# Exclude mention of ramp rate if none was used.
 					if device.pluginProps.get('noOnRampRate', False):
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" off".format( device.name ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" off".format( device.name ))
 					else:
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" off, at ramp rate:{} sec".format( device.name, rampRate / 10.0 ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" off, at ramp rate:{} sec".format( device.name, rampRate / 10.0 ))
 				# Update the device state.
 				self.updateDeviceState(device, 'brightnessLevel', 0)
 			# Update the other device states.
@@ -8030,7 +7900,9 @@ class Plugin(indigo.PluginBase):
 		# rampRate:		Optional float from 0 to 540.0 (higher values will probably work too).
 		try:
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
-			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			if self.trackSpecificDevice == device.id:	sendLog = 20
+			else: 										sendLog = self.sendDeviceUpdatesTo
 
 			# If a rampRate wasn't specified (default of -1 assigned), use the default.
 			#   (rampRate should be a float expressing transition time in seconds. Precission
@@ -8138,9 +8010,9 @@ class Plugin(indigo.PluginBase):
 				if showLog:
 					# Exclude mention of ramp rate if none was used.
 					if device.pluginProps.get('noOnRampRate', False) and currentBrightness == 0:
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \{}\"  to {} with hue {}� saturation {}%.".format(device.name, int(round(brightness / 255.0 * 100.0)), int(round(hue / 182.0)), int(round(saturation / 255.0 * 100.0)) ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \{}\"  to {} with hue {}� saturation {}%.".format(device.name, int(round(brightness / 255.0 * 100.0)), int(round(hue / 182.0)), int(round(saturation / 255.0 * 100.0)) ))
 					else:
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\"  to {} with hue {}� saturation {}%. % at ramp rate {}sec.".format(device.name, int(round(brightness / 255.0 * 100.0)), int(round(hue / 182.0)), int(round(saturation / 255.0 * 100.0)), rampRate / 10.0 ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {} with hue {}� saturation {}%. % at ramp rate {}sec.".format(device.name, int(round(brightness / 255.0 * 100.0)), int(round(hue / 182.0)), int(round(saturation / 255.0 * 100.0)), rampRate / 10.0 ))
 				# Change the Indigo device.
 				self.updateDeviceState(device, 'brightnessLevel', int(round(brightness / 255.0 * 100.0)))
 			else:
@@ -8148,9 +8020,9 @@ class Plugin(indigo.PluginBase):
 				if showLog:
 					# Exclude mention of ramp rate if none was used.
 					if device.pluginProps.get('noOnRampRate', False):
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" off.".format(device.name))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" off.".format(device.name))
 					else:
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" off at ramp rate {} sec.".format(device.name, rampRate / 10.0))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" off at ramp rate {} sec.".format(device.name, rampRate / 10.0))
 				# Change the Indigo device.
 				self.updateDeviceState(device, 'brightnessLevel', 0)
 			# Update the other device states.
@@ -8171,7 +8043,9 @@ class Plugin(indigo.PluginBase):
 		# rampRate:		Optional float from 0 to 540.0 (higher values will probably work too).
 		try:
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
-			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			if self.trackSpecificDevice == device.id:	sendLog = 20
+			else: 										sendLog = self.sendDeviceUpdatesTo
 
 			# If a rampRate wasn't specified (default of -1 assigned), use the default.
 			#   (rampRate should be a float expressing transition time in seconds. Precission
@@ -8280,9 +8154,9 @@ class Plugin(indigo.PluginBase):
 				if showLog:
 					# Exclude mention of ramp rate if none was used.
 					if device.pluginProps.get('noOnRampRate', False) and currentBrightness == 0:
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\"  to {} with x/y chromatisety values of {}/{}.".format( device.name,int(round(brightness / 255.0 * 100.0)), round(colorX, 4), round(colorY, 4)  ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {} with x/y chromatisety values of {}/{}.".format( device.name,int(round(brightness / 255.0 * 100.0)), round(colorX, 4), round(colorY, 4)  ))
 					else:
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\"  to {} with x/y chromatisety values of {}/{}.  at ramp rate  {} sec.".format( device.name, int(round(brightness / 255.0 * 100.0)), round(colorX, 4), round(colorY, 4), rampRate / 10.0 ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {} with x/y chromatisety values of {}/{}.  at ramp rate  {} sec.".format( device.name, int(round(brightness / 255.0 * 100.0)), round(colorX, 4), round(colorY, 4), rampRate / 10.0 ))
 				# Change the Indigo device.
 				self.updateDeviceState(device, 'brightnessLevel', int(round(brightness / 255.0 * 100.0)))
 			else:
@@ -8290,9 +8164,9 @@ class Plugin(indigo.PluginBase):
 				if showLog:
 					# Exclude mention of ramp rate if none was used.
 					if device.pluginProps.get('noOnRampRate', False):
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" off,".format( device.name ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" off,".format( device.name ))
 					else:
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" off, at ramp rate:{} sec".format( device.name, rampRate / 10.0 ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" off, at ramp rate:{} sec".format( device.name, rampRate / 10.0 ))
 				# Change the Indigo device.
 				self.updateDeviceState(device, 'brightnessLevel', 0)
 			# Update the other device states.
@@ -8311,7 +8185,9 @@ class Plugin(indigo.PluginBase):
 		# rampRate:		Optional float from 0 to 540.0 (higher values will probably work too).
 		try:
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
-			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			if self.trackSpecificDevice == device.id:	sendLog = 20
+			else: 										sendLog = self.sendDeviceUpdatesTo
 
 			# If a rampRate wasn't specified (default of -1 assigned), use the default.
 			#   (rampRate should be a float expressing transition time in seconds. Precission
@@ -8436,18 +8312,18 @@ class Plugin(indigo.PluginBase):
 				if showLog:
 					# Exclude mention of ramp rate if none was used.
 					if device.pluginProps.get('noOnRampRate', False) and currentBrightness == 0:
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\"  to {} using color temperature  {}K".format( device.name, tempBrightness, colorTemp ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {} using color temperature  {}K".format( device.name, tempBrightness, colorTemp ))
 					else:
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\"  to {} using color temperature  {}K.  at ramp rate  {} sec.".format( device.name, tempBrightness, colorTemp, rampRate / 10.0 ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {} using color temperature  {}K.  at ramp rate  {} sec.".format( device.name, tempBrightness, colorTemp, rampRate / 10.0 ))
 				self.updateDeviceState(device, 'brightnessLevel', int(round(brightness / 255.0 * 100.0)))
 			else:
 				# Log the change.
 				if showLog:
 					# Exclude mention of ramp rate if none was used.
 					if device.pluginProps.get('noOnRampRate', False):
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" off".format( device.name))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" off".format( device.name))
 					else:
-						if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" off, at ramp rate:{} sec".format( device.name,  rampRate / 10.0 ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" off, at ramp rate:{} sec".format( device.name,  rampRate / 10.0 ))
 				self.updateDeviceState(device, 'brightnessLevel', 0)
 			# Update the color mode state.
 			self.updateDeviceState(device, 'colorMode', "ct")
@@ -8466,7 +8342,9 @@ class Plugin(indigo.PluginBase):
 		#					none		: Stop any running alerts
 		try:
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
-			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			if self.trackSpecificDevice == device.id:	sendLog = 20
+			else: 										sendLog = self.sendDeviceUpdatesTo
 
 			# Sanity check for an IP address
 			if ipAddress is None:
@@ -8511,11 +8389,11 @@ class Plugin(indigo.PluginBase):
 			# Log the change (if enabled).
 			if showLog:
 				if alertType == "select":
-					if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" start short alert blink.".format(device.name))
+					if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" start short alert blink.".format(device.name))
 				elif alertType == "lselect":
-					if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" start long alert blink.".format(device.name))
+					if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" start long alert blink.".format(device.name))
 				elif alertType == "none":
-					if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" stop alert blink.")
+					if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" stop alert blink.")
 			# Update the device state.
 			self.updateDeviceState(device, 'alertMode', alertType)
 		except Exception:
@@ -8531,7 +8409,10 @@ class Plugin(indigo.PluginBase):
 		#				Other effects may be supported by Hue with future firmware updates.
 		try:
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
-			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			if self.trackSpecificDevice == device.id:	sendLog = 20
+			else: 										sendLog = self.sendDeviceUpdatesTo
+
 
 			# Sanity check for an IP address
 			if ipAddress is None:
@@ -8573,7 +8454,7 @@ class Plugin(indigo.PluginBase):
 			elif self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"Got response - {}".format(r.content) )
 			# Log the change (if enabled).
 			if showLog:
-				if logChanges: self.indiLOG.log(20,"Sent Hue Lights  \"{}\" set effect to \"{}\"".format(device.name, effect))
+				if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" set effect to \"{}\"".format(device.name, effect))
 			# Update the device state.
 			self.updateDeviceState(device, 'effect', effect)
 		except Exception:
@@ -10134,7 +10015,7 @@ class Plugin(indigo.PluginBase):
 		self.findHueBridgesAreBeingupdated = "updating"
 
 		while True:
-			self.indiLOG.log(10,"findHueBridges:  next try")
+			if self.decideMyLog("debugLoop"): self.indiLOG.log(10,"findHueBridges:  next try")
 			self.findHueBridgesNow = time.time() + normalwaitBetweentriesFindBridges
 			lastFindBridges = time.time()
 			try:
@@ -10226,7 +10107,7 @@ class Plugin(indigo.PluginBase):
 						if bridgeId not in bridgesAvailableOld:
 							newBridge = True
 							if not first:
-								self.indiLOG.log(20,"findHueBridges: new bridge found, bridgeId={}".format(bridgeId))
+								self.indiLOG.log(30,"!!!! \nfindHueBridges: new bridge found:{}\n!!!!".format(self.bridgesAvailable[bridgeId]))
 								self.lastTimeForAll = 0
 					bridgesAvailableOld = copy.deepcopy(self.bridgesAvailable)
 
@@ -10300,10 +10181,44 @@ class Plugin(indigo.PluginBase):
 
 
 
+	# print device info etc to indigolog
+	########################################
+	def startTrackSpecificDevice(self, valuesDict, menuItem):
+
+		self.trackSpecificDevice = 0
+		try:
+			if valuesDict['whatToPrint'] not in ["lights","sensors"]: 
+				self.indiLOG.log(10,"TrackSpecificDevice not dev type selected")
+				return
+			whatToPrint = valuesDict['whatToPrint'] 
+			if	 whatToPrint== "lights":	idType = "bulbId"
+			elif whatToPrint == "sensors":	idType = "sensorId"
+			hubNumber = valuesDict['hubNumber']
+			ID  = valuesDict[idType]
+			for deviceId in self.deviceList:
+				if "hubNumber" not in self.deviceList[deviceId]: 		continue
+				if self.deviceList[deviceId]['hubNumber'] != hubNumber: continue
+				if idType not in self.deviceList[deviceId]: 			continue
+				if self.deviceList[deviceId][idType] != ID: 			continue
+				device = indigo.devices[deviceId]
+				self.indiLOG.log(20,"startTrackSpecificDevice: Bridge:{}, id:{}, type:{}, bridgeName:{}, devId:{}, IndigoName:{}.".format(hubNumber, self.deviceList[deviceId][idType], whatToPrint, self.hueConfigDict[hubNumber][whatToPrint][ID]['name'], deviceId, device.name))
+				self.trackSpecificDevice = deviceId
+				return 
+			self.indiLOG.log(30,"startTrackSpecificDevice: Bridge:{}, id:{}, type:{} not found ".format(hubNumber, self.deviceList[deviceId][idType], whatToPrint))
+
+		except	Exception:
+			self.logger.error("", exc_info=True)
+
+	# print device info etc to indigolog
+	########################################
+	def stopTrackSpecificDevice(self, valuesDict, menuItem):
+		self.indiLOG.log(20,"stopTrackSpecificDevice")
+		self.trackSpecificDevice = 0
+		return 
 	# print config etc
 	########################################
 	def printHueData(self, valuesDict, menuItem):
-		if self.decideMyLog("Init"): self.indiLOG.log(10,"Starting printHueData. ")
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting printHueData. ")
  
 		try:
 			indigoList = {}
@@ -10540,12 +10455,14 @@ class Plugin(indigo.PluginBase):
 			elif valuesDict['whatToPrint'].find("configJson") > -1:
 				for hubNumber in self.ipAddresses:
 					if hubNumber not in self.hueConfigDict: continue
+					if "config" not in self.hueConfigDict[hubNumber]: continue
 					self.indiLOG.log(20,"printHueData --- complete config bridge#: {}   json=\n{} ".format(hubNumber, json.dumps(self.hueConfigDict[hubNumber]['config'], indent=2, sort_keys=True)))
 
 
 			elif valuesDict['whatToPrint'].find("configDict") > -1:
 				for hubNumber in self.ipAddresses:
 					if hubNumber not in self.hueConfigDict: continue
+					if "config" not in self.hueConfigDict[hubNumber]: continue
 					self.indiLOG.log(20,"printHueData --- complete Hue bridge info #{}   json=\n{} ".format(hubNumber, json.dumps(self.hueConfigDict[hubNumber], indent=2, sort_keys=True)))
 
 
@@ -10557,6 +10474,7 @@ class Plugin(indigo.PluginBase):
 				for tt in tests:
 					hueIdToIndigoName, indigoNameToHueId = self.getIndigoDevDict(tt[0])
 					for hubNumber in self.hueConfigDict:
+						if "config" not in self.hueConfigDict[hubNumber]: continue
 						# go through all indigop devices 
 						for indigoName in indigoNameToHueId[hubNumber]:
 							hueIdToFind = indigoNameToHueId[hubNumber][indigoName]
@@ -10593,6 +10511,7 @@ class Plugin(indigo.PluginBase):
 				HIT =  self.getIndigoHIT([['bulbId','lights'],['groupId','groups'],['sensorId','sensors']])
 				#self.indiLOG.log(20,"HIT: {}".format(HIT))
 				for hubNumber in self.hueConfigDict:
+					if "config" not in self.hueConfigDict[hubNumber]: continue
 					#self.indiLOG.log(20,"H:{}".format(hubNumber))
 					for idX, hType in [['bulbId','lights'],['groupId','groups'],['sensorId','sensors']]:
 						#self.indiLOG.log(20,"idX:{} hType:{}".format(idX, hType))
@@ -10821,6 +10740,9 @@ class Plugin(indigo.PluginBase):
 	def getadresses(self, hubNumber):
 			ipAddress = self.ipAddresses[hubNumber]
 			if ipAddress is None:
+				self.doErrorLog("No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com.")
+				return 0,0,1
+			if not self.isValidIP(ipAddress):
 				self.doErrorLog("No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com.")
 				return 0,0,1
 			if hubNumber not in self.hostIds:

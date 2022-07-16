@@ -14,6 +14,8 @@
 				<Title>select GW Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu only shows lights that support both full color and color temperature (a.k.a. Ambiance) features, except for the LightStrips.">
 				<Label>Hue Device:</Label>
@@ -161,6 +163,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Title>select GW Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu only shows color temperature (a.k.a. Ambiance) lights. Lights that also support full color will appear in the Hue Color/Ambiance device list.">
 				<Label>Hue Device:</Label>
@@ -273,6 +277,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Title>select GW Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu only shows light strips.">
 				<Label>Hue Device:</Label>
@@ -420,6 +426,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Title>select GW Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu shows color lights such as the Bloom, StoryLight and other color lights. It does not include LightStrips or color temperature lights.">
 				<Label>Hue Device:</Label>
@@ -562,6 +570,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Title>select GW Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu shows basic dimming lights that don't support any color changes.">
 				<Label>Hue Device:</Label>
@@ -664,6 +674,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Title>select GW Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
 			<Field id="bulbId" type="menu"
 				tooltip="Select an on/off device to control. This menu shows basic on/off devices that don't support any color changes or dimming capabilities.">
 				<Label>Hue Device:</Label>
@@ -730,6 +742,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Title>select GW Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
 			<Field id="groupId" type="menu"
 				tooltip="Select a Hue Group to control. This menu contains all the groups saved in the Hue hub. Groups can contain any combination of Hue supported lights.">
 				<Label>Hue Group:</Label>
@@ -892,7 +906,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="sensor" id="hueMotionSensor">
 		<Name>Hue Motion Sensor (Motion)</Name>
 		<ConfigUI>
-
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
@@ -903,6 +916,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Title>select GW Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Motion Sensor.">
 				<Label>Hue Sensor:</Label>
@@ -989,6 +1004,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Title>select GW Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Motion Sensor.">
 				<Label>Hue Sensor:</Label>
@@ -1087,6 +1104,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<Device type="sensor" id="hueMotionLightSensor">
 		<Name>Hue Motion Sensor (Luminance)</Name>
 		<ConfigUI>
+			<Field id="AllowOnStateChange" 		type="checkbox" defaultValue="false" hidden="false" ><Label>Allow OnStateChange:</Label></Field>
+			<Field id="SupportsOnState" 		type="checkbox" defaultValue="true"  hidden="false" ><Label>Supports OnState:</Label></Field>
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
@@ -1097,6 +1116,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<Title>select GW Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Motion Sensor.">
 				<Label>Hue Sensor:</Label>
@@ -1209,6 +1230,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<Title>select GW Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Tap Switch.">
 				<Label>Hue Tap Switch:</Label>
@@ -1301,6 +1324,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<Title>select GW Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Dimmer Switch.">
 				<Label>Hue Dimmer Switch:</Label>
@@ -1407,7 +1432,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <ControlPageLabel>Last Button Event ID</ControlPageLabel>
             </State>
             <State id="lastButtonPressed">
-                <ValueType>Number</ValueType>
+                <ValueType>String</ValueType>
                 <TriggerLabel>Last Button Pressed</TriggerLabel>
                 <ControlPageLabel>Last Button Pressed</ControlPageLabel>
             </State>
@@ -1458,6 +1483,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<Title>select GW Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Smart Button.">
 				<Label>Hue Smart Button:</Label>
@@ -1478,10 +1505,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>Button Press</TriggerLabel>
                 <ControlPageLabel>Button Press</ControlPageLabel>
             </State>
-			<State id="button1Hold">
+			<State id="button1Repeat">
 				<ValueType>Boolean</ValueType>
-				<TriggerLabel>Button Press and Hold</TriggerLabel>
-				<ControlPageLabel>Button Press and Hold</ControlPageLabel>
+				<TriggerLabel>Button Press and Repeat</TriggerLabel>
+				<ControlPageLabel>Button Press and Repeat</ControlPageLabel>
 			</State>
             <State id="button1ReleaseShort">
                 <ValueType>Boolean</ValueType>
@@ -1492,6 +1519,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>Button Long Release</TriggerLabel>
                 <ControlPageLabel>Button Long Release</ControlPageLabel>
+            </State>
+            <State id="button1Hold">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Button Press and Hold</TriggerLabel>
+                <ControlPageLabel>Button Press and Hold</ControlPageLabel>
             </State>
 			<State id="online">
 				<ValueType>Boolean</ValueType>
@@ -1550,6 +1582,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<Title>select GW Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Hue Wall Switch Module.">
 				<Label>Hue Wall Switch Module:</Label>
@@ -1668,6 +1702,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<Title>select GW Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
 			<Field id="sensorId" type="menu"
 				tooltip="Select a Run Less Wire or Niko Switch.">
 				<Label>Run Less Wire or Niko Switch:</Label>
@@ -1745,35 +1781,40 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>RIGHT TOP Button Release</TriggerLabel>
                 <ControlPageLabel>RIGHT TOP Button Release</ControlPageLabel>
             </State>
-            <State id="button14On">
+            <State id="button5On">
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>COMBINED TOP Button Press</TriggerLabel>
                 <ControlPageLabel>COMBINED TOP Button Press</ControlPageLabel>
             </State>
-            <State id="button14Hold">
+            <State id="button5Hold">
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>COMBINED TOP Button Press and Hold</TriggerLabel>
                 <ControlPageLabel>COMBINED TOP Button Press and Hold</ControlPageLabel>
             </State>
-            <State id="button14Release">
+            <State id="button5Release">
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>COMBINED TOP Button Release</TriggerLabel>
                 <ControlPageLabel>COMBINED TOP Button Release</ControlPageLabel>
             </State>
-            <State id="button23On">
+            <State id="button6On">
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>COMBINED BOTTOM Button Press</TriggerLabel>
                 <ControlPageLabel>COMBINED BOTTOM Button Press</ControlPageLabel>
             </State>
-            <State id="button23Hold">
+            <State id="button6Hold">
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>COMBINED BOTTOM Button Press and Hold</TriggerLabel>
                 <ControlPageLabel>COMBINED BOTTOM Button Press and Hold</ControlPageLabel>
             </State>
-            <State id="button23Release">
+            <State id="button6Release">
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>COMBINED BOTTOM Button Release</TriggerLabel>
                 <ControlPageLabel>COMBINED BOTTOM Button Release</ControlPageLabel>
+            </State>
+            <State id="buttonBeingHeld">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Button behing held</TriggerLabel>
+                <ControlPageLabel>Button behing held</ControlPageLabel>
             </State>
 			<State id="online">
 				<ValueType>Boolean</ValueType>
@@ -1823,6 +1864,257 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 		</States>
 	</Device>
 
+	<!-- Run Less Wire or Niko Switch -->
+	<Device type="sensor" id="hueRotaryWallSwitches">
+		<Name>Rotary Wall Switch Switches part</Name>
+		<ConfigUI>
+			
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
+			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
+			<Field id="sensorId" type="menu"
+				tooltip="Select a otary Wall Switch .">
+				<Label>otary Wall Switch :</Label>
+				<List class="self" method="sensorListGenerator" filter="hueRotaryWallSwitches"  dynamicReload="true"/>
+			</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
+			</Field>
+			<!-- The buttonBeingHeld property is used by the plugin to track when a button is being held down since the Hue bridge doesn't do that for us, but the switch does report button release events, so we can figure it out ourselves. -->
+			<Field id="buttonBeingHeld" type="checkbox" hidden="true" defaultValue="false" />
+		</ConfigUI>
+		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+            <State id="button1On">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Left Top Button Press</TriggerLabel>
+                <ControlPageLabel>Left Top Button Press</ControlPageLabel>
+            </State>
+            <State id="button1Hold">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Left Top Button Press and Hold</TriggerLabel>
+                <ControlPageLabel>Left Top Button Press and Hold</ControlPageLabel>
+            </State>
+            <State id="button1ReleaseShort">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Left Top Button Release Short</TriggerLabel>
+                <ControlPageLabel>Left Top Button Release Shortwallswitch</ControlPageLabel>
+            </State>
+            <State id="button1ReleaseLong">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Left Top Button Release Long</TriggerLabel>
+                <ControlPageLabel>Left Top Button Release Long</ControlPageLabel>
+            </State>
+            <State id="button2On">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Top Right Button Press</TriggerLabel>
+                <ControlPageLabel>Top Right  Button Press</ControlPageLabel>
+            </State>
+            <State id="button2Hold">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Top Right  Button Press and Hold</TriggerLabel>
+                <ControlPageLabel>Top Right  Button Press and Hold</ControlPageLabel>
+            </State>
+            <State id="button2ReleaseShort">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Top Right  Button Release Short</TriggerLabel>
+                <ControlPageLabel>Top Right  Button Release Short</ControlPageLabel>
+            </State>
+            <State id="button2ReleaseLong">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Bottom Right  Button Release Long</TriggerLabel>
+                <ControlPageLabel>Bottom Right  Button Release Long</ControlPageLabel>
+            </State>
+            <State id="button3On">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Left BOTTOM Button Press</TriggerLabel>
+                <ControlPageLabel>Left BOTTOM Button Press</ControlPageLabel>
+            </State>
+            <State id="button3Hold">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Left Bottom Button Press and Hold</TriggerLabel>
+                <ControlPageLabel>Left Bottom Button Press and Hold</ControlPageLabel>
+            </State>
+            <State id="button3ReleaseShort">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Left Bottom Button Release Short</TriggerLabel>
+                <ControlPageLabel>Left Bottom Button Release Short</ControlPageLabel>
+            </State>
+            <State id="button3ReleaseLong">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Left Bottom  Button Release Long</TriggerLabel>
+                <ControlPageLabel>Left Bottom  Button Release Long</ControlPageLabel>
+            </State>
+            <State id="button4On">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Bottom Right  Button Press</TriggerLabel>
+                <ControlPageLabel>Bottom Right  Button Press</ControlPageLabel>
+            </State>
+            <State id="button4Hold">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Bottom Right Button Press and Hold</TriggerLabel>
+                <ControlPageLabel>Bottom Right  Button Press and Hold</ControlPageLabel>
+            </State>
+            <State id="button4ReleaseShort">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Bottom Right  Button Release Short</TriggerLabel>
+                <ControlPageLabel>Bottom Right  Button Release</ControlPageLabel>
+            </State>
+            <State id="button4ReleaseLong">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>Bottom Right  Button Release Long</TriggerLabel>
+                <ControlPageLabel>Bottom Right  Button Release Long</ControlPageLabel>
+            </State>
+ 			<State id="online">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Online</TriggerLabel>
+				<ControlPageLabel>Online</ControlPageLabel>
+			</State>
+            <State id="buttonEventID">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Last Button Event ID</TriggerLabel>
+                <ControlPageLabel>Last Button Event ID</ControlPageLabel>
+            </State>
+            <State id="lastButtonPressed">
+                <ValueType>Number</ValueType>
+                <TriggerLabel>Last Button Pressed</TriggerLabel>
+                <ControlPageLabel>Last Button Pressed</ControlPageLabel>
+            </State>
+			<State id="lastUpdated">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="manufacturerName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="modelId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
+
+	<!-- hue Rotary Wall Switch-->
+	<Device type="sensor" id="hueRotaryWallRing">
+		<Name>Rotary Wall Switch rotate part</Name>
+		<ConfigUI>
+			
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
+			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
+			<Field id="sensorId" type="menu"
+				tooltip="Select a Rotary Wall Switch rotate part">
+				<Label>Rotary Wall Switch rotate part:</Label>
+				<List class="self" method="sensorListGenerator" filter="hueRotaryWallRing"  dynamicReload="true"/>
+			</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
+			</Field>
+			<!-- The buttonBeingHeld property is used by the plugin to track when a button is being held down since the Hue bridge doesn't do that for us, but the switch does report button release events, so we can figure it out ourselves. -->
+			<Field id="buttonBeingHeld" type="checkbox" hidden="true" defaultValue="false" />
+		</ConfigUI>
+		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+            <State id="expectedEventDuration">
+                <ValueType>number</ValueType>
+                <TriggerLabel>Expected Event Duration</TriggerLabel>
+                <ControlPageLabel>Expected Event Duration</ControlPageLabel>
+            </State>
+            <State id="expectedRotation">
+                <ValueType>number</ValueType>
+                <TriggerLabel>Expected Rotation</TriggerLabel>
+                <ControlPageLabel>Expected Rotation</ControlPageLabel>
+            </State>
+			<State id="online">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Online</TriggerLabel>
+				<ControlPageLabel>Online</ControlPageLabel>
+			</State>
+            <State id="rotaryEventID">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Last Rotary Event Type</TriggerLabel>
+                <ControlPageLabel>Last Rotary Event Type</ControlPageLabel>
+            </State>
+			<State id="lastUpdated">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="manufacturerName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="modelId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
+
 
 	<!-- ATTRIBUTE CONTROLLER VIRTUAL DEVICE -->
     <!-- Hue Device Attribute Controller (Virtual Dimmer Device) -->
@@ -1839,6 +2131,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<Title>select GW Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
 			<Field id="bulbDeviceId" type="menu"
 				tooltip="Select a Hue light or group that this attribute controller should control.">
 				<Label>Hue Device:</Label>

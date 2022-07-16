@@ -381,6 +381,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</Field>
 		</ConfigUI>
 	</Action>
+
 	<Action id="sep2" uiPath="DeviceActions" />
 	<Action id="alertOnce" deviceFilter="self" uiPath="DeviceActions">
 		<Name>Short Alert</Name>
@@ -482,6 +483,46 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 			</Field>
 		</ConfigUI>
 	</Action>
+
+	<Action id="actionEnableDisableSensor">
+		<Name>Enable/disable sensor</Name>
+		<CallbackMethod>actionEnableDisableSensor</CallbackMethod>
+		<ConfigUI>
+			<Field id="instructions1" type="label">
+				<Label>With this action you can enable or disable a sensor device on the bridge.</Label>
+			</Field>
+			<Field id="instructions2" type="label" alignText="right" fontSize="small" fontColor="darkgrey">
+				<Label>It will set element "config":{"on":true/false} on the Bridge. 
+That should disable any action coming from that device.</Label>
+			</Field>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select Bridge Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
+			</Field>
+
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
+			<Field id="sensorId" type="menu"
+				tooltip="Select a Hue  Sensor.">
+				<Label>Hue Sensor (Name on bridge):</Label>
+				<List class="self" method="sensorListGenerator" filter="anySensor"  dynamicReload="true"/>
+			</Field>
+			<Field id="onOff" type="menu">
+				<Label>On/off:</Label>
+				 <List>
+					<Option value="on">on, enable</Option>
+					<Option value="off">off, disable</Option>
+				 </List>
+			</Field>
+		</ConfigUI>
+	</Action>
+
 	<Action id="recallScene">
 		<Name>Recall Hue Scene</Name>
 		<CallbackMethod>recallScene</CallbackMethod>

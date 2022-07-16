@@ -1,7 +1,53 @@
 ========================================
-2022.11.32 @ 2022-07-08
+2022.11.32 @ 2022-07-16
 
-* added debug statement for 'hubNumber' error
+* ADDED support for Hue Rotary Wall Switch (4 Tap Switches w rotary ring) 
+  the most usefull dimmer in the Hue portfolio - In my opinion
+  using 
+  types   = ZLLRelativeRotary and ZLLswitch
+  modelId = RDM002
+  it will create 2 indigo devices: 
+  hueRotaryWallSwitches (ZLLswitch)  for the 4 buttons
+  hueRotaryWallRing (ZLLRelativeRotary)  for the ring to dimm lights 
+  on the hue bridge it is also 2 virtual devices 
+
+* ADDED action & menu to dis(en)-able sensor devices (temp, motion, switches) 
+  this can be useful when you want to disable certain sensors at night or when you are out or at home
+  this is done by setting  element "config":{"on":true/false} on the bridge for the selected device
+  you can see which sensors are on/off with report in menu/print hue config../sensors 
+  
+* ADDED menu option to rename devices on bridge
+  you can change individual devices  with free text or all and change the name on the bridge to the indigo device name 
+  !! max number of characters is 32 for names on bridge !!
+  there is an option to drop the "Hue_bridge_id_"nameOnBridge prefix of indigo names on the bridge for devices generated using plugin/menu/Add new devices
+  
+* ADDED option "Where to log device value changes"  received from hue bridge
+  either (1) in regular indigo log and plugin.log   or   (2) ONLY in plugin.log file in indigo log direcotry
+  with this option you can declutter your normal indigo logfile from regular messsages
+  reminder: ALL log messages are ALWAYS in the plugin.log file 
+ 
+* ADDED option to print detailed tracking info for ONE specific Sensor or light to logfile 
+  this is useful to track the detailed behavior and logic in the plugin for ONE specific device when eg buttons are pressed 
+ 
+*  There are now various options to log device changes in plugin config 
+  - on for all devices
+  - off for all
+  - set in each device individually
+  - log in indigo log and plugin.log or only in plugin.log file 
+  - set the default for each new device created
+
+* CHANGED state lastupdated is now local time, not UTC  eg 2022-07-12 12:33:45 in stead of 2022-07-12T06:33:45 for USA east cost time zone
+   that state is not the last time when an indigo state was updated, but when a new EVENT time stamp arrived
+
+* FIXED bug for  "wall switch" devices status was not properly updated
+  REMARK: The defined logic is not 100% correct. There are several modes (set on the bridge), ie when set to on/off
+  on bridge the indigo state on/off only stays up for a few seconds. It should stay up as long as the button is pressed.
+  This is also the case for all other switch sensors. 
+  This will only be corrected going from simple polling every 2 secs to async listening, BUT that is a major structural change for the plugin
+   this will take some time
+
+* CHANGED: added debug statement for 'hubNumber' error
+
 
 
 ========================================
