@@ -1,5 +1,5 @@
 ========================================
-2022.11.32 @ 2022-07-16
+2022.11.33 @ 2022-07-16
 
 * ADDED support for Hue Rotary Wall Switch (4 Tap Switches w rotary ring) 
   the most usefull dimmer in the Hue portfolio - In my opinion
