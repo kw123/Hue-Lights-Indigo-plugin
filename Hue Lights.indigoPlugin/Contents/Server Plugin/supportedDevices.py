@@ -375,58 +375,58 @@ khubNumbersAvailable = ["0","1","2","3","4","5","6","7","8","9"]
 # see dict below 
 keventButtonSettings = {
 	'hueDimmerSwitch':{
-		'stateNames':			['','button1', 'button2', 'button3', 'button4'],# this is for dev states
-		'stateSuffix':			['','On', 'Hold', 'ReleaseShort','ReleaseLong'],# this is for dev states eg button1On
-		'buttontexts':			['','On', 'dim Up', 'dim Down', 'Hue/off'], # this is for logfile
-		'textSuffix':			['','press', 'press and hold', 'press with short release', 'press with long release'],# this is for logfile 
-		'findbuttonNumbers':	{'//':1000,'buttonNumbers':{1:1,2:2,3:3,4:4}}, # 1000,1001...4003
-		'findEventType':		{'%':1000,'evType':{0:0,1:1,2:2,3:3}},  # use the x000,1,2,3
-		'eventTypesEnabled':	{0:True,1:True,2:True,3:True,4:False,5:False,6:False,7:False,8:False,9:False,10:False}
+		'stateNames':			['','button1',	'button2',			'button3',					'button4'],					# this is for dev states, starts with 1 index is button
+		'buttontexts':			['','On',		'dim Up',			'dim Down',					'Hue/off'], 				# this is for logfile, index is button #
+		'stateSuffix':			[	'On',		'Hold',				'ReleaseShort',				'ReleaseLong'],				# this is for dev states eg button1On, index is event type
+		'textSuffix':			['press', 		'press and hold',	'press with short release',	'press with long release'],	# this is for logfile, index is event type
+		'findbuttonNumbers':	{'//':1000,'buttonNumbers':{1:1,2:2,3:3,4:4}}, 												# 1000,1001...4003
+		'findEventType':		{'%':1000,'evType':{0:0,1:1,2:2,3:3}},  													# use the x000,1,2,3
+		'eventTypesEnabled':	{0:True,1:True,2:True,3:True,4:False,5:False,6:False}
 		},
 	'hueRotaryWallSwitches':{
-		'stateNames':			['','button1', 'button2', 'button3', 'button4'],
-		'stateSuffix':			['','On', 'Hold', 'ReleaseShort', 'ReleaseLong'],
-		'buttontexts':			['','top Left', 'top Right', 'bottom Left', 'bottom Right'],
-		'textSuffix':			['','press', 'press and hold', 'press with short release', 'press with long release'],
+		'stateNames':			['','button1',	'button2',			'button3',					'button4'],
+		'buttontexts':			['','top Left',	'top Right',		'bottom Left',				'bottom Right'],
+		'stateSuffix':			['On',			'Hold', 			'ReleaseShort',				'ReleaseLong'],
+		'textSuffix':			['press',		'press and hold',	'press with short release',	'press with long release'],
 		'findbuttonNumbers':	{'//':1000,'buttonNumbers':{1:1,2:2,3:3,4:4}}, # 1000,1001...4003
 		'findEventType': 		{'%':1000,'evType':{0:0,1:1,2:2,3:3}},# use the x000,1,2,3
-		'eventTypesEnabled':	{0:True,1:True,2:True,3:True,4:False,5:False,6:False,7:False,8:False,9:False,10:False}
+		'eventTypesEnabled':	{0:True,1:True,2:True,3:True,4:False,5:False,6:False}
 		},
 	'hueWallSwitchModule':{
 		'stateNames':			['','button1', 'button2'],
-		'stateSuffix':			['','On', 'Hold', 'ReleaseShort','ReleaseLong'],
 		'buttontexts':			['','button1', 'button2'],
-		'textSuffix':			['','press', 'press and hold', 'press with short release', 'press with long release'],
+		'stateSuffix':			['On', 		'Hold',				'ReleaseShort',				'ReleaseLong'],
+		'textSuffix':			['press',	'press and hold',	'press with short release',	'press with long release'],
 		'findbuttonNumbers':	{'//':1000,'buttonNumbers':{1:1,2:2}},# 1000,1001...2003
 		'findEventType':		{'%':1000,'evType':{0:0,1:1,2:2,3:3}},# use the x000,1,2,3
-		'eventTypesEnabled':	{0:True,1:True,2:True,3:True,4:False,5:False,6:False,7:False,8:False,9:False,10:False}
+		'eventTypesEnabled':	{0:True,1:True,2:True,3:True,4:False,5:False,6:False}
 		},
 	'hueSmartButton':{
 		'stateNames':			['','button1'],
-		'stateSuffix':			['','On', 'Repeat', 'ReleaseShort','ReleaseLong','Hold'],
+		'stateSuffix':			['On', 		'Repeat', 			'ReleaseShort',				'ReleaseLong',				'Hold'],
+		'textSuffix':			['press',	'press and repeat',	'press with short release',	'press with long release',	'press and hold'],
 		'buttontexts':			['','button1'],
-		'textSuffix':			['','press', 'press and repeat', 'press with short release', 'press with long release', 'press and hold'],
 		'findbuttonNumbers':	{'//':1000,'buttonNumbers':{1:1}}, # 1001,2,3,10
 		'findEventType':		{'%':1000,'evType':{0:0,1:1,2:2,3:3,10:4}},
-		'eventTypesEnabled':	{0:True,1:True,2:True,3:True,4:True,5:False,6:False,7:False,8:False,9:False,10:False}
+		'eventTypesEnabled':	{0:True,1:True,2:True,3:True,4:True,5:False,6:False}
 		},
 	'hueTapSwitch':{
 		'stateNames':			['','button1', 'button2', 'button3', 'button4'],
-		'stateSuffix':			['','On'],
 		'buttontexts':			['','button1', 'button2', 'button3', 'button4'],
-		'textSuffix':			['','press'],
+		'stateSuffix':			['On'],
+		'textSuffix':			['press'],
 		'findbuttonNumbers':	{'//':1,'buttonNumbers':{34:1,16:2,17:3,18:4}}, # 34,16,17,18  --> button 1,2,3,4
 		'findEventType':		{'%':1,'evType':{0:0}},  # only on / press --> evtype = 0
-		'eventTypesEnabled':	{0:True,1:False,2:False,3:False,4:False,5:False,6:False,7:False,8:False,9:False,10:False}
+		'eventTypesEnabled':	{0:True,1:False,2:False,3:False,4:False,5:False,6:False}
 		},
 	'runLessWireSwitch':{
 		'stateNames':			['','button1', 'button2', 'button3', 'button4', 'button5', 'button6'],
-		'stateSuffix':			['','On','Hold','','','','BeingHeld', 'Release'],
 		'buttontexts':			['','button1', 'button2', 'button3', 'button4', 'combined bottom', 'combined top'],
-		'textSuffix':			['','Press','press and hold','','','','being held', 'release'],
-		'findbuttonNumbers':	{'//':1,'buttonNumbers': {16:1,20:1, 17:2,21:2, 18:3,22:3, 19:4,23:4, 96:5,97:5, 98:5,99:5, 100:6,101:6 }}, #map eventid to button # used this is done explicitely as there is not easy algorithm to use
+		'stateSuffix':			['On',			'Hold',				'','','',	'BeingHeld',	'Release'],
+		'textSuffix':			['Press',		'press and hold',	'','','',	'being held',	'release'],
+		'findbuttonNumbers':	{'//':1,'buttonNumbers': {16:1,20:1, 17:2,21:2, 18:3,22:3, 19:4,23:4, 96:5,97:5, 98:5,99:5, 100:6,101:6}}, #map eventid to button # used this is done explicitely as there is not easy algorithm to use
 		'findEventType':		{'%':9999,		'evType':{16:5,20:6, 17:5,21:6, 18:5,22:6, 19:5,23:6, 96:5,97:6, 98:5,99:6, 100:5,101:6}},  #map eventid to event type used
-		'eventTypesEnabled':	{0:True,1:True,2:False,3:False,4:False,5:True,6:True,7:False,8:False,9:False,10:False}
+		'eventTypesEnabled':	{0:True,1:True,2:False,3:False,4:False,5:True,6:True}
 		}
 	}
 

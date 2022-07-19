@@ -130,40 +130,18 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 		</ConfigUI>
 	</MenuItem>
 	<MenuItem id="sep2.1" />
-	<MenuItem id="createNewLightDevicesFromGWDict">
-		<Name>Add New Hue Devices...</Name>
-		<ConfigUI>
-			<Field id="hueFolderName" type="textfield" default ="New Hue Devices"
-				tooltip="If left empty it will be:  Hue New Devices ">
-				<Label>Folder Name where new devices get created:</Label>
-			</Field>
-			<Field id="createLights"  type="checkbox" default ="true"> <Label>create Light devices:</Label> 	</Field>
-			<Field id="createSensors" type="checkbox" default ="true"> <Label>create Sensor devices:</Label> 	</Field>
-			<Field id="createGroups"  type="checkbox" default ="true"> <Label>create Group devices:</Label> 	</Field>
-			<Field id="doCreate" type="button">
-				<Label>Click to</Label>
-				<Title>Create folder and devices</Title>
-				<CallbackMethod>autocreateNewDevices</CallbackMethod>
-			</Field>
-			<Field id="infoLabel" type="label" fontSize="small" fontColor="darkgray">
-				<Label>Use this to add ALL hue lights/sensors ,... that do not have a corresponding indigo device
-This might take a while if you have a lot of Hue devices, that do not have a corresponding indigo device
-It is a good idea to restart the plugin afterwards to get all states etc created properly</Label>
-			</Field>
-		</ConfigUI>
-	</MenuItem>
-	<MenuItem id="sep2.2" />
 
-	<MenuItem id="menuEnableDisableSensor">
-		<Name>Enable/disable sensor on Bridge</Name>
+	<MenuItem id="findNewDevices">
+		<Name>Start Seach for new Devices on Bridge...</Name>
 		<ConfigUI>
 			<Field id="instructions1" type="label">
-				<Label>With this action you can enable or disable a sensor device on the bridge.
-First select bridge number and confirm</Label>
-			</Field>
-			<Field id="instructions2" type="label" alignText="right" fontSize="small" fontColor="darkgrey">
-				<Label>It will set element "config":{"on":true/false} on the Bridge. 
-That should disable any action coming from that device.</Label>
+				<Label>This will start the bridge scan for new devcies process. It will add newly found devices to the bridge, not to Indigio.
+Select bridge, then select what to seach for. 
+you will need to reset/set the new switch/light to be able to be found by the bridge
+the bridge will search for about 40 seconds, you might need to runs this several times to find new devices.
+after 30+ secs, please run a report 
+ "Print hue config data to log"/"Hue devices w no Indigo device"
+to list new devices found, then use menu "Add New Hue Devices in Indigo" to add these new devcies to indigo.</Label>
 			</Field>
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
@@ -178,31 +156,48 @@ That should disable any action coming from that device.</Label>
 
 			<Field id="confirmHubNumberText" type="textfield" default ="first select hue bridge" >	</Field>
 
-			<Field id="sep1" type="separator"/>
-			<Field id="sensorId" type="menu"
-				tooltip="Select a Hue  Sensor.">
-				<Label>Hue Sensor (Name on bridge):</Label>
-				<List class="self" method="sensorListGenerator" filter="anySensor"  dynamicReload="true"/>
-			</Field>
-			<Field id="onOff" type="menu">
-				<Label>On/off:</Label>
-				 <List>
-					<Option value="on">on, enable</Option>
-					<Option value="off">off, disable</Option>
-				 </List>
-			</Field>
-			<Field id="menuEnableDisableSensor" type="button">
+			<Field id="startSearchNewSwitches" type="button">
 				<Label>Click to</Label>
-				<Title>execute</Title>
-				<CallbackMethod>menuEnableDisableSensor</CallbackMethod>
+				<Title>Start search for new switches</Title>
+				<CallbackMethod>startSearchNewSwitches</CallbackMethod>
+			</Field>
+
+			<Field id="startSearchNewLights" type="button">
+				<Label>Click to</Label>
+				<Title>Start search for new Lights</Title>
+				<CallbackMethod>startSearchNewLights</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
 
-
+	<MenuItem id="createNewLightDevicesFromGWDict">
+		<Name>Add New Hue Devices in Indigo...</Name>
+		<ConfigUI>
+			<Field id="infoLabel" type="label" fontSize="small" fontColor="darkgray">
+				<Label>Use this to add ALL hue lights/sensors/groups that do not have a corresponding indigo device
+This might take a while if you have a lot of Hue devices, that do not have a corresponding indigo device
+It is a good idea to restart the plugin afterwards to get all states etc created properly
+Check the logfile for new devices created
+The names will be Hue_type_bridge#_id_nameOnBridge
+eg Hue_light_0_30_Stairs</Label>
+			</Field>
+			<Field id="hueFolderName" type="textfield" default ="New Hue Devices"
+				tooltip="If left empty it will be:  Hue New Devices ">
+				<Label>Folder Name where new devices get created:</Label>
+			</Field>
+			<Field id="createLights"  type="checkbox" default ="true"> <Label>create Light devices:</Label> 	</Field>
+			<Field id="createSensors" type="checkbox" default ="true"> <Label>create Sensor devices:</Label> 	</Field>
+			<Field id="createGroups"  type="checkbox" default ="true"> <Label>create Group devices:</Label> 	</Field>
+			<Field id="doCreate" type="button">
+				<Label>Click to</Label>
+				<Title>Create folder and devices</Title>
+				<CallbackMethod>autocreateNewDevices</CallbackMethod>
+			</Field>
+		</ConfigUI>
+	</MenuItem>
 
 	<MenuItem id="menuRenameHueDevice">
-		<Name>Rename Hue Devices on Bridge</Name>
+		<Name>Rename Hue Devices on Bridge...</Name>
 		<ConfigUI>
 			<Field id="instructions1" type="label">
 				<Label>With this action you can rename (a) device(s) on the bridge.
@@ -237,6 +232,9 @@ You can set option to rename all devices on bridge to their indigo device name</
 			<Field id="newNamesensors" type="textfield">
 				<Label>Enter new name for device (use * for same name as indigo Device):</Label>
 			</Field>
+			<Field id="removePrefixsensors" type="checkbox"> 
+				<Label>remove std prefix: Hue_sensor_Bridge#_id_:</Label>
+			</Field>
 			<Field id="execSensors" type="button">
 				<Label>Click to</Label>
 				<Title>execute</Title>
@@ -255,7 +253,7 @@ You can set option to rename all devices on bridge to their indigo device name</
 				<Label>Enter new name for device (use * for same name as indigo Device):</Label>
 			</Field>
 			<Field id="removePrefixlights" type="checkbox"> 
-				<Label>remove std prefix: Hue_light_Bridge_id_:</Label>
+				<Label>remove std prefix: Hue_light_Bridge#_id_:</Label>
 			</Field>
 			<Field id="execLights" type="button">
 				<Label>Click to</Label>
@@ -265,6 +263,102 @@ You can set option to rename all devices on bridge to their indigo device name</
 		</ConfigUI>
 	</MenuItem>
 
+	<MenuItem id="deleteDevices">
+		<Name>Delete Devices on Bridge...</Name>
+		<ConfigUI>
+			<Field id="instructions1" type="label">
+				<Label>Select bridge, then select what type of device to delete
+then select the device. 
+This will delete the devcie on the bridge, not in indigo
+</Label>
+			</Field>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select Bridge Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
+			</Field>
+
+			<Field id="confirmHubNumberText" type="textfield" default ="first select hue bridge" >	</Field>
+
+			<Field id="sep1" type="separator"/>
+			<Field id="sensorId" type="menu"
+				tooltip="Select a Hue  Sensor.">
+				<Label>Hue Sensor (Name on bridge):</Label>
+				<List class="self" method="sensorListGenerator" filter="oneSensor"  dynamicReload="true"/>
+			</Field>
+			<Field id="deleteSensor" type="button">
+				<Label>Click to</Label>
+				<Title>execute</Title>
+				<CallbackMethod>menuDeleteSensor</CallbackMethod>
+			</Field>
+
+			<Field id="sep2" type="separator"/>
+			<Field id="bulbId" type="menu"
+				tooltip="Select a Hue Light.">
+				<Label>Hue Light (Name on bridge):</Label>
+				<List class="self" method="lightsListGenerator" filter="oneLight"  dynamicReload="true"/>
+			</Field>
+			<Field id="deleteLight" type="button">
+				<Label>Click to</Label>
+				<Title>execute</Title>
+				<CallbackMethod>menuDeleteLight</CallbackMethod>
+			</Field>
+		</ConfigUI>
+	</MenuItem>
+
+
+	<MenuItem id="menuEnableDisableSensor">
+		<Name>Enable/disable Sensor on Bridge...</Name>
+		<ConfigUI>
+			<Field id="instructions1" type="label">
+				<Label>With this action you can enable or disable a sensor device on the bridge.
+This might be useful if you are home / away to disable / enable a motion sensor to suppress actions or enable actions on the bridge</Label>
+			</Field>
+			<Field id="instructions2" type="label" alignText="right" fontSize="small" fontColor="darkgrey">
+				<Label>It will set element "config":{"on":true/false} on the Bridge. 
+That should enable/disable any action coming from that device.</Label>
+			</Field>
+			<Field id="instructions3" type="label">
+				<Label>First select bridge number and confirm</Label>
+			</Field>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select Bridge Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
+			</Field>
+
+			<Field id="confirmHubNumberText" type="textfield" default ="first select hue bridge" >	</Field>
+
+			<Field id="sep1" type="separator"/>
+			<Field id="sensorId" type="menu"
+				tooltip="Select a Hue  Sensor.">
+				<Label>Hue Sensor (Name on bridge):</Label>
+				<List class="self" method="sensorListGenerator" filter="anySensor"  dynamicReload="true"/>
+			</Field>
+			<Field id="onOff" type="menu">
+				<Label>On/off:</Label>
+				 <List>
+					<Option value="on">on, enable</Option>
+					<Option value="off">off, disable</Option>
+				 </List>
+			</Field>
+			<Field id="menuEnableDisableSensor" type="button">
+				<Label>Click to</Label>
+				<Title>execute</Title>
+				<CallbackMethod>menuEnableDisableSensor</CallbackMethod>
+			</Field>
+		</ConfigUI>
+	</MenuItem>
 
 
 
@@ -345,7 +439,9 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 				<Label>Select what to print:</Label>
 				<List>
 					<Option value="lights">lights</Option>
+					<Option value="lightsDict">lights all info</Option>
 					<Option value="sensors">sensors </Option>
+					<Option value="sensorsDict">sensors all info</Option>
 					<Option value="groups">groups</Option>
 					<Option value="scenes">scenes</Option>
 					<Option value="rules">rules</Option>
@@ -361,8 +457,8 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 					<Option value="specificRules">all info for one specific Bridge-RULES-id</Option>
 					<Option value="specificSchedules">all info for one specific Bridge-SCHEDULE-id</Option>
 					<Option value="specificResourcelinks">all info for one specific Bridge-RESOURCE-LINK-id</Option>
-					<Option value="NoHudevice">Indigo devices w no Hue dev</Option>
-					<Option value="NoIndigoDevice">Hue devices w no Indigo dev</Option>
+					<Option value="NoHudevice">Indigo devices w no Hue device</Option>
+					<Option value="NoIndigoDevice">Hue devices w no Indigo device</Option>
 				</List>
 			</Field>
 			<Field  id="sortBy" 
@@ -417,7 +513,7 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 
 			<Field id="doPrint" type="button"
 					visibleBindingId="whatToPrint" 
-					visibleBindingValue="lights,sensors,scenes,groups,rules,resourcelinks,schedules,config,configJson,configDict,specificLights,specificSensors,specificGroups,specificScenes,specificRules,specificSchedules,specificResourcelinks,NoHudevice,NoIndigoDevice" >
+					visibleBindingValue="lights,lightsDict,sensors,sensorsDict,scenes,groups,rules,resourcelinks,schedules,config,configJson,configDict,specificLights,specificSensors,specificGroups,specificScenes,specificRules,specificSchedules,specificResourcelinks,NoHudevice,NoIndigoDevice" >
 				<Label>Click to</Label>
 				<Title>Print</Title>
 				<CallbackMethod>printHueData</CallbackMethod>

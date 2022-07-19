@@ -1,4 +1,18 @@
 ========================================
+2022.12.34 @ 2022-07-29
+
+* CHANGED # of state updates (online = false) for devices that are pysically w/o power from once every 5 secs to just once
+
+* FIXED:  "line 7336, in parseOneHueSensorData if logChanges: self.indiLOG.log(20, "...   was a bad ")" in format statement
+
+* ADDED  menu option: "Delete Devices on Bridge...""  this will remove a hue devices from the bridge, not from Indigo
+
+* ADDED menu option: "Start Seach for new Devices on Bridge..." this will start the scan process on the bridge to look for new devices. 
+   the bridge will scan for 40 secs for new devices. This will not add devices to indigo, use menu "Add New Hue Devices in Indigo..."
+   it will do about the same as the iphone hue app.
+
+
+========================================
 2022.11.33 @ 2022-07-16
 
 * ADDED support for Hue Rotary Wall Switch (4 Tap Switches w rotary ring) 

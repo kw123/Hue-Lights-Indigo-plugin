@@ -257,7 +257,7 @@ class Plugin(indigo.PluginBase):
 						# Preset has data in it.
 						try:
 							# Prior to version 1.2.4, this key did not exist in the presets.
-							presetRate = self.pluginPrefs['presets'][presetId][2]
+							presetRate = self.pluginPrefs['presets'][aNumber][2]
 							# Round the saved preset ramp rate to the nearest 10th.
 							presetRate = round(presetRate, 1)
 						except Exception:
@@ -518,6 +518,52 @@ class Plugin(indigo.PluginBase):
 		if self.decideMyLog("Init"): self.indiLOG.log(10,"runConcurrentThread exiting.")
 		return 
 
+
+
+	# start search for new sensors 
+	########################################
+	def startSearchNewSwitches(self, valuesDict,y):
+
+		try:
+			hubNumber = valuesDict.get('hubNumber', "")
+			if hubNumber == "":
+				return 
+
+			command = "http://{}/api/{}/sensors".format(self.ipAddresses[hubNumber], self.hostIds[hubNumber])
+			self.indiLOG.log(20,"Sending search request to {} (via HTTP POST).".format(command))
+			r = requests.post(command, data="", timeout=kTimeout, headers={'Connection':'close'})
+			responseData = json.loads(r.content)
+			try: 
+				if "success" in responseData[0]:
+					self.indiLOG.log(20,"search started {}".format(responseData))
+				else:
+					self.indiLOG.log(30,"search not started {}".format(responseData))
+			except:
+					self.indiLOG.log(30,"search not started {}".format(responseData))
+		except Exception:
+			self.indiLOG.log(30,"", exc_info=True)
+	# start search for new lights 
+	########################################
+	def startSearchNewLights(self, valuesDict,y):
+
+		try:
+			hubNumber = valuesDict.get('hubNumber', "")
+			if hubNumber == "":
+				return 
+
+			command = "http://{}/api/{}/lights".format(self.ipAddresses[hubNumber], self.hostIds[hubNumber])
+			self.indiLOG.log(20,"Sending search request to {} (via HTTP POST).".format(command))
+			r = requests.post(command, data="", timeout=kTimeout, headers={'Connection':'close'})
+			responseData = json.loads(r.content)
+			try: 
+				if "success" in responseData[0]:
+					self.indiLOG.log(20,"search started {}".format(responseData))
+				else:
+					self.indiLOG.log(30,"search not started {}".format(responseData))
+			except:
+					self.indiLOG.log(30,"search not started {}".format(responseData))
+		except Exception:
+			self.indiLOG.log(30,"", exc_info=True)
 
 	# Validate Device Configuration
 	########################################
@@ -3008,7 +3054,7 @@ class Plugin(indigo.PluginBase):
 						# Preset has data in it.
 						try:
 							# Prior to version 1.2.4, this key did not exist in the presets.
-							presetRate = self.pluginPrefs['presets'][presetId][2]
+							presetRate = self.pluginPrefs['presets'][aNumber][2]
 							# Round the saved preset ramp rate to the nearest 10th.
 							presetRate = round(presetRate, 1)
 						except Exception:
@@ -4749,6 +4795,73 @@ class Plugin(indigo.PluginBase):
 			self.logger.error("", exc_info=True)
 		return valuesDict
 
+	######################
+	def menuDeleteSensor(self, valuesDict, typeId=u"", devId=0):
+		try:
+			self.menuDeleteDevice(valuesDict, 'sensorId', 'sensors', kSwitchTypeIDs)
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return valuesDict
+
+
+	######################
+	def menuDeleteLight(self, valuesDict, typeId=u"", devId=0):
+		try:
+			self.menuDeleteDevice(valuesDict, 'bulbId', 'lights', kLightDeviceTypeIDs)
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return valuesDict
+
+
+	######################
+	def menuDeleteDevice(self, valuesDict, tag, devType, listOfDevices):
+		try:
+			self.indiLOG.log(10,"Starting menuDelete{} with {}.".format(devType, valuesDict))
+			ID  = valuesDict.get('bulbId', "")
+			hubNumber = valuesDict.get('hubNumber', "")
+
+			for deviceId in self.deviceList:
+				## if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(30,"actionEnableDisableSensor deviceId {}, hub#{}, sensorID:{}".format(self.deviceList[deviceId], hubNumber,sensorId))
+				if self.deviceList[deviceId]['typeId'] not in listOfDevices:	continue
+				if self.deviceList[deviceId]['hubNumber']  != hubNumber: 		continue
+				if tag not in self.deviceList[deviceId]:						continue
+				if self.deviceList[deviceId][tag]  != bulbId: 					continue
+				device = indigo.devices[deviceId]
+				devId = device.pluginProps.get(tag, -1)
+
+				if devId != ID: continue
+
+				hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+				#if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"valuesDict is {}".format(valuesDict))
+
+				command = "http://{}/api/{}/{}/{}".format(ipAddress, self.hostIds[hubNumber], devType, ID)
+				self.indiLOG.log(20,"Sending URL request: {}".format(command))
+				try:
+					r = requests.delete(command, data="", timeout=kTimeout, headers={'Connection':'close'})
+				except requests.exceptions.Timeout:
+					self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout))
+					# Don't display the error if it's been displayed already.
+					return valuesDict
+				except requests.exceptions.ConnectionError:
+					self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress))
+					# Don't display the error if it's been displayed already.
+					return valuesDict
+				try:
+					response = json.loads(r.content)
+					if "success" in response[0]:
+						self.indiLOG.log(20,"send  returned:OK.. {}".format(response ))
+					else:
+						self.indiLOG.log(20,"send returned:{}".format(response ))
+				except Exception as e:
+					self.doErrorLog("Failed to delete {}  error:{}, Bridge response:{}".format(tag, e, response))
+				return valuesDict
+
+			self.indiLOG.log(30,"menuDelete{} no matching device found, {}".format(devType, valuesDict))
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return valuesDict
+
+
 
 	######################
 	def menuRenameSensorDevice(self, valuesDict, typeId=u"", devId=0):
@@ -4762,10 +4875,10 @@ class Plugin(indigo.PluginBase):
 				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(30,"rename{} bad newName command {}.".format(tag, newName))
 				return valuesDict
 			theID  		= valuesDict.get(useId, "")
-			if valuesDict['newNamelights']: removePrefix = "Hue_sensor_"
-			else:							removePrefix = ""
+			if valuesDict['removePrefixsensors']:	removePrefix = "Hue_sensor_"
+			else:							 		removePrefix = ""
 			stdPrefix = "Hue_sensor_"
-			if newName == "*" or theID =="*":
+			if newName == "*" or theID == "*":
 				for allIDs in self.hueConfigDict[hubNumber][tag]:
 					self.execRename(tag, useId, hubNumber, allIDs, "*", removePrefix, stdPrefix)
 			else:
@@ -4786,10 +4899,10 @@ class Plugin(indigo.PluginBase):
 				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(30,"rename{} bad newName command {}.".format(tag, newName))
 				return valuesDict
 			theID  		= valuesDict.get(useId, "")
-			if valuesDict['newNamelights']: removePrefix = "Hue_light_"
-			else:							removePrefix = ""
+			if valuesDict['removePrefixlights']: 	removePrefix = "Hue_light_"
+			else:									removePrefix = ""
 			stdPrefix = "Hue_light_"
-			if newName == "*" or theID =="*":
+			if newName == "*" or theID == "*":
 				for allIDs in self.hueConfigDict[hubNumber][tag]:
 					self.execRename(tag, useId, hubNumber, allIDs, "*", removePrefix, stdPrefix)
 			else:
@@ -4821,7 +4934,6 @@ class Plugin(indigo.PluginBase):
 				newName = newName.strip()
 				if len(newName) > 32 or removePrefix !="":
 					xName = copy.copy(newName)
-					shortTag = tag[:-1]
 					if xName.find(stdPrefix) == 0:
 						xName = xName.split(stdPrefix)[1]  # remove:  Hue_tag_Bridge#_Id#_
 						if xName.find("_") >-1:  # remove bridge#_
@@ -5709,25 +5821,6 @@ class Plugin(indigo.PluginBase):
 					uiValue = "{}".format(value)
 
 
-				# If a decimal precision was specified, attempt to round the new value to that precision.
-				if decimalPlaces is not None:
-					try:
-						# See if the newValue is a number.
-						value = float(value)
-						if decimalPlaces > 0:
-							value = round(value, decimalPlaces)
-						else:
-							value = int(round(value, decimalPlaces))
-					except ValueError:
-						# This isn't a number, don't try to make it one.
-						pass
-					except TypeError:
-						# This also isn't a number and we don't need to make it one.
-						pass
-				# If no precision was specified, default to zero decimalPlaces.
-				else:
-					decimalPlaces = 0
-
 				# Now update the state if the new value (rounded if needed) is different.
 				if (value != device.states.get(state, None)):
 					try:
@@ -5888,7 +5981,7 @@ class Plugin(indigo.PluginBase):
 			if not retCode:
 					return 
 		else: return 
-
+		'''
 		### Parse Data
 		#
 		# Sanity check the returned data first.
@@ -5904,7 +5997,7 @@ class Plugin(indigo.PluginBase):
 		# Call the method to update the Indigo device with the Hue group data.
 		self.hueConfigDict[hubNumber]['groups'][groupId] = bulb
 		self.parseOneHueGroupData(group, device)
-
+		'''
 		return 
 
 	# Get Sensor Status
@@ -6058,15 +6151,15 @@ class Plugin(indigo.PluginBase):
 						if len(self.hueConfigDict[hubNumber][theType]) > lastCount[hubNumber] and lastCount[hubNumber] is not 0:
 							countChange = len(self.hueConfigDict[hubNumber][theType]) - lastCount[hubNumber]
 							if countChange == 1:
-								self.indiLOG.log(20,"{} new Hue {} found and loaded. Be sure to create an Indigo device to control the new Hue group.".format(theType, countChange) )
+								self.indiLOG.log(20,"{}: {} new Hue device found and loaded. Be sure to create an Indigo device to control the new Hue device.".format(theType, countChange) )
 							else:
-								self.indiLOG.log(20,"{} new Hue {} found and loaded. Be sure to create Indigo devices to control the new Hue groups.".format(theType, countChange) )
+								self.indiLOG.log(20,"{}: {} new Hue devices found and loaded. Be sure to create Indigo devices to control the new Hue devices.".format(theType, countChange) )
 						elif len(self.hueConfigDict[hubNumber][theType]) < lastCount[hubNumber]:
 							countChange = lastCount[hubNumber] - len(self.hueConfigDict[hubNumber][theType])
 							if countChange == 1:
-								self.indiLOG.log(20,"{} less Hue {} was found on the Hue bridge #{}. Check your Hue Lights Indigo devices. One of them may have been controlling the missing Hue group.".format(theType, countChange, hubNumber) )
+								self.indiLOG.log(20,"{}: {} less Hue device was found on the Hue bridge #{}. Check your Hue Lights Indigo devices. One of them may have been controlling the missing Hue device.".format(theType, countChange, hubNumber) )
 							elif countChange !=0:
-								self.indiLOG.log(20,"{} fewer Hue {} were found on the Hue bridge#{}. Check your Hue Lights Indigo devices. Some of them may have been controlling the missing Hue groups.".format(theType, countChange, hubNumber) )
+								self.indiLOG.log(20,"{}: fewer Hue devices were found on the Hue bridge#{}. Check your Hue Lights Indigo devices. Some of them may have been controlling the missing Hue devices.".format(theType, countChange, hubNumber) )
 						# Make sure the plugin knows it's actually paired now.
 						self.paired[hubNumber] = True
 						self.notPairedMsg[hubNumber] = time.time() - 90
@@ -6185,7 +6278,8 @@ class Plugin(indigo.PluginBase):
 					brightness = -1 
 				online 				= bulb['state'].get('reachable', False)
 				if not online:
-					device.updateStateOnServer('online', online)
+					if device.states['online']:
+						device.updateStateOnServer('online', online)
 					device.setErrorStateOnServer("disconnected")
 					return 
 					#self.indiLOG.log(20, " dev :{} not online , icon:{}".format(devName, icon))
@@ -6988,11 +7082,13 @@ class Plugin(indigo.PluginBase):
 					device.setErrorStateOnServer("")
 				else:
 					if online not in ['True','notSupported']:
-						device.updateStateOnServer('online', False)
+						if device.states['online']:
+							device.updateStateOnServer('online', False)
 						device.setErrorStateOnServer("disconnected")
 						return
 					elif online == "notSupported" and not enabledOnHub:
-						device.updateStateOnServer('online', False)
+						if not device.states['online']:
+							device.updateStateOnServer('online', False)
 						device.setErrorStateOnServer("disabled")
 						return
 					else:
@@ -7273,14 +7369,14 @@ class Plugin(indigo.PluginBase):
 						if changedTimeStamp:
 							buttonOn = True
 							# Log any change to the onState.
-							if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: {}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed], shortcut['textSuffix'][eventType+1]))
+							if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: {}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed], shortcut['textSuffix'][eventType]))
 
 					elif eventType == 1 and shortcut['eventTypesEnabled'][eventType]:
 						buttonOn = True
 						buttonHold = True
 						# Don't write to the Indigo log unless this is the first time this status has been seen.
 						if buttonHold != device.states[shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][2]]:
-							if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: {}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType+1]))
+							if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: {}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType]))
 
 					elif eventType == 2 and shortcut['eventTypesEnabled'][eventType]:
 						buttonReleaseShort = True
@@ -7291,7 +7387,7 @@ class Plugin(indigo.PluginBase):
 						#   had to have been pressed at some point, so we'll set the button ON state to True.
 						if changedTimeStamp:
 							# Update the Indigo log about the received button event regardless of current on state.
-							if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: {}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType+1]))
+							if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: {}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType]))
 							if not device.states[shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][1]]:
 								buttonOn = True
 						# Conversely, if the Indigo device state for the button is currently set to True, but
@@ -7303,7 +7399,7 @@ class Plugin(indigo.PluginBase):
 						buttonReleaseLong = True
 						if changedTimeStamp:
 							# Update the Indigo log regardless of current button on state.
-							if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: {}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType+1]))
+							if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: {}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType]))
 							if not device.states[shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][1]]:
 								buttonOn = True
 
@@ -7311,7 +7407,7 @@ class Plugin(indigo.PluginBase):
 						buttonLongPress = True
 						if changedTimeStamp:
 							# Update the Indigo log regardless of current button on state.
-							if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: {}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType+1]))
+							if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: {}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType]))
 							if not device.states[shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][1]]:
 								buttonOn = True
 
@@ -7320,32 +7416,32 @@ class Plugin(indigo.PluginBase):
 						buttonOn = True
 						# If the lastUpdated value is different, this is a new button press. Log it.
 						if changedTimeStamp:
-							if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received:{} press {}".format(device.name), shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType+1])
+							if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received:{} press {}".format(device.name, shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType]))
 						else:
 							# Looks like the button is being held down.
 							buttonHold = True
 							buttonBeingHeld = True
 							# If the Indigo device doesn't show that a button is already being held, report a button hold in the log.
 							if buttonBeingHeld != device.states['buttonBeingHeld']:
-								if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received:{} {}".format(device.name), shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType+1])
+								if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received:{} {}".format(device.name, shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType]))
 
 					elif eventType == 6 and shortcut['eventTypesEnabled'][eventType]:
 						buttonRelease = True
 						if changedTimeStamp:
 							# Update the Indigo log about the received button event regardless of current on state.
-							if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received:{}  {}".format(device.name), shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType+1])
+							if logChanges: self.indiLOG.log(20, "Hue Lights  \"{}\" received:{}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType]))
 							if not device.states['button1On']: buttonOn = True
 						else:
 							buttonRelease = False# reset at next cycle 
 
 					# Update the states on the device.
-					if shortcut['eventTypesEnabled'][0]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][1], buttonOn, 				stateUpdateList=stateUpdateList)
-					if shortcut['eventTypesEnabled'][1]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][2], buttonHold, 			stateUpdateList=stateUpdateList)
-					if shortcut['eventTypesEnabled'][2]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][3], buttonReleaseShort, 	stateUpdateList=stateUpdateList)
-					if shortcut['eventTypesEnabled'][3]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][4], buttonReleaseLong, 		stateUpdateList=stateUpdateList)
-					if shortcut['eventTypesEnabled'][4]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][5], buttonLongPress, 		stateUpdateList=stateUpdateList)
-					if shortcut['eventTypesEnabled'][5]:	stateUpdateList = self.checkIfUpdateState(device, 											shortcut['stateSuffix'][6], buttonBeingHeld, 		stateUpdateList=stateUpdateList)
-					if shortcut['eventTypesEnabled'][6]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][7], buttonRelease, 			stateUpdateList=stateUpdateList)
+					if shortcut['eventTypesEnabled'][0]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][0], buttonOn, 				stateUpdateList=stateUpdateList)
+					if shortcut['eventTypesEnabled'][1]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][1], buttonHold, 			stateUpdateList=stateUpdateList)
+					if shortcut['eventTypesEnabled'][2]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][2], buttonReleaseShort, 	stateUpdateList=stateUpdateList)
+					if shortcut['eventTypesEnabled'][3]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][3], buttonReleaseLong, 		stateUpdateList=stateUpdateList)
+					if shortcut['eventTypesEnabled'][4]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][4], buttonLongPress, 		stateUpdateList=stateUpdateList)
+					if shortcut['eventTypesEnabled'][6]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][6], buttonRelease, 			stateUpdateList=stateUpdateList)
+					if shortcut['eventTypesEnabled'][5]:	stateUpdateList = self.checkIfUpdateState(device, 											shortcut['stateSuffix'][5], buttonBeingHeld, 		stateUpdateList=stateUpdateList)
 					if True:
 															stateUpdateList = self.checkIfUpdateState(device, 'lastButtonPressed', 													lastButtonPressed, 		stateUpdateList=stateUpdateList)
 															stateUpdateList = self.checkIfUpdateState(device, 'buttonEventID', 														buttonEventID,			stateUpdateList=stateUpdateList)
@@ -7363,8 +7459,6 @@ class Plugin(indigo.PluginBase):
 				# Separate out the specific Hue sensor data.
 				rotaryEventID = sensor['state'].get('rotaryevent', 1)
 				if   rotaryEventID is None:	rotaryEventID = "unknown"
-				elif rotaryEventID == 1: 	rotaryEventType= "single"
-				elif rotaryEventID == 2: 	rotaryEventType= "repeat"
 
 				expectedEventDuration = sensor['state'].get('expectedeventduration', 0)
 				if expectedEventDuration is None: expectedEventDuration = 0
@@ -7499,7 +7593,7 @@ class Plugin(indigo.PluginBase):
 					else:
 						requestData = json.dumps({"bri": savedBrightness, "on": onState, "transitiontime": rampRate})
 				# Create the command based on whether this is a group or light device.
-				baseHttp = self.baseHTTPAddress(hubNumber)
+				#baseHttp = self.baseHTTPAddress(hubNumber)
 				if device.deviceTypeId == "hueGroup":
 					command = "http://{}/api/{}/groups/{}/action".format(ipAddress, self.hostIds[hubNumber], groupId)
 				else:
@@ -7588,7 +7682,7 @@ class Plugin(indigo.PluginBase):
 
 	# Set Brightness
 	########################################
-	def doBrightness(self, device, brightness, rampRate=-1, showLog=True):
+	def doBrightness(self, device, brightness, rampRate=-1., showLog=True):
 		if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Starting doBrightness. brightness: {}, rampRate: {}, showLogs: {}. Device: {}".format(brightness, rampRate, showLog, device.name))
 		# brightness:	Integer from 0 to 255.
 		# rampRate:		Optional float from 0 to 540.0 (higher values will probably work too).
@@ -7892,7 +7986,7 @@ class Plugin(indigo.PluginBase):
 
 	# Set Hue, Saturation and Brightness
 	########################################
-	def doHSB(self, device, hue, saturation, brightness, rampRate=-1, showLog=True):
+	def doHSB(self, device, hue, saturation, brightness, rampRate=-1., showLog=True):
 		if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Starting doHSB. HSB: {}, {}, {}. Device: {}" .format(hue, saturation, brightness, device))
 		# hue:			Integer from 0 to 65535.
 		# saturation:	Integer from 0 to 255.
@@ -8986,7 +9080,7 @@ class Plugin(indigo.PluginBase):
 						self.doErrorLog("Ramp rate value \"{}\" found in variable \"{}\" is an invalid value. Ramp rate values can only contain numbers.".format(rampRate, rateVar.name ))
 						return
 					except IndexError:
-						self.doErrorLog("The specified variable (ID:{}) does not exist in the Indigo database.".format(brightnessVarId ))
+						self.doErrorLog("The specified variable (ID:{}) does not exist in the Indigo database.".format(rateVarId ))
 						return
 				if self.decideMyLog("Init"): self.indiLOG.log(10,"Rate: {}".format(rampRate))
 
@@ -9145,7 +9239,7 @@ class Plugin(indigo.PluginBase):
 						self.doErrorLog("Ramp rate value \"{}\" found in variable \"{}\" is an invalid value. Ramp rate values can only contain numbers.".format(rampRate, rateVar.name ))
 						return
 					except IndexError:
-						self.doErrorLog("The specified variable (ID:{}) does not exist in the Indigo database.".format(brightnessVarId))
+						self.doErrorLog("The specified variable (ID:{}) does not exist in the Indigo database.".format(rateVarId))
 						return
 				if self.decideMyLog("Init"): self.indiLOG.log(10,"Rate: {}".format(rampRate))
 
@@ -9256,7 +9350,7 @@ class Plugin(indigo.PluginBase):
 						self.doErrorLog("Ramp rate value \"{}\" found in variable \"{}\" is an invalid value. Ramp rate values can only contain numbers.".format(rampRate, rateVar.name ))
 						return
 					except IndexError:
-						self.doErrorLog("The specified variable (ID:{}) does not exist in the Indigo database.".format(brightnessVarId))
+						self.doErrorLog("The specified variable (ID:{}) does not exist in the Indigo database.".format(rateVarId))
 						return
 				if self.decideMyLog("Init"): self.indiLOG.log(10,"Rate: {}".format(rampRate))
 
@@ -9366,7 +9460,7 @@ class Plugin(indigo.PluginBase):
 						try:
 							brightness = int(indigo.variables[brightnessVariable].value)
 						except ValueError:
-							self.doErrorLog("Brightness value \"{}\" specified in variable \"{}\" for device \"{}\" is invalid.".format(indigo.variables[brightnessVariable].value, indigo.variables[tempebrightnessVariableratureVariable].name , device.name))
+							self.doErrorLog("Brightness value \"{}\" specified in variable \"{}\" for device \"{}\" is invalid.".format(indigo.variables[brightnessVariable].value, indigo.variables[brightnessVariable].name , device.name))
 							return
 						except IndexError:
 							self.doErrorLog("The brightness source variable (ID{}) does not exist in the Indigo database.".format(brightnessVariable))
@@ -9436,7 +9530,7 @@ class Plugin(indigo.PluginBase):
 						self.doErrorLog("Ramp rate value \"{}\" found in variable \"{}\" is an invalid value. Ramp rate values can only contain numbers.".format(rampRate, rateVar.name ))
 						return
 					except IndexError:
-						self.doErrorLog("The specified variable (ID:{}) does not exist in the Indigo database.".format(brightnessVarId))
+						self.doErrorLog("The specified variable (ID:{}) does not exist in the Indigo database.".format(rateVarId))
 						return
 				if self.decideMyLog("Init"): self.indiLOG.log(10,"Rate: {}".format(rampRate))
 
@@ -10068,7 +10162,6 @@ class Plugin(indigo.PluginBase):
 					if len(bridgeIds) <= cc: continue
 					if huesFound[cc]['name'] == "none": continue
 					if bridgeIds[cc] == "none": continue
-					bridgeId = bridgeIds[cc] 
 
 					cmd =  "/usr/bin/dns-sd -G v4 " + huesFound[cc]['name'] +" & sleep 1; /bin/kill $!"
 					ret, err = self.readPopen(cmd)
@@ -10085,7 +10178,6 @@ class Plugin(indigo.PluginBase):
 				self.timeWhenNewBridgeRunFinished = time.time()
 				self.findHueBridgesAreBeingupdated = "updated"
 				for ii in range(normalwaitBetweentriesFindBridges):
-					newBridge = False
 					if self.findHueBridgesDict['status'] == "stop": return 
 					if self.pluginState == "stop": return
 
@@ -10105,7 +10197,6 @@ class Plugin(indigo.PluginBase):
 			
 					for bridgeId in self.bridgesAvailable:
 						if bridgeId not in bridgesAvailableOld:
-							newBridge = True
 							if not first:
 								self.indiLOG.log(30,"!!!! \nfindHueBridges: new bridge found:{}\n!!!!".format(self.bridgesAvailable[bridgeId]))
 								self.lastTimeForAll = 0
@@ -10537,6 +10628,23 @@ class Plugin(indigo.PluginBase):
 					self.indiLOG.log(20,out)
 
 
+
+			elif valuesDict['whatToPrint'].find("lightsDict") >-1:
+				tag = valuesDict['whatToPrint'].split('Dict')[0]
+				for hubNumber in  self.hueConfigDict:
+					out = "printHueData ---hub:{}, {} \n".format(hubNumber,tag)
+					for ID in self.hueConfigDict[hubNumber][tag]:
+						out+= "{}: {} \n".format( ID, self.hueConfigDict[hubNumber][tag][ID])
+					self.indiLOG.log(20,out)
+
+			elif valuesDict['whatToPrint'].find("sensorsDict") >-1:
+				tag = valuesDict['whatToPrint'].split('Dict')[0]
+				for hubNumber in  self.hueConfigDict:
+					out = "printHueData ---hub:{}, {} \n".format(hubNumber,tag)
+					for ID in self.hueConfigDict[hubNumber][tag]:
+						out+= "{}: {} \n".format( ID, self.hueConfigDict[hubNumber][tag][ID])
+					self.indiLOG.log(20,out)
+
 			elif valuesDict['whatToPrint'].find("specific") >-1:
 				whatToPrint = valuesDict['whatToPrint'].lower().split("specific")[1]
 				ID, hubNumber = valuesDict[whatToPrint].split("-")
@@ -10661,7 +10769,7 @@ class Plugin(indigo.PluginBase):
 		return 
 
 ####-------------------------------------------------------------------------####
-	def getDebugLevels(self, useMe={}):
+	def getDebugLevels(self, useMe=dict()):
 		try:
 			self.debugLevel	= []
 			if useMe == {}:
@@ -10754,7 +10862,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			ret, err = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
 			return ret.decode('utf_8'), err.decode('utf_8')
-		except Exception:
+		except Exception as e:
 			if str(e).find("None") == -1: self.logger.error("", exc_info=True)
 
 
@@ -10785,7 +10893,7 @@ class Plugin(indigo.PluginBase):
 # handler.setFormatter(formatter)
 class LevelFormatter(logging.Formatter):
 ####-------------------------------------------------------------------------####
-	def __init__(self, fmt=None, datefmt=None, level_fmts={}, level_date={}):
+	def __init__(self, fmt=None, datefmt=None, level_fmts=dict(), level_date=dict()):
 		formt = None
 		self._level_formatters = {}
 		self._level_date_format = {}
