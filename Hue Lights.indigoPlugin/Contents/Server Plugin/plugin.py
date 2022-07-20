@@ -7375,7 +7375,7 @@ class Plugin(indigo.PluginBase):
 						buttonOn = True
 						buttonHold = True
 						# Don't write to the Indigo log unless this is the first time this status has been seen.
-						if buttonHold != device.states[shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][2]]:
+						if buttonHold != device.states[shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][1]]:
 							if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: {}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType]))
 
 					elif eventType == 2 and shortcut['eventTypesEnabled'][eventType]:
@@ -7388,7 +7388,7 @@ class Plugin(indigo.PluginBase):
 						if changedTimeStamp:
 							# Update the Indigo log about the received button event regardless of current on state.
 							if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: {}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType]))
-							if not device.states[shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][1]]:
+							if not device.states[shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][0]]:
 								buttonOn = True
 						# Conversely, if the Indigo device state for the button is currently set to True, but
 						#   the lastUpdated time on the bridge is the same as on the Indigo device, that means
@@ -7400,7 +7400,7 @@ class Plugin(indigo.PluginBase):
 						if changedTimeStamp:
 							# Update the Indigo log regardless of current button on state.
 							if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: {}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType]))
-							if not device.states[shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][1]]:
+							if not device.states[shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][0]]:
 								buttonOn = True
 
 					elif eventType == 4 and shortcut['eventTypesEnabled'][eventType]:
@@ -7408,7 +7408,7 @@ class Plugin(indigo.PluginBase):
 						if changedTimeStamp:
 							# Update the Indigo log regardless of current button on state.
 							if logChanges: self.indiLOG.log(sendLog, "Hue Lights  \"{}\" received: {}  {}".format(device.name, shortcut['buttontexts'][lastButtonPressed],  shortcut['textSuffix'][eventType]))
-							if not device.states[shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][1]]:
+							if not device.states[shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][0]]:
 								buttonOn = True
 
 

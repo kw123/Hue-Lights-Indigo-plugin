@@ -1,5 +1,5 @@
 ========================================
-2022.12.35 @ 2022-07-20
+2022.12.36 @ 2022-07-20
 
 * fixed continuous logging for some sensors, even when nothing changed.
 
