@@ -7441,6 +7441,7 @@ class Plugin(indigo.PluginBase):
 					if shortcut['eventTypesEnabled'][3]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][3], buttonReleaseLong, 		stateUpdateList=stateUpdateList)
 					if shortcut['eventTypesEnabled'][4]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][4], buttonLongPress, 		stateUpdateList=stateUpdateList)
 					if shortcut['eventTypesEnabled'][6]:	stateUpdateList = self.checkIfUpdateState(device, shortcut['stateNames'][lastButtonPressed]+shortcut['stateSuffix'][6], buttonRelease, 			stateUpdateList=stateUpdateList)
+
 					if shortcut['eventTypesEnabled'][5]:	stateUpdateList = self.checkIfUpdateState(device, 											shortcut['stateSuffix'][5], buttonBeingHeld, 		stateUpdateList=stateUpdateList)
 					if True:
 															stateUpdateList = self.checkIfUpdateState(device, 'lastButtonPressed', 													lastButtonPressed, 		stateUpdateList=stateUpdateList)
@@ -7484,7 +7485,7 @@ class Plugin(indigo.PluginBase):
 
 			# End if this is a Hue Smart Button sensor.
 
-			if stateUpdateList != []:
+			if stateUpdateList != [] or changedTimeStamp:
 				stateUpdateList.append( {"key":"lastUpdated", "value":lastUpdated} )
 				self.updateDeviceState(device, stateUpdateList)
 

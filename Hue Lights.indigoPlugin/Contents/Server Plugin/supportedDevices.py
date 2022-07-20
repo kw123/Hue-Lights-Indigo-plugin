@@ -423,7 +423,7 @@ keventButtonSettings = {
 		'stateNames':			['','button1', 'button2', 'button3', 'button4', 'button5', 'button6'],
 		'buttontexts':			['','button1', 'button2', 'button3', 'button4', 'combined bottom', 'combined top'],
 		'stateSuffix':			['On',			'Hold',				'','','',	'BeingHeld',	'Release'],
-		'textSuffix':			['Press',		'press and hold',	'','','',	'being held',	'release'],
+		'textSuffix':			['Press',		'press and hold',	'','','',	'being held', 'release'],
 		'findbuttonNumbers':	{'//':1,'buttonNumbers': {16:1,20:1, 17:2,21:2, 18:3,22:3, 19:4,23:4, 96:5,97:5, 98:5,99:5, 100:6,101:6}}, #map eventid to button # used this is done explicitely as there is not easy algorithm to use
 		'findEventType':		{'%':9999,		'evType':{16:5,20:6, 17:5,21:6, 18:5,22:6, 19:5,23:6, 96:5,97:6, 98:5,99:6, 100:5,101:6}},  #map eventid to event type used
 		'eventTypesEnabled':	{0:True,1:True,2:False,3:False,4:False,5:True,6:True}
