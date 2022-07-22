@@ -376,7 +376,7 @@ khubNumbersAvailable = ["0","1","2","3","4","5","6","7","8","9"]
 keventButtonSettings = {
 	'hueDimmerSwitch':{
 		'stateNames':			['','button1',	'button2',			'button3',					'button4'],					# this is for dev states, starts with 1 index is button
-		'buttontexts':			['','On',		'dim Up',			'dim Down',					'Hue/off'], 				# this is for logfile, index is button #
+		'buttontexts':			['','on',		'dim Up',			'dim Down',					'Hue/off'], 				# this is for logfile, index is button #
 		'stateSuffix':			[	'On',		'Hold',				'ReleaseShort',				'ReleaseLong'],				# this is for dev states eg button1On, index is event type
 		'textSuffix':			['press', 		'press and hold',	'press with short release',	'press with long release'],	# this is for logfile, index is event type
 		'findbuttonNumbers':	{'//':1000,'buttonNumbers':{1:1,2:2,3:3,4:4}}, 												# 1000,1001...4003
@@ -403,9 +403,9 @@ keventButtonSettings = {
 		},
 	'hueSmartButton':{
 		'stateNames':			['','button1'],
+		'buttontexts':			['','button1'],
 		'stateSuffix':			['On', 		'Repeat', 			'ReleaseShort',				'ReleaseLong',				'Hold'],
 		'textSuffix':			['press',	'press and repeat',	'press with short release',	'press with long release',	'press and hold'],
-		'buttontexts':			['','button1'],
 		'findbuttonNumbers':	{'//':1000,'buttonNumbers':{1:1}}, # 1001,2,3,10
 		'findEventType':		{'%':1000,'evType':{0:0,1:1,2:2,3:3,10:4}},
 		'eventTypesEnabled':	{0:True,1:True,2:True,3:True,4:True,5:False,6:False}

@@ -1,4 +1,14 @@
 ========================================
+2022.12.37 @ 2022-07-23
+
+* beautifications in logging and menus
+
+* added one more check when adding a new bridge 
+   fixing error: plugin.py", line 2686, in selHubNumberGWPair
+
+
+
+========================================
 2022.12.36 @ 2022-07-20
 
 * fixed continuous logging for some sensors, even when nothing changed.
