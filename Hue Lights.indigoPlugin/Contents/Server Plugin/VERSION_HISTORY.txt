@@ -1,3 +1,11 @@
+2022.12.38 @ 2022-07-24
+
+* added print option to print plugin prefs to logfile, for debugging purposes
+* added more logging info when connection to bridge is failing
+* fixed, during initialization: if conection to one bridge failed, all subsequent bridges were ignored
+
+
+
 ========================================
 2022.12.37 @ 2022-07-23
 

@@ -459,6 +459,7 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 					<Option value="specificResourcelinks">all info for one specific Bridge-RESOURCE-LINK-id</Option>
 					<Option value="NoHudevice">Indigo devices w no Hue device</Option>
 					<Option value="NoIndigoDevice">Hue devices w no Indigo device</Option>
+					<Option value="pluginPrefs">plugin preferences</Option>
 				</List>
 			</Field>
 			<Field  id="sortBy" 
@@ -513,7 +514,7 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 
 			<Field id="doPrint" type="button"
 					visibleBindingId="whatToPrint" 
-					visibleBindingValue="lights,lightsDict,sensors,sensorsDict,scenes,groups,rules,resourcelinks,schedules,config,configJson,configDict,specificLights,specificSensors,specificGroups,specificScenes,specificRules,specificSchedules,specificResourcelinks,NoHudevice,NoIndigoDevice" >
+					visibleBindingValue="lights,lightsDict,sensors,sensorsDict,scenes,groups,rules,resourcelinks,schedules,config,configJson,configDict,specificLights,specificSensors,specificGroups,specificScenes,specificRules,specificSchedules,specificResourcelinks,NoHudevice,NoIndigoDevice,pluginPrefs" >
 				<Label>Click to</Label>
 				<Title>Print</Title>
 				<CallbackMethod>printHueData</CallbackMethod>

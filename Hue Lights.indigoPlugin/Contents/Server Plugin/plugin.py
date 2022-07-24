@@ -3220,6 +3220,7 @@ class Plugin(indigo.PluginBase):
 		#
 		if device.deviceTypeId == "hueBulb":
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+			if not paired: return 
 			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Command is {}, Bulb is {}".format(command, bulbId))
 
 			##### TURN ON #####
@@ -3404,6 +3405,7 @@ class Plugin(indigo.PluginBase):
 		#
 		if device.deviceTypeId == "hueAmbiance":
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+			if not paired: return 
 			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Command is {}, Bulb is {}".format(command, bulbId))
 
 			##### TURN ON #####
@@ -3588,6 +3590,7 @@ class Plugin(indigo.PluginBase):
 		#
 		elif device.deviceTypeId == "hueLightStrips":
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+			if not paired: return 
 			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Command is {}, Light Strip device is {}".format(command, bulbId))
 
 			##### TURN ON #####
@@ -3779,6 +3782,7 @@ class Plugin(indigo.PluginBase):
 		#
 		elif device.deviceTypeId == "hueLivingColorsBloom":
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+			if not paired: return 
 			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Command is {}, LivingColors Bloom device is {}".format(command, bulbId))
 
 			##### TURN ON #####
@@ -3971,6 +3975,7 @@ class Plugin(indigo.PluginBase):
 		#
 		elif device.deviceTypeId == "hueLivingWhites":
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+			if not paired: return 
 			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Command is {}, LivingWhites device is {}".format(command, bulbId))
 
 			##### TURN ON #####
@@ -4078,6 +4083,7 @@ class Plugin(indigo.PluginBase):
 		#
 		elif device.deviceTypeId == "hueOnOffDevice":
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+			if not paired: return 
 			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Command is {}, On/Off device is {}".format(command, bulbId))
 
 			##### TURN ON #####
@@ -4191,6 +4197,7 @@ class Plugin(indigo.PluginBase):
 		if device.deviceTypeId == "hueGroup":
 			bulbId = device.pluginProps.get('groupId', None)
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+			if not paired: return 
 			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Command is {}, On/Off Group is {}".format(command, bulbId))
 
 			##### TURN ON #####
@@ -4762,6 +4769,7 @@ class Plugin(indigo.PluginBase):
 				if devSensorId != sensorId: continue
 
 				hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+				if not paired: continue 
 				#if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"valuesDict is {}".format(valuesDict))
 
 				command = "http://{}/api/{}/sensors/{}/config".format(ipAddress, self.hostIds[hubNumber], sensorId)
@@ -4942,8 +4950,8 @@ class Plugin(indigo.PluginBase):
 						if xName.find("_") >-1: # remove id#_
 							xName = xName[xName.find("_")+1:]
 						newName = xName[-32:].strip()
-						if len(newName) > 32: self.indiLOG.log(30,"rename device:{}, new name:{}, is too long, max len is 32 char, reduced to:{}.".format(device.name, newName, xName))
-						else:				  self.indiLOG.log(30,"rename device:{}, new name:{}, remove std tag, changed to :{}.".format(device.name, newName, xName))
+						if len(newName) > 32: self.indiLOG.log(30,"rename device:\"{}\", new name:\"{}\", is too long, max len is 32 char, reduced to:\"{}\".".format(device.name, newName, xName))
+						else:				  self.indiLOG.log(30,"rename device:\"{}\", new name:\"{}\", remove std tag, changed to :\"{}\".".format(device.name, newName, xName))
 					elif len(newName) > 32:
 							self.indiLOG.log(30,"rename device for:{}, new name:{}, is too long, max len is 32 char".format(device.name, newName))
 							continue
@@ -4963,14 +4971,14 @@ class Plugin(indigo.PluginBase):
 				try:
 					response = json.loads(r.content)
 					if "success" in response[0]:
-						self.indiLOG.log(20,"change {} to {} for \"{}\" Bridge returned:OK".format(oldName, newName, device.name ))
+						self.indiLOG.log(20,"change: \"{}\" to \"{}\" for \"{}\" Bridge returned:OK".format(oldName, newName, device.name ))
 					else:
-						self.indiLOG.log(20,"change {} to {} for \"{}\" Bridge returned:{}".format(oldName, newName, device.name, response ))
+						self.indiLOG.log(20,"change: \"{}\" to \"{}\" for \"{}\" Bridge returned:{}".format(oldName, newName, device.name, response ))
 				except Exception as e:
-					self.doErrorLog("Failed to switch {}. on/off, error:{}, Bridge response:{}".format(device.name, e, response))
+					self.doErrorLog("Failed to change name \"{}\". error:{}, Bridge response:{}".format(device.name, e, response))
 				return 
 
-			self.indiLOG.log(30,"menu rename {} no matching device found; {} / {} / {} / {}".format( tag, useId, hubNumber, theID, newName))
+			self.indiLOG.log(30,"menu rename {} no matching device found; {} / {} / {} / \"{}\"".format( tag, useId, hubNumber, theID, newName))
 		except Exception:
 			self.logger.error("", exc_info=True)
 		return 
@@ -5917,6 +5925,11 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def getIdsFromDevice(self, device):
 		hubNumber = device.pluginProps.get('hubNumber', "0")
+		if (hubNumber not in self.ipAddresses or 
+			hubNumber not in self.hostIds or 
+			hubNumber not in self.paired):
+			self.doErrorLog("bridge#:{} not properly setup, please check config".format(hubNumber), level=30, force=False)
+			return hubNumber, "","", False
 		return hubNumber, self.ipAddresses[hubNumber], self.hostIds[hubNumber], self.paired[hubNumber]
 
 
@@ -5931,6 +5944,7 @@ class Plugin(indigo.PluginBase):
 
 		device = indigo.devices[deviceId]
 		hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+		if not paired: return 
 		if verbose: self.indiLOG.log(20,"Get device status for {}".format(device.name))
 		if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Get device status for {}".format(device.name))
 		# Proceed based on the device type.
@@ -5974,6 +5988,7 @@ class Plugin(indigo.PluginBase):
 
 		device = indigo.devices[deviceId]
 		hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+		if not paired: return 
 		# Get the groupId from the device properties.
 		groupId = device.pluginProps.get('groupId', -1)
 
@@ -6008,6 +6023,7 @@ class Plugin(indigo.PluginBase):
 
 		device = indigo.devices[deviceId]
 		hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+		if not paired: return 
 		# Get the sensorId from the device properties.
 		sensorId = device.pluginProps.get('sensorId', -1)
 		# if the sensorId exists, get the sensor status.
@@ -6047,13 +6063,16 @@ class Plugin(indigo.PluginBase):
 		for hubNumber in self.ipAddresses:
 			# 
 			ipAddress, hostId, errorCode = self.getadresses(hubNumber)
-			if errorCode >0: return
-
+			if errorCode >0: 
+				self.indiLOG.log(30,"bridge#{} -bad ip# {} or hostId:{}, errCode:{}".format(hubNumber, ipAddress, hostId, errorCode))
+				continue
 			try:
 
 				# Send the command and parse the response
 				retCode, responseData, errorsDict =  self.commandToHub_HTTP( hubNumber, "")
-				if not retCode: return
+				if not retCode: 
+					self.indiLOG.log(30,"bridge#{} -ip:{}, hostId:{}; data returned >{}<, errors:{}".format(hubNumber, ipAddress, hostId, responseData, errorsDict ))
+					continue
 
 				# We should have a dictionary. If so, it's a Hue configuration response.
 				if isinstance(responseData, dict):
@@ -7504,6 +7523,7 @@ class Plugin(indigo.PluginBase):
 		# rampRate:		Optional float from 0 to 540.0 (higher values will probably work too).
 		try:
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+			if not paired: return 
 
 			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
 			if self.trackSpecificDevice == device.id:	sendLog = 20
@@ -7692,6 +7712,7 @@ class Plugin(indigo.PluginBase):
 		# showLog:		Optional boolean. False = hide change from Indigo log.
 		try:
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+			if not paired: return 
 			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
 			if self.trackSpecificDevice == device.id:	sendLog = 20
 			else: 										sendLog = self.sendDeviceUpdatesTo
@@ -7835,6 +7856,7 @@ class Plugin(indigo.PluginBase):
 		# rampRate:		Optional float from 0 to 540.0 (higher values will probably work too).
 		try:
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+			if not paired: return 
 			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
 			if self.trackSpecificDevice == device.id:	sendLog = 20
 			else: 										sendLog = self.sendDeviceUpdatesTo
@@ -7997,6 +8019,7 @@ class Plugin(indigo.PluginBase):
 		# rampRate:		Optional float from 0 to 540.0 (higher values will probably work too).
 		try:
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+			if not paired: return 
 			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
 			if self.trackSpecificDevice == device.id:	sendLog = 20
 			else: 										sendLog = self.sendDeviceUpdatesTo
@@ -8140,6 +8163,7 @@ class Plugin(indigo.PluginBase):
 		# rampRate:		Optional float from 0 to 540.0 (higher values will probably work too).
 		try:
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+			if not paired: return 
 			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
 			if self.trackSpecificDevice == device.id:	sendLog = 20
 			else: 										sendLog = self.sendDeviceUpdatesTo
@@ -8282,6 +8306,7 @@ class Plugin(indigo.PluginBase):
 		# rampRate:		Optional float from 0 to 540.0 (higher values will probably work too).
 		try:
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+			if not paired: return 
 			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
 			if self.trackSpecificDevice == device.id:	sendLog = 20
 			else: 										sendLog = self.sendDeviceUpdatesTo
@@ -8439,6 +8464,7 @@ class Plugin(indigo.PluginBase):
 		#					none		: Stop any running alerts
 		try:
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+			if not paired: return 
 			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
 			if self.trackSpecificDevice == device.id:	sendLog = 20
 			else: 										sendLog = self.sendDeviceUpdatesTo
@@ -8506,6 +8532,7 @@ class Plugin(indigo.PluginBase):
 		#				Other effects may be supported by Hue with future firmware updates.
 		try:
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
+			if not paired: return 
 			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
 			if self.trackSpecificDevice == device.id:	sendLog = 20
 			else: 										sendLog = self.sendDeviceUpdatesTo
@@ -8637,19 +8664,18 @@ class Plugin(indigo.PluginBase):
 			for hubNumber in  self.hostIds:
 				hueUsername = self.hostIds[hubNumber]
 				if hueUsername is None :
-					self.indiLOG.log(30,"Plugin does not seem to be paired with the Hue bridge.")
+					self.indiLOG.log(30,"Plugin does not seem to be paired with the Hue bridge:{}".format(hubNumber))
 
 			# Get the entire Hue bridge configuration and report the results.
 
-
 			# Sanity check for an IP address
 			## old if only one hub, expaned to option of having multiple hubs
-			ipAddress = self.pluginPrefs.get('address', None)
+			oldVersionipAddress = self.pluginPrefs.get('address', None)
 			tempIP= json.loads(self.pluginPrefs.get('addresses', '{"0":""}'))
 
 
-			if tempIP == {"0":""} and ipAddress != {}:
-				tempIP['0'] = ipAddress
+			if tempIP == {'0':''} and oldVersionipAddress is not None:
+				tempIP['0'] = oldVersionipAddress
 
 			try:
 				for hubNumber in copy.copy(tempIP):
@@ -8667,8 +8693,13 @@ class Plugin(indigo.PluginBase):
 			except Exception:
 				self.logger.error("", exc_info=True)
 			self.ipAddresses = copy.copy(tempIP)
-
 			self.pluginPrefs['addresses'] = json.dumps(self.ipAddresses)
+
+
+			for hubNumber in copy.copy(self.hostIds):
+				if hubNumber not in self.ipAddresses:
+					del self.hostIds[hubNumber]
+					self.pluginPrefs['hostIds'] = json.dumps(self.hostIds)
 
 			# Get the entire configuration from the Hue bridge.
 			self.getHueConfig()
@@ -8678,6 +8709,7 @@ class Plugin(indigo.PluginBase):
 				hublist = []
 				for hubNumber in self.ipAddresses:
 					hublist.append(hubNumber)
+
 				for hubNumber in sorted(hublist):
 					if hubNumber in self.hueConfigDict:
 						if "lights" in self.hueConfigDict[hubNumber]:
@@ -8685,9 +8717,14 @@ class Plugin(indigo.PluginBase):
 							hubNumber, len(self.hueConfigDict[hubNumber]['lights'] ), len(self.hueConfigDict[hubNumber]['groups'] ), len(self.hueConfigDict[hubNumber]['users'] ), len(self.hueConfigDict[hubNumber]['scenes'] ), 
 							len(self.hueConfigDict[hubNumber]['resourcelinks'] ), len(self.hueConfigDict[hubNumber]['rules'] ), len(self.hueConfigDict[hubNumber]['schedules'] ), len(self.hueConfigDict[hubNumber]['sensors'] ), self.hostIds[hubNumber],self.ipAddresses[hubNumber], self.hueConfigDict[hubNumber]['config']['bridgeid']) )
 						else:
-							self.indiLOG.log(30,"#{:5s}; ipNumber:{} --- not properly setup".format(hubNumber, self.ipAddresses[hubNumber]))
+							self.indiLOG.log(30,"#{:5s}; ipNumber:{} --- not properly setup, no data received from bridge, try to re-pair".format(hubNumber, self.ipAddresses[hubNumber]))
+							self.indiLOG.log(30,"        pluginPrefs IP#s: {},   ..hostIDs:   {}".format(self.pluginPrefs.get('addresses','empty'), self.pluginPrefs.get('hostIds','empty') ))
+							self.indiLOG.log(30,"        self.ipNumbers:   {}    self.hostIds:{}, paired:{}".format(self.ipAddresses, self.hostIds, self.paired  ))
+							
 					else:
-						self.indiLOG.log(30,"#{:5s}; ipNumber:{} --- not paired or connected".format(hubNumber, self.ipAddresses[hubNumber]))
+						self.indiLOG.log(30,"#{:5s}; ipNumber:{} --- bridge not setup, not paired or bridge is not connected".format(hubNumber, self.ipAddresses[hubNumber]))
+						self.indiLOG.log(30,"        pluginPrefs IP#s: {},   ..hostIDs:   {}".format(self.pluginPrefs.get('addresses','empty'), self.pluginPrefs.get('hostIds','empty')))
+						self.indiLOG.log(30,"        self.ipNumbers:   {}    self.hostIds:{}, paired:{}".format(self.ipAddresses, self.hostIds, self.paired  ))
 		except Exception:
 			self.logger.error("", exc_info=True)
 				
@@ -10648,6 +10685,9 @@ class Plugin(indigo.PluginBase):
 						out+= "{}: {} \n".format( ID, self.hueConfigDict[hubNumber][tag][ID])
 					self.indiLOG.log(20,out)
 
+			elif valuesDict['whatToPrint'].find("pluginPrefs") >-1:
+					self.indiLOG.log(20, "plugin preferences:\n{}".format(self.pluginPrefs) )
+
 			elif valuesDict['whatToPrint'].find("specific") >-1:
 				whatToPrint = valuesDict['whatToPrint'].lower().split("specific")[1]
 				ID, hubNumber = valuesDict[whatToPrint].split("-")
@@ -10857,7 +10897,7 @@ class Plugin(indigo.PluginBase):
 				self.doErrorLog("No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com.")
 				return 0,0,1
 			if hubNumber not in self.hostIds:
-				return 0,0,1
+				return 0,0,2
 			return ipAddress, self.hostIds[hubNumber], 0
 
 ####-------------------------------------------------------------------------####
