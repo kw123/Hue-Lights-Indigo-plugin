@@ -396,6 +396,7 @@ class Plugin(indigo.PluginBase):
 		self.printHueData({"whatToPrint":"NoHudevice", "sortBy":""},"")
 		self.indiLOG.log(20,"... initialized")
 
+
 		try:
 			while True:
 				# We're using time sharing techniques here based on
@@ -2840,14 +2841,14 @@ class Plugin(indigo.PluginBase):
 
 					if errorCode == 101:
 						# Center link button wasn't pressed on bridge yet.
-						errorText = self.doErrorLog("Unable to pair with the Hue bridge. Press the center button on the Hue bridge, then click the \"Pair Now\" button.")
+						errorText = self.doErrorLog("Unable to pair with the Hue bridge. Press the center button on the Hue bridge, then click the \"Pair Now\" button.", level=30)
 						isError = True
 						errorsDict['startPairingButton'] = errorText
 						if not autoSearch: errorsDict['showAlertText'] += errorsDict['startPairingButton'] + "\n\n"
 						return valuesDict, errorsDict
 
 					else:
-						errorText = self.doErrorLog("Error #{} from the Hue bridge. Description: \"{}\".".format(errorCode, errorDict.get('description', "(No Description)")))
+						errorText = self.doErrorLog("Error #{} from the Hue bridge. Description: \"{}\".".format(errorCode, errorDict.get('description', "(No Description)")), level=30)
 						errorsDict['showAlertText'] += errorText
 						return valuesDict, errorsDict
 
@@ -3018,6 +3019,7 @@ class Plugin(indigo.PluginBase):
 			valuesDict['timeScaleFactor']   = "{}".format(self.timeScaleFactor)
 
 			self.pluginPrefs['addresses'] = json.dumps(self.ipAddresses)
+			self.pluginPrefs['hostIds'] = json.dumps(self.hostIds)
 
 			# If the number of Preset Memories was changed, add or remove Presets as needed.
 			self.maxPresetCount = int(valuesDict.get('maxPresetCount', "30"))
@@ -5900,7 +5902,7 @@ class Plugin(indigo.PluginBase):
 					props = copy.deepcopy(vd)
 
 		if hubNumber not in self.ipAddresses or not self.isValidIP(self.ipAddresses[hubNumber]):
-			self.indiLOG.log(30,"bridge number {} not registered in ip-addresses {}, please try to re-pair bridge in config ".format(hubNumber, self.ipAddresses))
+			self.doErrorLog("bridge number {} not registered in ip-addresses {}, please try to re-pair bridge in config ".format(hubNumber, self.ipAddresses), level=30)
 			return 
 
 		newProps = self.validateRGBWhiteOnOffetc(props, deviceTypeId=device.deviceTypeId, devId=device.id, devName=device.name)

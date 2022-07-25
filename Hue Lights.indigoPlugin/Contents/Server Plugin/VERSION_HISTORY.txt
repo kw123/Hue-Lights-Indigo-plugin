@@ -1,3 +1,8 @@
+2022.12.39 @ 2022-07-25
+
+* fixed adding hue bridges, fixed amajor issue
+
+
 2022.12.38 @ 2022-07-24
 
 * added print option to print plugin prefs to logfile, for debugging purposes
