@@ -778,48 +778,56 @@ class Plugin(indigo.PluginBase):
 	def commandToHub_HTTP(self, hubNumber, cmd, errorsDict=None, errDict1="", errDict2=""):
 		# Make sure the device selected is a Hue device.
 		#   Get the device info directly from the bridge.
-		if errorsDict is None:
-			errorsDict = {}
-		ipAddress = self.ipAddresses[hubNumber]
-		if not self.isValidIP(ipAddress):
-			if ipAddress == "": return (False, "", errorsDict) # this happens during setup of hub, for some time ip number is not defined, suppress error msg
-			errorText = self.doErrorLog("hub#:{} no valid IP number: >>{}<<".format(hubNumber, ipAddress))
-			errorsDict[errDict1] = errorText
-			errorsDict[errDict2] += errorsDict[errDict1]
-			return (False, "", errorsDict)
-
-		command = "http://{}/api/{}/{}" .format(ipAddress, self.hostIds[hubNumber], cmd)
-		if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Sending URL request: {}".format(command) )
-		if hubNumber not in self.bridgeRequestsSession:
-			self.bridgeRequestsSession[hubNumber] = {"lastInit": 0, "session" : ""}
-		#self.connectToBridge(hubNumber)
 		try:
-			r = requests.get(command, timeout=kTimeout, headers={'Connection':'close'})
-		except requests.exceptions.Timeout:
-			if self.checkForLastNotPairedMessage(hubNumber):
-				errorText = self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout),force=True)
+			if errorsDict is None:
+				errorsDict = {}
+			jsonData = {}
+			ipAddress = self.ipAddresses[hubNumber]
+			if not self.isValidIP(ipAddress):
+				if ipAddress == "": return (False, "", errorsDict) # this happens during setup of hub, for some time ip number is not defined, suppress error msg
+				errorText = self.doErrorLog("hub#:{} no valid IP number: >>{}<<".format(hubNumber, ipAddress))
 				errorsDict[errDict1] = errorText
 				errorsDict[errDict2] += errorsDict[errDict1]
-			return (False, "", errorsDict)
-		except requests.exceptions.ConnectionError:
-			if self.checkForLastNotPairedMessage(hubNumber):
-				errorText = self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress, force=True))
-				errorsDict[errDict1] = errorText
-				errorsDict[errDict2] += errorsDict[errDict1]
-			return (False, "", errorsDict)
+				return (False, "", errorsDict)
 
-		if self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"Data from bridge: {}".format(r.content.decode("utf-8")) )
-		# Convert the response to a Python object.
-		try:
-			jsonData = json.loads(r.content)
+			command = "http://{}/api/{}/{}" .format(ipAddress, self.hostIds[hubNumber], cmd)
+			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Sending URL request: {}".format(command) )
+			if hubNumber not in self.bridgeRequestsSession:
+				self.bridgeRequestsSession[hubNumber] = {"lastInit": 0, "session" : ""}
+			#self.connectToBridge(hubNumber)
+			try:
+				r = requests.get(command, timeout=kTimeout, headers={'Connection':'close'})
+			except requests.exceptions.Timeout:
+				if self.checkForLastNotPairedMessage(hubNumber):
+					errorText = self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout),force=True)
+					errorsDict[errDict1] = errorText
+					errorsDict[errDict2] += errorsDict[errDict1]
+				return (False, "", errorsDict)
+			except requests.exceptions.ConnectionError:
+				if self.checkForLastNotPairedMessage(hubNumber):
+					errorText = self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress, force=True))
+					errorsDict[errDict1] = errorText
+					errorsDict[errDict2] += errorsDict[errDict1]
+				return (False, "", errorsDict)
+			except Exception :
+				self.logger.error("", exc_info=True)
+				return (False, "", errorsDict)
+
+			if self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"Data from bridge: {}".format(r.content.decode("utf-8")) )
+			# Convert the response to a Python object.
+			try:
+				jsonData = json.loads(r.content)
+			except Exception:
+				# There was an error in the returned data.
+				self.logger.error("", exc_info=True)
+				errorsDict[errDict1] = "Error retrieving Hue device data from bridge. See Indigo log."
+				errorsDict[errDict2] += errorsDict[errDict1]
+				return (False, "",  errorsDict)
+			self.notPairedMsg[hubNumber] = time.time() - 90
+			return True, jsonData, errorsDict
 		except Exception:
-			# There was an error in the returned data.
 			self.logger.error("", exc_info=True)
-			errorsDict[errDict1] = "Error retrieving Hue device data from bridge. See Indigo log."
-			errorsDict[errDict2] += errorsDict[errDict1]
-			return (False, "",  errorsDict)
-		self.notPairedMsg[hubNumber] = time.time() - 90
-		return True, jsonData, errorsDict
+		return False, jsonData, errorsDict
 			
 	# start or reconnect session to bridge 
 	########################################
@@ -5958,11 +5966,11 @@ class Plugin(indigo.PluginBase):
 			# Get the bulbId from the device properties.
 			bulbId = device.pluginProps.get('bulbId', False)
 			# if the bulbId exists, get the device status.
-			if int(bulbId) > -1:
-				retCode, bulb, errorsDict =  self.commandToHub_HTTP( hubNumber, "lights/{}".format(bulbId))
-				if not retCode:
-					return
-			else: return 
+			if int(bulbId) < 0: return 
+
+			retCode, bulb, errorsDict =  self.commandToHub_HTTP( hubNumber, "lights/{}".format(bulbId))
+			if not retCode:
+				return
 
 		### Parse Data
 		#
@@ -5994,11 +6002,11 @@ class Plugin(indigo.PluginBase):
 		# Get the groupId from the device properties.
 		groupId = device.pluginProps.get('groupId', -1)
 
-		if int(groupId) > -1:
-			retCode, group, errorsDict =  self.commandToHub_HTTP( hubNumber, "groups/{}".format(groupId))
-			if not retCode:
-					return 
-		else: return 
+
+		if int(groupId) < 0: return 
+		retCode, group, errorsDict =  self.commandToHub_HTTP( hubNumber, "groups/{}".format(groupId))
+		if not retCode:
+				return 
 		'''
 		### Parse Data
 		#
@@ -6029,11 +6037,11 @@ class Plugin(indigo.PluginBase):
 		# Get the sensorId from the device properties.
 		sensorId = device.pluginProps.get('sensorId', -1)
 		# if the sensorId exists, get the sensor status.
-		if int(sensorId) > -1:
-			retCode, sensor, errorsDict =  self.commandToHub_HTTP( hubNumber, "sensors/{}".format(sensorId))
-			if not retCode:
-				return
-		else: return 
+		if int(sensorId) < 0: return
+		retCode, sensor, errorsDict =  self.commandToHub_HTTP( hubNumber, "sensors/{}".format(sensorId))
+		if not retCode:
+			return
+
 
 		### Parse Data
 		#
@@ -6163,6 +6171,11 @@ class Plugin(indigo.PluginBase):
 
 				try:
 					retCode, responseData, errorsDict =  self.commandToHub_HTTP( hubNumber, theType)
+					if not retCode:
+						if self.checkForLastNotPairedMessage(hubNumber):
+							self.doErrorLog("Error #{} from Hue bridge#{} when loading available {}. Description is \"{}\".".format(errorCode, hubNumber, theType, errorDict.get('description', "(no description)")))
+						self.paired[hubNumber] = False
+						return 
 
 					# We should have a dictionary. If so, it's a group list
 					if isinstance(responseData, dict):
@@ -6204,7 +6217,7 @@ class Plugin(indigo.PluginBase):
 
 							else:
 								if self.checkForLastNotPairedMessage(hubNumber):
-									self.doErrorLog("Error #{} from Hue bridge#{} when loading available {}. Description is \"{}\".".format(errorCode, hubNumber, errorDict.get('description', "(no description"), theType))
+									self.doErrorLog("Error #{} from Hue bridge#{} when loading available {}. Description is \"{}\".".format(errorCode, hubNumber, theType, errorDict.get('description', "(no description)")))
 								self.paired[hubNumber] = False
 
 				except requests.exceptions.Timeout:

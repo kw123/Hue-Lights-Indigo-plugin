@@ -1,6 +1,11 @@
+2022.12.40 @ 2022-07-27
+
+* added some more context when connection to hub bridge not is working
+
+
 2022.12.39 @ 2022-07-25
 
-* fixed adding hue bridges, fixed amajor issue
+* fixed adding hue bridges, fixed a major issue
 
 
 2022.12.38 @ 2022-07-24
