@@ -1,5 +1,12 @@
 2022.12.40 @ 2022-07-27
 
+* fixed error: line 858, in validateRGBWhiteOnOffetc
+* streamlined hue group edit, made selection clearer
+
+
+
+2022.12.40 @ 2022-07-27
+
 * added some more context when connection to hub bridge not is working
 
 

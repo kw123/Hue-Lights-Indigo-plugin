@@ -855,7 +855,7 @@ class Plugin(indigo.PluginBase):
 
 			if "modelId" 	not in props:							newProps['modelId'] 							= ""
 			if "hubNumber" 	not in props:							newProps['hubNumber'] 							= "0"
-			if "logChanges" not in newProps: 						newProps['logChanges'] 							= self.pluginPrefs('logDefaultForNewDevices', "off") == "on"
+			if "logChanges" not in newProps: 						newProps['logChanges'] 							= self.pluginPrefs.get('logDefaultForNewDevices', "off") == "on"
 			if deviceTypeId in ksupportsSensorValue:				newProps['SupportsSensorValue']					= ksupportsSensorValue[deviceTypeId]
 			if deviceTypeId in ksupportsBatteryLevel:				newProps['SupportsBatteryLevel']				= ksupportsBatteryLevel[deviceTypeId]
 			if deviceTypeId in ksupportsOnState:					newProps['SupportsOnState']						= ksupportsOnState[deviceTypeId]
@@ -5374,10 +5374,12 @@ class Plugin(indigo.PluginBase):
 				hubNumbers = {valuesDict['hubNumber']:True}
 			else:
 				if self.hubNumberSelected == "":
-					hubNumbers = self.ipAddresses
+					hubNumbers = "0"
 				else:
 					hubNumbers = {self.hubNumberSelected:True}
 
+
+			currentDev = {}
 			existing = {}
 			addAtEnd = ""
 			excludeList = {}
@@ -5385,27 +5387,31 @@ class Plugin(indigo.PluginBase):
 				dev = indigo.devices[devId]
 				props = dev.pluginProps
 				if devIdTypeId not in props: continue
-				if targetId == devId:
-					existing[props['hubNumber']+"-"+props[devIdTypeId]] = devId
 				if "hubNumber" not in props or ( props['hubNumber'] not in hubNumbers): 
 					excludeList[props['hubNumber']+"-"+props[devIdTypeId]] = devId
 					continue
-				break
+
+				if targetId == devId:
+					currentDev[props['hubNumber']+"-"+props[devIdTypeId]] = devId
+				else:
+					existing[props['hubNumber']+"-"+props[devIdTypeId]] = devId
+
 
 			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"groupListGenerator  bf select existing: {}  excludeList: {}, hubNumbers:{}".format(existing, excludeList, hubNumbers))
 			for hubNumber in hubNumbers:
+				if hubNumber not in self.hueConfigDict: continue
 				for memberId, details in sorted(self.hueConfigDict[hubNumber][devType].items(), key = lambda x: int(x[0])):
-					if hubNumber+"-"+memberId in existing: 	 
-						addAtEnd = [memberId, details['name']+"-current"]
-					elif existing != {}:
+					if hubNumber+"-"+memberId in excludeList:
 						continue
-					elif hubNumber+"-"+memberId in excludeList:
-						continue
+					if hubNumber+"-"+memberId in currentDev: 	 
+						addAtEnd = [memberId, "{} -current".format(details['name'])]
+					elif hubNumber+"-"+memberId in existing: 	 
+						xList.append([memberId, "{} - already an indigo device".format(details['name'])])
 					else:
 						xList.append([memberId, "{}-{}:{}".format(hubNumber, memberId, details['name'])])
 
-			if existing == {}:	xList.append((0,"all"))
-			if addAtEnd !="":	xList.append(addAtEnd)
+			if currentDev == {}:	xList.append((0,"all"))
+			if addAtEnd !="":		xList.append(addAtEnd)
 		except Exception:
 			self.indiLOG.log(30,"Unable to obtain the configuration from the Hue bridge.{}".format(self.hubNumberSelected), exc_info=True)
 
@@ -5603,14 +5609,13 @@ class Plugin(indigo.PluginBase):
 		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting groupLightsListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  deviceId: {}".format(filter, valuesDict, typeId, deviceId))
 
 		xList = list()	# List item list.
-
 		groupId = ""
+		groupLights = {}
 		try:
 			groupId = valuesDict.get('groupId', "")
 
 			if self.hubNumberSelected == "":
 				return xList
-
 			# If the group ID is not blank, let's try to find the current selection in the valuesDict.
 			if groupId != "":
 				# Get the list of lights in the group.
@@ -5626,10 +5631,12 @@ class Plugin(indigo.PluginBase):
 				for lightId in groupLights:
 					lightName = self.hueConfigDict[self.hubNumberSelected ]['lights'][lightId]['name']
 					xList.append((lightId, lightName))
+
 		except Exception:
 			self.logger.error("", exc_info=True)
-			self.logger.error("hubNumber:{}, groupId, type{} ".format(self.hubNumberSelected , groupId, type(groupId)))
-
+			self.logger.error("hubNumber:{}, groupId:{}, type:{}. ".format(self.hubNumberSelected , groupId, type(groupId)))
+		if len(xList) == 0:
+			xList.append((-1, "no lights available"))
 		return xList
 
 	# Sensor List Generator
@@ -7652,7 +7659,7 @@ class Plugin(indigo.PluginBase):
 					if showLog:
 						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" on".format(device.name))
 					# Update the Indigo device.
-					self.updateDeviceState(device, 'onOffState', 'on')
+					self.updateDeviceState(device, 'onOffState', True, uiValue='on')
 				else:
 					tempBrightness = int(round(savedBrightness / 255.0 * 100.0))
 					# Compensate for rounding to zero.
@@ -7702,7 +7709,7 @@ class Plugin(indigo.PluginBase):
 					# Log the change.
 					if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\" off".format(device.name))
 					# Update the Indigo device.
-					self.updateDeviceState(device, 'onOffState', 'off')
+					self.updateDeviceState(device, 'onOffState', False, uiValue='off')
 				else:
 					# Log the change (if showing the log is enabled).
 					#   Some devices may not support transition times when turning off. Check for that.
