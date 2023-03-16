@@ -63,6 +63,8 @@ kDefaultPluginPrefs = {
 				'ipvisible':							False,
 				'timeScaleFactor':						'1.0',
 				'sendDeviceUpdatesTo':					'20',
+				'autoCreatedNewDevices':				True,
+				'folderNameForNewDevices':				"Hue New Devices",
 				'logAnyChanges':						'leaveToDevice' # can be leaveToDevice / no / yes
 				}
 
@@ -199,6 +201,7 @@ class Plugin(indigo.PluginBase):
 		# Perform an initial version check.
 		if self.decideMyLog("Init"): self.indiLOG.log(10,"Running plugin version check (if enabled).")
 
+
 		# Prior to version 1.2.0, the "presets" property did not exist in the plugin preferences.
 		#   If that property does not exist, add it.
 		# As of version 1.2.6, there were 30 presets instead of 10.
@@ -275,6 +278,8 @@ class Plugin(indigo.PluginBase):
 					self.indiLOG.log(20,"... Preset {} deleted.".format(aNumber + 1))
 
 		if self.decideMyLog("Init"): self.indiLOG.log(10,"pluginPrefs are:\n{}".format(self.pluginPrefs))
+
+		self.pluginPrefs.get('autoCreatedNewDevices', False)
 
 		self.timeScaleFactor = float(self.pluginPrefs.get('timeScaleFactor',"1.0"))
 		self.sendDeviceUpdatesTo = int(self.pluginPrefs.get('sendDeviceUpdatesTo',20))
@@ -394,6 +399,8 @@ class Plugin(indigo.PluginBase):
 		# Set the maximum loop counter value based on the highest of the above activity threshold variables.
 		lasttryAutoCreateValuesDict = 0
 		self.printHueData({"whatToPrint":"NoHudevice", "sortBy":""},"")
+		self.printHueData({"whatToPrint":"NoIndigoDevice", "sortBy":""},"OnlySupportedDevices")
+
 		self.indiLOG.log(20,"... initialized")
 
 
@@ -568,13 +575,14 @@ class Plugin(indigo.PluginBase):
 
 	# Validate Device Configuration
 	########################################
-	def autocreateNewDevices(self, valuesDict,y):
+	def autocreateNewDevices(self, valuesDict, mode):
 
-		if len(valuesDict['hueFolderName']) <2:
-			valuesDict['hueFolderName'] = "Hue New Devices"
+		if len(valuesDict['hueFolderName']) < 2:
+			valuesDict['hueFolderName'] = self.pluginPrefs.get("folderNameForNewDevices","")
 		try:
 			hueFolderID = indigo.devices.folders[valuesDict['hueFolderName']].id
-			self.indiLOG.log(20,"folder:\"{}\" already exists, id = {} ".format(valuesDict['hueFolderName'] , hueFolderID))
+			if mode != "background":
+				 self.indiLOG.log(20,"folder:\"{}\" already exists, id = {} ".format(valuesDict['hueFolderName'] , hueFolderID))
 		except Exception:
 			hueFolderID = 0
 
@@ -590,7 +598,7 @@ class Plugin(indigo.PluginBase):
 		createdLights = 0
 		createdSensors = 0
 		createdGroups = 0
-		if valuesDict['createLights']:
+		if valuesDict.get('createLights',False):
 			for hubNumber in self.hueConfigDict:
 				if "lights" not in self.hueConfigDict[hubNumber]: continue
 				theDict = self.hueConfigDict[hubNumber]['lights']
@@ -603,7 +611,8 @@ class Plugin(indigo.PluginBase):
 							break
 
 					if deviceTypeId  == "":
-						self.indiLOG.log(10,"autocreateNewDevices light  hub:{:>2s}; id:{:>3s}, type:{:25s}      not supported".format(hubNumber, theID, theDict[theID]['type']))
+						if  mode != "background":
+							self.indiLOG.log(10,"autocreateNewDevices light  Bridge:{:>2s}; id:{:>3s}, type:{:25s}      not supported".format(hubNumber, theID, theDict[theID]['type']))
 						continue
 
 					found = False
@@ -611,7 +620,8 @@ class Plugin(indigo.PluginBase):
 						#f dev.deviceTypeId != deviceTypeId: continue
 						if str(theID) == str(dev.pluginProps.get('bulbId', "xx")) and  hubNumber == str(dev.pluginProps.get('hubNumber', "xx")): 
 							found = True
-							self.indiLOG.log(10,"autocreateNewDevices light  hub:{:>2s}; id:{:>3s}, type:{:25s}      already exists".format(hubNumber, theID, theDict[theID]['type']))
+							if  mode != "background":
+								self.indiLOG.log(10,"autocreateNewDevices light  Bridge:{:>2s}; id:{:>3s}, type:{:25s}      already exists".format(hubNumber, theID, theDict[theID]['type']))
 							break
 					
 					if not found:
@@ -642,7 +652,7 @@ class Plugin(indigo.PluginBase):
 							props = dev.pluginProps
 							newProps = self.validateDeviceConfigUi(props, deviceTypeId, dev.id)
 							dev.replacePluginPropsOnServer(newProps[1])
-							self.indiLOG.log(30,"autocreateNewDevices light  hub:{:>2s}; hue-id:{:>3s}, hue-type:{:25s}, mapped to indigo-deviceTypeId:{:27} create {:35s} (details in plugin.log)".format( hubNumber, theID, theDict[theID]['type'], deviceTypeId, name))
+							self.indiLOG.log(30,"autocreateNewDevices light  Bridge:{:>2s}; hue-id:{:>3s}, hue-type:{:25s}, mapped to indigo-deviceTypeId:{:27} create {:40s} (details in plugin.log)".format( hubNumber, theID, theDict[theID]['type'], deviceTypeId, name))
 							self.indiLOG.log(10,"props:{}".format( props))
 							createdLights +=1
 						except Exception:
@@ -652,7 +662,7 @@ class Plugin(indigo.PluginBase):
 							self.logger.error("existing deviceTypeId:{}, props:{}".format(oldDev.deviceTypeId, str(oldDev.pluginProps)))
 
 
-		if valuesDict['createSensors']:
+		if valuesDict.get('createSensors',False):
 			for hubNumber in self.hueConfigDict:
 				if "sensors" not in self.hueConfigDict[hubNumber]: continue
 				theDict = self.hueConfigDict[hubNumber]['sensors']
@@ -664,7 +674,8 @@ class Plugin(indigo.PluginBase):
 							deviceTypeIdCandidates.append(indigoTypes)
 
 					if deviceTypeIdCandidates == []:
-						self.indiLOG.log(10,"autocreateNewDevices sensor hub:{:>2s}; id:{:>3s}; type:{:25s}      not supported(1)".format(hubNumber, theID, theDict[theID]['type']))
+						if  mode != "background":
+							self.indiLOG.log(10,"autocreateNewDevices sensor Bridge:{:>2s}; id:{:>3s}; type:{:25s}      not supported(1)".format(hubNumber, theID, theDict[theID]['type']))
 						continue
 					found = ""
 					for devT in deviceTypeIdCandidates: # eg: "runLessWireSwitch"
@@ -674,7 +685,8 @@ class Plugin(indigo.PluginBase):
 									found = devT
 									break
 					if found == "":
-						self.indiLOG.log(10,"autocreateNewDevices sensor hub:{:>2s}; id:{:>3s}; type:{:25s}      not supported(2)".format(hubNumber, theID, theDict[theID]['type']))
+						if  mode != "background":
+							self.indiLOG.log(10,"autocreateNewDevices sensor Bridge:{:>2s}; id:{:>3s}; type:{:25s}      not supported(2)".format(hubNumber, theID, theDict[theID]['type']))
 						continue
 					deviceTypeId = found
 
@@ -683,7 +695,8 @@ class Plugin(indigo.PluginBase):
 						if dev.deviceTypeId != deviceTypeId: continue
 						if str(theID) == str(dev.pluginProps.get('sensorId', "xx")) and  hubNumber == str(dev.pluginProps.get('hubNumber', "xx")): 
 							found = True
-							self.indiLOG.log(10,"autocreateNewDevices sensor hub:{:>2s}; id:{:>3s}; type:{:25s}      already exists".format(hubNumber, theID, theDict[theID]['type']))
+							if  mode != "background":
+								self.indiLOG.log(10,"autocreateNewDevices sensor Bridge:{:>2s}; id:{:>3s}; type:{:25s}      already exists".format(hubNumber, theID, theDict[theID]['type']))
 							break
 					
 					if not found:
@@ -710,7 +723,7 @@ class Plugin(indigo.PluginBase):
 							props = dev.pluginProps
 							newProps = self.validateDeviceConfigUi(props, deviceTypeId, dev.id)
 							dev.replacePluginPropsOnServer(newProps[1])
-							self.indiLOG.log(30,"autocreateNewDevices sensor hub:{:>2s}; hue-id:{:>3s}, hue-type:{:25s}, mapped to indigo-deviceTypeId:{:27} create {:35s} (details in plugin.log)".format( hubNumber, theID, theDict[theID]['type'], deviceTypeId, name))
+							self.indiLOG.log(30,"autocreateNewDevices sensor Bridge:{:>2s}; hue-id:{:>3s}, hue-type:{:25s}, mapped to indigo-deviceTypeId:{:27} create {:40s} (details in plugin.log)".format( hubNumber, theID, theDict[theID]['type'], deviceTypeId, name))
 							self.indiLOG.log(10,"props:{}".format( props))
 							createdSensors +=1
 						except Exception:
@@ -719,7 +732,7 @@ class Plugin(indigo.PluginBase):
 							oldDev = indigo.devices[name]
 							self.logger.error("existing deviceTypeId:{}, props:{}".format(oldDev.deviceTypeId, str(oldDev.pluginProps)))
 
-		if valuesDict['createGroups']:
+		if valuesDict.get('createGroups',False):
 			deviceTypeId = "hueGroup" 
 			for hubNumber in self.hueConfigDict:
 				if "groups" not in self.hueConfigDict[hubNumber]: continue
@@ -730,7 +743,8 @@ class Plugin(indigo.PluginBase):
 						if dev.deviceTypeId != deviceTypeId: continue
 						if str(theID) == str(dev.pluginProps.get('groupId', "xx")) and  hubNumber == str(dev.pluginProps.get('hubNumber', "xx")): 
 							found = True
-							self.indiLOG.log(10,"autocreateNewDevices group  hub:{:>2s}; id:{:>3s}; type:{:25s}      already exists".format(hubNumber, theID, theDict[theID]['type']))
+							if  mode != "background":
+								self.indiLOG.log(10,"autocreateNewDevices group  Bridge:{:>2s}; id:{:>3s}; type:{:25s}      already exists".format(hubNumber, theID, theDict[theID]['type']))
 							break
 
 					if not found:
@@ -760,7 +774,7 @@ class Plugin(indigo.PluginBase):
 							props = dev.pluginProps
 							newProps = self.validateDeviceConfigUi(props, deviceTypeId, dev.id)
 							dev.replacePluginPropsOnServer(newProps[1])
-							self.indiLOG.log(30,"autocreateNewDevices group  hub:{:>2s}; hue-id:{:>3s}, hue-type:{:25s}, mapped to indigo-deviceTypeId:{:27} create {:35s} (details in plugin.log)".format( hubNumber, theID, theDict[theID]['type'], deviceTypeId, name))
+							self.indiLOG.log(30,"autocreateNewDevices group  Bridge:{:>2s}; hue-id:{:>3s}, hue-type:{:25s}, mapped to indigo-deviceTypeId:{:27} create {:40s} (details in plugin.log)".format( hubNumber, theID, theDict[theID]['type'], deviceTypeId, name))
 							self.indiLOG.log(10,"props:{}".format(props))
 							createdGroups +=1
 						except Exception:
@@ -769,11 +783,13 @@ class Plugin(indigo.PluginBase):
 							oldDev = indigo.devices[name]
 							self.logger.error("existing deviceTypeId:{}, props:{}".format(oldDev.deviceTypeId, str(oldDev.pluginProps)))
 
-		self.indiLOG.log(30,"autocreateNewDevices Lights  --  #of NEW Indigo devices created:{} ".format(createdLights))
-		self.indiLOG.log(30,"autocreateNewDevices Sensors --  #of NEW Indigo devices created:{} ".format(createdSensors))
-		self.indiLOG.log(30,"autocreateNewDevices Groups  --  #of NEW Indigo devices created:{} ".format(createdGroups))
+		if (mode == "background" and (createdLights > 0 or createdSensors > 0 or createdGroups > 0)   ) or mode != "background":
+			self.indiLOG.log(30,"autocreateNewDevices Lights  --  #of NEW Indigo devices created:{} ".format(createdLights))
+			self.indiLOG.log(30,"autocreateNewDevices Sensors --  #of NEW Indigo devices created:{} ".format(createdSensors))
+			self.indiLOG.log(30,"autocreateNewDevices Groups  --  #of NEW Indigo devices created:{} ".format(createdGroups))
 		return
-	
+
+
 	# general get http command 
 	def commandToHub_HTTP(self, hubNumber, cmd, errorsDict=None, errDict1="", errDict2=""):
 		# Make sure the device selected is a Hue device.
@@ -878,7 +894,7 @@ class Plugin(indigo.PluginBase):
 			if hubNumber not in self.ipAddresses:
 				for ID in ['bulbId','groupId','sensorId','bulbDeviceId']:
 					if ID in newProps:
-						self.indiLOG.log(30,"dev Hub:{}, HueId:{}, type:{}  not correctly setup ---  ipaddress has not been setup for bridge #Hub{}".format(hubNumber, newProps[ID], ID[:-2],  hubNumber) )
+						self.indiLOG.log(30,"dev Bridge:{}, HueId:{}, type:{}  not correctly setup ---  ipaddress has not been setup for bridge #Hub{}".format(hubNumber, newProps[ID], ID[:-2],  hubNumber) )
 						return newProps
 						
 
@@ -4767,7 +4783,7 @@ class Plugin(indigo.PluginBase):
 				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(30,"actionEnableDisableSensor bad onoff command {}.".format(onOff))
 				return valuesDict
 
-			for deviceId in self.deviceList:
+			for deviceId in copy.deepcopy(self.deviceList):
 				## if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(30,"actionEnableDisableSensor deviceId {}, hub#{}, sensorID:{}".format(self.deviceList[deviceId], hubNumber,sensorId))
 				if self.deviceList[deviceId]['typeId'] not in kmapSensordevTypeToModelId:	continue
 				if self.deviceList[deviceId]['hubNumber']  != hubNumber: 					continue
@@ -4839,7 +4855,7 @@ class Plugin(indigo.PluginBase):
 			ID  = valuesDict.get('bulbId', "")
 			hubNumber = valuesDict.get('hubNumber', "")
 
-			for deviceId in self.deviceList:
+			for deviceId in copy.deepcopy(self.deviceList):
 				## if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(30,"actionEnableDisableSensor deviceId {}, hub#{}, sensorID:{}".format(self.deviceList[deviceId], hubNumber,sensorId))
 				if self.deviceList[deviceId]['typeId'] not in listOfDevices:	continue
 				if self.deviceList[deviceId]['hubNumber']  != hubNumber: 		continue
@@ -4934,7 +4950,7 @@ class Plugin(indigo.PluginBase):
 	def execRename(self, tag, useId, hubNumber, theID, newName, removePrefix, stdPrefix):
 		try:
 			#self.indiLOG.log(30,"menu rename {} / {} / {} / {} / {}".format( tag, useId, hubNumber, theID, newName))
-			for deviceId in self.deviceList:
+			for deviceId in copy.deepcopy(self.deviceList):
 				if useId not in self.deviceList[deviceId]:				continue
 				if self.deviceList[deviceId][useId]  != theID: 			continue
 				device = indigo.devices[deviceId]
@@ -5441,7 +5457,7 @@ class Plugin(indigo.PluginBase):
 		xList = list()
 
 		# Iterate over our devices, and return the available devices as a 2-tuple list.
-		for deviceId in self.deviceList:
+		for deviceId in copy.deepcopy(self.deviceList):
 			device = indigo.devices[deviceId]
 			if device.pluginProps.get('type', "") in [u'Extended color light', u'Color light', u'Color temperature light'] or device.deviceTypeId == "hueGroup":
 				xList.append([deviceId, device.name])
@@ -6125,6 +6141,8 @@ class Plugin(indigo.PluginBase):
 					# Make sure the plugin knows it's actually paired now.
 					self.paired[hubNumber] = True
 					self.notPairedMsg[hubNumber] = time.time() - 90
+					self.checkIfnewDevices()
+
 
 				elif isinstance(responseData, list):
 					# Get the first item
@@ -6152,6 +6170,24 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(30,"Unable to obtain the configuration from the Hue bridge.{}".format(hubNumber), exc_info=True)
 		return
 
+
+
+	# Update Groups List
+	########################################
+	def checkIfnewDevices(self):
+		try:
+			if not  self.pluginPrefs.get('autoCreatedNewDevices', False): return 
+
+			valuesDict = {}
+			valuesDict["hueFolderName"] = ''
+			updateDevices = {'lights':'createLights','sensors':'createSensors','groups':'createGroups'}
+			for dType in updateDevices:
+				valuesDict[updateDevices[dType]] = True
+			self.autocreateNewDevices(valuesDict,"background")
+				
+
+		except Exception:
+			self.indiLOG.log(30,"Unable to obtain the configuration from the Hue bridge.{}".format(hubNumber), exc_info=True)
 
 
 	# Update Groups List
@@ -6270,7 +6306,7 @@ class Plugin(indigo.PluginBase):
 					self.indiLOG.log(10,"parseAllHueLightsData: on Bridge#:{} There are {} lights on the Hue bridge.".format(hubNumber, len(self.hueConfigDict[hubNumber]['lights'] )))
 			if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"parseAllHueLightsData:  and Indigo devices controlling Hue devices:{}, \naccepted types:{}<<".format(self.deviceList, kLightDeviceTypeIDs))
 
-			for deviceId in self.deviceList:
+			for deviceId in copy.deepcopy(self.deviceList):
 				#self.indiLOG.log(10,"parseAllHueLightsData     deviceId:{},   deviceTypeId, hub#, id#:{}  ".format( deviceId, self.deviceList[deviceId]))
 				if self.deviceList[deviceId].get('typeId','') not in kLightDeviceTypeIDs: continue
 				device = indigo.devices[deviceId]
@@ -6868,7 +6904,7 @@ class Plugin(indigo.PluginBase):
 		# Start going through all the devices in the self.deviceList and update any Indigo
 		#   devices that are controlling the Hue group devices.
 		try:
-			for deviceId in self.deviceList:
+			for deviceId in copy.deepcopy(self.deviceList):
 				if self.deviceList[deviceId].get('typeId',-1) in kGroupDeviceTypeIDs: continue
 				device = indigo.devices[deviceId]
 				pluginProps = device.pluginProps
@@ -7087,7 +7123,7 @@ class Plugin(indigo.PluginBase):
 		# Start going through all the devices in the self.deviceList and update any Indigo
 		#   devices that are controlling the Hue sensors devices.
 		try:
-			for deviceId in self.deviceList:
+			for deviceId in copy.deepcopy(self.deviceList):
 				if self.deviceList[deviceId].get('typeId',-1) not in kSensorTypeList: continue
 				device = indigo.devices[deviceId]
 				#self.indiLOG.log(20,"parseAllHueSensorsData  dev>{}< type:{}, devlisttype:{}".format(device.name, device.deviceTypeId, self.deviceList[deviceId]  ))
@@ -10360,7 +10396,7 @@ class Plugin(indigo.PluginBase):
 			elif whatToPrint == "sensors":	idType = "sensorId"
 			hubNumber = valuesDict['hubNumber']
 			ID  = valuesDict[idType]
-			for deviceId in self.deviceList:
+			for deviceId in copy.deepcopy(self.deviceList):
 				if "hubNumber" not in self.deviceList[deviceId]: 		continue
 				if self.deviceList[deviceId]['hubNumber'] != hubNumber: continue
 				if idType not in self.deviceList[deviceId]: 			continue
@@ -10612,7 +10648,7 @@ class Plugin(indigo.PluginBase):
 					outs.append("")
 				outs.append("---- bridges detected on network:")
 				for bridgeId in self.bridgesAvailable:
-					outs.append("bridgeId: {}, ipAddress:{},  used in plugin:{}, hubNumber:{}".format(bridgeId, self.bridgesAvailable[bridgeId]['ipAddress'], self.bridgesAvailable[bridgeId]['linked'], self.bridgesAvailable[bridgeId]['hubNumber']))
+					outs.append("bridgeId: {}, ipAddress:{},  used in plugin:{}, BridgeNumber:{}".format(bridgeId, self.bridgesAvailable[bridgeId]['ipAddress'], self.bridgesAvailable[bridgeId]['linked'], self.bridgesAvailable[bridgeId]['hubNumber']))
 
 				self.indiLOG.log(20,"\n".join(outs)+"\n")
 
@@ -10650,7 +10686,7 @@ class Plugin(indigo.PluginBase):
 								anyorphan += 1
 								out += "\n orphan indigo {:7s} device: == {:47s} ==   ID:{:3} does not exist on bridge: {} - {}".format(tt[1], indigoName, hueIdToFind, hubNumber, self.ipAddresses[hubNumber])
 
-				for deviceId in self.deviceList:
+				for deviceId in copy.deepcopy(self.deviceList):
 					device = indigo.devices[deviceId]
 					if device.deviceTypeId in kSensorTypeList:
 						hubNumber = device.pluginProps['hubNumber']
@@ -10685,10 +10721,18 @@ class Plugin(indigo.PluginBase):
 							test = hType+"-"+hubNumber+"-"+ID
 							#self.indiLOG.log(20,test)
 							if test in HIT: continue
-							if hType == "sensors" and self.hueConfigDict[hubNumber][hType][ID].get('type',"xxx") not in kSupportedSensorTypes: addText = "--- Plugin does not support THIS Hue device type"
-							else: addText = "====  missing in Indigo:  use menu \"Add new Hue device\" or create manually"
+							if menuItem == "OnlySupportedDevices":  
+								if (
+										self.hueConfigDict[hubNumber][hType][ID].get('type',"xxx") not in kSupportedSensorTypes and 
+										self.hueConfigDict[hubNumber][hType][ID].get('type',"xxx") not in kmapHueTypeToIndigoDevType and
+										self.hueConfigDict[hubNumber][hType][ID].get('type',"xxx") not in kmapHueTypeToIndigoDevType 
+									):
+										continue
+							if hType == "sensors" and self.hueConfigDict[hubNumber][hType][ID].get('type',"xxx") not in kSupportedSensorTypes: 
+								addText = "--- Plugin does not support THIS Hue device type"
+							else: addText = "====  missing in Indigo:  use menu \"Add New Devices on Hue Bridge to Indigo...\" or create manually"
 							theName = self.hueConfigDict[hubNumber][hType][ID].get('name',"")
-							out += "\nNo corresponding indigo dev for   hub#:{:}   type:{:7s},   ID:{:3}   {:32} {:}".format(hubNumber, hType, ID, theName, addText)
+							out += "\nNo corresponding indigo dev for   Bridge#:{:}   type:{:7s},   ID:{:3}   {:32} {:}".format(hubNumber, hType, ID, theName, addText)
 							anyorphan +=1
 				out += "\n======================= print Hue {} END =================".format(valuesDict['whatToPrint'])
 
@@ -10706,14 +10750,14 @@ class Plugin(indigo.PluginBase):
 
 			elif valuesDict['whatToPrint'].find("mappingOfNames") >-1:
 				out = ""
-				out += "\n======================== mapping of devtypes     ====================="
+				out += "\n======================== mapping of light devtypes     ====================="
 				#		  1234567890123456789012345 1234567890123456789012345 1234567890123456789012345678901234567890012345678901234567890
 				out += "\n------hue dev type------- -----indigo devType------ --------------------indigo dev type Name---------------------"
 				for hdevType in  kmapHueTypeToIndigoDevType:
 					idevTypes = kmapHueTypeToIndigoDevType[hdevType]
 					for idevType in  idevTypes:
 						out+= "\n{:25s} {:25s} {:60s}".format(hdevType, idevType,kmapIndigodevTypeToIndigofulldevType[idevType])
-				out += "\n======================= mapping of devtypes END ====================="
+				out += "\n======================= mapping of light devtypes END ====================="
 				self.indiLOG.log(20,out)
 
 
@@ -10751,7 +10795,7 @@ class Plugin(indigo.PluginBase):
 				elif whatToPrint == "sensors":	idType = "sensorId"
 				elif whatToPrint == "scenes":	idType = "sceneId"
 				else: idType = ""
-				self.indiLOG.log(20,"printHueData --- {}: hub:{}, {}={}: Hue-Dict\n{} ".format(whatToPrint, hubNumber, idType, ID, json.dumps(self.hueConfigDict[hubNumber][whatToPrint][ID], indent=2, sort_keys=True)))
+				self.indiLOG.log(20,"printHueData --- {}: Bridge:{}, {}={}: Hue-Dict\n{} ".format(whatToPrint, hubNumber, idType, ID, json.dumps(self.hueConfigDict[hubNumber][whatToPrint][ID], indent=2, sort_keys=True)))
 				if idType !="":
 					devFound = False
 					for devId in self.deviceList:

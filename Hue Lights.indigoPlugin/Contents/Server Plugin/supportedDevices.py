@@ -277,29 +277,29 @@
 ##############
 
 # kHueBulbDeviceIDs is not used anymore only hue type is used (kHueBulbDeviceIDType) 
-# Compatible Hue bulb devices (Color and Color Temperature) == u'Extended color light'
+# Compatible Hue bulb devices (Color and Color Temperature) == 'Extended color light'
 kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LCT007', 'LCT010', 'LCT011', 'LCT012', 'LCT014', 'LCT015',  'LCT016', 'LCT024', '440400982841', 'LCS001', '1746230V7', 'LCF001', 'LCF002', 'LCF003', 'LCG002', 'LCA001', 'LCA002', 'LCA003', 'LCB001', 'LCG001', 'LCW002','LCW004', 'LLM001', 'HBL001', 'HBL002', 'HBL003', 'HEL001', 'HEL002', 'HIL001', 'HIL002', 'FLS-PP3', 'GL-B-001Z', 'GL-B-007Z', 'GL-D-004Z', 'GL-FL-005P', 'GL-FL-005TZS', 'GL-S-007Z', 'Classic A60 RGBW', 'Gardenpole Mini RGBW OSRAM', 'PAR 16 50 RGBW - LIGHTIFY', 'RB 185 C', 'RB 250 C', 'AE 280 C', 'PAR16 RGBW Z3', 'LCF005', '1741430P7', '1746230P7', '1746630P7', '1746630V7', '1746730V7', '1746330P7', '4080148P9', '4080248P9', '4080248U9', '4090331P9_01', '4090331P9_02', '1742930P7', '1743530P7', '5045131P7', '5062148P7', 'ZB-CL01', 'TS0505B', 'LCA004', 'LCA005', 'LCA007', '5063130P7', '5063230P7']
-kHueBulbDeviceIDType = u'Extended color light'
+kHueBulbDeviceIDType = 'Extended color light'
 
-# Compatible LivingColors devices (Color only) == u'Color light'
+# Compatible LivingColors devices (Color only) == 'Color light'
 kLivingColorsDeviceIDs = ['LLC001', 'LLC005', 'LLC006', 'LLC007', 'LLC010', 'LLC011', 'LLC012', 'LLC013', 'LLC014', 'LLC020', 'TRADFRI bulb E26 CWS opal 600lm', 'TRADFRI bulb E27 CWS opal 600lm', 'TRADFRI bulb E14 CWS opal 600lm']
-kLivingColorsDeviceIDType = u'Color light'
+kLivingColorsDeviceIDType = 'Color light'
 
-# Compatible Ambiance devices (Color Temperature only) ==u'Color temperature light'
+# Compatible Ambiance devices (Color Temperature only) == 'Color temperature light'
 kAmbianceDeviceIDs = ['LLM010', 'LLM011', 'LLM012', 'LTW001', 'LTC001', 'LTC003', 'LTC002', 'LTC003', 'LTW004', 'LTC011', 'LTW010', 'LTW011', 'LTW012', 'LTW013', 'LTW014', 'LTW015', 'LTE001', 'LTF001', 'LTF002', 'LTG001', 'LTG002', 'LTD001', 'LTD002', 'LTP001', 'LTP002', 'LTP003', 'LTP004', 'LTP005', 'LTD003', 'LTD009', 'LTD010', 'LTD011', 'LFF001', 'LTT001', 'LDT001', 'LTB002', 'LTA001', 'LTA002', 'LTA003', 'LTA008', 'LTA009', 'LTA010', 'HML001', 'HML002', 'HML003', 'HML004', 'HML005', 'HML006', '3402931P7', '3261330P6', 'Classic A60 TW', 'PAR16 50 TW', 'RS 128 T', 'RS 228 T', 'FLOALT panel WS 30x90', 'FLOALT panel WS 30x30', 'FLS-CT', 'TRADFRI bulb E26 WS opal 1000lm', 'TRADFRI bulb E27 WS opal 1000lm', 'TRADFRI bulb E27 WS opal 980lm', 'TRADFRI bulb E14 WS opal 600lm', 'TRADFRI bulb GU10 WS 400lm', 'ZBT-ColorTemperature', 'TS0502A', 'MR16 TW OSRAM']#, 'Ceiling TW OSRAM']
-kAmbianceDeviceIDType = u'Color temperature light'
+kAmbianceDeviceIDType = 'Color temperature light'
 
 # Compatible LightStrips devices. (Color only on LST001. Color and Color Temperature on others)
 kLightStripsDeviceIDs = ['LST001', 'LST002', 'LST003', 'LST004', 'LCL001', 'LCL002', 'LCL003', 'LCX001', 'Flex RGBW', 'HOMA1001', 'GL-C-006', 'GL-C-007', 'GL-C-008', 'FB56-ZCW08KU1.1', 'FZB56-ZCW27LX1.0', 'GLEDOPTO', 'TRADFRI transformer 10W', 'TRADFRI transformer 30W', 'FL 130 C', 'QV-RGBCCT']
-kLightStripsDeviceIDType = u'Extended color light'
+kLightStripsDeviceIDType = 'Extended color light'
 
 # Compatible LivingWhites devices. (Dimming only.  No color change of any kind) == "Dimmable light"
 kLivingWhitesDeviceIDs = ['LWA001', 'LWA002', 'LWA003', 'LWA004', 'LWA005', 'LWA007', 'LWA008', 'LWA009','LWA011', 'LWA017','LWA019', 'LWB001', 'LWB003', 'LWB004', 'LWB006', 'LWB007', 'LWB010', 'LWB014', 'LWB015', 'LWB022', 'LWE001', 'LWE002', 'LWL001', 'LWW001', 'LDF001', 'LDF002', 'LDD001', 'LDD002', 'MWM001', 'LWS001', 'LWG001', 'LWG004', 'LWO001', 'LWV001', 'LWV002', 'LWO002', 'LWO003', 'ZLL Light', 'FLS-PP3 White', 'TRADFRI bulb E26 WW 806lm', 'TRADFRI bulb E26 opal 1000lm', 'TRADFRI bulb E26 WW clear 250lm', 'TRADFRI bulb E27 opal 1000lm', 'TRADFRI bulb E27 WW 806lm', 'TRADFRI bulb E14 W op/ch 400lm', 'TRADFRI bulb E12 W op/ch 400lm', 'TRADFRI bulb GU10 WW 400lm', 'GL-C-009', 'AE 260']
-kLivingWhitesDeviceIDType = u'Dimmable light'
+kLivingWhitesDeviceIDType = 'Dimmable light'
 
 # Compatible on/off devices. (On/Off only.  Not dimmable), "On/Off plug-in unit" just use "On/Off"
 kOnOffOnlyDeviceIDs = ['LOM001', 'LOM003', 'LOM004', 'LOM005', 'SP 120', 'SP 220', 'SP 224', 'Plug 01', 'TS011F', 'TZ3000', 'TRADFRI control outlet', 'LXN-3S27LX1.0', 'SA-003-Zigbee']
-kOnOffOnlyDeviceIDType = u'On/Off'  # plug-in unit'
+kOnOffOnlyDeviceIDType = 'On/Off'  # plug-in unit'
 
 # All compatible light devices
 kCompatibleDeviceIDs = kHueBulbDeviceIDs + kAmbianceDeviceIDs + kLivingColorsDeviceIDs + kLightStripsDeviceIDs + kLivingWhitesDeviceIDs + kOnOffOnlyDeviceIDs

@@ -1,7 +1,25 @@
+========================================
+2022.13.42 @ 2023-03-15
 
+now NEW Hue lights, sensors, and groups will be automatically created in indigo (once every 3 minutes) 
+That option can be switched off in config. 
+
+So from now on: no need to manually ever create a new light/sensor/group.
+At most 3 minutes after you add a new light bulb etc to your Hue system through your phone that light bulb ...  will appear automatically as an indigo device.
+The name will be like:
+Hue_type_Bridge#_Id#_name-One-Hue-System  eg: 
+Hue_group_0_2_Wintergarten
+Hue_light_1_11_Library spot 3  
+Hue_sensor_2_14_Dining wall on off 2
+
+The folder name can be set in config.
+
+
+
+========================================
 2022.12.42 @ 2023-03-15
 
-* added help when adding new devices manually. if your selection of avalible light si empty, it will print something like:
+* added help when adding new devices manually. if your selection of avalible light is empty, it will print something like:
 ++++++
    Hue Lights                      !!! no correntsponding light found, please check your selections !!!
 your selection was: Bridge# 1, indigo devType:"hueLightStrips"="Light Strips" maps to hue-type:"Extended color light"

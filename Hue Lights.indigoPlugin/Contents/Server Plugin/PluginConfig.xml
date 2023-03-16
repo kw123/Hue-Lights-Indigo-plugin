@@ -35,7 +35,7 @@ C. Change debugging levels</Label>
 	</Field>
 
 	<Field id="changeGW" type="checkbox" defaultValue="false" hidden="false">
-	<Label>Add/delete/modify a bridge:</Label>
+		<Label>Add/delete/modify a bridge:</Label>
     </Field>
 
 	<Field id="gwAction"
@@ -201,6 +201,18 @@ Shown after successful pairing process</Label>
 	<Field id="othersettings" type="label" fontColor="green">
 		<Label>B. Other settings:</Label>
 	</Field>
+
+
+	<Field id="autoCreatedNewDevices" type="checkbox" defaultValue="True" hidden="false">
+		<Label>Auto create new Hue devices in Indigo</Label>
+    </Field>
+
+
+	<Field id="folderNameForNewDevices" type="textfield">
+		<Label>Directory for new indigo devices</Label>
+    </Field>
+
+
 
 	<Field id="timeScaleFactor" type="menu" default="1.0"
 		tooltip="scale factor for light, sensors, groups: set higher if you have cpu load issues, lower if you like faster response time, default: sensors every 1 sec, lights,groups every 5 secs, other = every 3..5 minutes fixed  ">
