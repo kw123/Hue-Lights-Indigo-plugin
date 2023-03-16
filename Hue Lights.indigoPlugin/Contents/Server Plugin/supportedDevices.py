@@ -324,6 +324,15 @@ kmapIndigoDevTypeToHueType = {
 								"hueOnOffDevice":		"On/Off"	
 							}
 
+kmapIndigodevTypeToIndigofulldevType = {
+								"hueBulb" : "Color/Ambiance and compatible",
+								"hueAmbiance":"Ambiance Lights (color temperature)",
+								"hueLightStrips": "Light Strips",
+								"hueLivingColorsBloom":"Color Lights (Aura, Bloom, StoryLight, LivingColors, etc.)",
+								"hueLivingWhites":"LivingWhites (Hue Lux, generic dimmable device, etc.)",
+								"hueOnOffDevice":"On/Off Device (Hue Smart Plug, etc.)",
+							}
+
 
 ### SENSORS ###
 ###############

@@ -171,7 +171,7 @@ to list new devices found, then use menu "Add New Hue Devices in Indigo" to add 
 	</MenuItem>
 
 	<MenuItem id="createNewLightDevicesFromGWDict">
-		<Name>Add New Hue Devices in Indigo...</Name>
+		<Name>Add New Devices on Hue Bridge to Indigo...</Name>
 		<ConfigUI>
 			<Field id="infoLabel" type="label" fontSize="small" fontColor="darkgray">
 				<Label>Use this to add ALL hue lights/sensors/groups that do not have a corresponding indigo device
@@ -440,6 +440,7 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 				<List>
 					<Option value="lights">lights</Option>
 					<Option value="lightsDict">lights all info</Option>
+					<Option value="mappingOfNames">lights names and type mappings</Option>
 					<Option value="sensors">sensors </Option>
 					<Option value="sensorsDict">sensors all info</Option>
 					<Option value="groups">groups</Option>
@@ -460,6 +461,7 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 					<Option value="NoHudevice">Indigo devices w no Hue device</Option>
 					<Option value="NoIndigoDevice">Hue devices w no Indigo device</Option>
 					<Option value="pluginPrefs">plugin preferences</Option>
+
 				</List>
 			</Field>
 			<Field  id="sortBy" 
@@ -514,7 +516,7 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 
 			<Field id="doPrint" type="button"
 					visibleBindingId="whatToPrint" 
-					visibleBindingValue="lights,lightsDict,sensors,sensorsDict,scenes,groups,rules,resourcelinks,schedules,config,configJson,configDict,specificLights,specificSensors,specificGroups,specificScenes,specificRules,specificSchedules,specificResourcelinks,NoHudevice,NoIndigoDevice,pluginPrefs" >
+					visibleBindingValue="lights,lightsDict,mappingOfNames,sensors,sensorsDict,scenes,groups,rules,resourcelinks,schedules,config,configJson,configDict,specificLights,specificSensors,specificGroups,specificScenes,specificRules,specificSchedules,specificResourcelinks,NoHudevice,NoIndigoDevice,pluginPrefs" >
 				<Label>Click to</Label>
 				<Title>Print</Title>
 				<CallbackMethod>printHueData</CallbackMethod>

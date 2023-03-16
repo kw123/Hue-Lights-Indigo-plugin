@@ -1,20 +1,61 @@
-2022.12.40 @ 2022-07-27
+
+2022.12.42 @ 2023-03-15
+
+* added help when adding new devices manually. if your selection of avalible light si empty, it will print something like:
+++++++
+   Hue Lights                      !!! no correntsponding light found, please check your selections !!!
+your selection was: Bridge# 1, indigo devType:"hueLightStrips"="Light Strips" maps to hue-type:"Extended color light"
+available on the Bridge#:1 are:
+name:"Guest leo spot 3", GW#:1, id:30, hue-type:"Color temperature light" equivalent to indigoDev-type:"['hueAmbiance']"
+ 
+   Hue Lights                      
+======================== mapping of devtypes     =====================
+------hue dev type------- -----indigo devType------ --------------------indigo dev type Name---------------------
+Extended color light      hueBulb                   Color/Ambiance and compatible                               
+Extended color light      hueLightStrips            Light Strips                                                
+Color light               hueLivingColorsBloom      Color Lights (Aura, Bloom, StoryLight, LivingColors, etc.)  
+Dimmable light            hueLivingWhites           LivingWhites (Hue Lux, generic dimmable device, etc.)       
+Color temperature light   hueAmbiance               Ambiance Lights (color temperature)                         
+On/Off                    hueOnOffDevice            On/Off Device (Hue Smart Plug, etc.)                        
+======================= mapping of devtypes END =====================
+++++++
+to the logfile.
+
+The device type mappings between indigo and hue bridge are historical, and not simple to remember. 
+
+
+
+!!! ===========================================  !!!
+I strongly suggest not to add hue devices manually to indigo, but you should use the menu item:
+"Add New Devices on Hue Bridge to Indigo..."
+
+that will auto add all new devices found on any hue bridge to indigo in the proper form and device type
+!!! ===========================================  !!!
+
+
+
+
+========================================
+2022.12.41 @ 2022-07-27
 
 * fixed error: line 858, in validateRGBWhiteOnOffetc
 * streamlined hue group edit, made selection clearer
 
 
 
+========================================
 2022.12.40 @ 2022-07-27
 
 * added some more context when connection to hub bridge not is working
 
 
+========================================
 2022.12.39 @ 2022-07-25
 
 * fixed adding hue bridges, fixed a major issue
 
 
+========================================
 2022.12.38 @ 2022-07-24
 
 * added print option to print plugin prefs to logfile, for debugging purposes

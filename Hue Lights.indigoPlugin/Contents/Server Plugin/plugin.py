@@ -5293,7 +5293,9 @@ class Plugin(indigo.PluginBase):
 		devType = "lights"
 		devIdTypeId = "bulbId"
 		hubNumber = "undefined"
+		availableButWrongDevtype = ""
 		try:
+			if "hubNumber" not in valuesDict: return []
 			
 			existing = {}
 			addAtEnd = ""
@@ -5314,13 +5316,16 @@ class Plugin(indigo.PluginBase):
 			else:
 				hubNumbers = {self.hubNumberSelected:True}
 			
+			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator:  excludeList: {},\n existing:{}".format(excludeList, existing))
 			for hubNumber in hubNumbers:
 				for memberId, details in sorted(self.hueConfigDict[hubNumber][devType].items(), key = lambda x: x[1]['name']):
 					if hubNumber+"-"+memberId in existing: 	 
 						addAtEnd = [memberId, details['name']+'-..'+details['uniqueid'][-10:]+"-current"]
 					elif existing != {}:
+						if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator:  skip, existing !=empty".format())
 						continue
 					elif hubNumber+"-"+memberId in excludeList:
+						if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator:  in excludeList:{}".format(hubNumber+"-"+memberId))
 						continue
 					elif typeId == "":
 						# If no typeId exists, list all devices.
@@ -5344,9 +5349,11 @@ class Plugin(indigo.PluginBase):
 					elif typeId == "hueOnOffDevice" and details['type'][0:len(kOnOffOnlyDeviceIDType)] == kOnOffOnlyDeviceIDType:
 						xList.append([memberId, '{}-..{}'.format(details['name'], details['uniqueid'][-10:])])
 
-
 					elif filter.find('anyLight') > -1:
 						xList.append([memberId, '{}-..{}'.format(details['name'], details['uniqueid'][-10:])])
+
+					if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator:  xList {}".format(xList))
+					availableButWrongDevtype += "name:\"{}\", GW#:{}, id:{}, hue-type:\"{}\" equivalent to indigoDev-type:\"{}\"\n ".format(details['name'],  hubNumber, memberId, details['type'], kmapHueTypeToIndigoDevType.get(details['type'],"") )
 
 			if addAtEnd !="": 	xList.append(addAtEnd)
  
@@ -5354,8 +5361,12 @@ class Plugin(indigo.PluginBase):
 			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator: Return {} list is {}".format(devType, xList))
 
 		except Exception:
-			self.indiLOG.log(30,"Unable to obtain the configuration from the Hue bridge.{}".format(hubNumber), exc_info=True)
+			self.indiLOG.log(30,"Unable to obtain the configuration from the Hue bridge #{}".format(hubNumber), exc_info=True)
 
+		if xList ==[]:
+			self.indiLOG.log(20,"!!! no correntsponding light found, please check your selections !!!\nyour selection was: Bridge# {}, indigo devType:\"{}\"=\"{}\" maps to hue-type:\"{}\"\navailable on the Bridge# {} are:\n{}".format(
+								hubNumber, typeId, kmapIndigodevTypeToIndigofulldevType.get(typeId,""),  kmapIndigoDevTypeToHueType.get(typeId,""), hubNumber, availableButWrongDevtype))
+			self.printHueData({"whatToPrint":"mappingOfNames","sortBy":""},"")
 
 		return xList
 
@@ -5363,7 +5374,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def groupListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
 		# Used in actions that need a list of Hue bridge groups.
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting groupListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}" .format(filter, valuesDict, typeId, targetId))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting groupListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}" .format(filter, valuesDict, typeId, targetId, availableButWrongDevtype))
 
 		xList = list()
 		devType = "groups"
@@ -5440,6 +5451,7 @@ class Plugin(indigo.PluginBase):
 		xList = sorted(xList, key = lambda x: x[1])
 		# Debug
 		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbAndGroupDeviceListGenerator: Return Hue device list is {}".format(xList))
+
 
 		return xList
 
@@ -8458,7 +8470,7 @@ class Plugin(indigo.PluginBase):
 					if device.pluginProps.get('noOnRampRate', False) and currentBrightness == 0:
 						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {} using color temperature  {}K".format( device.name, tempBrightness, colorTemp ))
 					else:
-						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {} using color temperature  {}K.  at ramp rate  {} sec.".format( device.name, tempBrightness, colorTemp, rampRate / 10.0 ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {} using color temperature  {}K.  at ramp rate  {} sec.".format( device.name, tempBrightness, colorTemp, rampRate / 10.0))
 				self.updateDeviceState(device, 'brightnessLevel', int(round(brightness / 255.0 * 100.0)))
 			else:
 				# Log the change.
@@ -10688,6 +10700,22 @@ class Plugin(indigo.PluginBase):
 					out += "\n     no Hue devices found that have no corrsponding Indigo device "
 					out += "\n======================= print Hue {} END =================".format(valuesDict['whatToPrint'])
 					self.indiLOG.log(20,out)
+
+
+
+
+			elif valuesDict['whatToPrint'].find("mappingOfNames") >-1:
+				out = ""
+				out += "\n======================== mapping of devtypes     ====================="
+				#		  1234567890123456789012345 1234567890123456789012345 1234567890123456789012345678901234567890012345678901234567890
+				out += "\n------hue dev type------- -----indigo devType------ --------------------indigo dev type Name---------------------"
+				for hdevType in  kmapHueTypeToIndigoDevType:
+					idevTypes = kmapHueTypeToIndigoDevType[hdevType]
+					for idevType in  idevTypes:
+						out+= "\n{:25s} {:25s} {:60s}".format(hdevType, idevType,kmapIndigodevTypeToIndigofulldevType[idevType])
+				out += "\n======================= mapping of devtypes END ====================="
+				self.indiLOG.log(20,out)
+
 
 
 
