@@ -1,4 +1,11 @@
 ========================================
+2022.13.43 @ 2023-05-10
+
+fixed groups did not get updated
+
+
+
+========================================
 2022.13.42 @ 2023-03-15
 
 now NEW Hue lights, sensors, and groups will be automatically created in indigo (once every 3 minutes) 

@@ -6240,16 +6240,13 @@ class Plugin(indigo.PluginBase):
 						# See if there are more groups now than there were last time we checked.
 						if len(self.hueConfigDict[hubNumber][theType]) > lastCount[hubNumber] and lastCount[hubNumber] is not 0:
 							countChange = len(self.hueConfigDict[hubNumber][theType]) - lastCount[hubNumber]
-							if countChange == 1:
-								self.indiLOG.log(20,"{}: {} new Hue device found and loaded. Be sure to create an Indigo device to control the new Hue device.".format(theType, countChange) )
+							if self.pluginPrefs.get('autoCreatedNewDevices', False): 
+								self.lastTimeForAll = 0 # trigger create missing devices 
 							else:
-								self.indiLOG.log(20,"{}: {} new Hue devices found and loaded. Be sure to create Indigo devices to control the new Hue devices.".format(theType, countChange) )
+								self.indiLOG.log(20,"{}: {} new Hue device(s) found and loaded. Be sure to create an Indigo device to control the new Hue device.".format(theType, countChange) )
 						elif len(self.hueConfigDict[hubNumber][theType]) < lastCount[hubNumber]:
 							countChange = lastCount[hubNumber] - len(self.hueConfigDict[hubNumber][theType])
-							if countChange == 1:
-								self.indiLOG.log(20,"{}: {} less Hue device was found on the Hue bridge #{}. Check your Hue Lights Indigo devices. One of them may have been controlling the missing Hue device.".format(theType, countChange, hubNumber) )
-							elif countChange !=0:
-								self.indiLOG.log(20,"{}: fewer Hue devices were found on the Hue bridge#{}. Check your Hue Lights Indigo devices. Some of them may have been controlling the missing Hue devices.".format(theType, countChange, hubNumber) )
+							self.indiLOG.log(20,"{}: {} less Hue device(s) was found on the Hue bridge #{}. Check your Hue Lights Indigo devices. One of them may have been controlling a missing Hue device.".format(theType, countChange, hubNumber) )
 						# Make sure the plugin knows it's actually paired now.
 						self.paired[hubNumber] = True
 						self.notPairedMsg[hubNumber] = time.time() - 90
@@ -6905,7 +6902,7 @@ class Plugin(indigo.PluginBase):
 		#   devices that are controlling the Hue group devices.
 		try:
 			for deviceId in copy.deepcopy(self.deviceList):
-				if self.deviceList[deviceId].get('typeId',-1) in kGroupDeviceTypeIDs: continue
+				if self.deviceList[deviceId].get('typeId',-1) not in kGroupDeviceTypeIDs: continue
 				device = indigo.devices[deviceId]
 				pluginProps = device.pluginProps
 				if device.deviceTypeId in kGroupDeviceTypeIDs:
