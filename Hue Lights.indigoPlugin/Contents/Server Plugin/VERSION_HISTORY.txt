@@ -1,4 +1,12 @@
 ========================================
+2022.13.44 @ 2023-06-02
+
+1. fixed lights not selectable in track specific light
+2. added set dev state of orphans  (devices on indigo but not on hue bridge) to "delete" instead of "disconnected" or "online"
+3. added option to not show the logging test print at startup, you can set it in plugin config in debug section
+
+
+========================================
 2022.13.43 @ 2023-05-10
 
 fixed groups did not get updated

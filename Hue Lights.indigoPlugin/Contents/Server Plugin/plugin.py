@@ -65,6 +65,7 @@ kDefaultPluginPrefs = {
 				'sendDeviceUpdatesTo':					'20',
 				'autoCreatedNewDevices':				True,
 				'folderNameForNewDevices':				"Hue New Devices",
+				"showLoginTest":						True,
 				'logAnyChanges':						'leaveToDevice' # can be leaveToDevice / no / yes
 				}
 
@@ -115,12 +116,15 @@ class Plugin(indigo.PluginBase):
 		self.tryAutoCreateTimeWindow 	= 0
 		self.tryAutoCreateValuesDict 	= {}
 		self.pairedBridgeExec 			= ""
+		self.missingOnHubs				= {}
+		self.printMissingOnHubeverySecs = 600 # check every 10 minutes and print if missing
 
 ##############  common for all plugins ############
 		self.getInstallFolderPath		= indigo.server.getInstallFolderPath()+"/"
 		self.indigoPath					= indigo.server.getInstallFolderPath()+"/"
 		self.indigoRootPath 			= indigo.server.getInstallFolderPath().split("Indigo")[0]
 		self.pathToPlugin 				= self.completePath(os.getcwd())
+		self.showLoginTest 				= pluginPrefs.get('showLoginTest',True)
 
 		major, minor, release 			= map(int, indigo.server.version.split("."))
 		self.indigoVersion 				= float(major)+float(minor)/10.
@@ -168,14 +172,15 @@ class Plugin(indigo.PluginBase):
 		self.indiLOG.log(10,"installFolder           {}".format(self.indigoPath))
 		self.indiLOG.log(10,"plugin.py               {}".format(self.pathToPlugin))
 		self.indiLOG.log(20,"detailed logging        {}".format(self.PluginLogFile))
-		self.indiLOG.log(20,"testing logging levels, for info only: ")
-		self.indiLOG.log( 0,"logger  enabled for     0 ==> TEST ONLY ")
-		self.indiLOG.log( 5,"logger  enabled for     THREADDEBUG    ==> TEST ONLY ")
-		self.indiLOG.log(10,"logger  enabled for     DEBUG          ==> TEST ONLY ")
-		self.indiLOG.log(20,"logger  enabled for     INFO           ==> TEST ONLY ")
-		self.indiLOG.log(30,"logger  enabled for     WARNING        ==> TEST ONLY ")
-		self.indiLOG.log(40,"logger  enabled for     ERROR          ==> TEST ONLY ")
-		self.indiLOG.log(50,"logger  enabled for     CRITICAL       ==> TEST ONLY ")
+		if self.showLoginTest:
+			self.indiLOG.log(20,"testing logging levels, for info only: ")
+			self.indiLOG.log( 0,"logger  enabled for     0 ==> TEST ONLY ")
+			self.indiLOG.log( 5,"logger  enabled for     THREADDEBUG    ==> TEST ONLY ")
+			self.indiLOG.log(10,"logger  enabled for     DEBUG          ==> TEST ONLY ")
+			self.indiLOG.log(20,"logger  enabled for     INFO           ==> TEST ONLY ")
+			self.indiLOG.log(30,"logger  enabled for     WARNING        ==> TEST ONLY ")
+			self.indiLOG.log(40,"logger  enabled for     ERROR          ==> TEST ONLY ")
+			self.indiLOG.log(50,"logger  enabled for     CRITICAL       ==> TEST ONLY ")
 		self.indiLOG.log(10,"Plugin short Name       {}".format(self.pluginShortName))
 		self.indiLOG.log(10,"my PID                  {}".format(self.myPID))	 
 		self.indiLOG.log(10,"Achitecture             {}".format(platform.platform()))	 
@@ -396,6 +401,7 @@ class Plugin(indigo.PluginBase):
 		lastTimeForexcecStatesUpdate = 0
 		self.goAllRefresh		= 200.1 # is used in self.restartPairing() after pairing to force reload of all info from hub
 		self.lastTimeForAll		= 0  	#  that is why this is not a local variable, but self....
+		lastTimeForCheck		= 0 
 		# Set the maximum loop counter value based on the highest of the above activity threshold variables.
 		lasttryAutoCreateValuesDict = 0
 		self.printHueData({"whatToPrint":"NoHudevice", "sortBy":""},"")
@@ -479,8 +485,11 @@ class Plugin(indigo.PluginBase):
 
 				# for get hub complete dict = all data
 				if time.time() - self.lastTimeForAll >= max(30., self.goAllRefresh * self.timeScaleFactor):
-					self.lastTimeForAll = time.time()
 					self.updateAllHueLists()
+					self.lastTimeForAll = time.time()
+					if time.time() - lastTimeForCheck >= self.printMissingOnHubeverySecs:
+						self.checkMissing()
+						lastTimeForCheck = time.time()
 
 				if time.time() - lastTimeForSensorRefresh >= max(0.2, goSensorRefresh * self.timeScaleFactor):
 					lastTimeForSensorRefresh = time.time()
@@ -5978,6 +5987,63 @@ class Plugin(indigo.PluginBase):
 		return hubNumber, self.ipAddresses[hubNumber], self.hostIds[hubNumber], self.paired[hubNumber]
 
 
+
+
+	########################################
+	# CHECK for missing  
+	########################################
+
+	# check for non existing devices on Hue bridge
+	########################################
+	def checkMissing(self):
+		if self.decideMyLog("EditSetup"): self.debugLog("Starting checkMissing.")
+		try:
+			for deviceId in copy.deepcopy(self.deviceList):
+				if  time.time() - self.missingOnHubs.get(deviceId,time.time() - self.printMissingOnHubeverySecs*4-10)	< self.printMissingOnHubeverySecs*4: continue# only check every 3 loop if already missing, do for new onse 
+				device = indigo.devices[deviceId]
+				pluginProps = device.pluginProps
+				if "hubNumber" not in pluginProps:		continue
+				hubNumber = pluginProps['hubNumber']
+				if hubNumber not in self.hueConfigDict:	continue
+
+				if self.deviceList[deviceId].get('typeId',-1) in kSensorTypeList: 
+					if device.deviceTypeId in kSensorTypeList:
+						if "sensors" in self.hueConfigDict[hubNumber]:
+							if device.pluginProps['sensorId'] not in self.hueConfigDict[hubNumber]['sensors']:
+								self.indiLOG.log(30,"checkMissing: set state to deleted, device not defined on bridge  dev>{:40s}< type:{}, devlisttype:{}".format(device.name, device.deviceTypeId, self.deviceList[deviceId]  ))
+								device.updateStateOnServer('online', False)
+								device.setErrorStateOnServer("deleted")
+								self.missingOnHubs[deviceId] = time.time()
+
+				elif self.deviceList[deviceId].get('typeId','') in kLightDeviceTypeIDs: 
+					if device.deviceTypeId in kLightDeviceTypeIDs:
+						if "lights" in self.hueConfigDict[hubNumber]:
+							if device.pluginProps['bulbId'] not in self.hueConfigDict[hubNumber]['lights']:
+								self.indiLOG.log(30,"checkMissing: set state to deleted, device not defined on bridge  dev>{:40s}< type:{}, devlisttype:{}".format(device.name, device.deviceTypeId, self.deviceList[deviceId]  ))
+								device.updateStateOnServer('online', False)
+								device.setErrorStateOnServer("deleted")
+								self.missingOnHubs[deviceId] = time.time()
+
+				elif self.deviceList[deviceId].get('typeId','') in kGroupDeviceTypeIDs: 
+					if "groups" in self.hueConfigDict[hubNumber]:
+						if pluginProps['groupId'] not in self.hueConfigDict[hubNumber]['groups']:
+								self.indiLOG.log(30,"checkMissing: set state to deleted, device not defined on bridge  dev>{:40s}< type:{}, devlisttype:{}".format(device.name, device.deviceTypeId, self.deviceList[deviceId]  ))
+								device.setErrorStateOnServer("deleted")
+								self.missingOnHubs[deviceId] = time.time()
+
+
+
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return 
+	########################################
+	# CHECK for missing  END
+	########################################
+
+
+
+
+
 	########################################
 	# Hue Communication Methods
 	########################################
@@ -10694,6 +10760,7 @@ class Plugin(indigo.PluginBase):
 
 				if anyorphan > 0 or menuItem == "printHueDataMenu":
 					self.indiLOG.log(20,out)
+					self.checkMissing()
 				elif menuItem == "printHueDataMenu":
 					out = ""
 					out += "\n======================= print Hue {} =====================".format(valuesDict['whatToPrint'])
@@ -10909,9 +10976,11 @@ class Plugin(indigo.PluginBase):
 			if useMe == {}:
 				for d in _debugAreas:
 					if self.pluginPrefs.get('debug'+d, False): self.debugLevel.append(d)
+				self.showLoginTest = self.pluginPrefs.get("showLoginTest", True)
 			else:
 				for d in _debugAreas:
 					if useMe.get('debug'+d, False): self.debugLevel.append(d)
+				self.showLoginTest = useMe.get("showLoginTest", True)
 
 			self.indiLOG.log(20,"debug areas:{}".format(self.debugLevel))
 		except Exception:

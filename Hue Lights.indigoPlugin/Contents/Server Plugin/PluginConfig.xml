@@ -288,6 +288,7 @@ others: fixed at 3-5 minutes
 
 
 	<Field id="setdebug" type="label" >	<Label>Set debug areas ...</Label></Field>
+	<Field    id="showLoginTest"                 type="checkbox"        > <Label> show logging test at startup:</Label>  </Field>
 	<Field    id="debugInit"          			type="checkbox"         > <Label> Debug...                   ... (1)  Init:</Label>  </Field>
 	<Field    id="debugLoop"          			type="checkbox"         > <Label>     ... (2)  Loop:</Label>  </Field>
 	<Field    id="debugEditSetup"          		type="checkbox"         > <Label>     ... (3)  Edit indigo devs config etc:</Label>  </Field>
