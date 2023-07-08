@@ -410,8 +410,8 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 				<Label>Select SENSOR (Name on bridge):</Label>
 				<List class="self" method="sensorListGenerator" filter="oneSensor"  dynamicReload="true"/>
 			</Field>
-			<Field id="lightId" type="menu"
-				tooltip="Select a Sensor Device."
+			<Field id="bulbId" type="menu"
+				tooltip="Select a Light bulb Device."
 				visibleBindingId="whatToPrint" visibleBindingValue="lights" >
 				<Label>Select LIGHT (Name on bridge):</Label>
 				<List class="self" method="lightsListGenerator" filter="oneLight"  dynamicReload="true"/>
@@ -448,6 +448,7 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 					<Option value="rules">rules</Option>
 					<Option value="schedules">schedules</Option>
 					<Option value="resourcelinks">resource links</Option>
+					<Option value="shortBridgeInfo">short Bridge status overview from startup</Option>
 					<Option value="config">config, bridges config overview</Option>
 					<Option value="configJson">config, bridges complete config Dict</Option>
 					<Option value="configDict">complete hue Dict</Option>
@@ -516,7 +517,7 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 
 			<Field id="doPrint" type="button"
 					visibleBindingId="whatToPrint" 
-					visibleBindingValue="lights,lightsDict,mappingOfNames,sensors,sensorsDict,scenes,groups,rules,resourcelinks,schedules,config,configJson,configDict,specificLights,specificSensors,specificGroups,specificScenes,specificRules,specificSchedules,specificResourcelinks,NoHudevice,NoIndigoDevice,pluginPrefs" >
+					visibleBindingValue="lights,lightsDict,mappingOfNames,sensors,sensorsDict,scenes,groups,rules,resourcelinks,schedules,shortBridgeInfo,config,configJson,configDict,specificLights,specificSensors,specificGroups,specificScenes,specificRules,specificSchedules,specificResourcelinks,NoHudevice,NoIndigoDevice,pluginPrefs" >
 				<Label>Click to</Label>
 				<Title>Print</Title>
 				<CallbackMethod>printHueData</CallbackMethod>

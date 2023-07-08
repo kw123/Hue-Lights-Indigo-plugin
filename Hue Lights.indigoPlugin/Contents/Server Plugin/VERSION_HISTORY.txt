@@ -1,4 +1,10 @@
 ========================================
+2022.13.45 @ 2023-07-08
+
+1. fixed some issues in print hue config data, for special cases
+
+
+========================================
 2022.13.44 @ 2023-06-02
 
 1. fixed lights not selectable in track specific light
