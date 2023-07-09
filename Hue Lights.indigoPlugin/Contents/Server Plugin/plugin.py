@@ -5830,10 +5830,11 @@ class Plugin(indigo.PluginBase):
 		return valuesDict
 
 
+
 	########################################
-	def lightsListGeneratorForMove(self, filter="from", valuesDict=None, typeId="", targetId=0):
+	def sensLightGeneratorForMove(self, filter="", valuesDict=None, typeId="", targetId=0):
 		# Used in actions and device configuration windows that need a list of sensor devices.
-		#if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Move DEV..  tarting lightsListGeneratorForMove.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, valuesDict, typeId, targetId))
+		#if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Move DEV..  starting lightsListGeneratorForMove.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, valuesDict, typeId, targetId))
 
 		xList = list()
 		if self.hubNumberSelectedFrom == "":
@@ -5841,11 +5842,13 @@ class Plugin(indigo.PluginBase):
 		if self.hubNumberSelectedTo == "":
 			return [["0","please select TO bridge first"]]
 	
+		fromTo, sensorOrLight = filter.split("-") 
+
 		for dev in indigo.devices.iter(self.pluginId):
 			hubN = str(dev.pluginProps.get("hubNumber","")) 
-			if ( ( filter == "from" and hubN == self.hubNumberSelectedFrom ) or 
-				 ( filter == "to"   and hubN == self.hubNumberSelectedTo   )  ):
-				if  "bulbId" in dev.pluginProps: 
+			if ( ( fromTo == "from" and hubN == self.hubNumberSelectedFrom ) or 
+				 ( fromTo == "to"   and hubN == self.hubNumberSelectedTo   )  ):
+				if  sensorOrLight in dev.pluginProps: 
 					xList.append([dev.id, "{}/{}".format(dev.name, dev.deviceTypeId)])
 
 		xList = sorted(xList, key = lambda x: x[1])
@@ -5855,9 +5858,18 @@ class Plugin(indigo.PluginBase):
 		return xList
 
 
+
 	# now execute the move
 	########################################
-	def executeMoveToNewBridge(self, valuesDict, dummy1="", dummy2=""):
+	def executeMoveLightToNewBridge(self, valuesDict, dummy1="", dummy2=""):
+			return self.executeMoveToNewBridge(valuesDict, "bulbId")
+	########################################
+	def executeMoveSensorToNewBridge(self, valuesDict, dummy1="", dummy2=""):
+			return self.executeMoveToNewBridge(valuesDict, "sensorId")
+
+	# now execute the move
+	########################################
+	def executeMoveToNewBridge(self, valuesDict, devType):
 		try:
 			if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Move DEV..  Starting ExecuteMoveToNewBridge: {}".format(valuesDict) )
 			if self.hubNumberSelectedFrom == "":
@@ -5868,18 +5880,20 @@ class Plugin(indigo.PluginBase):
 				valuesDict["MSG"] = "ERROR: select TO bridge"
 				self.indiLOG.log(30,"Move DEV..  ERROR:  TO bridge TO is not selected" )
 				return valuesDict
-			bulbIdTo = int(valuesDict['bulbIdTo'])
-			bulbIdFrom = int(valuesDict['bulbIdFrom'])
+			fromID = devType+"From"
+			toID = devType+"To"
+			theIDTo = int(valuesDict[toID])
+			theIdFrom = int(valuesDict[fromID])
 
-			try: devFrom = indigo.devices[bulbIdFrom]
+			try: devFrom = indigo.devices[theIdFrom]
 			except:
 				valuesDict["MSG"] = "ERROR: FROM dev not in indigo"
-				if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Move DEV..  FROM dev does not exist in indigo >{}<".format(self.hubNumberSelectedFrom, bulbIdFrom ) )
+				if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Move DEV..  FROM dev does not exist in indigo >{}<".format(self.hubNumberSelectedFrom, theIdFrom ) )
 				return valuesDict
-			try: devTo = indigo.devices[bulbIdTo]
+			try: devTo = indigo.devices[theIDTo]
 			except:
 				valuesDict["MSG"] = "ERROR: TO dev not in indigo"
-				if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Move DEV..  To dev does not exist in indigo >{}<".format(self.hubNumberSelectedTo, bulbIdTo ) )
+				if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Move DEV..  To dev does not exist in indigo >{}<".format(self.hubNumberSelectedTo, theIDTo ) )
 				return valuesDict
 
 			propsFrom = devFrom.pluginProps

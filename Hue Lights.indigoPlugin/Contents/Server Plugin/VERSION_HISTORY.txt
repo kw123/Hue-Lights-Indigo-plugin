@@ -1,7 +1,14 @@
 ========================================
+2022.14.46 @ 2023-07-08
+
+1. added menu option to help facilitate moving a device to a new bridge
+   now besides light also sensors can be moved
+
+
+========================================
 2022.14.45 @ 2023-07-08
 
-1. added menu option to help facilitae moving a device to a new bridge
+1. added menu option to help facilitate moving a device to a new bridge
 
 ========================================
 2022.13.45 @ 2023-07-08
