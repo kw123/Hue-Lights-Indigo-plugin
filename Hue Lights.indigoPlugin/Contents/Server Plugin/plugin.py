@@ -119,6 +119,8 @@ class Plugin(indigo.PluginBase):
 		self.pairedBridgeExec 			= ""
 		self.missingOnHubs				= {}
 		self.printMissingOnHubeverySecs = 600 # check every 10 minutes and print if missing
+		self.hubNumberSelectedTo		= ""
+		self.hubNumberSelectedFrom		= ""
 
 ##############  common for all plugins ############
 		self.getInstallFolderPath		= indigo.server.getInstallFolderPath()+"/"
@@ -402,7 +404,7 @@ class Plugin(indigo.PluginBase):
 		lastTimeForexcecStatesUpdate = 0
 		self.goAllRefresh		= 200.1 # is used in self.restartPairing() after pairing to force reload of all info from hub
 		self.lastTimeForAll		= 0  	#  that is why this is not a local variable, but self....
-		lastTimeForCheck		= 0 
+		self.lastTimeForCheck		= 0 
 		# Set the maximum loop counter value based on the highest of the above activity threshold variables.
 		lasttryAutoCreateValuesDict = 0
 		self.printHueData({"whatToPrint":"NoHudevice", "sortBy":""},"")
@@ -488,9 +490,9 @@ class Plugin(indigo.PluginBase):
 				if time.time() - self.lastTimeForAll >= max(30., self.goAllRefresh * self.timeScaleFactor):
 					self.updateAllHueLists()
 					self.lastTimeForAll = time.time()
-					if time.time() - lastTimeForCheck >= self.printMissingOnHubeverySecs:
+					if time.time() - self.lastTimeForCheck >= self.printMissingOnHubeverySecs:
 						self.checkMissing()
-						lastTimeForCheck = time.time()
+						self.lastTimeForCheck = time.time()
 
 				if time.time() - lastTimeForSensorRefresh >= max(0.2, goSensorRefresh * self.timeScaleFactor):
 					lastTimeForSensorRefresh = time.time()
@@ -5760,7 +5762,7 @@ class Plugin(indigo.PluginBase):
 
 		return xList
 
-	# Sensor List Generator
+	# Light List Generator
 	########################################
 	def lightsListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
 		# Used in actions and device configuration windows that need a list of sensor devices.
@@ -5786,7 +5788,7 @@ class Plugin(indigo.PluginBase):
 			xList.append(addAtEnd)
 		xList = sorted(xList, key = lambda x: x[1])
 		# Debug
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"sensorListGenerator: Return sensor list is {}".format(xList) )
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"lightsListGenerator: Return lights list is {}".format(xList) )
 
 		return xList
 
@@ -5800,6 +5802,127 @@ class Plugin(indigo.PluginBase):
 		valuesDict['confirmHubNumberText'] = 'Bridge selected, continue with selections'
 		valuesDict['confirmHubNumberTextVisible'] = True
 		return valuesDict
+
+
+
+
+	########################################
+	########################################
+	########################################
+	##### move device between bridges  #####
+	########################################
+	########################################
+	########################################
+
+
+	# confirm hub number selection for move of device between hubs
+	########################################
+	def confirmGWNumbers(self, valuesDict, dummy1="", dummy2=""):
+
+		self.hubNumberSelectedFrom = valuesDict['hubNumberFrom']
+		self.hubNumberSelectedTo = valuesDict['hubNumberTo']
+		if self.hubNumberSelectedTo == self.hubNumberSelectedFrom:
+			valuesDict['MSG'] = 'must select 2 different bridges'
+			self.indiLOG.log(30,"Move DEV.. must select 2 different bridges from >{}< and to >{}< are the same ".format(self.hubNumberSelectedTo, self.hubNumberSelectedTo))
+			return valuesDict
+		valuesDict['MSG'] = 'Bridge selected, continue with selections'
+		#if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Move DEV.. bridges selected: from:{} to {}".format(self.hubNumberSelectedFrom, self.hubNumberSelectedTo))
+		return valuesDict
+
+
+	########################################
+	def lightsListGeneratorForMove(self, filter="from", valuesDict=None, typeId="", targetId=0):
+		# Used in actions and device configuration windows that need a list of sensor devices.
+		#if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Move DEV..  tarting lightsListGeneratorForMove.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, valuesDict, typeId, targetId))
+
+		xList = list()
+		if self.hubNumberSelectedFrom == "":
+			return [["0","please select FROM bridge first"]]
+		if self.hubNumberSelectedTo == "":
+			return [["0","please select TO bridge first"]]
+	
+		for dev in indigo.devices.iter(self.pluginId):
+			hubN = str(dev.pluginProps.get("hubNumber","")) 
+			if ( ( filter == "from" and hubN == self.hubNumberSelectedFrom ) or 
+				 ( filter == "to"   and hubN == self.hubNumberSelectedTo   )  ):
+				if  "bulbId" in dev.pluginProps: 
+					xList.append([dev.id, "{}/{}".format(dev.name, dev.deviceTypeId)])
+
+		xList = sorted(xList, key = lambda x: x[1])
+		# Debug
+		#if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Move DEV..  lightsListGeneratorForMove: Return light list is {}".format(xList) )
+
+		return xList
+
+
+	# now execute the move
+	########################################
+	def executeMoveToNewBridge(self, valuesDict, dummy1="", dummy2=""):
+		try:
+			if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Move DEV..  Starting ExecuteMoveToNewBridge: {}".format(valuesDict) )
+			if self.hubNumberSelectedFrom == "":
+				valuesDict["MSG"] = "ERROR: select FROM bridge"
+				self.indiLOG.log(30,"Move DEV..  ERROR:  bridge FROM is not selected" )
+				return valuesDict
+			if self.hubNumberSelectedTo == "":
+				valuesDict["MSG"] = "ERROR: select TO bridge"
+				self.indiLOG.log(30,"Move DEV..  ERROR:  TO bridge TO is not selected" )
+				return valuesDict
+			bulbIdTo = int(valuesDict['bulbIdTo'])
+			bulbIdFrom = int(valuesDict['bulbIdFrom'])
+
+			try: devFrom = indigo.devices[bulbIdFrom]
+			except:
+				valuesDict["MSG"] = "ERROR: FROM dev not in indigo"
+				if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Move DEV..  FROM dev does not exist in indigo >{}<".format(self.hubNumberSelectedFrom, bulbIdFrom ) )
+				return valuesDict
+			try: devTo = indigo.devices[bulbIdTo]
+			except:
+				valuesDict["MSG"] = "ERROR: TO dev not in indigo"
+				if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Move DEV..  To dev does not exist in indigo >{}<".format(self.hubNumberSelectedTo, bulbIdTo ) )
+				return valuesDict
+
+			propsFrom = devFrom.pluginProps
+			propsTo = devTo.pluginProps
+
+			if devFrom.deviceTypeId != devTo.deviceTypeId:
+				self.indiLOG.log(30,"Move DEV..  from >{}<  to  >{}<  have differnt devType ids: {} != {}".format(devFrom.name, devTo.name,  devFrom.deviceTypeId , devTo.deviceTypeId) )
+				valuesDict["MSG"] = "ERROR: differnt dev types"
+				return valuesDict
+
+			self.indiLOG.log(20,"Move DEV:{}  to  {}".format(devFrom.name, devTo.name ) )
+			for state in devFrom.states:
+				if state not in devTo.states:
+					self.indiLOG.log(20,"Move  state>{}< not in >TODEV< , skipping".format(state) )
+					continue
+				self.indiLOG.log(20,"Move DEV: moving state: {} value >{}< overwriting state value: >{}<".format( state, devFrom.states[state], devTo.states[state]) )
+				devTo.updateStateOnServer(state, devFrom.states[state])
+
+			for prop in propsFrom:
+				self.indiLOG.log(20,"Move DEV:  moving prop: {} value >{}< overwriting old prop ".format(prop, propsFrom[prop]) )
+				propsTo[prop] = propsFrom[prop]		
+			del self.deviceList[devFrom.id]
+
+			devTo.replacePluginPropsOnServer(propsTo)
+			devTo.name += "-new"
+			devTo.replaceOnServer()
+
+			devFromName = devFrom.name
+			devFromType = devFrom.deviceTypeId
+			indigo.device.delete(devFrom)
+
+			self.indiLOG.log(20,"Move DEV..  Bridge/Dev/type: {}/{}/{} has properties from newly moved hue device, new indigo dev:{}/{}/{} is deleted".format(self.hubNumberSelectedTo, devTo.name, devTo.deviceTypeId, self.hubNumberSelectedFrom, devFromName, devFromType ) )
+			valuesDict["MSG"] = "device moved"
+			self.lastTimeForAll  = 10 # force a refresh read from hue hubs and sync w indigo
+			self.lastTimeForCheck = 10
+		except Exception:
+			self.indiLOG.log(30,"", exc_info=True)
+
+		return valuesDict
+
+
+
+
 
 	########################################
 	# Device Update Methods

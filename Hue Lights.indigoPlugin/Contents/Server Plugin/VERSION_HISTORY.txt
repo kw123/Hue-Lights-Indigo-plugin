@@ -1,4 +1,9 @@
 ========================================
+2022.14.45 @ 2023-07-08
+
+1. added menu option to help facilitae moving a device to a new bridge
+
+========================================
 2022.13.45 @ 2023-07-08
 
 1. fixed some issues in print hue config data, for special cases

@@ -196,6 +196,79 @@ eg Hue_light_0_30_Stairs</Label>
 		</ConfigUI>
 	</MenuItem>
 
+
+	<MenuItem id="moveDevBetweenBridges">
+		<Name>Move Device from one bridge to another...</Name>
+		<ConfigUI>
+
+			<Field id="instructions1" type="label">
+				<Label>If you have moved a light to a new bridge you can use this menue item.
+It will keep the old indigo device and replace it with the properties of the new hue dev on the new bridge
+This way you can keep names, triggers, indigo ids etc
+SEQUENCE:
+1. delete device on old bridge with the Hue app (not in indigo)
+2. create new Hue device on new Hue bridge (with the Hue app), 
+   Indigo will auto create the new device w new bridge number, 
+   you will have one orphan(old)indigo device and one new indigo device
+3. use this menue (old/to = device in indigo you want to keep)
+- select to bridge (old)
+- select from bridge (new)
+- select to device (old)
+- select from device (new)
+== click execute
+The OLD indigo device(-new aded to name) will point to the new device on the new Hue bridge and will have its properties copied
+The NEW indigo device will be deleted in INDIGO 
+  it is a duplicate of the old one now
+
+!!! make sure you select the right devices!!! 
+It Does not work for different device types 
+The plugin only performs a highlevel checks on type of bulb.
+</Label>
+			</Field>
+
+			<Field id="hubNumberFrom" type="menu"
+				tooltip="Select the Gateway / Bridge of OLD device">
+				<Label>From Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
+			</Field>
+
+			<Field id="hubNumberTo" type="menu"
+				tooltip="Select the Gateway / Bridge of NEW device">
+				<Label>To Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
+			</Field>
+
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>confirm Bridge selection</Title>
+				<CallbackMethod>confirmGWNumbers</CallbackMethod>
+			</Field>
+
+			<Field id="MSG" type="textfield" default ="first select hue bridges" >	</Field>
+
+			<Field id="bulbIdFrom" type="menu"
+				tooltip="Select a lights/ bulb Device.">
+				<Label>Select LIGHT (on old bridge) - will be kept :</Label>
+				<List class="self" method="lightsListGeneratorForMove" filter="from"  dynamicReload="true"/>
+			</Field>
+
+			<Field id="bulbIdTo" type="menu"
+				tooltip="Select a lights/ bulb Device.">
+				<Label>Select LIGHT (on new bridge) - will be deleted:</Label>
+				<List class="self" method="lightsListGeneratorForMove" filter="to"  dynamicReload="true"/>
+			</Field>
+
+			<Field id="execMove" type="button">
+				<Label>Click to</Label>
+				<Title>Execute Move</Title>
+				<CallbackMethod>executeMoveToNewBridge</CallbackMethod>
+			</Field>
+
+		</ConfigUI>
+	</MenuItem>
+
+
+
 	<MenuItem id="menuRenameHueDevice">
 		<Name>Rename Hue Devices on Bridge...</Name>
 		<ConfigUI>
