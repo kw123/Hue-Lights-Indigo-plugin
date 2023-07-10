@@ -1,4 +1,15 @@
 ========================================
+2022.14.47 @ 2023-07-09
+
+1. added menu option to help facilitate moving a device to a new bridge
+   now besides light also sensors can be moved
+   made the labels and sequence clearer (new vs old devs)
+
+2. reduced the number of potential bridges to 5 from 9. One more that can be used in a house for future options
+   this makes the selection menues shorter
+   This is just cosmetics
+
+========================================
 2022.14.46 @ 2023-07-08
 
 1. added menu option to help facilitate moving a device to a new bridge

@@ -370,7 +370,7 @@ kSwitchTypeWithButtonsIDs = ['hueDimmerSwitch', 'hueRotaryWallSwitches','hueWall
 kSwitchTypeRotaryIDs =  ['hueRotaryWallRing']
 kSwitchTypeIDs = kSwitchTypeWithButtonsIDs + kSwitchTypeRotaryIDs
 # possible hub numbers
-khubNumbersAvailable = ["0","1","2","3","4","5","6","7","8","9"]
+khubNumbersAvailable = ["0","1","2","3","4"] # one more than max available, just in case
 
 # this is used to parse button sonsors
 # find button number and event type 
