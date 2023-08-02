@@ -229,13 +229,13 @@ The plugin only performs a highlevel check on type of bulb/sensor.
 
 			<Field id="hubNumberFrom" type="menu"
 				tooltip="Select the Gateway / Bridge of OLD device">
-				<Label>NEW Hue Bridge number:</Label>
+				<Label>Hue Bridge number (w NEW Device):</Label>
 				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 
 			<Field id="hubNumberTo" type="menu"
 				tooltip="Select the Gateway / Bridge of NEW device">
-				<Label>OLD Hue Bridge number:</Label>
+				<Label>Hue Bridge number(w OLD device):</Label>
 				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 
@@ -250,16 +250,16 @@ The plugin only performs a highlevel check on type of bulb/sensor.
 				<Label>Either move light:                           .</Label>
 			</Field>
 
-			<Field id="bulbIdTo" type="menu"
-				tooltip="Select a lights/ bulb Device.">
-				<Label>Select LIGHT (on old bridge) - will be kept w new props:</Label>
-				<List class="self" method="sensLightGeneratorForMove" filter="to-bulbId"  dynamicReload="true"/>
-			</Field>
-
 			<Field id="bulbIdFrom" type="menu"
 				tooltip="Select a lights/ bulb Device.">
 				<Label>Select LIGHT (on new bridge) - will be deleted:</Label>
 				<List class="self" method="sensLightGeneratorForMove" filter="from-bulbId"  dynamicReload="true"/>
+			</Field>
+
+			<Field id="bulbIdTo" type="menu"
+				tooltip="Select a lights/ bulb Device.">
+				<Label>Select LIGHT (on old bridge) - will be kept w new props:</Label>
+				<List class="self" method="sensLightGeneratorForMove" filter="to-bulbId"  dynamicReload="true"/>
 			</Field>
 
 			<Field id="execMoveLight" type="button">
@@ -272,16 +272,16 @@ The plugin only performs a highlevel check on type of bulb/sensor.
 				<Label>Or move Sensor:                              .</Label>
 			</Field>
 
-			<Field id="sensorIdTo" type="menu"
-				tooltip="Select a Sensor Device.">
-				<Label>Select SENSOR (on old bridge) - will be kept w new props:</Label>
-				<List class="self" method="sensLightGeneratorForMove" filter="to-sensorId"  dynamicReload="true"/>
-			</Field>
-
 			<Field id="sensorIdFrom" type="menu"
 				tooltip="Select a Sensor Device.">
 				<Label>Select SENSOR (on new bridge) - will be deleted:</Label>
 				<List class="self" method="sensLightGeneratorForMove" filter="from-sensorId"  dynamicReload="true"/>
+			</Field>
+
+			<Field id="sensorIdTo" type="menu"
+				tooltip="Select a Sensor Device.">
+				<Label>Select SENSOR (on old bridge) - will be kept w new props:</Label>
+				<List class="self" method="sensLightGeneratorForMove" filter="to-sensorId"  dynamicReload="true"/>
 			</Field>
 
 			<Field id="execMoveSensor" type="button">

@@ -147,6 +147,9 @@ class Plugin(indigo.PluginBase):
 		self.indigoPreferencesPluginDir = self.getInstallFolderPath+"Preferences/Plugins/"+self.pluginId+"/"
 		self.indigoPluginDirOld			= self.userIndigoDir + self.pluginShortName+"/"
 		self.PluginLogFile				= indigo.server.getLogsFolderPath(pluginId=self.pluginId) +"/plugin.log"
+		self.bridgeBusy = {"max delay":0.}
+
+
 
 		formats=	{   logging.THREADDEBUG: "%(asctime)s %(msg)s",
 						logging.DEBUG:       "%(asctime)s %(msg)s",
@@ -299,6 +302,8 @@ class Plugin(indigo.PluginBase):
 		self.findHueBridgesDict['thread'].start()
 
 		return 
+
+
 
 	# Start Devices
 	########################################
@@ -542,16 +547,19 @@ class Plugin(indigo.PluginBase):
 
 	# start search for new sensors 
 	########################################
-	def startSearchNewSwitches(self, valuesDict,y):
+	def startSearchNewSwitches(self, valuesDict, y):
 
 		try:
 			hubNumber = valuesDict.get('hubNumber', "")
 			if hubNumber == "":
 				return 
 
+
 			command = "http://{}/api/{}/sensors".format(self.ipAddresses[hubNumber], self.hostIds[hubNumber])
 			self.indiLOG.log(20,"Sending search request to {} (via HTTP POST).".format(command))
+			self.setBridgeBusy(hubNumber, calledfrom="startSearchNewSwitches")
 			r = requests.post(command, data="", timeout=kTimeout, headers={'Connection':'close'})
+			self.resetBridgeBusy(hubNumber)
 			responseData = json.loads(r.content)
 			try: 
 				if "success" in responseData[0]:
@@ -562,6 +570,9 @@ class Plugin(indigo.PluginBase):
 					self.indiLOG.log(30,"search not started {}".format(responseData))
 		except Exception:
 			self.indiLOG.log(30,"", exc_info=True)
+		self.resetBridgeBusy(hubNumber)
+
+		return 
 	# start search for new lights 
 	########################################
 	def startSearchNewLights(self, valuesDict,y):
@@ -573,7 +584,9 @@ class Plugin(indigo.PluginBase):
 
 			command = "http://{}/api/{}/lights".format(self.ipAddresses[hubNumber], self.hostIds[hubNumber])
 			self.indiLOG.log(20,"Sending search request to {} (via HTTP POST).".format(command))
+			self.setBridgeBusy(hubNumber, calledfrom="startSearchNewLights")
 			r = requests.post(command, data="", timeout=kTimeout, headers={'Connection':'close'})
+			self.resetBridgeBusy(hubNumber)
 			responseData = json.loads(r.content)
 			try: 
 				if "success" in responseData[0]:
@@ -584,6 +597,8 @@ class Plugin(indigo.PluginBase):
 					self.indiLOG.log(30,"search not started {}".format(responseData))
 		except Exception:
 			self.indiLOG.log(30,"", exc_info=True)
+		self.resetBridgeBusy(hubNumber)
+		return 
 
 	# Validate Device Configuration
 	########################################
@@ -806,13 +821,15 @@ class Plugin(indigo.PluginBase):
 	def commandToHub_HTTP(self, hubNumber, cmd, errorsDict=None, errDict1="", errDict2=""):
 		# Make sure the device selected is a Hue device.
 		#   Get the device info directly from the bridge.
+
 		try:
 			if errorsDict is None:
 				errorsDict = {}
 			jsonData = {}
 			ipAddress = self.ipAddresses[hubNumber]
 			if not self.isValidIP(ipAddress):
-				if ipAddress == "": return (False, "", errorsDict) # this happens during setup of hub, for some time ip number is not defined, suppress error msg
+				if ipAddress == "": 
+					return (False, "", errorsDict) # this happens during setup of hub, for some time ip number is not defined, suppress error msg
 				errorText = self.doErrorLog("hub#:{} no valid IP number: >>{}<<".format(hubNumber, ipAddress))
 				errorsDict[errDict1] = errorText
 				errorsDict[errDict2] += errorsDict[errDict1]
@@ -824,21 +841,26 @@ class Plugin(indigo.PluginBase):
 				self.bridgeRequestsSession[hubNumber] = {"lastInit": 0, "session" : ""}
 			#self.connectToBridge(hubNumber)
 			try:
+				self.setBridgeBusy(hubNumber, calledfrom="commandToHub_HTTP")
 				r = requests.get(command, timeout=kTimeout, headers={'Connection':'close'})
+				self.resetBridgeBusy(hubNumber)
 			except requests.exceptions.Timeout:
 				if self.checkForLastNotPairedMessage(hubNumber):
 					errorText = self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout),force=True)
 					errorsDict[errDict1] = errorText
 					errorsDict[errDict2] += errorsDict[errDict1]
+					self.resetBridgeBusy(hubNumber)
 				return (False, "", errorsDict)
 			except requests.exceptions.ConnectionError:
 				if self.checkForLastNotPairedMessage(hubNumber):
 					errorText = self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress, force=True))
 					errorsDict[errDict1] = errorText
 					errorsDict[errDict2] += errorsDict[errDict1]
+				self.resetBridgeBusy(hubNumber)
 				return (False, "", errorsDict)
 			except Exception :
 				self.logger.error("", exc_info=True)
+				self.resetBridgeBusy(hubNumber)
 				return (False, "", errorsDict)
 
 			if self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"Data from bridge: {}".format(r.content.decode("utf-8")) )
@@ -852,9 +874,11 @@ class Plugin(indigo.PluginBase):
 				errorsDict[errDict2] += errorsDict[errDict1]
 				return (False, "",  errorsDict)
 			self.notPairedMsg[hubNumber] = time.time() - 90
+			self.resetBridgeBusy(hubNumber)
 			return True, jsonData, errorsDict
 		except Exception:
 			self.logger.error("", exc_info=True)
+		self.resetBridgeBusy(hubNumber)
 		return False, jsonData, errorsDict
 			
 	# start or reconnect session to bridge 
@@ -2822,7 +2846,9 @@ class Plugin(indigo.PluginBase):
 			if self.decideMyLog("Init"): self.indiLOG.log(10,"Verifying that a Hue bridge exists at IP address \"{}\".".format(valuesDict['address']))
 			command = "http://{}/description.xml".format(valuesDict['address'])
 			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Accessing URL: {}".format(command))
+			self.setBridgeBusy(self.hubNumberSelected, calledfrom="restartPairing")
 			r = requests.get(command, timeout=kTimeout, headers={'Connection':'close'})
+			self.resetBridgeBusy(self.hubNumberSelected)
 			if self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"Got response:\n{}".format(r.content))
 
 			# Quick and dirty check to see if this is a Philips Hue bridge.
@@ -2836,17 +2862,20 @@ class Plugin(indigo.PluginBase):
 				if self.decideMyLog("Init"): self.indiLOG.log(10,"Verified that this is a Hue bridge.")
 
 		except requests.exceptions.Timeout:
+			self.resetBridgeBusy(self.hubNumberSelected)
 			self.doErrorLog("Connection to {} timed out after {} seconds.".format(valuesDict['address'], kTimeout))
 			if not autoSearch: errorsDict['showAlertText'] = "timeout connecting to bridge"
 			return valuesDict, errorsDict
 
 		except requests.exceptions.ConnectionError:
+			self.resetBridgeBusy(self.hubNumberSelected)
 			self.doErrorLog("Connection to {} failed. There was a connection error.".format(valuesDict['address']))
 			isError = True
 			if not autoSearch: errorsDict['showAlertText'] = "error connecting to bridge"
 			return valuesDict, errorsDict
 
 		except Exception:
+			self.resetBridgeBusy(self.hubNumberSelected)
 			self.logger.error("", exc_info=True)
 			if not autoSearch: errorsDict['showAlertText'] = "general error  connecting to bridge"
 			return valuesDict, errorsDict
@@ -2860,7 +2889,9 @@ class Plugin(indigo.PluginBase):
 			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Request is {}".format(requestData) )
 			command = "http://{}/api".format(valuesDict['address'])
 			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Sending request to {} (via HTTP POST).".format(command))
+			self.setBridgeBusy(self.hubNumberSelected, calledfrom="restartPairing-2")
 			r = requests.post(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
+			self.resetBridgeBusy(self.hubNumberSelected)
 			responseData = json.loads(r.content)
 			if self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"Got response {}".format(responseData))
 
@@ -2915,18 +2946,21 @@ class Plugin(indigo.PluginBase):
 				return valuesDict, errorsDict
 
 		except requests.exceptions.Timeout:
+			self.resetBridgeBusy(self.hubNumberSelected)
 			self.logger.error("Connection to {}  failed,timed out after {} seconds.".format(valuesDict['address'], kTimeout), exc_info=True)
 			errorText = "Unable to reach the bridge. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
 			if not autoSearch: errorsDict['showAlertText'] += errorText
 			return valuesDict, errorsDict
 
 		except requests.exceptions.ConnectionError:
+			self.resetBridgeBusy(self.hubNumberSelected)
 			self.logger.error("Connection to ip#:{} There was a connection error".format( valuesDict['address']), exc_info=True)
 			errorsDict['startPairingButton'] = "Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
 			if not autoSearch: errorsDict['showAlertText'] += errorsDict['startPairingButton'] + "\n\n"
 			return valuesDict, errorsDict
 
 		except Exception:
+			self.resetBridgeBusy(self.hubNumberSelected)
 			self.logger.error("Connection to  ip#:{}  failed".format(valuesDict['address']), exc_info=True)
 			errorsDict['startPairingButton'] = "Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
 			if not autoSearch: errorsDict['showAlertText'] += errorsDict['startPairingButton'] + "\n\n"
@@ -2936,7 +2970,9 @@ class Plugin(indigo.PluginBase):
 			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"validatePrefsConfigUi: Verifying that a Hue bridge exists at IP address \"{}\".".format(valuesDict['address']) )
 			command = "http://{}/description.xml".format(valuesDict['address'])
 			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"validatePrefsConfigUi: Accessing URL: {}".format(command))
+			self.setBridgeBusy(self.hubNumberSelected, calledfrom="restartPairing-3")
 			r = requests.get(command, timeout=kTimeout, headers={'Connection':'close'})
+			self.resetBridgeBusy(self.hubNumberSelected)
 			if self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"validatePrefsConfigUi: Got response:\n{}".format(r.content) )
 
 			# Quick and dirty check to see if this is a Philips Hue bridge.
@@ -2962,6 +2998,7 @@ class Plugin(indigo.PluginBase):
 				return valuesDict, errorsDict
 
 		except requests.exceptions.Timeout:
+			self.resetBridgeBusy(self.hubNumberSelected)
 			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"validatePrefsConfigUi: Connection to {} timed out after {} seconds.".format(valuesDict['address'], kTimeout))
 			isError = True
 			errorsDict['address'] = "Unable to reach the bridge. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
@@ -2969,6 +3006,7 @@ class Plugin(indigo.PluginBase):
 			return valuesDict, errorsDict
 
 		except requests.exceptions.ConnectionError:
+			self.resetBridgeBusy(self.hubNumberSelected)
 			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"validatePrefsConfigUi: Connection to {} failed. There was a connection error.".format(valuesDict['address']) )
 			isError = True
 			errorsDict['address'] = "Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
@@ -2976,11 +3014,13 @@ class Plugin(indigo.PluginBase):
 			return valuesDict, errorsDict
 
 		except Exception:
+			self.resetBridgeBusy(self.hubNumberSelected)
 			self.indiLOG.log(30,"validatePrefsConfigUi: Connection error", exc_info=True)
 			isError = True
 			errorsDict['address'] = "Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
 			if not autoSearch: errorsDict['showAlertText'] += errorsDict['address'] + "\n\n"
 
+		self.resetBridgeBusy(self.hubNumberSelected)
 		return valuesDict, errorsDict
 
 
@@ -4794,6 +4834,8 @@ class Plugin(indigo.PluginBase):
 			if onOff not in ['on','off']: 
 				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(30,"actionEnableDisableSensor bad onoff command {}.".format(onOff))
 				return valuesDict
+			if hubNumber == "": return valuesDict
+
 
 			for deviceId in copy.deepcopy(self.deviceList):
 				## if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(30,"actionEnableDisableSensor deviceId {}, hub#{}, sensorID:{}".format(self.deviceList[deviceId], hubNumber,sensorId))
@@ -4810,6 +4852,7 @@ class Plugin(indigo.PluginBase):
 				if not paired: continue 
 				#if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"valuesDict is {}".format(valuesDict))
 
+				
 				command = "http://{}/api/{}/sensors/{}/config".format(ipAddress, self.hostIds[hubNumber], sensorId)
 				if onOff == 'on':
 					requestData = json.dumps({ "on": True})
@@ -4817,14 +4860,18 @@ class Plugin(indigo.PluginBase):
 					requestData = json.dumps({ "on": False})
 				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Sending URL request: {}, data:{}".format(command, requestData))
 				try:
+					self.setBridgeBusy(hubNumber, calledfrom="menuEnableDisableSensor")
 					r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
+					self.resetBridgeBusy(hubNumber)
 				except requests.exceptions.Timeout:
 					self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout))
 					# Don't display the error if it's been displayed already.
+					self.resetBridgeBusy(hubNumber)
 					return valuesDict
 				except requests.exceptions.ConnectionError:
 					self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress))
 					# Don't display the error if it's been displayed already.
+					self.resetBridgeBusy(hubNumber)
 					return valuesDict
 				try:
 					response = json.loads(r.content)
@@ -4835,11 +4882,13 @@ class Plugin(indigo.PluginBase):
 							self.indiLOG.log(20,"send {} to \"{}\" returned:{}".format(onOff, device.name, response ))
 				except Exception as e:
 					self.doErrorLog("Failed to switch {}. on/off, error:{}, Bridge response:{}".format(device.name,e , response))
+					self.resetBridgeBusy(hubNumber)
 				return valuesDict
 
 			self.indiLOG.log(30,"actionEnableDisableSensor no matching device found, {}".format(valuesDict))
 		except Exception:
 			self.logger.error("", exc_info=True)
+		self.resetBridgeBusy(hubNumber)
 		return valuesDict
 
 	######################
@@ -4866,6 +4915,7 @@ class Plugin(indigo.PluginBase):
 			self.indiLOG.log(10,"Starting menuDelete{} with {}.".format(devType, valuesDict))
 			ID  = valuesDict.get('bulbId', "")
 			hubNumber = valuesDict.get('hubNumber', "")
+			if hubNumber == "": return valuesDict
 
 			for deviceId in copy.deepcopy(self.deviceList):
 				## if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(30,"actionEnableDisableSensor deviceId {}, hub#{}, sensorID:{}".format(self.deviceList[deviceId], hubNumber,sensorId))
@@ -4881,6 +4931,9 @@ class Plugin(indigo.PluginBase):
 				hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
 				#if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"valuesDict is {}".format(valuesDict))
 
+
+				
+				self.setBridgeBusy(hubNumber, calledfrom="menuDeleteDevice")
 				command = "http://{}/api/{}/{}/{}".format(ipAddress, self.hostIds[hubNumber], devType, ID)
 				self.indiLOG.log(20,"Sending URL request: {}".format(command))
 				try:
@@ -4888,10 +4941,12 @@ class Plugin(indigo.PluginBase):
 				except requests.exceptions.Timeout:
 					self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout))
 					# Don't display the error if it's been displayed already.
+					self.resetBridgeBusy(hubNumber)
 					return valuesDict
 				except requests.exceptions.ConnectionError:
 					self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress))
 					# Don't display the error if it's been displayed already.
+					self.resetBridgeBusy(hubNumber)
 					return valuesDict
 				try:
 					response = json.loads(r.content)
@@ -4901,11 +4956,13 @@ class Plugin(indigo.PluginBase):
 						self.indiLOG.log(20,"send returned:{}".format(response ))
 				except Exception as e:
 					self.doErrorLog("Failed to delete {}  error:{}, Bridge response:{}".format(tag, e, response))
+				self.resetBridgeBusy(hubNumber)
 				return valuesDict
 
 			self.indiLOG.log(30,"menuDelete{} no matching device found, {}".format(devType, valuesDict))
 		except Exception:
 			self.logger.error("", exc_info=True)
+		self.resetBridgeBusy(hubNumber)
 		return valuesDict
 
 
@@ -4993,18 +5050,23 @@ class Plugin(indigo.PluginBase):
 					elif len(newName) > 32:
 							self.indiLOG.log(30,"rename device for:{}, new name:{}, is too long, max len is 32 char".format(device.name, newName))
 							continue
+				
 				command = "http://{}/api/{}/{}/{}/".format(ipAddress, self.hostIds[hubNumber], tag, theID)
 				requestData = json.dumps({ "name": newName})
 				if self.decideMyLog("Special") or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Sending URL request: {}, data:{}".format(command, requestData))
 				try:
+					self.setBridgeBusy(hubNumber, calledfrom="execRename")
 					r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
+					self.resetBridgeBusy(hubNumber)
 				except requests.exceptions.Timeout:
 					self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout))
 					# Don't display the error if it's been displayed already.
+					self.resetBridgeBusy(hubNumber)
 					return 
 				except requests.exceptions.ConnectionError:
 					self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress))
 					# Don't display the error if it's been displayed already.
+					self.resetBridgeBusy(hubNumber)
 					return 
 				try:
 					response = json.loads(r.content)
@@ -5014,11 +5076,13 @@ class Plugin(indigo.PluginBase):
 						self.indiLOG.log(20,"change: \"{}\" to \"{}\" for \"{}\" Bridge returned:{}".format(oldName, newName, device.name, response ))
 				except Exception as e:
 					self.doErrorLog("Failed to change name \"{}\". error:{}, Bridge response:{}".format(device.name, e, response))
+				self.resetBridgeBusy(hubNumber)
 				return 
 
 			self.indiLOG.log(30,"menu rename {} no matching device found; {} / {} / {} / \"{}\"".format( tag, useId, hubNumber, theID, newName))
 		except Exception:
 			self.logger.error("", exc_info=True)
+		self.resetBridgeBusy(hubNumber)
 		return 
 
 
@@ -7887,13 +7951,18 @@ class Plugin(indigo.PluginBase):
 				else:
 					command = "http://{}/api/{}/lights/{}/state".format(ipAddress, self.hostIds[hubNumber], bulbId)
 				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Sending URL request: {}".format(command))
+				
 				try:
+					self.setBridgeBusy(hubNumber, calledfrom="doOnOff")
 					r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
+					self.resetBridgeBusy(hubNumber)
 				except requests.exceptions.Timeout:
 					self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout))
+					self.resetBridgeBusy(hubNumber)
 					return
 				except requests.exceptions.ConnectionError:
 					self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress))
+					self.resetBridgeBusy(hubNumber)
 					return
 				if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"Got response - {}".format(r.content) )
 				# Customize the log and device update based on whether this is an on/off device or not.
@@ -7939,11 +8008,15 @@ class Plugin(indigo.PluginBase):
 					command = "http://{}/api/{}/lights/{}/state".format(ipAddress, self.hostIds[hubNumber], bulbId)
 				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Sending URL request: {} with data: {}".format(command, requestData))
 				try:
+					self.setBridgeBusy(hubNumber, calledfrom="doOnOff-2")
 					r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
+					self.resetBridgeBusy(hubNumber)
 				except requests.exceptions.Timeout:
+					self.resetBridgeBusy(hubNumber)
 					self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout))
 					return
 				except requests.exceptions.ConnectionError:
+					self.resetBridgeBusy(hubNumber)
 					self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress))
 					return
 				if self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"Got response - {}".format(r.content) )
@@ -8045,12 +8118,16 @@ class Plugin(indigo.PluginBase):
 					command = "http://{}/api/{}/lights/{}/state".format(ipAddress, self.hostIds[hubNumber], bulbId)
 				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Sending URL request: {}, data:{}".format(command, requestData))
 				try:
+					self.setBridgeBusy(hubNumber, calledfrom="doBrightness")
 					r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
+					self.resetBridgeBusy(hubNumber)
 				except requests.exceptions.Timeout:
+					self.resetBridgeBusy(hubNumber)
 					self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout))
 					# Don't display the error if it's been displayed already.
 					return
 				except requests.exceptions.ConnectionError:
+					self.resetBridgeBusy(hubNumber)
 					self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress))
 					# Don't display the error if it's been displayed already.
 					return
@@ -8092,12 +8169,16 @@ class Plugin(indigo.PluginBase):
 					command = "http://{}/api/{}/lights/{}/state".format(ipAddress, self.hostIds[hubNumber], bulbId)
 				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Sending URL request: {}, data:{}".format(command, requestData))
 				try:
+					self.setBridgeBusy(hubNumber, calledfrom="doBrightness-2")
 					r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
+					self.resetBridgeBusy(hubNumber)
 				except requests.exceptions.Timeout:
 					self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout))
+					self.resetBridgeBusy(hubNumber)
 					return
 				except requests.exceptions.ConnectionError:
 					self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress))
+					self.resetBridgeBusy(hubNumber)
 					return
 				if self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"Got response - {}".format(r.content))
 				# Log the change.
@@ -8230,12 +8311,16 @@ class Plugin(indigo.PluginBase):
 				command = "http://{}/api/{}/lights/{}/state".format(ipAddress, self.hostIds[hubNumber], bulbId)
 			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Data: {}, URL: {}".format(requestData, command))
 			try:
+				self.setBridgeBusy(hubNumber, calledfrom="doRGB")
 				r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
+				self.resetBridgeBusy(hubNumber)
 			except requests.exceptions.Timeout:
 				self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout))
+				self.resetBridgeBusy(hubNumber)
 				return
 			except requests.exceptions.ConnectionError:
 				self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress))
+				self.resetBridgeBusy(hubNumber)
 				return
 			if self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"Got response - {}".format(r.content))
 
@@ -8380,12 +8465,16 @@ class Plugin(indigo.PluginBase):
 				command = "http://{}/api/{}/lights/{}/state".format(ipAddress, self.hostIds[hubNumber], bulbId)
 			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Request is {}".format(requestData))
 			try:
+				self.setBridgeBusy(hubNumber, calledfrom="doHSB")
 				r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
+				self.resetBridgeBusy(hubNumber)
 			except requests.exceptions.Timeout:
 				self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout))
+				self.resetBridgeBusy(hubNumber)
 				return
 			except requests.exceptions.ConnectionError:
 				self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress))
+				self.resetBridgeBusy(hubNumber)
 				return
 			if self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"Got response - {}".format(r.content))
 
@@ -8525,12 +8614,16 @@ class Plugin(indigo.PluginBase):
 				command = "http://{}/api/{}/lights/{}/state".format(ipAddress, self.hostIds[hubNumber], bulbId)
 			try:
 				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Request is {}".format(requestData))
+				self.setBridgeBusy(hubNumber, calledfrom="doXYY")
 				r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
+				self.resetBridgeBusy(hubNumber)
 			except requests.exceptions.Timeout:
 				self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout))
+				self.resetBridgeBusy(hubNumber)
 				return
 			except requests.exceptions.ConnectionError:
 				self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress))
+				self.resetBridgeBusy(hubNumber)
 				return
 			if self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"Got response - {}".format(r.content) )
 
@@ -8679,12 +8772,16 @@ class Plugin(indigo.PluginBase):
 				command = "http://{}/api/{}/lights/{}/state".format(ipAddress, self.hostIds[hubNumber], bulbId)
 			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Request is {}".format(requestData) )
 			try:
+				self.setBridgeBusy(hubNumber, calledfrom="doColorTemperature")
 				r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
+				self.resetBridgeBusy(hubNumber)
 			except requests.exceptions.Timeout:
 				self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout))
+				self.resetBridgeBusy(hubNumber)
 				return
 			except requests.exceptions.ConnectionError:
 				self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress))
+				self.resetBridgeBusy(hubNumber)
 				return
 			if self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"Got response - {}".format(r.content) )
 
@@ -8765,12 +8862,16 @@ class Plugin(indigo.PluginBase):
 				command = "http://{}/api/{}/lights/{}/state".format(ipAddress, self.hostIds[hubNumber], bulbId)
 			try:
 				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Request is {}".format(requestData) )
+				self.setBridgeBusy(hubNumber, calledfrom="doAlert")
 				r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
+				self.resetBridgeBusy(hubNumber)
 			except requests.exceptions.Timeout:
 				self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout))
+				self.resetBridgeBusy(hubNumber)
 				return
 			except requests.exceptions.ConnectionError:
 				self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress))
+				self.resetBridgeBusy(hubNumber)
 				return
 			if self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"Got response - {}".format(r.content) )
 
@@ -8832,12 +8933,16 @@ class Plugin(indigo.PluginBase):
 				command = "http://{}/api/{}/lights/{}/state".format(ipAddress, self.hostIds[hubNumber], bulbId)
 			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"URL: " + command)
 			try:
+				self.setBridgeBusy(hubNumber, calledfrom="doEffect")
 				r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
+				self.resetBridgeBusy(hubNumber)
 			except requests.exceptions.Timeout:
 				self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on." .format(ipAddress, kTimeout))
+				self.resetBridgeBusy(hubNumber)
 				return
 			except requests.exceptions.ConnectionError:
 				self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress))
+				self.resetBridgeBusy(hubNumber)
 				return
 			if str(r.content).find("success") == -1: self.logger.error("set effect failure: - {}".format(r.content) )
 			elif self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"Got response - {}".format(r.content) )
@@ -8888,6 +8993,7 @@ class Plugin(indigo.PluginBase):
 			else:
 				groupName = "all hue lights"
 
+
 			# Create the JSON object and send the command to the bridge.
 			requestData = json.dumps({"scene": sceneId})
 			# Create the command.
@@ -8895,14 +9001,18 @@ class Plugin(indigo.PluginBase):
 			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Sending URL request: {}".format(command) )
 
 			try:
+				self.setBridgeBusy(hubNumber, calledfrom="doScene")
 				r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
+				self.resetBridgeBusy(hubNumber)
 
 			except requests.exceptions.Timeout:
 				self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on.".format(ipAddress, kTimeout))
+				self.resetBridgeBusy(hubNumber)
 				return
 
 			except requests.exceptions.ConnectionError:
 				self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.".format(ipAddress))
+				self.resetBridgeBusy(hubNumber)
 				return
 
 			if self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"Got response - {}".format(r.content) )
@@ -11276,6 +11386,68 @@ class Plugin(indigo.PluginBase):
 			return "http://{}/api/{}".format(self.ipAddresses['0'], self.hostIds['0'])
 
 
+####--------------------------- Start ---------------------------------------####
+
+	# manage connects to bridge, make sure that  only one connection at a time is active
+	########################################
+	def setBridgeBusy(self, hubNumber, calledfrom=""):
+		try:
+			if hubNumber not in self.bridgeBusy: # init
+				self.bridgeBusy[hubNumber] = time.time()
+				return 
+
+
+			if self.bridgeBusy[hubNumber]  == 0. : # nothing curretly active, set timer and return 
+				self.bridgeBusy[hubNumber] = time.time()
+				return 
+
+
+			mxDelay = time.time() - self.bridgeBusy[hubNumber]
+			if mxDelay > 5: #  something is active, check if too long:
+					self.indiLOG.log(30, "set Bridge# {:} busy,  last action active for:{:.1f} secs, cancelling wait, too long..;  pgm request connection:{:}, delay timers:{:}".format(hubNumber, mxDelay, calledfrom, self.bridgeBusy ))
+					self.indiLOG.log(30, "                       !! bridge gets polled too often causing forced delays;  please reduce polling of bridge to a lower frequency in config !!")
+					self.bridgeBusy[hubNumber] = time.time()
+					return 
+
+
+			startDelay = time.time()  # now wait until previous process is finished
+			for ii in range(50):
+				self.sleep(0.1) 
+
+				if time.time() - startDelay  > 4.5: # wait max 4.5 secs, then 
+					self.indiLOG.log(30, "set Bridge#:{:} delay: cancel wait- too long, total delay={:.2f}; continue with connection pgm request connection:{}".format(hubNumber, time.time() - startDelay, calledfrom ))
+					break 
+
+				if self.bridgeBusy[hubNumber] == 0.:  # ==0 was reset by previous pgm, write to plugin.log only
+					if ii > 2: self.indiLOG.log(10, "set Bridge#:{:} delay: not busy anymore, total delay={:.2f}; continue with connection pgm request connection:{}".format(hubNumber, time.time() - startDelay, calledfrom ))
+					break
+
+				#if ii > 10: self.indiLOG.log(20,  "set Bridge#:{:} busy,  Nth delay:{} now delayed by:{:.3f}, pgm request connection:{}".format(hubNumber, ii, time.time() - startDelay, calledfrom ))
+
+
+
+			self.bridgeBusy["max delay"] = max(self.bridgeBusy["max delay"] ,  time.time() - startDelay)  # remember largest delay
+
+			if self.bridgeBusy["max delay"]  > 3.5:  #  waiting to log and rest max 
+				self.indiLOG.log(30, "set Bridge::{} Busy,       !! bridge gets polled too often causing forced delays, max={:.1f} secs;  please reduce polling of bridge to a lower frequency in config !!".format(hubNumber, self.bridgeBusy["max delay"] ))
+				self.bridgeBusy["max delay"] = 0.
+
+
+			self.bridgeBusy[hubNumber] = time.time()
+		except Exception:
+			self.indiLOG.log(30,"", exc_info=True)
+		return 
+	
+	# reset bridge busy from above
+	########################################
+	def resetBridgeBusy(self, hubNumber):
+		try:
+			self.bridgeBusy[hubNumber] = 0.
+		except:
+			pass
+		return 		
+####----------------------------- END ------------------------------------####
+	
 
 
 
