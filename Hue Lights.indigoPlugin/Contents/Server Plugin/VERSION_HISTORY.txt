@@ -1,11 +1,18 @@
 ========================================
+2022.14.49 @ 2023-08-10
+
+1. added device debug for hue attribute changes
+2. added created state for attribute controller device 
+
+
+========================================
 2022.14.48 @ 2023-08-02
 
 1. made http connect to bridge serial, ie put in a wait unitl last connect is finished
    this is to avoid time out when connecting to bridge by sevral threads at the same time.
    now they will happen after each other.
    if the wait is too long (3.5 secs) a warning gets printed to the log
-   then you might want to reduce the frequency of ppolling the bridges in config.
+   then you might want to reduce the frequency of polling the bridges in config.
 
 
 

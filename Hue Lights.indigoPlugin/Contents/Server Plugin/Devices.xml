@@ -2177,6 +2177,13 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 				<Label/>
 			</Field>
 		</ConfigUI>
+		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+		</States>
 	</Device>
 
 </Devices>
