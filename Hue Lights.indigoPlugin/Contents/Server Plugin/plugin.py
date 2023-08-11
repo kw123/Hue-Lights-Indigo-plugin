@@ -453,7 +453,7 @@ class Plugin(indigo.PluginBase):
 									if self.checkForLastNotPairedMessage(hubNumber):
 										if self.decideMyLog("Loop"): self.indiLOG.log(10,"Not currently paired with Hue bridge. Status update skipped.")
 							# Convert percent-based brightness to 255-based brightness.
-							brightness = int(round(brightness / 100.0 * 255.0))
+							brightness = int(round(brightness * 255.0 / 100.0))
 							# Set brightness to new value, with 0.5 sec ramp rate and no logging.
 							self.doBrightness(brightenDevice, brightness, 0.5, False)
 						# End if brightenDeviceId is in self.deviceList.
@@ -483,7 +483,7 @@ class Plugin(indigo.PluginBase):
 										if self.decideMyLog("Loop"): self.indiLOG.log(10,"Not currently paired with Hue bridge. Status update skipped.")
 
 							# Convert percent-based brightness to 255-based brightness.
-							brightness = int(round(brightness / 100.0 * 255.0))
+							brightness = int(round(brightness * 255.0 / 100.0))
 							# Set brightness to new value, with 0.5 sec ramp rate and no logging.
 							self.doBrightness(dimDevice, brightness, 0.5, False)
 						# End if dimDeviceId is in self.deviceList.
@@ -2886,9 +2886,9 @@ class Plugin(indigo.PluginBase):
 	
 			self.indiLOG.log(20,"Attempting to pair with the Hue bridge at \"{}\".".format(valuesDict['address']))
 			requestData = json.dumps({"devicetype": "Indigo Hue Lights"})
-			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Request is {}".format(requestData) )
+			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"SEND is {}".format(requestData) )
 			command = "http://{}/api".format(valuesDict['address'])
-			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Sending request to {} (via HTTP POST).".format(command))
+			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"SEND is {}, {}".format(command, requestData) )
 			self.setBridgeBusy(self.hubNumberSelected, calledfrom="restartPairing-2")
 			r = requests.post(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
 			self.resetBridgeBusy(self.hubNumberSelected)
@@ -3338,7 +3338,7 @@ class Plugin(indigo.PluginBase):
 					if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"device set brightness:\n{}".format(action) )
 				except Exception:
 					self.indiLOG.log(30,"device set brightness: Unable to display action data", exc_info=True)
-				brightnessLevel = int(round(action.actionValue / 100.0 * 255.0))
+				brightnessLevel = int(round(action.actionValue * 255.0 / 100.0))
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
 				tempProps['savedBrightness'] = brightnessLevel
@@ -3357,10 +3357,10 @@ class Plugin(indigo.PluginBase):
 					brightnessLevel = 100
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
-				tempProps['savedBrightness'] = int(round(brightnessLevel / 100.0 * 255.0))
+				tempProps['savedBrightness'] = int(round(brightnessLevel * 255.0 / 100.0))
 				self.updateDeviceProps(device, tempProps)
 				# Set the new brightness level on the bulb.
-				self.doBrightness(device, int(round(brightnessLevel / 100.0 * 255.0)))
+				self.doBrightness(device, int(round(brightnessLevel * 255.0 / 100.0)))
 
 			##### DIM BY #####
 			elif command == indigo.kDeviceAction.DimBy:
@@ -3373,10 +3373,10 @@ class Plugin(indigo.PluginBase):
 					brightnessLevel = 0
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
-				tempProps['savedBrightness'] = int(round(brightnessLevel / 100.0 * 255.0))
+				tempProps['savedBrightness'] = int(round(brightnessLevel * 255.0 / 100.0))
 				self.updateDeviceProps(device, tempProps)
 				# Set the new brightness level on the bulb.
-				self.doBrightness(device, int(round(brightnessLevel / 100.0 * 255.0)))
+				self.doBrightness(device, int(round(brightnessLevel * 255.0 / 100.0)))
 
 			##### SET COLOR LEVELS #####
 			elif command == indigo.kDimmerRelayAction.SetColorLevels:
@@ -3442,7 +3442,7 @@ class Plugin(indigo.PluginBase):
 					if actionColorVals.get('whiteLevel', None) is None and actionColorVals.get('redLevel', None) is None and actionColorVals.get('greenLevel', None) is None and actionColorVals.get('blueLevel', None) is None:
 						if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"actionControlDimmerRelay: red, green, blue and white levels are all empty")
 						# Since the whiteLevel was not sent, use the existing brightness as the whiteLevel.
-						self.doColorTemperature(device, colorTemp, int(round(currentBrightness / 100.0 * 255.0)))
+						self.doColorTemperature(device, colorTemp, int(round(currentBrightness * 255.0 / 100.0)))
 					# If both whiteTemperature and whiteLevel keys were sent at the same time, the Indigo Set RGBW
 					#    Levels action is being used, in which case, we still want to use the color temperature method,
 					#    but use the whiteLevel as the brightness instead of the current brightness if it's over zero.
@@ -3460,7 +3460,7 @@ class Plugin(indigo.PluginBase):
 					newSaturation = 255 - whiteLevel
 					if newSaturation < 0:
 						newSaturation = 0
-					self.doHSB(device, device.states['hue'], newSaturation, int(round(currentBrightness / 100.0 * 255.0)))
+					self.doHSB(device, device.states['hue'], newSaturation, int(round(currentBrightness * 255.0 / 100.0)))
 				# If we're not changing color temperature or saturation (white level), use RGB.
 				else:
 					if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"actionControlDimmerRelay: using RGB to change device color.")
@@ -3523,7 +3523,7 @@ class Plugin(indigo.PluginBase):
 					if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"device set brightness:\n{}".format(action) )
 				except Exception:
 					self.indiLOG.log(30,"device set brightness: Unable to display action data", exc_info=True)
-				brightnessLevel = int(round(action.actionValue / 100.0 * 255.0))
+				brightnessLevel = int(round(action.actionValue * 255.0 / 100.0))
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
 				tempProps['savedBrightness'] = brightnessLevel
@@ -3542,10 +3542,10 @@ class Plugin(indigo.PluginBase):
 					brightnessLevel = 100
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
-				tempProps['savedBrightness'] = int(round(brightnessLevel / 100.0 * 255.0))
+				tempProps['savedBrightness'] = int(round(brightnessLevel * 255.0 / 100.0))
 				self.updateDeviceProps(device, tempProps)
 				# Set the new brightness level on the bulb.
-				self.doBrightness(device, int(round(brightnessLevel / 100.0 * 255.0)))
+				self.doBrightness(device, int(round(brightnessLevel * 255.0 / 100.0)))
 
 			##### DIM BY #####
 			elif command == indigo.kDeviceAction.DimBy:
@@ -3558,10 +3558,10 @@ class Plugin(indigo.PluginBase):
 					brightnessLevel = 0
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
-				tempProps['savedBrightness'] = int(round(brightnessLevel / 100.0 * 255.0))
+				tempProps['savedBrightness'] = int(round(brightnessLevel * 255.0 / 100.0))
 				self.updateDeviceProps(device, tempProps)
 				# Set the new brightness level on the bulb.
-				self.doBrightness(device, int(round(brightnessLevel / 100.0 * 255.0)))
+				self.doBrightness(device, int(round(brightnessLevel * 255.0 / 100.0)))
 
 			##### SET COLOR LEVELS #####
 			elif command == indigo.kDimmerRelayAction.SetColorLevels:
@@ -3627,7 +3627,7 @@ class Plugin(indigo.PluginBase):
 					if actionColorVals.get('whiteLevel', None) is None:
 						if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"actionControlDimmerRelay: white level is empty")
 						# Since the whiteLevel was not sent, use the existing brightness as the whiteLevel.
-						self.doColorTemperature(device, colorTemp, int(round(currentBrightness / 100.0 * 255.0)))
+						self.doColorTemperature(device, colorTemp, int(round(currentBrightness * 255.0 / 100.0)))
 					# If both whiteTemperature and whiteLevel keys were sent at the same time, it must be a Python
 					#    script call, in which case, we still want to use the color temperature method, but use
 					#    the whiteLevel as the brightness instead of the current brightness if it's over zero.
@@ -3645,10 +3645,10 @@ class Plugin(indigo.PluginBase):
 					if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"actionControlDimmerRelay: whiteTemperature is empty but whiteLevel is not empty.")
 					# Save the new brightness level into the device properties.
 					tempProps = device.pluginProps
-					tempProps['savedBrightness'] = int(round(actionColorVals.get('whiteLevel', 0) / 100.0 * 255.0))
+					tempProps['savedBrightness'] = int(round(actionColorVals.get('whiteLevel', 0) * 255.0 / 100.0))
 					self.updateDeviceProps(device, tempProps)
 					# Set the new brightness level on the bulb.
-					self.doBrightness(device, int(round(actionColorVals.get('whiteLevel', 0) / 100.0 * 255.0)))
+					self.doBrightness(device, int(round(actionColorVals.get('whiteLevel', 0) * 255.0 / 100.0)))
 
 			##### REQUEST STATUS #####
 			elif command == indigo.kDeviceAction.RequestStatus:
@@ -3708,7 +3708,7 @@ class Plugin(indigo.PluginBase):
 					if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"device set brightness:\n{}".format(action) )
 				except Exception:
 					self.indiLOG.log(30,"device set brightness: Unable to display action data", exc_info=True)
-				brightnessLevel = int(round(action.actionValue / 100.0 * 255.0))
+				brightnessLevel = int(round(action.actionValue * 255.0 / 100.0))
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
 				tempProps['savedBrightness'] = brightnessLevel
@@ -3727,10 +3727,10 @@ class Plugin(indigo.PluginBase):
 					brightnessLevel = 100
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
-				tempProps['savedBrightness'] = int(round(brightnessLevel / 100.0 * 255.0))
+				tempProps['savedBrightness'] = int(round(brightnessLevel * 255.0 / 100.0))
 				self.updateDeviceProps(device, tempProps)
 				# Set the new brightness level on the bulb.
-				self.doBrightness(device, int(round(brightnessLevel / 100.0 * 255.0)))
+				self.doBrightness(device, int(round(brightnessLevel * 255.0 / 100.0)))
 
 			##### DIM BY #####
 			elif command == indigo.kDeviceAction.DimBy:
@@ -3743,10 +3743,10 @@ class Plugin(indigo.PluginBase):
 					brightnessLevel = 0
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
-				tempProps['savedBrightness'] = int(round(brightnessLevel / 100.0 * 255.0))
+				tempProps['savedBrightness'] = int(round(brightnessLevel * 255.0 / 100.0))
 				self.updateDeviceProps(device, tempProps)
 				# Set the new brightness level on the device.
-				self.doBrightness(device, int(round(brightnessLevel / 100.0 * 255.0)))
+				self.doBrightness(device, int(round(brightnessLevel * 255.0 / 100.0)))
 
 			##### SET COLOR LEVELS #####
 			elif command == indigo.kDimmerRelayAction.SetColorLevels:
@@ -3778,7 +3778,7 @@ class Plugin(indigo.PluginBase):
 				for channel in channelKeys:
 					if channel in actionColorVals:
 						channelValue = float(actionColorVals[channel])
-						channelValueByte = int(round(255.0 * (channelValue / 100.0)))
+						channelValueByte = int(round(channelValue * 255.0 / 100.0))
 
 						if channel in device.states:
 							if channel == "redLevel":
@@ -3813,7 +3813,7 @@ class Plugin(indigo.PluginBase):
 						self.indiLOG.log(20,"actionControlDimmerRelay: red, green, blue and white levels are all empty")
 						# Since the whiteLevel was not sent, use the existing brightness as the whiteLevel.
 						if device.supportsWhiteTemperature:
-							self.doColorTemperature(device, colorTemp, int(round(currentBrightness / 100.0 * 255.0)))
+							self.doColorTemperature(device, colorTemp, int(round(currentBrightness * 255.0 / 100.0)))
 						else:
 							self.doErrorLog("The \"{}\" device does not support color temperature. The requested change was not applied.".format(device.name))
 					# If both whiteTemperature and whiteLevel keys were sent at the same time, the Indigo Set RGBW
@@ -3836,7 +3836,7 @@ class Plugin(indigo.PluginBase):
 					newSaturation = 255 - whiteLevel
 					if newSaturation < 0:
 						newSaturation = 0
-					self.doHSB(device, device.states['hue'], newSaturation, int(round(currentBrightness / 100.0 * 255.0)))
+					self.doHSB(device, device.states['hue'], newSaturation, int(round(currentBrightness * 255.0 / 100.0)))
 				# If we're not changing color temperature or saturation (white level), use RGB.
 				else:
 					if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"actionControlDimmerRelay: using RGB to change device color.")
@@ -3900,7 +3900,7 @@ class Plugin(indigo.PluginBase):
 					if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"device set brightness:\n{}".format(action) )
 				except Exception:
 					self.indiLOG.log(30,"device set brightness: Unable to display action data", exc_info=True)
-				brightnessLevel = int(round(action.actionValue / 100.0 * 255.0))
+				brightnessLevel = int(round(action.actionValue * 255.0 / 100.0))
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
 				tempProps['savedBrightness'] = brightnessLevel
@@ -3919,10 +3919,10 @@ class Plugin(indigo.PluginBase):
 					brightnessLevel = 100
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
-				tempProps['savedBrightness'] = int(round(brightnessLevel / 100.0 * 255.0))
+				tempProps['savedBrightness'] = int(round(brightnessLevel * 255.0 / 100.0))
 				self.updateDeviceProps(device, tempProps)
 				# Set the new brightness level on the bulb.
-				self.doBrightness(device, int(round(brightnessLevel / 100.0 * 255.0)))
+				self.doBrightness(device, int(round(brightnessLevel * 255.0 / 100.0)))
 
 			##### DIM BY #####
 			elif command == indigo.kDeviceAction.DimBy:
@@ -3935,10 +3935,10 @@ class Plugin(indigo.PluginBase):
 					brightnessLevel = 0
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
-				tempProps['savedBrightness'] = int(round(brightnessLevel / 100.0 * 255.0))
+				tempProps['savedBrightness'] = int(round(brightnessLevel * 255.0 / 100.0))
 				self.updateDeviceProps(device, tempProps)
 				# Set the new brightness level on the device.
-				self.doBrightness(device, int(round(brightnessLevel / 100.0 * 255.0)))
+				self.doBrightness(device, int(round(brightnessLevel * 255.0 / 100.0)))
 
 			##### SET COLOR LEVELS #####
 			elif command == indigo.kDimmerRelayAction.SetColorLevels:
@@ -4005,7 +4005,7 @@ class Plugin(indigo.PluginBase):
 						self.indiLOG.log(20,"actionControlDimmerRelay: red, green, blue and white levels are all empty")
 						# Since the whiteLevel was not sent, use the existing brightness as the whiteLevel.
 						if device.supportsWhiteTemperature:
-							self.doColorTemperature(device, colorTemp, int(round(currentBrightness / 100.0 * 255.0)))
+							self.doColorTemperature(device, colorTemp, int(round(currentBrightness * 255.0 / 100.0)))
 						else:
 							self.doErrorLog("The \"{}\" device does not support color temperature. The requested change was not applied.".format(device.name))
 					# If both whiteTemperature and whiteLevel keys were sent at the same time, the Indigo Set RGBW
@@ -4028,7 +4028,7 @@ class Plugin(indigo.PluginBase):
 					newSaturation = 255 - whiteLevel
 					if newSaturation < 0:
 						newSaturation = 0
-					self.doHSB(device, device.states['hue'], newSaturation, int(round(currentBrightness / 100.0 * 255.0)))
+					self.doHSB(device, device.states['hue'], newSaturation, int(round(currentBrightness * 255.0 / 100.0)))
 				# If we're not changing color temperature or saturation (white level), use RGB.
 				else:
 					if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"actionControlDimmerRelay: using RGB to change device color.")
@@ -4093,7 +4093,7 @@ class Plugin(indigo.PluginBase):
 					if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"device set brightness:\n{}".format(action) )
 				except Exception:
 					self.indiLOG.log(30,"device set brightness: Unable to display action data", exc_info=True)
-				brightnessLevel = int(round(action.actionValue / 100.0 * 255.0))
+				brightnessLevel = int(round(action.actionValue * 255.0 / 100.0))
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
 				tempProps['savedBrightness'] = brightnessLevel
@@ -4112,10 +4112,10 @@ class Plugin(indigo.PluginBase):
 					brightnessLevel = 100
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
-				tempProps['savedBrightness'] = int(round(brightnessLevel / 100.0 * 255.0))
+				tempProps['savedBrightness'] = int(round(brightnessLevel * 255.0 / 100.0))
 				self.updateDeviceProps(device, tempProps)
 				# Set the new brightness level on the bulb.
-				self.doBrightness(device, int(round(brightnessLevel / 100.0 * 255.0)))
+				self.doBrightness(device, int(round(brightnessLevel * 255.0 / 100.0)))
 
 			##### DIM BY #####
 			elif command == indigo.kDeviceAction.DimBy:
@@ -4128,10 +4128,10 @@ class Plugin(indigo.PluginBase):
 					brightnessLevel = 0
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
-				tempProps['savedBrightness'] = int(round(brightnessLevel / 100.0 * 255.0))
+				tempProps['savedBrightness'] = int(round(brightnessLevel * 255.0 / 100.0))
 				self.updateDeviceProps(device, tempProps)
 				# Set the new brightness level on the device.
-				self.doBrightness(device, int(round(brightnessLevel / 100.0 * 255.0)))
+				self.doBrightness(device, int(round(brightnessLevel * 255.0 / 100.0)))
 
 			##### SET COLOR LEVELS #####
 			elif command == indigo.kDimmerRelayAction.SetColorLevels:
@@ -4315,7 +4315,7 @@ class Plugin(indigo.PluginBase):
 					if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"device set brightness:\n{}".format(action) )
 				except Exception:
 					self.logger.error("device set brightness: Unable to display action data", exc_info=True)
-				brightnessLevel = int(round(action.actionValue / 100.0 * 255.0))
+				brightnessLevel = int(round(action.actionValue * 255.0 / 100.0))
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
 				tempProps['savedBrightness'] = brightnessLevel
@@ -4334,10 +4334,10 @@ class Plugin(indigo.PluginBase):
 					brightnessLevel = 100
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
-				tempProps['savedBrightness'] = int(round(brightnessLevel / 100.0 * 255.0))
+				tempProps['savedBrightness'] = int(round(brightnessLevel * 255.0 / 100.0))
 				self.updateDeviceProps(device, tempProps)
 				# Set the new brightness level on the bulb.
-				self.doBrightness(device, int(round(brightnessLevel / 100.0 * 255.0)))
+				self.doBrightness(device, int(round(brightnessLevel * 255.0 / 100.0)))
 
 			##### DIM BY #####
 			elif command == indigo.kDeviceAction.DimBy:
@@ -4350,10 +4350,10 @@ class Plugin(indigo.PluginBase):
 					brightnessLevel = 0
 				# Save the new brightness level into the device properties.
 				tempProps = device.pluginProps
-				tempProps['savedBrightness'] = int(round(brightnessLevel / 100.0 * 255.0))
+				tempProps['savedBrightness'] = int(round(brightnessLevel * 255.0 / 100.0))
 				self.updateDeviceProps(device, tempProps)
 				# Set the new brightness level on the bulb.
-				self.doBrightness(device, int(round(brightnessLevel / 100.0 * 255.0)))
+				self.doBrightness(device, int(round(brightnessLevel * 255.0 / 100.0)))
 
 			##### SET COLOR LEVELS #####
 			elif command == indigo.kDimmerRelayAction.SetColorLevels:
@@ -4385,7 +4385,7 @@ class Plugin(indigo.PluginBase):
 				for channel in channelKeys:
 					if channel in actionColorVals:
 						channelValue = float(actionColorVals[channel])
-						channelValueByte = int(round(255.0 * (channelValue / 100.0)))
+						channelValueByte = int(round(channelValue * 255.0 / 100.0))
 
 						if channel in device.states:
 							if channel == "redLevel":
@@ -4417,7 +4417,7 @@ class Plugin(indigo.PluginBase):
 				if device.supportsWhiteTemperature and actionColorVals.get('whiteTemperature', None) is not None:
 					if actionColorVals.get('whiteLevel', None) is None and actionColorVals.get('redLevel', None) is None and actionColorVals.get('greenLevel', None) is None and actionColorVals.get('blueLevel', None) is None:
 						# Since the whiteLevel was not sent, use the existing brightness as the whiteLevel.
-						self.doColorTemperature(device, colorTemp, int(round(currentBrightness / 100.0 * 255.0)))
+						self.doColorTemperature(device, colorTemp, int(round(currentBrightness * 255.0 / 100.0)))
 					# If both whiteTemperature and whiteLevel keys were sent at the same time, the Indigo Set RGBW
 					#    Levels action is being used, in which case, we still want to use the color temperature method,
 					#    but use the whiteLevel as the brightness instead of the current brightness.
@@ -4430,11 +4430,11 @@ class Plugin(indigo.PluginBase):
 				# Now see if we're only being sent whiteLevel.  If so, the White level slider in the Indigo UI is being
 				#   used.  Treat the white level like an inverse saturation slider (100 = zero saturation).
 				elif actionColorVals.get('whiteLevel', None) is not None and actionColorVals.get('redLevel', None) is None and actionColorVals.get('greenLevel', None) is None and actionColorVals.get('blueLevel', None) is None:
-					newSaturation = device.states['saturation'] - int(round(whiteLevel / 100.0 * 255.0))
+					newSaturation = device.states['saturation'] - int(round(whiteLevel * 255.0 / 100.0))
 					if newSaturation < 0:
 						newSaturation = 0
 					if device.supportsRGB:
-						self.doHSB(device, device.states['hue'], newSaturation, int(round(currentBrightness / 100.0 * 255.0)))
+						self.doHSB(device, device.states['hue'], newSaturation, int(round(currentBrightness * 255.0 / 100.0)))
 					else:
 						self.doErrorLog("The \"{}\" device does not support color. The requested change was not applied.".format(device.name))
 				# If we're not changing color temperature or saturation (white level), use RGB.
@@ -4468,6 +4468,8 @@ class Plugin(indigo.PluginBase):
 			rate = device.pluginProps.get('rate', "")
 			onLevel = device.pluginProps.get('defaultOnLevel', "")
 
+
+
 			if bulbId is None:
 				self.indiLOG.log(20,"Hue Attribute Controller \"{}\" has no Hue Bulb device defined as the control destination. Action ignored.".format(device.name))
 				return None
@@ -4475,7 +4477,7 @@ class Plugin(indigo.PluginBase):
 				# Define the control destination device object and related variables.
 				bulbDevice = indigo.devices[int(bulbId)]
 				bulbDeviceProps = bulbDevice.pluginProps
-				brightnessLevel = bulbDevice.states.get('brightnessLevel', 0)
+				brightnessLevel = int(bulbDevice.states.get('brightnessLevel', 0))
 				saturation = bulbDevice.states.get('saturation', 0)
 				hue = bulbDevice.states.get('hue', 0)
 				colorRed = bulbDevice.states.get('colorRed', 0)
@@ -4483,9 +4485,16 @@ class Plugin(indigo.PluginBase):
 				colorBlue = bulbDevice.states.get('colorBlue', 0)
 				colorTemp = bulbDevice.states.get('colorTemp', 2000)
 				# Convert attribute scales to work with the doHSB method.
-				brightnessLevel = int(round(brightnessLevel / 100.0) * 255.0)
-				saturation = int(round(saturation / 100.0 * 255.0))
+				brightnessLevel = int(round(brightnessLevel * 255.0 / 100.0))
+				saturation = int(round(saturation * 255.0 / 100.0))
 				hue = int(hue * 182.0)
+
+			logChanges =  (self.pluginPrefs['logAnyChanges'] == "yes")   or   self.trackSpecificDevice == bulbDevice.id   or   (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and bulbDevice.pluginProps.get('logChanges', True)) 
+			if self.trackSpecificDevice == device.id:	sendLog = 20
+			else: 										sendLog = self.sendDeviceUpdatesTo
+
+			if logChanges or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"device set attribute:{}\n; attributeToControl:{}, current brightnessLevel:{} .. {}".format(str(action), attributeToControl, brightnessLevel, bulbDevice.states.get('brightnessLevel', 0)) )
+
 
 			if attributeToControl is None:
 				self.doErrorLog("Hue Attribute Controller \"{}\" has no Attribute to Control specified. Action ignored.".format(device.name))
@@ -4538,25 +4547,25 @@ class Plugin(indigo.PluginBase):
 					# Saturation
 					#   (255 is the maximum value allowed by Hue).
 					# Convert onLevel to valid saturation number.
-					convertedOnLevel = int(onLevel / 100.0 * 255.0)
+					convertedOnLevel = int(onLevel * 255.0 / 100.0)
 					self.doHSB(bulbDevice, hue, convertedOnLevel, brightnessLevel, rate)
 				elif attributeToControl == "colorRed":
 					# RGB (Red)
 					#   (255 is the maximum value allowed).
 					# Convert onLevel to valid RGB number.
-					convertedOnLevel = int(onLevel / 100.0 * 255.0)
+					convertedOnLevel = int(onLevel * 255.0 / 100.0)
 					self.doRGB(bulbDevice, convertedOnLevel, colorGreen, colorBlue, rate)
 				elif attributeToControl == "colorGreen":
 					# RGB (Green)
 					#   (255 is the maximum value allowed).
 					# Convert onLevel to valid RGB number.
-					convertedOnLevel = int(onLevel / 100.0 * 255.0)
+					convertedOnLevel = int(onLevel * 255.0 / 100.0)
 					self.doRGB(bulbDevice, colorRed, convertedOnLevel, colorBlue, rate)
 				elif attributeToControl == "colorBlue":
 					# RGB (Blue)
 					#   (255 is the maximum value allowed).
 					# Convert onLevel to valid RGB number.
-					convertedOnLevel = int(onLevel / 100.0 * 255.0)
+					convertedOnLevel = int(onLevel * 255.0 / 100.0)
 					self.doRGB(bulbDevice, colorRed, colorGreen, convertedOnLevel, rate)
 				elif attributeToControl == "colorTemp":
 					# Color Temperature
@@ -4628,7 +4637,7 @@ class Plugin(indigo.PluginBase):
 					else:
 						# It's 0. Turn it on by setting the value to maximum.
 						# Convert onLevel to valid saturation number.
-						convertedOnLevel = int(onLevel / 100.0 * 255.0)
+						convertedOnLevel = int(onLevel * 255.0 / 100.0)
 						self.doHSB(bulbDevice, hue, convertedOnLevel, brightnessLevel, rate)
 				elif attributeToControl == "colorRed":
 					# RGB (Red)
@@ -4639,7 +4648,7 @@ class Plugin(indigo.PluginBase):
 					else:
 						# It's 0. Turn it on by setting the value to maximum.
 						# Convert onLevel to valid RGB number.
-						convertedOnLevel = int(onLevel / 100.0 * 255.0)
+						convertedOnLevel = int(onLevel * 255.0 / 100.0)
 						self.doRGB(bulbDevice, convertedOnLevel, colorGreen, colorBlue, rate)
 				elif attributeToControl == "colorGreen":
 					# RGB (Green)
@@ -4650,7 +4659,7 @@ class Plugin(indigo.PluginBase):
 					else:
 						# It's 0. Turn it on by setting the value to maximum.
 						# Convert onLevel to valid RGB number.
-						convertedOnLevel = int(onLevel / 100.0 * 255.0)
+						convertedOnLevel = int(onLevel * 255.0 / 100.0)
 						self.doRGB(bulbDevice, colorGreen, convertedOnLevel, colorBlue, rate)
 				elif attributeToControl == "colorBlue":
 					# RGB (Blue)
@@ -4661,7 +4670,7 @@ class Plugin(indigo.PluginBase):
 					else:
 						# It's 0. Turn it on by setting the value to maximum.
 						# Convert onLevel to valid RGB number.
-						convertedOnLevel = int(onLevel / 100.0 * 255.0)
+						convertedOnLevel = int(onLevel * 255.0 / 100.0)
 						self.doRGB(bulbDevice, colorRed, colorGreen, convertedOnLevel, rate)
 				elif attributeToControl == "colorTemp":
 					# Color Temperature
@@ -4683,7 +4692,7 @@ class Plugin(indigo.PluginBase):
 			##### SET BRIGHTNESS #####
 			elif command == indigo.kDeviceAction.SetBrightness:
 				try:
-					if logChanges or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"device set brightness:{}\n; attributeToControl:{}".format(action, attributeToControl) )
+					if logChanges or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"device set attribute:{}\n; attributeToControl:{}, current brightnessLevel:{}".format(action, attributeToControl, brightnessLevel) )
 				except Exception:
 					self.logger.error("device set brightness: Unable to display action data", exc_info=True)
 				# Set the destination attribute to maximum.
@@ -4694,19 +4703,19 @@ class Plugin(indigo.PluginBase):
 				elif attributeToControl == "saturation":
 					# Saturation
 					#   (0 to 255. actionValue will be in the range 0 to 100 though, so convert).
-					self.doHSB(bulbDevice, hue, int(round(action.actionValue / 100.0 * 255.0)), brightnessLevel, rate)
+					self.doHSB(bulbDevice, hue, int(round(action.actionValue * 255.0 / 100.0)), brightnessLevel, rate)
 				elif attributeToControl == "colorRed":
 					# RGB (Red)
 					#   (0 to 255. actionValue will be in the range 0 to 100 though, so convert).
-					self.doRGB(bulbDevice, int(round(action.actionValue / 100.0 * 255.0)), colorGreen, colorBlue, rate)
+					self.doRGB(bulbDevice, int(round(action.actionValue * 255.0 / 100.0)), colorGreen, colorBlue, rate)
 				elif attributeToControl == "colorGreen":
 					# RGB (Green)
 					#   (0 to 255. actionValue will be in the range 0 to 100 though, so convert).
-					self.doRGB(bulbDevice, colorRed, int(round(action.actionValue / 100.0 * 255.0)), colorBlue, rate)
+					self.doRGB(bulbDevice, colorRed, int(round(action.actionValue * 255.0 / 100.0)), colorBlue, rate)
 				elif attributeToControl == "colorBlue":
 					# RGB (Blue)
 					#   (0 to 255. actionValue will be in the range 0 to 100 though, so convert).
-					self.doRGB(bulbDevice, colorRed, colorGreen, int(round(action.actionValue / 100.0 * 255.0)), rate)
+					self.doRGB(bulbDevice, colorRed, colorGreen, int(round(action.actionValue * 255.0 / 100.0)), rate)
 				elif attributeToControl == "colorTemp":
 					# Color Temperature
 					#   (2000 to 6500. actionValue will be in range 0 to 100 though, so convert).
@@ -4732,19 +4741,19 @@ class Plugin(indigo.PluginBase):
 				elif attributeToControl == "saturation":
 					# Saturation
 					#   (0 to 255. actionValue will be in the range 0 to 100 though, so convert).
-					self.doHSB(bulbDevice, hue, int(round(newValue / 100.0 * 255.0)), brightnessLevel, rate)
+					self.doHSB(bulbDevice, hue, int(round(newValue * 255.0 / 100.0)), brightnessLevel, rate)
 				elif attributeToControl == "colorRed":
 					# RGB (Red)
 					#   (0 to 255. actionValue will be in the range 0 to 100 though, so convert).
-					self.doRGB(bulbDevice, int(round(newValue / 100.0 * 255.0)), colorGreen, colorBlue, rate)
+					self.doRGB(bulbDevice, int(round(newValue * 255.0 / 100.0)), colorGreen, colorBlue, rate)
 				elif attributeToControl == "colorGreen":
 					# RGB (Green)
 					#   (0 to 255. actionValue will be in the range 0 to 100 though, so convert).
-					self.doRGB(bulbDevice, colorRed, int(round(newValue / 100.0 * 255.0)), colorBlue, rate)
+					self.doRGB(bulbDevice, colorRed, int(round(newValue * 255.0 / 100.0)), colorBlue, rate)
 				elif attributeToControl == "colorBlue":
 					# RGB (Blue)
 					#   (0 to 255. actionValue will be in the range 0 to 100 though, so convert).
-					self.doRGB(bulbDevice, colorRed, colorGreen, int(round(newValue / 100.0 * 255.0)), rate)
+					self.doRGB(bulbDevice, colorRed, colorGreen, int(round(newValue * 255.0 / 100.0)), rate)
 				elif attributeToControl == "colorTemp":
 					# Color Temperature
 					#   (2000 to 6500. actionValue will be in range 0 to 100 though, so convert).
@@ -4770,19 +4779,19 @@ class Plugin(indigo.PluginBase):
 				elif attributeToControl == "saturation":
 					# Saturation
 					#   (0 to 255. actionValue will be in the range 0 to 100 though, so convert).
-					self.doHSB(bulbDevice, hue, int(round(newValue / 100.0 * 255.0)), brightnessLevel, rate)
+					self.doHSB(bulbDevice, hue, int(round(newValue * 255.0 / 100.0)), brightnessLevel, rate)
 				elif attributeToControl == "colorRed":
 					# RGB (Red)
 					#   (0 to 255. actionValue will be in the range 0 to 100 though, so convert).
-					self.doRGB(bulbDevice, int(round(newValue / 100.0 * 255.0)), colorGreen, colorBlue, rate)
+					self.doRGB(bulbDevice, int(round(newValue * 255.0 / 100.0)), colorGreen, colorBlue, rate)
 				elif attributeToControl == "colorGreen":
 					# RGB (Green)
 					#   (0 to 255. actionValue will be in the range 0 to 100 though, so convert).
-					self.doRGB(bulbDevice, colorRed, int(round(newValue / 100.0 * 255.0)), colorBlue, rate)
+					self.doRGB(bulbDevice, colorRed, int(round(newValue * 255.0 / 100.0)), colorBlue, rate)
 				elif attributeToControl == "colorBlue":
 					# RGB (Blue)
 					#   (0 to 255. actionValue will be in the range 0 to 100 though, so convert).
-					self.doRGB(bulbDevice, colorRed, colorGreen, int(round(newValue / 100.0 * 255.0)), rate)
+					self.doRGB(bulbDevice, colorRed, colorGreen, int(round(newValue * 255.0 / 100.0)), rate)
 				elif attributeToControl == "colorTemp":
 					# Color Temperature
 					#   (2000 to 6500. actionValue will be in range 0 to 100 though, so convert).
@@ -5535,10 +5544,11 @@ class Plugin(indigo.PluginBase):
 		# Iterate over our devices, and return the available devices as a 2-tuple list.
 		for deviceId in copy.deepcopy(self.deviceList):
 			device = indigo.devices[deviceId]
+			if filter == "yes" and self.hubNumberSelected  != device.pluginProps.get('hubNumber','-xxx'): continue
 			if device.pluginProps.get('type', "") in ['Extended color light', 'Color light', 'Color temperature light'] or device.deviceTypeId == "hueGroup":
 				xList.append([deviceId, device.name])
 
-		xList.append([0, "0: (All Hue Lights)"])
+		if filter != "yes": xList.append([0, "0: (All Hue Lights)"])
 		# Sort the list.  Use the "lambda" Python inline function to use the 2nd item in the tuple list (device name) as the sorting key.
 		xList = sorted(xList, key = lambda x: x[1])
 		# Debug
@@ -6656,7 +6666,7 @@ class Plugin(indigo.PluginBase):
 				brightness			= 0
 				onState 			=  False
 
-			brightnessLevel 		= int(round(brightness / 255.0 * 100.0))
+			brightnessLevel 		= int(round(brightness * 100.0 / 255.0))
 			if brightnessLevel == 0 and brightness > 0:
 				brightnessLevel = 1
 
@@ -6749,7 +6759,7 @@ class Plugin(indigo.PluginBase):
 				colorGreen = int(round(rgb.rgb_g))
 				colorBlue = int(round(rgb.rgb_b))
 				# Convert saturation from 0-255 scale to 0-100 scale.
-				saturation = int(round(saturation / 255.0 * 100.0))
+				saturation = int(round(saturation * 100.0 / 255.0))
 				# Convert hue from 0-65535 scale to 0-360 scale.
 
 				# do a check for hue 
@@ -6789,9 +6799,9 @@ class Plugin(indigo.PluginBase):
 					stateUpdateList = self.checkIfUpdateState(device , 'colorMode', colorMode, stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'whiteLevel', 100 - saturation, uiValue="{}".format(int(100 - saturation)), stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'whiteTemperature', colorTemp, uiValue="{}".format(int(colorTemp)), stateUpdateList=stateUpdateList )
-					stateUpdateList = self.checkIfUpdateState(device , 'redLevel', int(round(colorRed / 255.0 * 100.0)), uiValue="{}".format(int(colorTemp)), stateUpdateList=stateUpdateList )
-					stateUpdateList = self.checkIfUpdateState(device , 'greenLevel', int(round(colorGreen / 255.0 * 100.0)), uiValue="{}".format(int(round(colorGreen / 255.0 * 100.0))), stateUpdateList=stateUpdateList )
-					stateUpdateList = self.checkIfUpdateState(device , 'blueLevel', int(round(colorBlue / 255.0 * 100.0)), uiValue="{}".format(int(round(colorBlue / 255.0 * 100.0))), stateUpdateList=stateUpdateList )
+					stateUpdateList = self.checkIfUpdateState(device , 'redLevel', int(round(colorRed * 100.0 / 255.0)), uiValue="{}".format(int(colorTemp)), stateUpdateList=stateUpdateList )
+					stateUpdateList = self.checkIfUpdateState(device , 'greenLevel', int(round(colorGreen * 100.0 / 255.0)), uiValue="{}".format(int(round(colorGreen * 100.0 / 255.0))), stateUpdateList=stateUpdateList )
+					stateUpdateList = self.checkIfUpdateState(device , 'blueLevel', int(round(colorBlue * 100.0 / 255.0)), uiValue="{}".format(int(round(colorBlue * 100.0 / 255.0))), stateUpdateList=stateUpdateList )
 
 				else:
 					# Unrecognized on state, but not important enough to mention in regular log.
@@ -6819,13 +6829,13 @@ class Plugin(indigo.PluginBase):
 									self.updateDeviceState(controlDevice, 'brightnessLevel', saturation)
 								elif attributeToControl == "colorRed":
 									# Convert RGB scale from 0-255 to 0-100.
-									self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorRed / 255.0 * 100.0)))
+									self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorRed * 100.0 / 255.0)))
 								elif attributeToControl == "colorGreen":
 									# Convert RGB scale from 0-255 to 0-100.
-									self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorGreen / 255.0 * 100.0)))
+									self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorGreen * 100.0 / 255.0)))
 								elif attributeToControl == "colorBlue":
 									# Convert RGB scale from 0-255 to 0-100.
-									self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorBlue / 255.0 * 100.0)))
+									self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorBlue * 100.0 / 255.0)))
 								elif attributeToControl == "colorTemp":
 									# Convert color temperature scale from 2000-6500 to 0-100.
 									self.updateDeviceState(controlDevice, 'brightnessLevel', int(round((colorTemp - 2000.0) / 4500.0 * 100.0)))
@@ -6920,7 +6930,7 @@ class Plugin(indigo.PluginBase):
 					colorGreen = int(round(rgb.rgb_g))
 					colorBlue = int(round(rgb.rgb_b))
 					# Convert saturation from 0-255 scale to 0-100 scale.
-					saturation = int(round(saturation / 255.0 * 100.0))
+					saturation = int(round(saturation * 100.0 / 255.0))
 					# Convert hue from 0-65535 scale to 0-360 scale.
 					self.normalizeHue(hue, device)
 				# Handle color temperature values for "Extended color light" type devices.
@@ -6977,9 +6987,9 @@ class Plugin(indigo.PluginBase):
 						stateUpdateList = self.checkIfUpdateState(device , 'whiteTemperature', colorTemp, uiValue="{}".format(int(colorTemp)), stateUpdateList=stateUpdateList )
 
 					if dType in ['Color light', 'Extended color light']:
-						stateUpdateList = self.checkIfUpdateState(device , 'redLevel', int(round(colorRed / 255.0 * 100.0)), uiValue="{}".format(int(round(colorRed / 255.0 * 100.0))), stateUpdateList=stateUpdateList )
-						stateUpdateList = self.checkIfUpdateState(device , 'greenLevel', int(round(colorGreen / 255.0 * 100.0)), uiValue="{}".format(int(round(colorGreen / 255.0 * 100.0))), stateUpdateList=stateUpdateList )
-						stateUpdateList = self.checkIfUpdateState(device , 'blueLevel', int(round(colorBlue / 255.0 * 100.0)), uiValue="{}".format(int(round(colorBlue / 255.0 * 100.0))), stateUpdateList=stateUpdateList )
+						stateUpdateList = self.checkIfUpdateState(device , 'redLevel', int(round(colorRed * 100.0 / 255.0)), uiValue="{}".format(int(round(colorRed * 100.0 / 255.0))), stateUpdateList=stateUpdateList )
+						stateUpdateList = self.checkIfUpdateState(device , 'greenLevel', int(round(colorGreen * 100.0 / 255.0)), uiValue="{}".format(int(round(colorGreen * 100.0 / 255.0))), stateUpdateList=stateUpdateList )
+						stateUpdateList = self.checkIfUpdateState(device , 'blueLevel', int(round(colorBlue * 100.0 / 255.0)), uiValue="{}".format(int(round(colorBlue * 100.0 / 255.0))), stateUpdateList=stateUpdateList )
 
 				else:
 					# Unrecognized on state, but not important enough to mention in regular log.
@@ -7004,13 +7014,13 @@ class Plugin(indigo.PluginBase):
 								self.updateDeviceState(controlDevice, 'brightnessLevel', saturation)
 							elif attributeToControl == "colorRed":
 								# Convert RGB scale from 0-255 to 0-100.
-								self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorRed / 255.0 * 100.0)))
+								self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorRed * 100.0 / 255.0)))
 							elif attributeToControl == "colorGreen":
 								# Convert RGB scale from 0-255 to 0-100.
-								self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorGreen / 255.0 * 100.0)))
+								self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorGreen * 100.0 / 255.0)))
 							elif attributeToControl == "colorBlue":
 								# Convert RGB scale from 0-255 to 0-100.
-								self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorBlue / 255.0 * 100.0)))
+								self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorBlue * 100.0 / 255.0)))
 							elif attributeToControl == "colorTemp" and dType in ['Extended color light', 'Color temperature light']:
 								# Convert color temperature scale from 2000-6500 to 0-100.
 								self.updateDeviceState(controlDevice, 'brightnessLevel', int(round((colorTemp - 2000.0) / 4500.0 * 100.0)))
@@ -7041,7 +7051,7 @@ class Plugin(indigo.PluginBase):
 				colorGreen = int(round(rgb.rgb_g))
 				colorBlue = int(round(rgb.rgb_b))
 				# Convert saturation from 0-255 scale to 0-100 scale.
-				saturation = int(round(saturation / 255.0 * 100.0))
+				saturation = int(round(saturation * 100.0 / 255.0))
 				# Convert hue from 0-65535 scale to 0-360 scale.
 
 				self.normalizeHue(hue, device)
@@ -7068,9 +7078,9 @@ class Plugin(indigo.PluginBase):
 					stateUpdateList = self.checkIfUpdateState(device , 'colorBlue', colorBlue, stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'colorMode', colorMode, stateUpdateList=stateUpdateList )
 
-					stateUpdateList = self.checkIfUpdateState(device , 'redLevel', int(round(colorRed / 255.0 * 100.0)), uiValue="{}".format(int(round(colorRed / 255.0 * 100.0))), stateUpdateList=stateUpdateList )
-					stateUpdateList = self.checkIfUpdateState(device , 'greenLevel', int(round(colorGreen / 255.0 * 100.0)), uiValue="{}".format(int(round(colorGreen / 255.0 * 100.0))), stateUpdateList=stateUpdateList )
-					stateUpdateList = self.checkIfUpdateState(device , 'blueLevel', int(round(colorBlue / 255.0 * 100.0)), uiValue="{}".format(int(round(colorBlue / 255.0 * 100.0))), stateUpdateList=stateUpdateList )
+					stateUpdateList = self.checkIfUpdateState(device , 'redLevel', int(round(colorRed * 100.0 / 255.0)), uiValue="{}".format(int(round(colorRed * 100.0 / 255.0))), stateUpdateList=stateUpdateList )
+					stateUpdateList = self.checkIfUpdateState(device , 'greenLevel', int(round(colorGreen * 100.0 / 255.0)), uiValue="{}".format(int(round(colorGreen * 100.0 / 255.0))), stateUpdateList=stateUpdateList )
+					stateUpdateList = self.checkIfUpdateState(device , 'blueLevel', int(round(colorBlue * 100.0 / 255.0)), uiValue="{}".format(int(round(colorBlue * 100.0 / 255.0))), stateUpdateList=stateUpdateList )
 
 				else:
 					# Unrecognized on state, but not important enough to mention in regular log.
@@ -7089,18 +7099,18 @@ class Plugin(indigo.PluginBase):
 							# Destination Hue Bulb device is on, update Attribute Controller brightness.
 							if attributeToControl == "hue":
 								# Convert hue scale from 0-360 to 0-100.
-								self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(hue / 360.0 * 100.0)))
+								self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(hue * 100. / 360.0)))
 							elif attributeToControl == "saturation":
 								self.updateDeviceState(controlDevice, 'brightnessLevel', saturation)
 							elif attributeToControl == "colorRed":
 								# Convert RGB scale from 0-255 to 0-100.
-								self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorRed / 255.0 * 100.0)))
+								self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorRed * 100.0 / 255.0)))
 							elif attributeToControl == "colorGreen":
 								# Convert RGB scale from 0-255 to 0-100.
-								self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorGreen / 255.0 * 100.0)))
+								self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorGreen * 100.0 / 255.0)))
 							elif attributeToControl == "colorBlue":
 								# Convert RGB scale from 0-255 to 0-100.
-								self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorBlue / 255.0 * 100.0)))
+								self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorBlue * 100.0 / 255.0)))
 						else:
 							# Hue Device is off.  Set Attribute Controller device brightness level to 0.
 							self.updateDeviceState(controlDevice, 'brightnessLevel', 0)
@@ -7257,7 +7267,7 @@ class Plugin(indigo.PluginBase):
 
 			#   Value manipulation.
 			# Convert brightness from 0-255 range to 0-100 range.
-			brightnessLevel = int(round(brightness / 255.0 * 100.0))
+			brightnessLevel = int(round(brightness * 100.0 / 255.0))
 			# Compensate for incorrect rounding to zero if original brightness is not zero.
 			if brightnessLevel == 0 and brightness > 0:
 				brightnessLevel = 1
@@ -7269,7 +7279,7 @@ class Plugin(indigo.PluginBase):
 			colorGreen = int(round(rgb.rgb_g))
 			colorBlue = int(round(rgb.rgb_b))
 			# Convert saturation from 0-255 scale to 0-100 scale.
-			saturation = int(round(saturation / 255.0 * 100.0))
+			saturation = int(round(saturation * 100.0 / 255.0))
 			# Convert hue from 0-65535 scale to 0-360 scale.
 			hue = self.normalizeHue(hue, device)
 			# Must first test color temp value. If it's zero, the formula throws a divide by zero execption.
@@ -7327,9 +7337,9 @@ class Plugin(indigo.PluginBase):
 
 				stateUpdateList = self.checkIfUpdateState(device , 'whiteLevel', 100 - saturation, uiValue="{}".format(int(100 - saturation)), stateUpdateList=stateUpdateList )
 				stateUpdateList = self.checkIfUpdateState(device , 'whiteTemperature', colorTemp, uiValue="{}".format(int(colorTemp)), stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device , 'redLevel', int(round(colorRed / 255.0 * 100.0)), uiValue="{}".format(int(round(colorRed / 255.0 * 100.0))), stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device , 'greenLevel', int(round(colorGreen / 255.0 * 100.0)), uiValue="{}".format(int(round(colorGreen / 255.0 * 100.0))), stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device , 'blueLevel', int(round(colorBlue / 255.0 * 100.0)), uiValue="{}".format(int(round(colorBlue / 255.0 * 100.0))), stateUpdateList=stateUpdateList )
+				stateUpdateList = self.checkIfUpdateState(device , 'redLevel', int(round(colorRed * 100.0 / 255.0)), uiValue="{}".format(int(round(colorRed * 100.0 / 255.0))), stateUpdateList=stateUpdateList )
+				stateUpdateList = self.checkIfUpdateState(device , 'greenLevel', int(round(colorGreen * 100.0 / 255.0)), uiValue="{}".format(int(round(colorGreen * 100.0 / 255.0))), stateUpdateList=stateUpdateList )
+				stateUpdateList = self.checkIfUpdateState(device , 'blueLevel', int(round(colorBlue * 100.0 / 255.0)), uiValue="{}".format(int(round(colorBlue * 100.0 / 255.0))), stateUpdateList=stateUpdateList )
 
 			else:
 				# Unrecognized on state, but not important enough to mention in regular log.
@@ -7353,13 +7363,13 @@ class Plugin(indigo.PluginBase):
 							self.updateDeviceState(controlDevice, 'brightnessLevel', saturation)
 						elif attributeToControl == "colorRed":
 							# Convert RGB scale from 0-255 to 0-100.
-							self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorRed / 255.0 * 100.0)))
+							self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorRed * 100.0 / 255.0)))
 						elif attributeToControl == "colorGreen":
 							# Convert RGB scale from 0-255 to 0-100.
-							self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorGreen / 255.0 * 100.0)))
+							self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorGreen * 100.0 / 255.0)))
 						elif attributeToControl == "colorBlue":
 							# Convert RGB scale from 0-255 to 0-100.
-							self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorBlue / 255.0 * 100.0)))
+							self.updateDeviceState(controlDevice, 'brightnessLevel', int(round(colorBlue * 100.0 / 255.0)))
 						elif attributeToControl == "colorTemp":
 							# Convert color temperature scale from 2000-6500 to 0-100.
 							self.updateDeviceState(controlDevice, 'brightnessLevel', int(round((colorTemp - 2000.0) / 4500.0 * 100.0)))
@@ -7908,9 +7918,9 @@ class Plugin(indigo.PluginBase):
 				#   (We're using the "savedBrightness" variable as the brightness goal here).
 				if defaultBrightness > 0:
 					# Convert default brightness from percentage to 1-255 range.
-					savedBrightness = int(round(defaultBrightness / 100.0 * 255.0))
+					savedBrightness = int(round(defaultBrightness * 255.0 / 100.0))
 				# If the currentBrightness is less than 100% and is the same as the savedBrightness, go to 100%
-				if currentBrightness < 100 and currentBrightness == int(round(savedBrightness / 255.0 * 100.0)):
+				if currentBrightness < 100 and currentBrightness == int(round(savedBrightness * 100.0 / 255.0)):
 					savedBrightness = 255
 
 			# Sanity check for an IP address
@@ -7978,7 +7988,7 @@ class Plugin(indigo.PluginBase):
 					# Update the Indigo device.
 					self.updateDeviceState(device, 'onOffState', True, uiValue='on')
 				else:
-					tempBrightness = int(round(savedBrightness / 255.0 * 100.0))
+					tempBrightness = int(round(savedBrightness * 100.0 / 255.0))
 					# Compensate for rounding to zero.
 					if tempBrightness == 0:
 						tempBrightness = 1
@@ -8089,7 +8099,7 @@ class Plugin(indigo.PluginBase):
 					rampRate = int(round(float(rampRate) * 10))
 
 				# Get the current brightness level.
-				currentBrightness = device.states.get('brightnessLevel', 100)
+				currentBrightness = int(device.states.get('brightnessLevel', 100))
 
 			# Act based on device type.
 			if device.deviceTypeId == "hueGroup":
@@ -8138,7 +8148,7 @@ class Plugin(indigo.PluginBase):
 					return
 				if self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"Got response - {}".format(r.content))
 				# Log the change.
-				tempBrightness = int(round(brightness / 255.0 * 100.0))
+				tempBrightness = int(round(brightness * 100.0 / 255.0))
 				# Compensate for rounding to zero.
 				if tempBrightness == 0:
 					tempBrightness = 1
@@ -8237,7 +8247,7 @@ class Plugin(indigo.PluginBase):
 				rampRate = int(round(float(rampRate) * 10))
 
 			# Get the current brightness.
-			currentBrightness = device.states.get('brightnessLevel', 100)
+			currentBrightness = int(device.states.get('brightnessLevel', 100))
 
 			# Convert RGB to HSL (same as HSB)
 			rgb = RGBColor(red, green, blue, rgb_type='wide_gamut_rgb')
@@ -8332,7 +8342,7 @@ class Plugin(indigo.PluginBase):
 			# Update on Indigo
 			if brightness > 0:
 				# Convert brightness to a percentage.
-				brightness = int(round(brightness / 255.0 * 100.0))
+				brightness = int(round(brightness * 100.0 / 255.0))
 				# Log the change (if enabled).
 				if showLog:
 					# Exclude mention of ramp rate if none was used.
@@ -8378,7 +8388,7 @@ class Plugin(indigo.PluginBase):
 			if self.trackSpecificDevice == device.id:	sendLog = 20
 			else: 										sendLog = self.sendDeviceUpdatesTo
 
-			if self.decideMyLog("SendCommandsToBridge") or logChanges: self.indiLOG.log(sendLog,"Starting doHSB. HSB: {}, {}, {}. Device: {}" .format(hue, saturation, brightness, device))
+			if self.decideMyLog("SendCommandsToBridge") or logChanges: self.indiLOG.log(sendLog,"Starting doHSB. device:{},  HSB: {}, {}, {}." .format(device.name,  hue, saturation, brightness))
 
 			# If a rampRate wasn't specified (default of -1 assigned), use the default.
 			#   (rampRate should be a float expressing transition time in seconds. Precission
@@ -8402,7 +8412,7 @@ class Plugin(indigo.PluginBase):
 				rampRate = int(round(float(rampRate) * 10.0))
 
 			# Get the current brightness level.
-			currentBrightness = device.states.get('brightnessLevel', 100)
+			currentBrightness = int(device.states.get('brightnessLevel', 100))
 
 			# Sanity check for an IP address
 			if ipAddress is None:
@@ -8469,7 +8479,7 @@ class Plugin(indigo.PluginBase):
 				command = "http://{}/api/{}/groups/{}/action".format(ipAddress, self.hostIds[hubNumber], groupId)
 			else:
 				command = "http://{}/api/{}/lights/{}/state".format(ipAddress, self.hostIds[hubNumber], bulbId)
-			if self.decideMyLog("SendCommandsToBridge") or logChanges: self.indiLOG.log(sendLog,"Request is {}".format(requestData))
+			if self.decideMyLog("SendCommandsToBridge") or logChanges: self.indiLOG.log(10,"SEND is {}, {}".format(command, requestData) )
 			try:
 				self.setBridgeBusy(hubNumber, calledfrom="doHSB")
 				r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
@@ -8485,16 +8495,16 @@ class Plugin(indigo.PluginBase):
 			if self.decideMyLog("ReadFromBridge") or logChanges: self.indiLOG.log(sendLog,"Got response - {}".format(r.content))
 
 			# Update on Indigo
-			if int(round(brightness/255.0*100.0)) > 0:
+			if int(round(brightness * 100.0 / 255.0)) > 0:
 				# Log the change (if enabled).
 				if showLog:
 					# Exclude mention of ramp rate if none was used.
 					if device.pluginProps.get('noOnRampRate', False) and currentBrightness == 0:
-						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \{}\"  to {} with hue {}, saturation {}%.".format(device.name, int(round(brightness / 255.0 * 100.0)), int(round(hue / 182.0)), int(round(saturation / 255.0 * 100.0)) ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \{}\"  to {} with hue {}, saturation {}%.".format(device.name, int(round(brightness * 100.0 / 255.0)), int(round(hue / 182.0)), int(round(saturation * 100.0 / 255.0)) ))
 					else:
-						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {} with hue {},  saturation {}%. % at ramp rate {}sec.".format(device.name, int(round(brightness / 255.0 * 100.0)), int(round(hue / 182.0)), int(round(saturation / 255.0 * 100.0)), rampRate / 10.0 ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {} with hue {},  saturation {}%. % at ramp rate {}sec.".format(device.name, int(round(brightness * 100.0 / 255.0)), int(round(hue / 182.0)), int(round(saturation * 100.0 / 255.0)), rampRate / 10.0 ))
 				# Change the Indigo device.
-				self.updateDeviceState(device, 'brightnessLevel', int(round(brightness / 255.0 * 100.0)))
+				self.updateDeviceState(device, 'brightnessLevel', int(round(brightness * 100.0 / 255.0)))
 			else:
 				# Log the change.
 				if showLog:
@@ -8509,7 +8519,7 @@ class Plugin(indigo.PluginBase):
 			self.updateDeviceState(device, 'colorMode', "hs")
 
 			self.updateDeviceState(device, 'hue', self.normalizeHue(hue, device))
-			self.updateDeviceState(device, 'saturation', int(saturation / 255.0 * 100.0))
+			self.updateDeviceState(device, 'saturation', int(saturation * 100.0 / 255.0))
 		except Exception:
 			self.logger.error("", exc_info=True)
 
@@ -8550,7 +8560,7 @@ class Plugin(indigo.PluginBase):
 				rampRate = int(round(float(rampRate) * 10.0))
 
 			# Get the current brightness level.
-			currentBrightness = device.states.get('brightnessLevel', 100)
+			currentBrightness = int(device.states.get('brightnessLevel', 100))
 
 			# Sanity check for an IP address
 			if ipAddress is None:
@@ -8619,7 +8629,7 @@ class Plugin(indigo.PluginBase):
 			else:
 				command = "http://{}/api/{}/lights/{}/state".format(ipAddress, self.hostIds[hubNumber], bulbId)
 			try:
-				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Request is {}".format(requestData))
+				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"SEND is {}, {}".format(command, requestData) )
 				self.setBridgeBusy(hubNumber, calledfrom="doXYY")
 				r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
 				self.resetBridgeBusy(hubNumber)
@@ -8634,16 +8644,16 @@ class Plugin(indigo.PluginBase):
 			if self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"Got response - {}".format(r.content) )
 
 			# Update on Indigo
-			if int(round(brightness/255.0*100.0)) > 0:
+			if int(round(brightness * 100.0 / 255.0)) > 0:
 				# Log the change (if enabled).
 				if showLog:
 					# Exclude mention of ramp rate if none was used.
 					if device.pluginProps.get('noOnRampRate', False) and currentBrightness == 0:
-						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {} with x/y chromatisety values of {}/{}.".format( device.name,int(round(brightness / 255.0 * 100.0)), round(colorX, 4), round(colorY, 4)  ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {} with x/y chromatisety values of {}/{}.".format( device.name,int(round(brightness * 100.0 / 255.0)), round(colorX, 4), round(colorY, 4)  ))
 					else:
-						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {} with x/y chromatisety values of {}/{}.  at ramp rate  {} sec.".format( device.name, int(round(brightness / 255.0 * 100.0)), round(colorX, 4), round(colorY, 4), rampRate / 10.0 ))
+						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {} with x/y chromatisety values of {}/{}.  at ramp rate  {} sec.".format( device.name, int(round(brightness * 100.0 / 255.0)), round(colorX, 4), round(colorY, 4), rampRate / 10.0 ))
 				# Change the Indigo device.
-				self.updateDeviceState(device, 'brightnessLevel', int(round(brightness / 255.0 * 100.0)))
+				self.updateDeviceState(device, 'brightnessLevel', int(round(brightness * 100.0 / 255.0)))
 			else:
 				# Log the change.
 				if showLog:
@@ -8702,7 +8712,7 @@ class Plugin(indigo.PluginBase):
 				return
 
 			# Get the current brightness level.
-			currentBrightness = device.states.get('brightnessLevel', 100)
+			currentBrightness = int(device.states.get('brightnessLevel', 100))
 
 			# Save the submitted color temperature into another variable.
 			colorTemp = temperature
@@ -8776,7 +8786,7 @@ class Plugin(indigo.PluginBase):
 				command = "http://{}/api/{}/groups/{}/action".format(ipAddress, self.hostIds[hubNumber], groupId)
 			else:
 				command = "http://{}/api/{}/lights/{}/state".format(ipAddress, self.hostIds[hubNumber], bulbId)
-			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Request is {}".format(requestData) )
+			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"SEND is {}, {}".format(command, requestData) )
 			try:
 				self.setBridgeBusy(hubNumber, calledfrom="doColorTemperature")
 				r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
@@ -8794,7 +8804,7 @@ class Plugin(indigo.PluginBase):
 			# Update on Indigo
 			if brightness > 0:
 				# Log the change.
-				tempBrightness = int(round(brightness / 255.0 * 100.0))
+				tempBrightness = int(round(brightness * 100.0 / 255.0))
 				# Compensate for rounding errors where it rounds down even though brightness is > 0.
 				if tempBrightness == 0 and brightness > 0:
 					tempBrightness = 1
@@ -8805,7 +8815,7 @@ class Plugin(indigo.PluginBase):
 						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {} using color temperature  {}K".format( device.name, tempBrightness, colorTemp ))
 					else:
 						if logChanges: self.indiLOG.log(sendLog,"Sent Hue Lights  \"{}\"  to {} using color temperature  {}K.  at ramp rate  {} sec.".format( device.name, tempBrightness, colorTemp, rampRate / 10.0))
-				self.updateDeviceState(device, 'brightnessLevel', int(round(brightness / 255.0 * 100.0)))
+				self.updateDeviceState(device, 'brightnessLevel', int(round(brightness * 100.0 / 255.0)))
 			else:
 				# Log the change.
 				if showLog:
@@ -8867,7 +8877,7 @@ class Plugin(indigo.PluginBase):
 			else:
 				command = "http://{}/api/{}/lights/{}/state".format(ipAddress, self.hostIds[hubNumber], bulbId)
 			try:
-				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Request is {}".format(requestData) )
+				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"SEND is {}, {}".format(command, requestData) )
 				self.setBridgeBusy(hubNumber, calledfrom="doAlert")
 				r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'})
 				self.resetBridgeBusy(hubNumber)
@@ -9391,7 +9401,7 @@ class Plugin(indigo.PluginBase):
 					self.updateDeviceProps(device, tempProps)
 
 			# Send the command.
-			self.doBrightness(device, int(round(brightness / 100.0 * 255.0)), rate)
+			self.doBrightness(device, int(round(brightness * 255.0 / 100.0)), rate)
 		except Exception:
 			self.logger.error("", exc_info=True)
 
@@ -9645,8 +9655,8 @@ class Plugin(indigo.PluginBase):
 				if self.decideMyLog("Init"): self.indiLOG.log(10,"Rate: {}".format(rampRate))
 
 			# Scale these values to match Hue
-			brightness = int(ceil(brightness / 100.0 * 255.0))
-			saturation = int(ceil(saturation / 100.0 * 255.0))
+			brightness = int(ceil(brightness * 255.0 / 100.0))
+			saturation = int(ceil(saturation * 255.0 / 100.0))
 			hue = int(round(hue * 182.0))
 
 			# Save the new brightness level into the device properties.
@@ -9890,7 +9900,7 @@ class Plugin(indigo.PluginBase):
 						brightness = device.states['brightnessLevel']
 
 				# Scale the brightness value for use with Hue.
-				brightness = int(round(brightness / 100.0 * 255.0))
+				brightness = int(round(brightness * 255.0 / 100.0))
 
 			if not useRateVariable:
 				# Not using variable, so they've specified a ramp rate.
@@ -10080,7 +10090,7 @@ class Plugin(indigo.PluginBase):
 	# Save Preset Action
 	########################################
 	def savePreset(self, action, device):
-		if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Starting savePreset. action values:\n{}\nDevice/Type ID:\n{}".format(action, device) + "\n")
+		if True or self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting savePreset. action values:\n{}\nDevice/Type ID:\n{}".format(action, device) + "\n")
 		errorsDict = indigo.Dict()
 		errorsDict['showAlertText'] = ""
 		actionType = "action"
@@ -10227,7 +10237,8 @@ class Plugin(indigo.PluginBase):
 	# Recall Preset Action
 	########################################
 	def recallPreset(self, action, device):
-		if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Starting recallPreset. action values:\n{}\nDevice/Type ID:\n{}\n".format(action, device))
+		testdebug = False
+		if testdebug or self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting recallPreset. action values:\n{}\nDevice/Type ID:\n{}\n".format(action, device))
 		errorsDict = indigo.Dict()
 		errorsDict['showAlertText'] = ""
 		actionType = "action"
@@ -10238,6 +10249,10 @@ class Plugin(indigo.PluginBase):
 		except AttributeError:
 			# This is an action, not a menu call.
 			pass
+		except Exception:
+			self.indiLOG.log(30,"recallPreset, action not properly defined: {}".format(str(action)))
+			errorsDict['showAlertText'] = "error, see log"
+			return (False, action, errorsDict)
 
 		# Check if the target is a light or group.
 		if device.deviceTypeId in kGroupDeviceTypeIDs:
@@ -10250,7 +10265,8 @@ class Plugin(indigo.PluginBase):
 		# Sanity check on bulb ID
 		if bulbId == "":
 			self.doErrorLog("No compatible Hue device selected for \"{}\". Check settings and select a Hue light or group to control.".format(device.name))
-			return
+			errorsDict['showAlertText'] = "error, see log"
+			return (False, action, errorsDict)
 
 		# Get the presetId.
 		if actionType == "menu":
@@ -10260,7 +10276,8 @@ class Plugin(indigo.PluginBase):
 
 		if not presetId:
 			self.doErrorLog("No Preset specified.")
-			return False
+			errorsDict['showAlertText'] = "error, see log"
+			return (False, action, errorsDict)
 		else:
 			# Convert to integer.
 			presetId = int(presetId)
@@ -10300,22 +10317,26 @@ class Plugin(indigo.PluginBase):
 			# Get the modelId from the device.
 			if not htype:
 				self.doErrorLog("The \"{}\" device is not a Hue device. Please select a Hue device for this action.".format(device.name))
-				return
+				errorsDict['showAlertText'] = "error, see log"
+				return (False, action, errorsDict)
 
 			elif htype not in kCompatibleDeviceIDType:
 				self.doErrorLog("The \"{}\" device is not a compatible Hue device. Please select a compatible Hue device.".format(device.name))
-				return
+				errorsDict['showAlertText'] = "error, see log"
+				return (False, action, errorsDict)
 
 		elif device.deviceTypeId not in kLightDeviceTypeIDs and device.deviceTypeId not in kGroupDeviceTypeIDs:
 			self.doErrorLog("The \"{}\" device is not a compatible Hue device. Please select a compatible Hue device.".format(device.name))
-			return
+			errorsDict['showAlertText'] = "error, see log"
+			return (False, action, errorsDict)
 
 		# Sanity check on preset ID.
 		try:
 			preset = self.pluginPrefs['presets'][presetId]
 		except Exception:
 			self.indiLOG.log(40,"Preset number {} couldn't be recalled.".format( presetId + 1), exc_info=True)
-			return
+			errorsDict['showAlertText'] = "error, see log"
+			return (False, action, errorsDict)
 
 		# Get the data from the preset in the plugin prefs.
 		presetName = preset[0]
@@ -10344,19 +10365,22 @@ class Plugin(indigo.PluginBase):
 				return (False, action, errorsDict)
 			else:
 				self.doErrorLog("Preset  ({}) is empty. The \"{}\" device was not changed.".format(presetId + 1, device.name))
-				return
+				return (False, action, errorsDict)
 
 		# Get the brightness level (which is common to all devices).
 		brightnessLevel = presetData.get('brightnessLevel', 100)
 		# Convert the brightnessLevel to 0-255 range for use in the light
 		#   changing method calls.
-		brightness = int(round(brightnessLevel / 100.0 * 255.0))
+		brightness = int(round(brightnessLevel * 255.0 / 100.0))
+
+		if testdebug: self.indiLOG.log(20,"\"{}\"  (general) set to brightness {}  at {} ramprate".format(device.name, brightness, rampRate) )
 
 		# Act based on the capabilities of the target device.
 		if device.supportsColor:
 			if device.supportsWhiteTemperature and device.supportsRGB:
 				# This device supports both color temperature and full color.
 				colorMode = presetData.get('colorMode', "ct")
+				if testdebug: self.indiLOG.log(20,"\"{}\"  (colormode:{}) set to brightness {}  at {} ramprate".format(device.name, colorMode, brightness, rampRate) )
 
 				if colorMode == "ct":
 					# Get the color temperature state (use 2800 as default).
@@ -10373,7 +10397,7 @@ class Plugin(indigo.PluginBase):
 					# Get the saturation (use 100 as the default).
 					saturation = presetData.get('saturation', 100)
 					# Convert from 0-100 range to 0-255 range.
-					saturation = int(round(saturation / 100.0 * 255.0))
+					saturation = int(round(saturation * 255.0 / 100.0))
 
 					# Make the light change.
 					self.doHSB(device, hue, saturation, brightness, rampRate)
@@ -10414,7 +10438,7 @@ class Plugin(indigo.PluginBase):
 					# Get the saturation (use 100 as the default).
 					saturation = presetData.get('saturation', 100)
 					# Convert from 0-100 range to 0-255 range.
-					saturation = int(round(saturation / 100.0 * 255.0))
+					saturation = int(round(saturation * 255.0 / 100.0))
 
 					# Make the light change.
 					self.doHSB(device, hue, saturation, brightness, rampRate)
@@ -10428,6 +10452,7 @@ class Plugin(indigo.PluginBase):
 					self.doXYY(device, colorX, colorY, brightness, rampRate)
 
 		else:
+			if testdebug: self.indiLOG.log(20,"\"{}\"  (else) set to brightness {}  at {} ramprate".format(device.name, brightness, rampRate) )
 			# This device doesn't support color.  Just set the brightness.
 			self.doBrightness(device, brightness, rampRate)
 

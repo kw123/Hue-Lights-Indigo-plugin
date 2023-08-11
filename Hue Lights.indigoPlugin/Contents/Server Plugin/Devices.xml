@@ -2136,7 +2136,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="bulbDeviceId" type="menu"
 				tooltip="Select a Hue light or group that this attribute controller should control.">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbAndGroupDeviceListGenerator" dynamicReload="true"/>
+				<List class="self" filter="yes" method="bulbAndGroupDeviceListGenerator" dynamicReload="true"/>
 			</Field>
 			<Field id="attributeToControl" type="menu" defaultValue="hue"
 				tooltip="Select an attribute associated with the Hue Device above that this attribute controller should control. Note that if you select an attribute that the Hue Device doesn't have, this attribute controller will not work.">

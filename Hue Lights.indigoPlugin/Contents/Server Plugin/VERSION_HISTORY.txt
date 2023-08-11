@@ -1,4 +1,9 @@
 ========================================
+2022.14.50 @ 2023-08-11
+
+1.  fixed bightness level when using attribute devices to change eg hue value
+
+========================================
 2022.14.49 @ 2023-08-10
 
 1. added device debug for hue attribute changes

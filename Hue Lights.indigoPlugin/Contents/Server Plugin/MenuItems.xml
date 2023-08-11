@@ -11,7 +11,7 @@
 		<ConfigUI>
 			<Field id="deviceId" type="menu" defaultValue="">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbAndGroupDeviceListGenerator"></List>
+				<List class="self" filter="no" method="bulbAndGroupDeviceListGenerator"></List>
 			</Field>
 			<Field id="deviceLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Select the Hue device whose current settings you'd like to save to a Preset. The settings can be restored to any compatible Hue device at a later time.</Label>
@@ -45,7 +45,7 @@ Save a Ramp Rate (transition time) to be used when recalling this Preset, accura
 		<ConfigUI>
 			<Field id="deviceId" type="menu" defaultValue="">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbAndGroupDeviceListGenerator"></List>
+				<List class="self" filter="no" method="bulbAndGroupDeviceListGenerator"></List>
 			</Field>
 			<Field id="deviceLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Select the Hue device to which the Preset should be applied.</Label>
