@@ -1,5 +1,16 @@
 ========================================
-2022.14.50 @ 2023-08-11
+2022.15.51 @ 2023-09-11
+
+1.  added state lastBatteryReplaced
+    that states shows the date-time stamp when the battery level went from anything to 100%
+    the first time it runs it checks if the state is empty and when the battery level is 100% hen it takes that date-time.
+    otherwise it stays empty until the battery goes to 100%. that miht take some years depening on the battery life of the switch/ sensor.
+
+
+	
+
+========================================
+2022.14.51 @ 2023-08-11
 
 1.  fixed brightness level when using attribute devices to change eg hue value
 

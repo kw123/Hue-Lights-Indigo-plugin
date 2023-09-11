@@ -933,6 +933,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
 			</State>
+			<State id="lastBatteryReplaced">
+				<ValueType>String</ValueType>
+				<TriggerLabel>lastBatteryReplaced</TriggerLabel>
+				<ControlPageLabel>lastBatteryReplaced</ControlPageLabel>
+			</State>
 			<State id="alertMode">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Alert Mode</TriggerLabel>
@@ -1038,6 +1043,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
 			</State>
+			<State id="lastBatteryReplaced">
+				<ValueType>String</ValueType>
+				<TriggerLabel>lastBatteryReplaced</TriggerLabel>
+				<ControlPageLabel>lastBatteryReplaced</ControlPageLabel>
+			</State>
 			<State id="alertMode">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Alert Mode</TriggerLabel>
@@ -1132,6 +1142,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="lastBatteryReplaced">
+				<ValueType>String</ValueType>
+				<TriggerLabel>lastBatteryReplaced</TriggerLabel>
+				<ControlPageLabel>lastBatteryReplaced</ControlPageLabel>
 			</State>
 			<State id="alertMode">
 				<ValueType>String</ValueType>
@@ -1247,7 +1262,12 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
 			</State>
-            <State id="button1On">
+ 			<State id="lastBatteryReplaced">
+				<ValueType>String</ValueType>
+				<TriggerLabel>lastBatteryReplaced</TriggerLabel>
+				<ControlPageLabel>lastBatteryReplaced</ControlPageLabel>
+			</State>
+           <State id="button1On">
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>Button 1 Press</TriggerLabel>
                 <ControlPageLabel>Button 1 Press</ControlPageLabel>
@@ -1340,6 +1360,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="lastBatteryReplaced">
+				<ValueType>String</ValueType>
+				<TriggerLabel>lastBatteryReplaced</TriggerLabel>
+				<ControlPageLabel>lastBatteryReplaced</ControlPageLabel>
 			</State>
             <State id="button1On">
                 <ValueType>Boolean</ValueType>
@@ -1500,6 +1525,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
 			</State>
+			<State id="lastBatteryReplaced">
+				<ValueType>String</ValueType>
+				<TriggerLabel>lastBatteryReplaced</TriggerLabel>
+				<ControlPageLabel>lastBatteryReplaced</ControlPageLabel>
+			</State>
             <State id="button1On">
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>Button Press</TriggerLabel>
@@ -1598,6 +1628,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+ 			<State id="lastBatteryReplaced">
+				<ValueType>String</ValueType>
+				<TriggerLabel>lastBatteryReplaced</TriggerLabel>
+				<ControlPageLabel>lastBatteryReplaced</ControlPageLabel>
 			</State>
             <State id="button1On">
                 <ValueType>Boolean</ValueType>
@@ -1720,6 +1755,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+ 			<State id="lastBatteryReplaced">
+				<ValueType>String</ValueType>
+				<TriggerLabel>lastBatteryReplaced</TriggerLabel>
+				<ControlPageLabel>lastBatteryReplaced</ControlPageLabel>
 			</State>
             <State id="button1On">
                 <ValueType>Boolean</ValueType>
@@ -1898,6 +1938,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
 			</State>
+ 			<State id="lastBatteryReplaced">
+				<ValueType>String</ValueType>
+				<TriggerLabel>lastBatteryReplaced</TriggerLabel>
+				<ControlPageLabel>lastBatteryReplaced</ControlPageLabel>
+			</State>
             <State id="button1On">
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>Left Top Button Press</TriggerLabel>
@@ -2060,6 +2105,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+ 			<State id="lastBatteryReplaced">
+				<ValueType>String</ValueType>
+				<TriggerLabel>lastBatteryReplaced</TriggerLabel>
+				<ControlPageLabel>lastBatteryReplaced</ControlPageLabel>
 			</State>
             <State id="expectedEventDuration">
                 <ValueType>number</ValueType>

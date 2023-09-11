@@ -55,6 +55,9 @@ logging.getLogger('requests').setLevel(logging.WARNING)
 
 _debugAreas = ['Init','Loop','EditSetup','ReadFromBridge','SendCommandsToBridge','UpdateIndigoDevices','Special','all']
 
+
+_defaultDateStampFormat = "%Y-%m-%d %H:%M:%S"
+
 # new plugin prefs props has to be set here
 kDefaultPluginPrefs = {
 				'hubNumber':							'0',
@@ -4493,7 +4496,7 @@ class Plugin(indigo.PluginBase):
 			if self.trackSpecificDevice == device.id:	sendLog = 20
 			else: 										sendLog = self.sendDeviceUpdatesTo
 
-			if logChanges or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"device set attribute:{}\n; attributeToControl:{}, current brightnessLevel:{} .. {}".format(str(action), attributeToControl, brightnessLevel, bulbDevice.states.get('brightnessLevel', 0)) )
+			if logChanges or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(sendLog,"device set attribute:{}\n; attributeToControl:{}, current brightnessLevel:{} .. {}".format(str(action), attributeToControl, brightnessLevel, bulbDevice.states.get('brightnessLevel', 0)) )
 
 
 			if attributeToControl is None:
@@ -4528,12 +4531,12 @@ class Plugin(indigo.PluginBase):
 					onLevel = 100
 			convertedOnLevel = onLevel
 
-			if logChanges or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Command is {}, Bulb device ID is{}" .format(command, bulbId))
+			if logChanges or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(sendLog,"Command is {}, Bulb device ID is{}" .format(command, bulbId))
 
 			##### TURN ON #####
 			if command == indigo.kDeviceAction.TurnOn:
 				try:
-					if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"device on:\n{}".format(action) )
+					if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(sendLog,"device on:\n{}".format(action) )
 				except Exception:
 					self.logger.error("device on: Unable to display action data", exc_info=True)
 				# Set the destination attribute to maximum.
@@ -4579,7 +4582,7 @@ class Plugin(indigo.PluginBase):
 			##### TURN OFF #####
 			elif command == indigo.kDeviceAction.TurnOff:
 				try:
-					if logChanges or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"device off:\n{}".format(action) )
+					if logChanges or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(sendLog,"device off:\n{}".format(action) )
 				except Exception:
 					self.logger.error("device off: Unable to display action data", exc_info=True)
 				# Set the destination attribute to minimum.
@@ -4613,7 +4616,7 @@ class Plugin(indigo.PluginBase):
 			##### TOGGLE #####
 			elif command == indigo.kDeviceAction.Toggle:
 				try:
-					if logChanges or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"device toggle:\n{}".format(action) )
+					if logChanges or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(sendLog,"device toggle:\n{}".format(action) )
 				except Exception:
 					self.logger.error("device toggle: Unable to display action data", exc_info=True)
 				# Set the destination attribute to either maximum or minimum.
@@ -4692,7 +4695,7 @@ class Plugin(indigo.PluginBase):
 			##### SET BRIGHTNESS #####
 			elif command == indigo.kDeviceAction.SetBrightness:
 				try:
-					if logChanges or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"device set attribute:{}\n; attributeToControl:{}, current brightnessLevel:{}".format(action, attributeToControl, brightnessLevel) )
+					if logChanges or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(sendLog,"device set attribute:{}\n; attributeToControl:{}, current brightnessLevel:{}".format(action, attributeToControl, brightnessLevel) )
 				except Exception:
 					self.logger.error("device set brightness: Unable to display action data", exc_info=True)
 				# Set the destination attribute to maximum.
@@ -4726,7 +4729,7 @@ class Plugin(indigo.PluginBase):
 			##### BRIGHTEN BY #####
 			elif command == indigo.kDeviceAction.BrightenBy:
 				try:
-					if logChanges or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"device increase brightness by:{}\n; attributeToControl:{}".format(action, attributeToControl)  )
+					if logChanges or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(sendLog,"device increase brightness by:{}\n; attributeToControl:{}".format(action, attributeToControl)  )
 				except Exception:
 					self.logger.error("device increase brightness by: Unable to display action data", exc_info=True)
 				# Calculate the new brightness.
@@ -4764,7 +4767,7 @@ class Plugin(indigo.PluginBase):
 			##### DIM BY #####
 			elif command == indigo.kDeviceAction.DimBy:
 				try:
-					if logChanges or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"device decrease brightness by:{}\n; attributeToControl:{}".format(action, attributeToControl) )
+					if logChanges or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(sendLog,"device decrease brightness by:{}\n; attributeToControl:{}".format(action, attributeToControl) )
 				except Exception:
 					self.logger.error("device decrease brightness by: Unable to display action data", exc_info=True)
 				# Calculate the new brightness.
@@ -4802,7 +4805,7 @@ class Plugin(indigo.PluginBase):
 			##### REQUEST STATUS #####
 			elif command == indigo.kDeviceAction.RequestStatus:
 				try:
-					if logChanges or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"device request status:\n{}".format(action) )
+					if logChanges or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(sendLog,"device request status:\n{}".format(action) )
 				except Exception:
 					self.logger.error("device request status: Unable to display action data", exc_info=True)
 				# This actually requests the status of the virtual dimmer device's destination Hue device/group.
@@ -6129,6 +6132,8 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def checkIfUpdateState(self, device, key, value, decimalPlaces=None, uiValue=None, uiImage=None, stateUpdateList=None):
 		if key in device.states:
+			if key == "batteryLevel":
+				self.setlastBatteryReplaced(device, value)
 			if device.states[key] != value:
 				if stateUpdateList is not None: 
 					stateUpdateList.append( {"key":key, "value":value, "uiValue":uiValue, "decimalPlaces":decimalPlaces, "uiImage":uiImage} )
@@ -11415,6 +11420,28 @@ class Plugin(indigo.PluginBase):
 			return "http://{}/api/{}".format(self.ipAddresses[hubNumber], self.hostIds[hubNumber])
 		else:
 			return "http://{}/api/{}".format(self.ipAddresses['0'], self.hostIds['0'])
+
+
+
+####-------------------------------------------------------------------------####
+	def setlastBatteryReplaced(self, device, batL):
+		try:	
+			# remember the last datetime when batlevel was 100%
+			if "lastBatteryReplaced"  in device.states and batL == 100:
+
+				if len(str(device.states["batteryLevel"])) < 1:# empty 
+					if len(device.states["lastBatteryReplaced"]) < 5:
+						self.updateDeviceState(device, "lastBatteryReplaced",	datetime.datetime.now().strftime(_defaultDateStampFormat))
+
+				elif len(device.states["lastBatteryReplaced"]) < 5: # empty 
+						self.updateDeviceState(device, "lastBatteryReplaced",	datetime.datetime.now().strftime(_defaultDateStampFormat))
+
+				elif device.states["batteryLevel"] < batL: # update if new 100%
+						self.updateDeviceState(device, "lastBatteryReplaced",	datetime.datetime.now().strftime(_defaultDateStampFormat))
+
+		except Exception as e:
+			if str(e).find("None") == -1: self.logger.error("", exc_info=True)
+
 
 
 ####--------------------------- Start ---------------------------------------####
