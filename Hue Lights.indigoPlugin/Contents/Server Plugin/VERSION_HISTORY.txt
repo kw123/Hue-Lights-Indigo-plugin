@@ -1,4 +1,16 @@
 ========================================
+2022.15.52 @ 2023-09-25
+1. made the default value of option "auto create new devices":  OFF.
+   This has no impact on existing installations, only when you (re) install the hue plugin the option will be set to OFF initially
+   you can set it ON/OFF in config at any time.
+   The tool tip / help in config reads: >> with this option checked the plugin will create a new indigo device as soon as a new light/sensor/group is created on a hue bridge.
+   With the option OFF you can manually create new devices (add indigo device ... 
+   Or you can use the menu item 'Add New Devices on Hue Bridge to Indigo' That will add all new devices that are on the hue bridge(s) in indigo<< 
+
+   The change to OFF  has been requested by Jay, as it conflicts with indigo standards.
+
+
+========================================
 2022.15.51 @ 2023-09-11
 
 1.  added state lastBatteryReplaced

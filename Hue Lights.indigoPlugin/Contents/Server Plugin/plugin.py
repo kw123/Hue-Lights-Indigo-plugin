@@ -66,7 +66,7 @@ kDefaultPluginPrefs = {
 				'ipvisible':							False,
 				'timeScaleFactor':						'1.0',
 				'sendDeviceUpdatesTo':					'20',
-				'autoCreatedNewDevices':				True,
+				'autoCreatedNewDevices':				False,
 				'folderNameForNewDevices':				"Hue New Devices",
 				"showLoginTest":						True,
 				'logAnyChanges':						'leaveToDevice' # can be leaveToDevice / no / yes
@@ -292,8 +292,6 @@ class Plugin(indigo.PluginBase):
 					self.indiLOG.log(20,"... Preset {} deleted.".format(aNumber + 1))
 
 		if self.decideMyLog("Init"): self.indiLOG.log(10,"pluginPrefs are:\n{}".format(self.pluginPrefs))
-
-		self.pluginPrefs.get('autoCreatedNewDevices', False)
 
 		self.timeScaleFactor = float(self.pluginPrefs.get('timeScaleFactor',"1.0"))
 		self.sendDeviceUpdatesTo = int(self.pluginPrefs.get('sendDeviceUpdatesTo',20))
@@ -6525,7 +6523,7 @@ class Plugin(indigo.PluginBase):
 						if self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"Loaded {} list - {}".format(theType, json.dumps(responseData, sort_keys=True, indent=2)) )
 						self.hueConfigDict[hubNumber][theType] = responseData
 
-						# See if there are more groups now than there were last time we checked.
+						# See if there are more devices now than there were last time we checked.
 						if len(self.hueConfigDict[hubNumber][theType]) > lastCount[hubNumber] and lastCount[hubNumber] is not 0:
 							if self.pluginPrefs.get('autoCreatedNewDevices', False): 
 								self.lastTimeForAll = 0 # trigger create missing devices 

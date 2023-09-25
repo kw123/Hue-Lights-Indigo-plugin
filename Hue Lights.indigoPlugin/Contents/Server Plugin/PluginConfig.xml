@@ -203,8 +203,11 @@ Shown after successful pairing process</Label>
 	</Field>
 
 
-	<Field id="autoCreatedNewDevices" type="checkbox" defaultValue="True" hidden="false">
-		<Label>Auto create new Hue devices in Indigo</Label>
+	<Field id="autoCreatedNewDevices" type="checkbox" defaultValue="False" hidden="false"
+		tooltip="with this option checked the plugin will create a new indigo device as soon as a new light/sensor/group is created on a hue bridge.
+   With the option OFF you can manually create new devices (add indigo device ...)
+   Or you can use the menu item 'Add New Devices on Hue Bridge to Indigo' That will add all new devices that are on the hue bridge(s) in indigo">
+		<Label>Auto create new Hue devices in Indigo></Label>
     </Field>
 
 
