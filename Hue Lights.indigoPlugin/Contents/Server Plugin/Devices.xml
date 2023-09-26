@@ -4,6 +4,12 @@
 	<Device type="dimmer" id="hueBulb">
 		<Name>Hue Color/Ambiance and compatible</Name>
 		<ConfigUI>
+
+			<Field id="moveDevice" type="checkbox" defaultValue="False" hidden="false"
+				tooltip="use this to replace eg a broken hue light. 1. add the new device to indigo. 2. set the new and old device commenabled to off, 3 edit old device, 4. enable this option, 5. select the new device (name on the hub is listed) and save, 6. delete the new indigo device, 7. re-enable com enabled">
+				<Label>Move a device (not the normal option)</Label>
+			</Field>
+
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
@@ -15,6 +21,7 @@
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
 
 			<Field id="bulbId" type="menu"
 				tooltip="Select a light to control. This menu only shows lights that support both full color and color temperature (a.k.a. Ambiance) features, except for the LightStrips.">
@@ -153,6 +160,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="dimmer" id="hueAmbiance">
 		<Name>Ambiance Lights (color temperature)</Name>
 		<ConfigUI>
+
+			<Field id="moveDevice" type="checkbox" defaultValue="False" hidden="false"
+				tooltip="use this to replace eg a broken hue light. 1. add the new device to indigo. 2. set the new and old device commenabled to off, 3 edit old device, 4. enable this option, 5. select the new device (name on the hub is listed) and save, 6. delete the new indigo device, 7. re-enable com enabled">
+				<Label>Move a device (not the normal option)</Label>
+			</Field>
+
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
@@ -267,6 +280,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="dimmer" id="hueLightStrips">
 		<Name>Light Strips</Name>
 		<ConfigUI>
+
+			<Field id="moveDevice" type="checkbox" defaultValue="False" hidden="false"
+				tooltip="use this to replace eg a broken hue light. 1. add the new device to indigo. 2. set the new and old device commenabled to off, 3 edit old device, 4. enable this option, 5. select the new device (name on the hub is listed) and save, 6. delete the new indigo device, 7. re-enable com enabled">
+				<Label>Move a device (not the normal option)</Label>
+			</Field>
+
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
@@ -416,6 +435,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="dimmer" id="hueLivingColorsBloom">
 		<Name>Color Lights (Aura, Bloom, StoryLight, LivingColors, etc.)</Name>
 		<ConfigUI>
+
+			<Field id="moveDevice" type="checkbox" defaultValue="False" hidden="false"
+				tooltip="use this to replace eg a broken hue light. 1. add the new device to indigo. 2. set the new and old device commenabled to off, 3 edit old device, 4. enable this option, 5. select the new device (name on the hub is listed) and save, 6. delete the new indigo device, 7. re-enable com enabled">
+				<Label>Move a device (not the normal option)</Label>
+			</Field>
+
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
@@ -560,6 +585,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="dimmer" id="hueLivingWhites">
 		<Name>LivingWhites (Hue Lux, generic dimmable device, etc.)</Name>
 		<ConfigUI>
+
+			<Field id="moveDevice" type="checkbox" defaultValue="False" hidden="false"
+				tooltip="use this to replace eg a broken hue light. 1. add the new device to indigo. 2. set the new and old device commenabled to off, 3 edit old device, 4. enable this option, 5. select the new device (name on the hub is listed) and save, 6. delete the new indigo device, 7. re-enable com enabled">
+				<Label>Move a device (not the normal option)</Label>
+			</Field>
+
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
@@ -664,6 +695,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="relay" id="hueOnOffDevice">
 		<Name>On/Off Device (Hue Smart Plug, etc.)</Name>
 		<ConfigUI>
+
+			<Field id="moveDevice" type="checkbox" defaultValue="False" hidden="false"
+				tooltip="use this to replace eg a broken hue light. 1. add the new device to indigo. 2. set the new and old device commenabled to off, 3 edit old device, 4. enable this option, 5. select the new device (name on the hub is listed) and save, 6. delete the new indigo device, 7. re-enable com enabled">
+				<Label>Move a device (not the normal option)</Label>
+			</Field>
+
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>

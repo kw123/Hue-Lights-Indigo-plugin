@@ -1024,6 +1024,8 @@ class Plugin(indigo.PluginBase):
 			self.logger.error("", exc_info=True)
 		return valuesDict
 
+
+
 	########################################
 	def validateDeviceConfigUi(self, valuesDict, typeId, deviceId):
 		if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"Starting validateDeviceConfigUi.\n  valuesDict: {}\n  typeId: {}\n  deviceId: {}".format(valuesDict, typeId, deviceId))
@@ -1034,6 +1036,7 @@ class Plugin(indigo.PluginBase):
 		hubNumber = valuesDict['hubNumber']
 		ipAddress = self.ipAddresses[hubNumber]
 		hostId = self.hostIds[hubNumber]
+		moveDevice =  valuesDict.get("moveDevice",False)
 
 		# Make sure we're still paired with the Hue bridge.
 		if not self.paired[hubNumber]:
@@ -1071,14 +1074,15 @@ class Plugin(indigo.PluginBase):
 			valuesDict['uniqueId'] = bulb.get('uniqueid', "")
 
 			# Make sure the bulb ID isn't used by another device.
-			for otherDeviceId in self.deviceList:
-				if otherDeviceId != deviceId:
-					otherDevice = indigo.devices[otherDeviceId]
-					if valuesDict['bulbId'] == otherDevice.pluginProps.get('bulbId', 0) and hubNumber == otherDevice.pluginProps.get('hubNumber', 0):
+			if not moveDevice:
+				for otherDeviceId in self.deviceList:
+					if otherDeviceId != deviceId:
 						otherDevice = indigo.devices[otherDeviceId]
-						errorsDict['bulbId'] = "This Hue device is already being controlled by the \"{}\" Indigo device. Choose a different Hue bulb to control.".format(otherDevice.name)
-						errorsDict['showAlertText'] += errorsDict['bulbId'] + "\n\n"
-						return (False, valuesDict, errorsDict)
+						if valuesDict['bulbId'] == otherDevice.pluginProps.get('bulbId', 0) and hubNumber == otherDevice.pluginProps.get('hubNumber', 0):
+							otherDevice = indigo.devices[otherDeviceId]
+							errorsDict['bulbId'] = "This Hue device is already being controlled by the \"{}\" Indigo device. Choose a different Hue bulb to control.".format(otherDevice.name)
+							errorsDict['showAlertText'] += errorsDict['bulbId'] + "\n\n"
+							return (False, valuesDict, errorsDict)
 
 		#  -- Hue Bulb --
 		if typeId == "hueBulb":
@@ -5399,6 +5403,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			if "hubNumber" not in valuesDict: return []
 			
+			moveDevice =  valuesDict.get("moveDevice",False)
 			existing = {}
 			addAtEnd = ""
 			excludeList = {}
@@ -5418,15 +5423,15 @@ class Plugin(indigo.PluginBase):
 			else:
 				hubNumbers = {self.hubNumberSelected:True}
 			
-			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator:  excludeList: {},\n existing:{}".format(excludeList, existing))
+			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator: moveDevice:{},\n excludeList: {},\n existing:{}".format(moveDevice, excludeList, existing))
 			for hubNumber in hubNumbers:
 				for memberId, details in sorted(self.hueConfigDict[hubNumber][devType].items(), key = lambda x: x[1]['name']):
 					if hubNumber+"-"+memberId in existing: 	 
 						addAtEnd = [memberId, details['name']+'-..'+details['uniqueid'][-10:]+"-current"]
-					elif existing != {}:
+					elif existing != {} and not moveDevice:
 						if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator:  skip, existing !=empty".format())
 						continue
-					elif hubNumber+"-"+memberId in excludeList:
+					elif hubNumber+"-"+memberId in excludeList and not moveDevice:
 						if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator:  in excludeList:{}".format(hubNumber+"-"+memberId))
 						continue
 					elif typeId == "":

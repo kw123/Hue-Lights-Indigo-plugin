@@ -1,4 +1,21 @@
 ========================================
+2022.16.52 @ 2023-09-27
+Added option to REPLACE a ( eg broken) lamp in indigo -  ie keep the indigo ID (and trigger etc)  and link it to the new Hue device
+steps:
+1. add the new lamp to the hue bridge
+2. add the new device to indigo (best is the auto create menue option)
+3. disable Comm enabled for both new and old device in indigo  (uncheck the check box in the column Comm Enabled)
+4. edit the OLD device (w the indigo id you want to keep)
+5. check "Replace a device (not the normal option)" in device edit
+6. select bridge and confirm
+7. select the new Hue lamp in the selection menu. You will see the names of the lamps on the hue bridge not the indigo names
+8. save
+9. delete the NEW indigo device, otherwise you now have 2 indigo device that point to the same hue device
+10. re-enable Comm for the OLD device (click on the check box in the column Comm Enabled)
+
+
+
+========================================
 2022.15.52 @ 2023-09-25
 1. made the default value of option "auto create new devices":  OFF.
    This has no impact on existing installations, only when you (re) install the hue plugin the option will be set to OFF initially
