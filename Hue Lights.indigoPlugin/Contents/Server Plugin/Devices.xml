@@ -5,9 +5,14 @@
 		<Name>Hue Color/Ambiance and compatible</Name>
 		<ConfigUI>
 
-			<Field id="moveDevice" type="checkbox" defaultValue="False" hidden="false"
-				tooltip="use this to replace eg a broken hue light. 1. add the new device to indigo. 2. set the new and old device commenabled to off, 3 edit old device, 4. enable this option, 5. select the new device (name on the hub is listed) and save, 6. delete the new indigo device, 7. re-enable com enabled">
-				<Label>Move a device (not the normal option)</Label>
+			<Field id="deviceAction" type="menu" defaultValue="False" hidden="false"
+				tooltip="use this to replace eg a broken hue light. (a: normal edit ) (b: link this device to a new Hue device) (c: copy other indigo device to this device, incl link to its hue device, after save: delete the other device.)"> 
+				<Label>Edit / Replace a device </Label>
+				<List>
+					<Option value="EditExisting">edit existing device, normal option</Option>
+					<Option value="Replace_with_new_Hue_device">replace device, select new Hue device</Option>
+					<Option value="Replace_with_other_Indigo_device">replace device, copy other Indigo device to this device</Option>
+				</List>
 			</Field>
 
 			<Field id="hubNumber" type="menu"
@@ -161,9 +166,14 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Ambiance Lights (color temperature)</Name>
 		<ConfigUI>
 
-			<Field id="moveDevice" type="checkbox" defaultValue="False" hidden="false"
-				tooltip="use this to replace eg a broken hue light. 1. add the new device to indigo. 2. set the new and old device commenabled to off, 3 edit old device, 4. enable this option, 5. select the new device (name on the hub is listed) and save, 6. delete the new indigo device, 7. re-enable com enabled">
-				<Label>Move a device (not the normal option)</Label>
+			<Field id="deviceAction" type="menu" defaultValue="False" hidden="false"
+				tooltip="use this to replace eg a broken hue light. (a: normal edit ) (b: link this device to a new Hue device) (c: copy other indigo device to this device, incl link to its hue device, after save: delete the other device.)"> 
+				<Label>Edit / Replace a device </Label>
+				<List>
+					<Option value="EditExisting">edit existing device, normal option</Option>
+					<Option value="Replace_with_new_Hue_device">replace device, select new Hue device</Option>
+					<Option value="Replace_with_other_Indigo_device">replace device, copy other Indigo device to this device</Option>
+				</List>
 			</Field>
 
 			<Field id="hubNumber" type="menu"
@@ -281,9 +291,14 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Light Strips</Name>
 		<ConfigUI>
 
-			<Field id="moveDevice" type="checkbox" defaultValue="False" hidden="false"
-				tooltip="use this to replace eg a broken hue light. 1. add the new device to indigo. 2. set the new and old device commenabled to off, 3 edit old device, 4. enable this option, 5. select the new device (name on the hub is listed) and save, 6. delete the new indigo device, 7. re-enable com enabled">
-				<Label>Move a device (not the normal option)</Label>
+			<Field id="deviceAction" type="menu" defaultValue="False" hidden="false"
+				tooltip="use this to replace eg a broken hue light. (a: normal edit ) (b: link this device to a new Hue device) (c: copy other indigo device to this device, incl link to its hue device, after save: delete the other device.)"> 
+				<Label>Edit / Replace a device </Label>
+				<List>
+					<Option value="EditExisting">edit existing device, normal option</Option>
+					<Option value="Replace_with_new_Hue_device">replace device, select new Hue device</Option>
+					<Option value="Replace_with_other_Indigo_device">replace device, copy other Indigo device to this device</Option>
+				</List>
 			</Field>
 
 			<Field id="hubNumber" type="menu"
@@ -436,9 +451,14 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Color Lights (Aura, Bloom, StoryLight, LivingColors, etc.)</Name>
 		<ConfigUI>
 
-			<Field id="moveDevice" type="checkbox" defaultValue="False" hidden="false"
-				tooltip="use this to replace eg a broken hue light. 1. add the new device to indigo. 2. set the new and old device commenabled to off, 3 edit old device, 4. enable this option, 5. select the new device (name on the hub is listed) and save, 6. delete the new indigo device, 7. re-enable com enabled">
-				<Label>Move a device (not the normal option)</Label>
+			<Field id="deviceAction" type="menu" defaultValue="False" hidden="false"
+				tooltip="use this to replace eg a broken hue light. (a: normal edit ) (b: link this device to a new Hue device) (c: copy other indigo device to this device, incl link to its hue device, after save: delete the other device.)"> 
+				<Label>Edit / Replace a device </Label>
+				<List>
+					<Option value="EditExisting">edit existing device, normal option</Option>
+					<Option value="Replace_with_new_Hue_device">replace device, select new Hue device</Option>
+					<Option value="Replace_with_other_Indigo_device">replace device, copy other Indigo device to this device</Option>
+				</List>
 			</Field>
 
 			<Field id="hubNumber" type="menu"
@@ -586,9 +606,14 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>LivingWhites (Hue Lux, generic dimmable device, etc.)</Name>
 		<ConfigUI>
 
-			<Field id="moveDevice" type="checkbox" defaultValue="False" hidden="false"
-				tooltip="use this to replace eg a broken hue light. 1. add the new device to indigo. 2. set the new and old device commenabled to off, 3 edit old device, 4. enable this option, 5. select the new device (name on the hub is listed) and save, 6. delete the new indigo device, 7. re-enable com enabled">
-				<Label>Move a device (not the normal option)</Label>
+			<Field id="deviceAction" type="menu" defaultValue="False" hidden="false"
+				tooltip="use this to replace eg a broken hue light. (a: normal edit ) (b: link this device to a new Hue device) (c: copy other indigo device to this device, incl link to its hue device, after save: delete the other device.)"> 
+				<Label>Edit / Replace a device </Label>
+				<List>
+					<Option value="EditExisting">edit existing device, normal option</Option>
+					<Option value="Replace_with_new_Hue_device">replace device, select new Hue device</Option>
+					<Option value="Replace_with_other_Indigo_device">replace device, copy other Indigo device to this device</Option>
+				</List>
 			</Field>
 
 			<Field id="hubNumber" type="menu"
@@ -696,9 +721,14 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>On/Off Device (Hue Smart Plug, etc.)</Name>
 		<ConfigUI>
 
-			<Field id="moveDevice" type="checkbox" defaultValue="False" hidden="false"
-				tooltip="use this to replace eg a broken hue light. 1. add the new device to indigo. 2. set the new and old device commenabled to off, 3 edit old device, 4. enable this option, 5. select the new device (name on the hub is listed) and save, 6. delete the new indigo device, 7. re-enable com enabled">
-				<Label>Move a device (not the normal option)</Label>
+			<Field id="deviceAction" type="menu" defaultValue="False" hidden="false"
+				tooltip="use this to replace eg a broken hue light. (a: normal edit ) (b: link this device to a new Hue device) (c: copy other indigo device to this device, incl link to its hue device, after save: delete the other device.)"> 
+				<Label>Edit / Replace a device </Label>
+				<List>
+					<Option value="EditExisting">edit existing device, normal option</Option>
+					<Option value="Replace_with_new_Hue_device">replace device, select new Hue device</Option>
+					<Option value="Replace_with_other_Indigo_device">replace device, copy other Indigo device to this device</Option>
+				</List>
 			</Field>
 
 			<Field id="hubNumber" type="menu"

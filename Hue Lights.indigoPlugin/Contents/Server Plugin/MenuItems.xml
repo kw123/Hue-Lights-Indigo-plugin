@@ -132,7 +132,7 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 	<MenuItem id="sep2.1" />
 
 	<MenuItem id="findNewDevices">
-		<Name>Start Seach for new Devices on Bridge...</Name>
+		<Name>Start Search for new Devices on Bridge...</Name>
 		<ConfigUI>
 			<Field id="instructions1" type="label">
 				<Label>This will start the bridge scan for new devcies process. It will add newly found devices to the bridge, not to Indigio.

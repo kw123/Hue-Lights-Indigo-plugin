@@ -1,4 +1,19 @@
 ========================================
+2022.16.53 @ 2023-09-27
+Added option to REPLACE a ( eg broken) lamp in indigo -  ie keep the indigo ID (and trigger etc)  and link it to the new Hue device
+steps:
+in indigo device edit Lights you now have 3 options:
+1. normal edit, no change
+2. replace the hue device an indigo devce is linked to
+- add new hue device to hue bridge, then edit the old indigo device and select "replace device, select new Hue device"
+3. copy other indigo device (eg already created indigo device for new hue device)
+- edit old Indigo device and select option: "replace device, copy other Indigo device to this device"
+  after save delete the indigo device that was copied from.
+
+this should make it much easier to replace a broken light as compared to the previos plugin version: 2022.16.52
+
+
+========================================
 2022.16.52 @ 2023-09-27
 Added option to REPLACE a ( eg broken) lamp in indigo -  ie keep the indigo ID (and trigger etc)  and link it to the new Hue device
 steps:

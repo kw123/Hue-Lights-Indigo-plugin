@@ -1036,7 +1036,7 @@ class Plugin(indigo.PluginBase):
 		hubNumber = valuesDict['hubNumber']
 		ipAddress = self.ipAddresses[hubNumber]
 		hostId = self.hostIds[hubNumber]
-		moveDevice =  valuesDict.get("moveDevice",False)
+		deviceAction =  valuesDict.get("deviceAction","EditExisting")
 
 		# Make sure we're still paired with the Hue bridge.
 		if not self.paired[hubNumber]:
@@ -1074,7 +1074,7 @@ class Plugin(indigo.PluginBase):
 			valuesDict['uniqueId'] = bulb.get('uniqueid', "")
 
 			# Make sure the bulb ID isn't used by another device.
-			if not moveDevice:
+			if deviceAction in ["Replace_with_new_Hue_device","EditExisting"]:
 				for otherDeviceId in self.deviceList:
 					if otherDeviceId != deviceId:
 						otherDevice = indigo.devices[otherDeviceId]
@@ -5402,62 +5402,79 @@ class Plugin(indigo.PluginBase):
 		availableButWrongDevtype = ""
 		try:
 			if "hubNumber" not in valuesDict: return []
-			
-			moveDevice =  valuesDict.get("moveDevice",False)
-			existing = {}
-			addAtEnd = ""
-			excludeList = {}
-			for devId in self.deviceList:
-				dev = indigo.devices[devId]
-				props = dev.pluginProps
-				if devIdTypeId not in props: continue
-				if targetId == devId:
-					existing[props['hubNumber']+"-"+props[devIdTypeId]] = devId
-				if "hubNumber" in props: 
-					excludeList[props['hubNumber']+"-"+props[devIdTypeId]] = devId
-					continue
-				break
+	
 
 			if self.hubNumberSelected == "":
 				hubNumbers = self.ipAddresses
 			else:
 				hubNumbers = {self.hubNumberSelected:True}
+
+		
+			deviceAction =  valuesDict.get("deviceAction","EditExisting")
+
+			if deviceAction 	in ["Replace_with_new_Hue_device"]: 		addToString = "-newHueDev"
+			elif deviceAction 	in ["Replace_with_other_Indigo_device"]:	addToString = "-replCandidate"
+			else:															addToString = ""
+
+			thisDeviceExists = {}
+			addAtEnd = ""
+			otherExistingIndigoDevs = {}
+			for devId in self.deviceList:
+				dev = indigo.devices[devId]
+				props = dev.pluginProps
+				if devIdTypeId not in props: continue
+				if targetId == devId:
+					thisDeviceExists[props['hubNumber']+"-"+props[devIdTypeId]] = devId
+				elif "hubNumber" in props: 
+					if props['hubNumber'] in hubNumbers:
+						otherExistingIndigoDevs[props['hubNumber']+"-"+props[devIdTypeId]] = devId
+					continue
+				break
 			
-			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator: moveDevice:{},\n excludeList: {},\n existing:{}".format(moveDevice, excludeList, existing))
+			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator: deviceAction:{},\n otherExistingIndigoDevs: {},\n thisDeviceExists:{}".format(deviceAction, otherExistingIndigoDevs, thisDeviceExists))
+			# loop through devices on hub
 			for hubNumber in hubNumbers:
 				for memberId, details in sorted(self.hueConfigDict[hubNumber][devType].items(), key = lambda x: x[1]['name']):
-					if hubNumber+"-"+memberId in existing: 	 
-						addAtEnd = [memberId, details['name']+'-..'+details['uniqueid'][-10:]+"-current"]
-					elif existing != {} and not moveDevice:
-						if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator:  skip, existing !=empty".format())
+					if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator:  testing{}, thisdev:{} other:{}".format(hubNumber+"-"+memberId, hubNumber+"-"+memberId in thisDeviceExists, hubNumber+"-"+memberId in otherExistingIndigoDevs))
+					if hubNumber+"-"+memberId in thisDeviceExists:
+						if deviceAction == "EditExisting": 	 
+							addAtEnd = [memberId, details['name']+'-..'+details['uniqueid'][-10:]+"-current"]
 						continue
-					elif hubNumber+"-"+memberId in excludeList and not moveDevice:
-						if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator:  in excludeList:{}".format(hubNumber+"-"+memberId))
-						continue
-					elif typeId == "":
+
+					elif hubNumber+"-"+memberId in otherExistingIndigoDevs:
+						if deviceAction in ["EditExisting","Replace_with_new_Hue_device"]:
+							if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator:  skip, thisDeviceExists  already exixts in Indigo,{}-ID:{}".format(hubNumber+"-"+memberId, otherExistingIndigoDevs[hubNumber+"-"+memberId]))
+							continue
+
+					else:
+						if deviceAction not in ["Replace_with_new_Hue_device"]:
+							if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator:  not a new hue device :{}".format(hubNumber+"-"+memberId))
+							continue
+
+					if typeId == "":
 						# If no typeId exists, list all devices.
 						xList.append([memberId, details['name']])
 
 					elif typeId == "hueBulb" and details['type'] == kHueBulbDeviceIDType:
-						xList.append([memberId, '{}-..{}'.format(details['name'], details['uniqueid'][-10:])])
+						xList.append([memberId, '{}-..{}{}'.format(details['name'], details['uniqueid'][-10:], addToString)])
 
 					elif typeId == "hueAmbiance" and details['type'] == kAmbianceDeviceIDType:
-						xList.append([memberId, '{}-..{}'.format(details['name'], details['uniqueid'][-10:])])
+						xList.append([memberId, '{}-..{}{}'.format(details['name'], details['uniqueid'][-10:], addToString)])
 
 					elif typeId == "hueLightStrips" and details['type'] == kHueBulbDeviceIDType:
-						xList.append([memberId, '{}-..{}'.format(details['name'], details['uniqueid'][-10:])])
+						xList.append([memberId, '{}-..{}{}'.format(details['name'], details['uniqueid'][-10:], addToString)])
 
 					elif typeId == "hueLivingColorsBloom" and details['type'] == kLivingColorsDeviceIDType:
-						xList.append([memberId, '{}-..{}'.format(details['name'], details['uniqueid'][-10:])])
+						xList.append([memberId, '{}-..{}{}'.format(details['name'], details['uniqueid'][-10:], addToString)])
 
 					elif typeId == "hueLivingWhites" and details['type'] == kLivingWhitesDeviceIDType:
-						xList.append([memberId, '{}-..{}'.format(details['name'], details['uniqueid'][-10:])])
+						xList.append([memberId, '{}-..{}{}'.format(details['name'], details['uniqueid'][-10:], addToString)])
 
 					elif typeId == "hueOnOffDevice" and details['type'][0:len(kOnOffOnlyDeviceIDType)] == kOnOffOnlyDeviceIDType:
-						xList.append([memberId, '{}-..{}'.format(details['name'], details['uniqueid'][-10:])])
+						xList.append([memberId, '{}-..{}{}'.format(details['name'], details['uniqueid'][-10:], addToString)])
 
 					elif filter.find('anyLight') > -1:
-						xList.append([memberId, '{}-..{}'.format(details['name'], details['uniqueid'][-10:])])
+						xList.append([memberId, '{}-..{}{}'.format(details['name'], details['uniqueid'][-10:], addToString)])
 
 					if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator:  xList {}".format(xList))
 					availableButWrongDevtype += "name:\"{}\", GW#:{}, id:{}, hue-type:\"{}\" equivalent to indigoDev-type:\"{}\"\n ".format(details['name'],  hubNumber, memberId, details['type'], kmapHueTypeToIndigoDevType.get(details['type'],"") )
