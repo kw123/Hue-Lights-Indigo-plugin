@@ -53,7 +53,7 @@ from supportedDevices import *
 
 logging.getLogger('requests').setLevel(logging.WARNING)
 
-_debugAreas = ['Init','Loop','EditSetup','ReadFromBridge','SendCommandsToBridge','UpdateIndigoDevices','Special','all']
+_debugAreas = ['Init','Loop','EditSetup','ReadFromBridge','SendCommandsToBridge','UpdateIndigoDevices','FindHueBridge','Special','all']
 
 
 _defaultDateStampFormat = "%Y-%m-%d %H:%M:%S"
@@ -67,8 +67,18 @@ kDefaultPluginPrefs = {
 				'timeScaleFactor':						'1.0',
 				'sendDeviceUpdatesTo':					'20',
 				'autoCreatedNewDevices':				False,
-				'folderNameForNewDevices':				"Hue New Devices",
+				'folderNameForNewDevices':				'Hue New Devices',
 				"showLoginTest":						True,
+				"debugInit":							False,
+				"debugLoop":							False,
+				"debugEditSetup":						False,
+				"debugReadFromBridge":					False,
+				"debugSendCommandsToBridge":			False,
+				"debugUpdateIndigoDevicese":			False,
+				"debugFindHueBridge":					False,
+				"debugSpecial":							False,
+				"debugall":								False,
+				"searchForStringinFindHueBridge":		'Hue Bridge',
 				'logAnyChanges':						'leaveToDevice' # can be leaveToDevice / no / yes
 				}
 kmaxHueItems = {'lights':50, 'sensors':50, 'groups':64, 'scenes':200, 'rules':200, 'schedules':100, 'resourcelinks':64}
@@ -297,6 +307,7 @@ class Plugin(indigo.PluginBase):
 		self.sendDeviceUpdatesTo = int(self.pluginPrefs.get('sendDeviceUpdatesTo',20))
 		self.trackSpecificDevice = 0
 		self.updateAllHueLists()
+		self.searchForStringinFindHueBridge = self.pluginPrefs.get('searchForStringinFindHueBridge', kDefaultPluginPrefs["searchForStringinFindHueBridge"])
 
 		self.findHueBridgesDict = {"status":"init"}
 		self.findHueBridgesDict['thread']  = threading.Thread(name=u'findHueBridges', target=self.findHueBridges)
@@ -2789,7 +2800,7 @@ class Plugin(indigo.PluginBase):
 				else:
 					valuesDict['address'] = ""
 					valuesDict['showAlertText'] = "Enter IP # Manually"
-					self.selHubNumberLast = 0
+					self.selHubNumberLast = time.time() + 180
 			else:
 					bridgeId = self.bridgesAvailableSelected
 					if self.isValidIP(self.bridgesAvailable[bridgeId]['ipAddress']):
@@ -2803,7 +2814,7 @@ class Plugin(indigo.PluginBase):
 					else:
 						valuesDict['address'] = ""
 						valuesDict['showAlertText'] = "Enter IP # Manually"
-						self.selHubNumberLast = 0
+						self.selHubNumberLast = time.time() + 180
 
 					self.findHueBridgesNow = time.time() + 10
 			self.lastGWConfirmClick  = time.time() + 180
@@ -2840,9 +2851,9 @@ class Plugin(indigo.PluginBase):
 			errorsDict['showAlertText'] = "ip number is wrong"
 			return valuesDict, errorsDict
 
-		if self.hubNumberSelected  not in khubNumbersAvailable or time.time() - self.selHubNumberLast > 0: 
-			self.indiLOG.log(20,"Starting restartPairing. Bridge not confirmed {}".format(self.hubNumberSelected ))
-			if not autoSearch: errorsDict['showAlertText'] = "\"Select Bridge\" not confirmed (or last select is expired), click on CONFIRM (again) to select the bridge # you like to add "
+		if (self.hubNumberSelected not in khubNumbersAvailable)  or ((time.time() - self.selHubNumberLast) > 0): 
+			self.indiLOG.log(20,"Starting restartPairing. Bridge not confirmed #{}, type:{}, (cond:{}? ) available bridge slots:{}, time window:{} >0?".format(self.hubNumberSelected, type(self.hubNumberSelected), self.hubNumberSelected  not in khubNumbersAvailable,  khubNumbersAvailable, time.time() - self.selHubNumberLast))
+			if not autoSearch: errorsDict['showAlertText'] = "\"Select Bridge\" not confirmed (or last select is expired), click on CONFIRM (again) to select the bridge # you like to add , see log for details"
 			return valuesDict, errorsDict
 
 		# If there haven't been any errors so far, try to connect to the Hue bridge to see
@@ -3041,6 +3052,9 @@ class Plugin(indigo.PluginBase):
 		maxPresetCount = valuesDict.get('maxPresetCount', "")
 
 		self.timeScaleFactor = float(valuesDict['timeScaleFactor'])
+
+		self.searchForStringinFindHueBridge = valuesDict['searchForStringinFindHueBridge']
+
 
 		self.getDebugLevels(valuesDict)
 
@@ -5788,6 +5802,8 @@ class Plugin(indigo.PluginBase):
 			hubNumbers = self.ipAddresses
 		else:
 			hubNumbers = {self.hubNumberSelected:True}
+
+
 
 		for hubNumber in hubNumbers:
 			# Iterate over our sensors, and return a sorted list in Indigo's format
@@ -10561,7 +10577,7 @@ class Plugin(indigo.PluginBase):
 		self.findHueBridgesAreBeingupdated = "updating"
 
 		while True:
-			if self.decideMyLog("debugLoop"): self.indiLOG.log(10,"findHueBridges:  next try")
+			if self.decideMyLog("FindHueBridge"): self.indiLOG.log(10,"findHueBridges:  next try")
 			self.findHueBridgesNow = time.time() + normalwaitBetweentriesFindBridges
 			lastFindBridges = time.time()
 			try:
@@ -10574,21 +10590,21 @@ class Plugin(indigo.PluginBase):
 				# returns lines like: 14:53:34.464  Add        3   4 local.               _hue._tcp.           Philips Hue - A30D45
 				cmd =  "/usr/bin/dns-sd -B _hue._tcp local. & sleep 1; /bin/kill $!"
 				ret, err = self.readPopen(cmd)
-				#self.indiLOG.log(20,"findHueBridges:  (1) cmd:{}, ret={}".format(cmd, ret))
+				if self.decideMyLog("FindHueBridge"): self.indiLOG.log(10,"findHueBridges:  (1) cmd:{}, ret={}".format(cmd, ret))
 				lines = ret.split("\n")
 				huesFound = {}
 				bridgeIds = {}
 				ipAddress = {}
 				count = 0
 				for line in lines:
-					if "Philips Hue - " in line:
+					if self.searchForStringinFindHueBridge in line:
 						ll = line.split() #   ll[-1] == A30D45
-						huesFound[count] = {"cmd":'"Philips Hue - '+ ll[-1]+'"',"name":"none"} 
+						huesFound[count] = {"cmd":'"'+self.searchForStringinFindHueBridge+' - '+ ll[-1]+'"',"name":"none"} 
 						ipAddress[count] = "none"
 						bridgeIds[count] = "none"
 						count += 1
 
-				#self.indiLOG.log(10,"findHueBridges:  (2) huesFound={}".format( huesFound))
+				if self.decideMyLog("FindHueBridge"): self.indiLOG.log(10,"findHueBridges:  (2) huesFound={}".format( huesFound))
 				# second scan get  names 
 				# returns a line like: 14:55:09.260  Philips\032Hue\032-\032A8A63E._hue._tcp.local. can be reached at Bridge-2-201-d2.local.:443 (interface 4)
 				for cc in range(count):
@@ -10596,7 +10612,7 @@ class Plugin(indigo.PluginBase):
 					if self.pluginState == "stop": return 
 					cmd = "/usr/bin/dns-sd  -L "+huesFound[cc]['cmd']+' _hue._tcp & sleep 1; /bin/kill $!'
 					ret, err = self.readPopen(cmd)
-					#self.indiLOG.log(20,"findHueBridges:  (2)-{} cmd:{}, ret={}".format(cc, cmd, ret))
+					if self.decideMyLog("FindHueBridge"): self.indiLOG.log(10,"findHueBridges:  (2)-{} cmd:{}, ret={}".format(cc, cmd, ret))
 					if " can be reached at " in ret:
 						name = ret.split(" can be reached at ")[1].split(":")[0]
 						huesFound[cc]['name'] = name # == Bridge-2-201-d2.local.
@@ -10604,7 +10620,7 @@ class Plugin(indigo.PluginBase):
 						if "bridgeid=" in ret:
 							bridgeIds[cc] = ret.split("bridgeid=")[1].split(" ")[0].upper()
 						
-				#self.indiLOG.log(10,"findHueBridges:  (4) huesFound={}".format( huesFound))
+				if self.decideMyLog("FindHueBridge"): self.indiLOG.log(10,"findHueBridges:  (4) huesFound={}".format( bridgeIds))
 
 				# third scan:
 				# returns line like: 14:56:22.568  Add 40000002  4 Bridge-2-201-d2.local.                 192.168.1.201                                120
@@ -10617,7 +10633,7 @@ class Plugin(indigo.PluginBase):
 
 					cmd =  "/usr/bin/dns-sd -G v4 " + huesFound[cc]['name'] +" & sleep 1; /bin/kill $!"
 					ret, err = self.readPopen(cmd)
-					#self.indiLOG.log(20,"findHueBridges:  (3)-{} cmd:{}, ret={}".format(cc, cmd, ret))
+					if self.decideMyLog("FindHueBridge"): self.indiLOG.log(10,"findHueBridges:  (3)-{} cmd:{}, ret={}".format(cc, cmd, ret))
 					if huesFound[cc]['name'] in ret:
 						ipAddress[cc] = ret.split(huesFound[cc]['name'])[1].lstrip(" ").split(" ")[0] # == 192.168.1.201 
 
@@ -11446,19 +11462,20 @@ class Plugin(indigo.PluginBase):
 ####-------------------------------------------------------------------------####
 	def setlastBatteryReplaced(self, device, batL):
 		try:	
+			if "lastBatteryReplaced"  not in device.states: return 
+			if "batteryLevel"  not in device.states: return 
+
 			# remember the last datetime when batlevel was 100%
-			if "lastBatteryReplaced"  in device.states and batL == 100:
+			if len(device.states["lastBatteryReplaced"]) < 5:
+				self.updateDeviceState(device, "lastBatteryReplaced",	datetime.datetime.now().strftime(_defaultDateStampFormat))
+				return 
 
+			if  batL == 100:
 				if len(str(device.states["batteryLevel"])) < 1:# empty 
-					if len(device.states["lastBatteryReplaced"]) < 5:
-						self.updateDeviceState(device, "lastBatteryReplaced",	datetime.datetime.now().strftime(_defaultDateStampFormat))
-
-				elif len(device.states["lastBatteryReplaced"]) < 5: # empty 
-						self.updateDeviceState(device, "lastBatteryReplaced",	datetime.datetime.now().strftime(_defaultDateStampFormat))
+					self.updateDeviceState(device, "lastBatteryReplaced",	datetime.datetime.now().strftime(_defaultDateStampFormat))
 
 				elif device.states["batteryLevel"] < batL: # update if new 100%
-						self.updateDeviceState(device, "lastBatteryReplaced",	datetime.datetime.now().strftime(_defaultDateStampFormat))
-
+					self.updateDeviceState(device, "lastBatteryReplaced",	datetime.datetime.now().strftime(_defaultDateStampFormat))
 		except Exception as e:
 			if str(e).find("None") == -1: self.logger.error("", exc_info=True)
 

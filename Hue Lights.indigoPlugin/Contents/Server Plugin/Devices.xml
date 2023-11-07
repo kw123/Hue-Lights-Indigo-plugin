@@ -10,7 +10,7 @@
 				<Label>Edit / Replace a device </Label>
 				<List>
 					<Option value="EditExisting">edit existing device, normal option</Option>
-					<Option value="Replace_with_new_Hue_device">replace device, select new Hue device</Option>
+					<Option value="Replace_with_new_Hue_device">replace / add device, select new Hue device</Option>
 					<Option value="Replace_with_other_Indigo_device">replace device, copy other Indigo device to this device</Option>
 				</List>
 			</Field>
@@ -171,7 +171,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>Edit / Replace a device </Label>
 				<List>
 					<Option value="EditExisting">edit existing device, normal option</Option>
-					<Option value="Replace_with_new_Hue_device">replace device, select new Hue device</Option>
+					<Option value="Replace_with_new_Hue_device">replace / add device, select new Hue device</Option>
 					<Option value="Replace_with_other_Indigo_device">replace device, copy other Indigo device to this device</Option>
 				</List>
 			</Field>
@@ -296,7 +296,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>Edit / Replace a device </Label>
 				<List>
 					<Option value="EditExisting">edit existing device, normal option</Option>
-					<Option value="Replace_with_new_Hue_device">replace device, select new Hue device</Option>
+					<Option value="Replace_with_new_Hue_device">replace / add device, select new Hue device</Option>
 					<Option value="Replace_with_other_Indigo_device">replace device, copy other Indigo device to this device</Option>
 				</List>
 			</Field>
@@ -456,7 +456,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>Edit / Replace a device </Label>
 				<List>
 					<Option value="EditExisting">edit existing device, normal option</Option>
-					<Option value="Replace_with_new_Hue_device">replace device, select new Hue device</Option>
+					<Option value="Replace_with_new_Hue_device">replace / add device, select new Hue device</Option>
 					<Option value="Replace_with_other_Indigo_device">replace device, copy other Indigo device to this device</Option>
 				</List>
 			</Field>
@@ -611,7 +611,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>Edit / Replace a device </Label>
 				<List>
 					<Option value="EditExisting">edit existing device, normal option</Option>
-					<Option value="Replace_with_new_Hue_device">replace device, select new Hue device</Option>
+					<Option value="Replace_with_new_Hue_device">replace / add device, select new Hue device</Option>
 					<Option value="Replace_with_other_Indigo_device">replace device, copy other Indigo device to this device</Option>
 				</List>
 			</Field>
@@ -726,7 +726,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>Edit / Replace a device </Label>
 				<List>
 					<Option value="EditExisting">edit existing device, normal option</Option>
-					<Option value="Replace_with_new_Hue_device">replace device, select new Hue device</Option>
+					<Option value="Replace_with_new_Hue_device">replace / add device, select new Hue device</Option>
 					<Option value="Replace_with_other_Indigo_device">replace device, copy other Indigo device to this device</Option>
 				</List>
 			</Field>

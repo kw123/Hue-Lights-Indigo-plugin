@@ -1,12 +1,28 @@
 ========================================
+2022.16.55 @ 2023-10-07
+1. fixed add hue bridge manually
+2. fixed find hue bridge automatically, 
+   the tag used changed from Philips Hue to Hue Bridge. that is due to software changes on the bridge
+   you now can change that string in config. 
+
+========================================
+2022.16.54 @ 2023-09-29
+1. fixed some typos
+2. changed lastBatteryUpdate :
+  was: if new batterylevel ==100 and old < 100: set lastBatteryUpdate to current date
+  now: added if lastBatteryUpdate is empty set to current date.
+  if the battery level is less than 100 when you start the plugin you might need to wait for a loooong time before this state gets set ie if the battery live is 2 years
+  this now gives you at east some date
+
+========================================
 2022.16.53 @ 2023-09-27
-Added option to REPLACE a ( eg broken) lamp in indigo -  ie keep the indigo ID (and trigger etc)  and link it to the new Hue device
-steps:
-in indigo device edit Lights you now have 3 options:
+Added option to REPLACE a (eg broken) hue light in indigo -  ie keep the indigo ID (and trigger etc)  and link it to the new Hue device
+
+In indigo device edit Lights you now have 3 options:
 1. normal edit, no change
-2. replace the hue device an indigo devce is linked to
+2. replace the hue device an indigo device is linked to
 - add new hue device to hue bridge, then edit the old indigo device and select "replace device, select new Hue device"
-3. copy other indigo device (eg already created indigo device for new hue device)
+3. copy other indigo device (eg already created indigo device for new replaced hue device, but you would like to keep triggers etc in place that use THIS indigo device id)
 - edit old Indigo device and select option: "replace device, copy other Indigo device to this device"
   after save delete the indigo device that was copied from.
 

@@ -298,8 +298,24 @@ others: fixed at 3-5 minutes
 	<Field    id="debugReadFromBridge"          type="checkbox"         > <Label>     ... (4)  Read From Bridge:</Label>  </Field>
 	<Field    id="debugSendCommandsToBridge"    type="checkbox"         > <Label>     ... (5)  Send Commands To Bridge:</Label>  </Field>
 	<Field    id="debugUpdateIndigoDevices"     type="checkbox"         > <Label>     ... (6)  Update Indigo Devices:</Label>  </Field>
-	<Field    id="debugSpecial"       			type="checkbox"         > <Label>     ... (S)  special debug (only for development):</Label>  </Field>
+	<Field    id="debugFindHueBridge"           type="checkbox"         > <Label>     ... (7)  find Hue bridges:</Label>  </Field>
+	<Field    id="debugSpecial"       			type="checkbox"         > <Label>     ... (8)  special debug (only for development):</Label>  </Field>
 	<Field    id="debugall"            			type="checkbox"         > <Label>     ... (99) all of the above .. everything:</Label>  </Field>
+
+	<Field id="sepbr3" type="separator"/>
+
+	<Field id="findHueBrLabel1" type="label"  fontColor="green">
+		<Label>for experts only ! serach string for commands to find hue bridges</Label>
+	</Field>
+	<Field id="findHueBrLabel" type="label">
+		<Label>Use "/usr/bin/dns-sd -B _hue._tcp local." to look for hue tag, could be Hue Bridge or Philips ...</Label>
+	</Field>
+
+	<Field id="searchForStringinFindHueBridge" type="textfield">
+		<Label>String to look for in finding hue bridges</Label>
+    </Field>
+
+
 
 
 </PluginConfig>
