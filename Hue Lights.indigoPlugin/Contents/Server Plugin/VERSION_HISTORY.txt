@@ -1,4 +1,10 @@
 ========================================
+2022.16.56 @ 2024-04-01
+1. fixed line 2496, in validateActionConfigUi ... type: 'in <string>' requires string as left operand, not type
+========================================
+
+
+========================================
 2022.16.55 @ 2023-10-07
 1. fixed add hue bridge manually
 2. fixed find hue bridge automatically, 

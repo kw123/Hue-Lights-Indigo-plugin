@@ -2493,7 +2493,7 @@ class Plugin(indigo.PluginBase):
 				isError = True
 				errorsDict['device'] = "The \"{}\" device is not a compatible Hue device. Please choose a Hue light or group device.".format(device.name)
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
-			elif device.deviceTypeId in kLightDeviceTypeIDs and type not in kCompatibleDeviceIDType:
+			elif device.deviceTypeId in kLightDeviceTypeIDs and device.deviceTypeId not in kCompatibleDeviceIDType:
 				isError = True
 				errorsDict['device'] = "The \"{}\" device is not a compatible Hue device. Please choose a Hue light or group device.".format(device.name)
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
