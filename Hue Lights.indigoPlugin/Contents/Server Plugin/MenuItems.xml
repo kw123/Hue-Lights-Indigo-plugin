@@ -75,11 +75,6 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 			<Field id="instructions1" type="label" fontSize="small">
 				<Label>Hue Scenes are stored on the Hue Bridge and are organized here by which application created them.</Label>
 			</Field>
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway his Scene is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter="active" dynamicReload="false"> </List>
-			</Field>
 			<Field id="userId" type="menu" defaultValue=""
 				tooltip="Scene Creators are the applications on various devices that have connected to the Hue Bridge and created Scenes.">
 				<Label>Scene Creator:</Label>

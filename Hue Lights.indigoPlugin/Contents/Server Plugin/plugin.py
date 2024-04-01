@@ -1668,7 +1668,7 @@ class Plugin(indigo.PluginBase):
 	# Closed Device Configuration.
 	########################################
 	def closedDeviceConfigUi(self, valuesDict, userCancelled, typeId, deviceId):
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting closedDeviceConfigUi.  valuesDict: {}, userCancelled: {}, typeId: {}, deviceId: {}".format(valuesDict, userCancelled, typeId, deviceId))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting closedDeviceConfigUi.  valuesDict: {}, userCancelled: {}, typeId: {}, deviceId: {}".format(valuesDict, userCancelled, typeId, deviceId))
 		# If the user didn't cancel the changes, take any needed actions as a result of the changes made.
 		if not userCancelled:
 			# Configuration was saved.  Rebuild the device if needed.
@@ -1678,7 +1678,7 @@ class Plugin(indigo.PluginBase):
 	# Validate Action Configuration.
 	########################################
 	def validateActionConfigUi(self, valuesDict, typeId, deviceId):
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting validateActionConfigUi.  valuesDict: {}, typeId: {}, deviceId: {}".format(valuesDict,  typeId, deviceId))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting validateActionConfigUi.  valuesDict: {}, typeId: {}, deviceId: {}".format(valuesDict,  typeId, deviceId))
 		hubNumber = "0"
 		isError = False
 		errorsDict = indigo.Dict()
@@ -2491,12 +2491,9 @@ class Plugin(indigo.PluginBase):
 			# Make sure the model is a supported light model and the device is a light (as opposed to a sensor, etc).
 			elif device.deviceTypeId not in kLightDeviceTypeIDs and device.deviceTypeId not in kGroupDeviceTypeIDs:
 				isError = True
-				errorsDict['device'] = "The \"{}\" device is not a compatible Hue device. Please choose a Hue light or group device.".format(device.name)
+				errorsDict['device'] = "The \"{}\" wrong dev type. Please choose a Hue light or group device.".format(device.name)
 				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
-			elif device.deviceTypeId in kLightDeviceTypeIDs and device.deviceTypeId not in kCompatibleDeviceIDType:
-				isError = True
-				errorsDict['device'] = "The \"{}\" device is not a compatible Hue device. Please choose a Hue light or group device.".format(device.name)
-				errorsDict['showAlertText'] += errorsDict['device'] + "\n\n"
+				self.indiLOG.log(30,"recallPreset(1E)  valuesDict: {}\n  typeId: {}, name:{}; types accepted:{}; {}.".format(valuesDict, device.deviceTypeId, device.name, kLightDeviceTypeIDs, kGroupDeviceTypeIDs))
 
 			# Make sure a Preset was selected.
 			presetId = valuesDict.get('presetId', "")
@@ -2553,7 +2550,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def gwListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
 		# Used in actions and device configuration windows that need a list of sensor devices.
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting gwListGeneratorPrefs.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, valuesDict, typeId, targetId))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting gwListGeneratorPrefs.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, valuesDict, typeId, targetId))
 
 		xList = list()
 		availableIPHubs = []
@@ -2593,7 +2590,7 @@ class Plugin(indigo.PluginBase):
 				if filter == "":
 					xList.append((hubNumber,  "{} empty, can be used manually".format(hubNumber)))
 
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"gwListGenerator: Return hubNumber list is {}".format(xList) )
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"gwListGenerator: Return hubNumber list is {}".format(xList) )
 
 		return xList
 
@@ -2605,7 +2602,7 @@ class Plugin(indigo.PluginBase):
 		valuesDict = indigo.Dict()
 		(valuesDict, errorsDict) = super(Plugin, self).getPrefsConfigUiValues()
 		try:
-			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,'Starting  getPrefsConfigUiValues(self):')
+			if self.decideMyLog("EditSetup"): self.indiLOG.log(20,'Starting  getPrefsConfigUiValues(self):')
 			valuesDict['hubNumber'] 				= "0"
 			valuesDict['address'] 					= self.ipAddresses.get('0',"")
 			valuesDict['labelHostId'] 				= self.hostIds.get('0',"")
@@ -2781,7 +2778,7 @@ class Plugin(indigo.PluginBase):
 			errorsDict['showAlertText'] = ""
 			valuesDict['hostId'] = ""
 
-			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"selHubNumberGWPair: Values passed:\n{}".format(valuesDict))
+			if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"selHubNumberGWPair: Values passed:\n{}".format(valuesDict))
 			self.hubNumberSelected = valuesDict['hubNumber']
 			if self.hubNumberSelected  not in khubNumbersAvailable: 
 				if self.decideMyLog("Init"): self.indiLOG.log(10,"selHubNumberGWPair bad hubNumber given {}".format(self.hubNumberSelected ))
@@ -2983,9 +2980,9 @@ class Plugin(indigo.PluginBase):
 			return valuesDict, errorsDict
 
 		try:
-			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"validatePrefsConfigUi: Verifying that a Hue bridge exists at IP address \"{}\".".format(valuesDict['address']) )
+			if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"validatePrefsConfigUi: Verifying that a Hue bridge exists at IP address \"{}\".".format(valuesDict['address']) )
 			command = "http://{}/description.xml".format(valuesDict['address'])
-			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"validatePrefsConfigUi: Accessing URL: {}".format(command))
+			if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"validatePrefsConfigUi: Accessing URL: {}".format(command))
 			self.setBridgeBusy(self.hubNumberSelected, calledfrom="restartPairing-3")
 			r = requests.get(command, timeout=kTimeout, headers={'Connection':'close'})
 			self.resetBridgeBusy(self.hubNumberSelected)
@@ -2994,7 +2991,7 @@ class Plugin(indigo.PluginBase):
 			# Quick and dirty check to see if this is a Philips Hue bridge.
 			if b"Philips hue bridge" not in r.content:
 				# If "Philips hue bridge" doesn't exist in the response, it's not a Hue bridge.
-				if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"validatePrefsConfigUi: No \"Philips hue bridge\" string found in response. This isn't a Hue bridge.")
+				if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"validatePrefsConfigUi: No \"Philips hue bridge\" string found in response. This isn't a Hue bridge.")
 				isError = True
 				errorsDict['address'] = "This doesn't appear to be a Philips Hue bridge.  Please verify the IP address."
 				if not autoSearch: errorsDict['showAlertText'] += errorsDict['address'] + "\n\n"
@@ -3015,7 +3012,7 @@ class Plugin(indigo.PluginBase):
 
 		except requests.exceptions.Timeout:
 			self.resetBridgeBusy(self.hubNumberSelected)
-			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"validatePrefsConfigUi: Connection to {} timed out after {} seconds.".format(valuesDict['address'], kTimeout))
+			if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"validatePrefsConfigUi: Connection to {} timed out after {} seconds.".format(valuesDict['address'], kTimeout))
 			isError = True
 			errorsDict['address'] = "Unable to reach the bridge. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
 			if not autoSearch: errorsDict['showAlertText'] += errorsDict['address'] + "\n\n"
@@ -3023,7 +3020,7 @@ class Plugin(indigo.PluginBase):
 
 		except requests.exceptions.ConnectionError:
 			self.resetBridgeBusy(self.hubNumberSelected)
-			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"validatePrefsConfigUi: Connection to {} failed. There was a connection error.".format(valuesDict['address']) )
+			if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"validatePrefsConfigUi: Connection to {} failed. There was a connection error.".format(valuesDict['address']) )
 			isError = True
 			errorsDict['address'] = "Connection error. Please check the IP address and ensure that the Indigo server and Hue bridge are connected to the network."
 			if not autoSearch: errorsDict['showAlertText'] += errorsDict['address'] + "\n\n"
@@ -3044,7 +3041,7 @@ class Plugin(indigo.PluginBase):
 	# Validate Preferences Configuration.
 	########################################
 	def validatePrefsConfigUi(self, valuesDict):
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"validatePrefsConfigUi: Values passed:\n{}".format(valuesDict))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"validatePrefsConfigUi: Values passed:\n{}".format(valuesDict))
 		isError = False
 		errorsDict = indigo.Dict()
 		errorsDict['showAlertText'] = ""
@@ -3060,7 +3057,7 @@ class Plugin(indigo.PluginBase):
 
 		if maxPresetCount == "":
 			# The field was left blank.
-			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"validatePrefsConfigUi: maxPresetCount was left blank. Setting value to 30.")
+			if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"validatePrefsConfigUi: maxPresetCount was left blank. Setting value to 30.")
 			maxPresetCount = "30"
 			valuesDict['maxPresetCount'] = maxPresetCount
 		else:
@@ -3097,7 +3094,7 @@ class Plugin(indigo.PluginBase):
 	# Plugin Configuration Dialog Closed
 	########################################
 	def closedPrefsConfigUi(self, valuesDict, userCancelled):
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"closedPrefsConfigUi: Starting closedPrefsConfigUi.")
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"closedPrefsConfigUi: Starting closedPrefsConfigUi.")
 
 		# If the user didn't cancel the changes, take any needed actions as a result of the changes made.
 		if not userCancelled:
@@ -3120,11 +3117,11 @@ class Plugin(indigo.PluginBase):
 			self.maxPresetCount = int(valuesDict.get('maxPresetCount', "30"))
 			presets = self.pluginPrefs.get('presets', "")
 			presetCount = len(presets)
-			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"closedPrefsConfigUi: pluginPrefs contains {} presets.".format(presetCount))
+			if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"closedPrefsConfigUi: pluginPrefs contains {} presets.".format(presetCount))
 			# If there are fewer Presets in the prefs than the maxPresetCount, add the reset.
 			if presetCount < self.maxPresetCount:
 				self.indiLOG.log(20,"Preset Memories number increased to {}.".format(self.maxPresetCount))
-				if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"closedPrefsConfigUi: ... Adding {} presets to bring total to {}.".format(self.maxPresetCount - presetCount, self.maxPresetCount))
+				if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"closedPrefsConfigUi: ... Adding {} presets to bring total to {}.".format(self.maxPresetCount - presetCount, self.maxPresetCount))
 				for aNumber in range(presetCount + 1,self.maxPresetCount + 1):
 					# Add ever how many presets are needed to make a total of the maximum presets allowed.
 					# Create a blank sub-list for storing preset name and preset states.
@@ -3140,7 +3137,7 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(20,"... {} Presets added.  There are now {} Presets.".format(self.maxPresetCount - presetCount, self.maxPresetCount))
 			# If there are more presets than are allowed by maxPresetCount, remove the extra Presets.
 			elif presetCount > self.maxPresetCount:
-				if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"closedPrefsConfigUi: ... Deleting the last {} Presets to bring the total to {}.".format(presetCount - self.maxPresetCount, self.maxPresetCount) )
+				if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"closedPrefsConfigUi: ... Deleting the last {} Presets to bring the total to {}.".format(presetCount - self.maxPresetCount, self.maxPresetCount) )
 				self.indiLOG.log(30,"WARNING:  You've decreased the number of Preset Memories, so we're deleting the last {} Presets to bring the total to {}.  This cannot be undone.".format(presetCount - self.maxPresetCount, self.maxPresetCount) )
 				for aNumber in range(presetCount - 1,self.maxPresetCount - 1,-1):
 					# Remove every Preset after the maxPresetCount limit, starting from the last Preset and moving backward up the list of Presets.
@@ -3171,7 +3168,7 @@ class Plugin(indigo.PluginBase):
 
 				# Replace the list of Presets in the prefs with the new list.
 				self.pluginPrefs['presets'] = presets
-				if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"closedPrefsConfigUi: pluginPrefs now contains {} Presets.".format(self.maxPresetCount) )
+				if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"closedPrefsConfigUi: pluginPrefs now contains {} Presets.".format(self.maxPresetCount) )
 		else:
 			self.indiLOG.log(30,"Configuration changes not saved! ie any bridge add/del/mod not saved")
 		return 
@@ -5397,7 +5394,7 @@ class Plugin(indigo.PluginBase):
 	# Groups List Item Selected (callback from action UI)
 	########################################
 	def groupsListItemSelected(self, valuesDict=None, typeId="", deviceId=0):
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting groupsListItemSelected.  valuesDict: {}, typeId: {}, targetId: {}".format(valuesDict, typeId, deviceId))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting groupsListItemSelected.  valuesDict: {}, typeId: {}, targetId: {}".format(valuesDict, typeId, deviceId))
 
 		self.groupListSelection = valuesDict['groupId']
 
@@ -5407,7 +5404,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def bulbListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
 		# Used in actions that need a list of Hue bridge devices.
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting bulbListGenerator.  filter:{}\n valuesDict: {}, typeId: {}, targetId: {}, hubNumberSelected:{}".format(filter, valuesDict, typeId, targetId, self.hubNumberSelected))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting bulbListGenerator.  filter:{}\n valuesDict: {}, typeId: {}, targetId: {}, hubNumberSelected:{}".format(filter, valuesDict, typeId, targetId, self.hubNumberSelected))
 
 		xList = list()
 		devType = "lights"
@@ -5445,11 +5442,11 @@ class Plugin(indigo.PluginBase):
 					continue
 				break
 			
-			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator: deviceAction:{},\n otherExistingIndigoDevs: {},\n thisDeviceExists:{}".format(deviceAction, otherExistingIndigoDevs, thisDeviceExists))
+			if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"bulbListGenerator: deviceAction:{},\n otherExistingIndigoDevs: {},\n thisDeviceExists:{}".format(deviceAction, otherExistingIndigoDevs, thisDeviceExists))
 			# loop through devices on hub
 			for hubNumber in hubNumbers:
 				for memberId, details in sorted(self.hueConfigDict[hubNumber][devType].items(), key = lambda x: x[1]['name']):
-					if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator:  testing{}, thisdev:{} other:{}".format(hubNumber+"-"+memberId, hubNumber+"-"+memberId in thisDeviceExists, hubNumber+"-"+memberId in otherExistingIndigoDevs))
+					if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"bulbListGenerator:  testing{}, thisdev:{} other:{}".format(hubNumber+"-"+memberId, hubNumber+"-"+memberId in thisDeviceExists, hubNumber+"-"+memberId in otherExistingIndigoDevs))
 					if hubNumber+"-"+memberId in thisDeviceExists:
 						if deviceAction == "EditExisting": 	 
 							addAtEnd = [memberId, details['name']+'-..'+details['uniqueid'][-10:]+"-current"]
@@ -5457,12 +5454,12 @@ class Plugin(indigo.PluginBase):
 
 					elif hubNumber+"-"+memberId in otherExistingIndigoDevs:
 						if deviceAction in ["EditExisting","Replace_with_new_Hue_device"]:
-							if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator:  skip, thisDeviceExists  already exixts in Indigo,{}-ID:{}".format(hubNumber+"-"+memberId, otherExistingIndigoDevs[hubNumber+"-"+memberId]))
+							if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"bulbListGenerator:  skip, thisDeviceExists  already exixts in Indigo,{}-ID:{}".format(hubNumber+"-"+memberId, otherExistingIndigoDevs[hubNumber+"-"+memberId]))
 							continue
 
 					else:
 						if deviceAction not in ["Replace_with_new_Hue_device"]:
-							if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator:  not a new hue device :{}".format(hubNumber+"-"+memberId))
+							if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"bulbListGenerator:  not a new hue device :{}".format(hubNumber+"-"+memberId))
 							continue
 
 					if typeId == "":
@@ -5490,13 +5487,13 @@ class Plugin(indigo.PluginBase):
 					elif filter.find('anyLight') > -1:
 						xList.append([memberId, '{}-..{}{}'.format(details['name'], details['uniqueid'][-10:], addToString)])
 
-					if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator:  xList {}".format(xList))
+					if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"bulbListGenerator:  xList {}".format(xList))
 					availableButWrongDevtype += "name:\"{}\", GW#:{}, id:{}, hue-type:\"{}\" equivalent to indigoDev-type:\"{}\"\n ".format(details['name'],  hubNumber, memberId, details['type'], kmapHueTypeToIndigoDevType.get(details['type'],"") )
 
 			if addAtEnd !="": 	xList.append(addAtEnd)
  
 			# Debug
-			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbListGenerator: Return {} list is {}".format(devType, xList))
+			if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"bulbListGenerator: Return {} list is {}".format(devType, xList))
 
 		except Exception:
 			self.indiLOG.log(30,"Unable to obtain the configuration from the Hue bridge #{}".format(hubNumber), exc_info=True)
@@ -5512,7 +5509,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def groupListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
 		# Used in actions that need a list of Hue bridge groups.
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting groupListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}" .format(filter, valuesDict, typeId, targetId, availableButWrongDevtype))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting groupListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}" .format(filter, valuesDict, typeId, targetId, availableButWrongDevtype))
 
 		xList = list()
 		devType = "groups"
@@ -5546,7 +5543,7 @@ class Plugin(indigo.PluginBase):
 					existing[props['hubNumber']+"-"+props[devIdTypeId]] = devId
 
 
-			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"groupListGenerator  bf select existing: {}  excludeList: {}, hubNumbers:{}".format(existing, excludeList, hubNumbers))
+			if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"groupListGenerator  bf select existing: {}  excludeList: {}, hubNumbers:{}".format(existing, excludeList, hubNumbers))
 			for hubNumber in hubNumbers:
 				if hubNumber not in self.hueConfigDict: continue
 				for memberId, details in sorted(self.hueConfigDict[hubNumber][devType].items(), key = lambda x: int(x[0])):
@@ -5565,7 +5562,7 @@ class Plugin(indigo.PluginBase):
 			self.indiLOG.log(30,"Unable to obtain the configuration from the Hue bridge.{}".format(self.hubNumberSelected), exc_info=True)
 
 	# Debug
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"groupListGenerator: Return {} list is {}".format(devType, xList))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"groupListGenerator: Return {} list is {}".format(devType, xList))
 
 		return xList
 
@@ -5574,7 +5571,7 @@ class Plugin(indigo.PluginBase):
 	def bulbAndGroupDeviceListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
 		# Used in actions that need a list of Hue Lights plugin devices that aren't
 		#   attribute controllers or groups.
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting bulbAndGroupDeviceListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, valuesDict, typeId, targetId))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting bulbAndGroupDeviceListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, valuesDict, typeId, targetId))
 
 		xList = list()
 
@@ -5585,11 +5582,11 @@ class Plugin(indigo.PluginBase):
 			if device.pluginProps.get('type', "") in ['Extended color light', 'Color light', 'Color temperature light'] or device.deviceTypeId == "hueGroup":
 				xList.append([deviceId, device.name])
 
-		if filter != "yes": xList.append([0, "0: (All Hue Lights)"])
+		if False and filter != "yes": xList.append([0, "0: (All Hue Lights)"])
 		# Sort the list.  Use the "lambda" Python inline function to use the 2nd item in the tuple list (device name) as the sorting key.
 		xList = sorted(xList, key = lambda x: x[1])
 		# Debug
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"bulbAndGroupDeviceListGenerator: Return Hue device list is {}".format(xList))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"bulbAndGroupDeviceListGenerator: Return Hue device list is {}".format(xList))
 
 
 		return xList
@@ -5598,12 +5595,12 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def presetListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
 		# Used by action dialogs to generate a list of Presets saved in the Hue Lights plugin prefs.
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting presetListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  deviceId: {}".format(filter, valuesDict, typeId, deviceId))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting presetListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  deviceId: {}".format(filter, valuesDict, typeId, deviceId))
 
 		xList = list()	# Menu item list.
 
 		presets = self.pluginPrefs.get('presets', None)
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"presetListGenerator: Presets in plugin prefs:\n{}".format(presets))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"presetListGenerator: Presets in plugin prefs:\n{}".format(presets))
 
 		if presets is not None:
 			presetNumber = 0
@@ -5626,7 +5623,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def usersListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
 		# Used by action dialogs to generate a list of Hue scene "owner" devices or "Creators".
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting usersListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  deviceId: {}".format(filter, valuesDict, typeId, deviceId))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting usersListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  deviceId: {}".format(filter, valuesDict, typeId, deviceId))
 
 		xList = list()	# Menu item list.
 
@@ -5644,7 +5641,7 @@ class Plugin(indigo.PluginBase):
 					#   is to name the "user" as <app name>#<device name>.  We'll translate that
 					#   here to something more readable and descriptive for the list.
 					userName = userName.replace("#", " app on ")
-					if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"usersListGenerator: usersListSelection value: {}, userId: {}, userData: {}".format(self.usersListSelection, userId, json.dumps(userData, indent=2)))
+					if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"usersListGenerator: usersListSelection value: {}, userId: {}, userData: {}".format(self.usersListSelection, userId, json.dumps(userData, indent=2)))
 					# Don't display the "Indigo Hue Lights" user as that's this plugin which
 					#   won't have any scenes associated with it, which could be confusing.
 					if userName != "Indigo Hue Lights":
@@ -5656,7 +5653,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def scenesListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
 		# Used by action dialogs to list Hue scenes on the Hue bridge for a particular "owner" device.
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting scenesListGenerator.  filter: {}  valuesDict: {}  typeId: {}  deviceId: {}, self.hubNumberSelected:{}".format(filter, valuesDict, typeId, deviceId, self.hubNumberSelected))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting scenesListGenerator.  filter: {}  valuesDict: {}  typeId: {}  deviceId: {}, self.hubNumberSelected:{}".format(filter, valuesDict, typeId, deviceId, self.hubNumberSelected))
 
 		xList = list()	# Menu item list.
 
@@ -5681,7 +5678,7 @@ class Plugin(indigo.PluginBase):
 						# Don't add the "(from ... app on ...)" string to the scene name if that Scene Creator was selected.
 						sceneDisplayName = sceneName
 					sceneLights = sceneData.get('lights', list())
-					if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"scenesListGenerator: usersListSelection value: {}, sceneId: {}, sceneOwner: {}, sceneName: {}, sceneData: {}".format(self.usersListSelection, sceneId, sceneOwner, sceneName, json.dumps(sceneData, indent=2)))
+					if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"scenesListGenerator: usersListSelection value: {}, sceneId: {}, sceneOwner: {}, sceneName: {}, sceneData: {}".format(self.usersListSelection, sceneId, sceneOwner, sceneName, json.dumps(sceneData, indent=2)))
 					# Filter the list based on which Hue user (scene owner) is selected.
 					if sceneOwner == self.usersListSelection or self.usersListSelection == "all" or self.usersListSelection == "":
 						xList.append((sceneId, hubNumber+'-'+sceneDisplayName))
@@ -5702,7 +5699,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def sceneLightsListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
 		# Used by action dialogs to generate a list of lights in a Hue scene, limited by Hue group.
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting sceneLightsListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  deviceId: {}".format(filter, valuesDict, typeId, deviceId))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting sceneLightsListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  deviceId: {}".format(filter, valuesDict, typeId, deviceId))
 
 		xList = list()	# List item list.
 
@@ -5732,19 +5729,19 @@ class Plugin(indigo.PluginBase):
 			if sceneId != "" and sceneId in self.hueConfigDict[hubNumber]['scenes'] :
 				# Get the list of lights in the scene.
 				sceneLights = self.hueConfigDict[hubNumber]['scenes'][sceneId]['lights']
-				if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"sceneLightsListGenerator: sceneLights value:{}".format(sceneLights))
+				if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"sceneLightsListGenerator: sceneLights value:{}".format(sceneLights))
 				# Get the list of lights in the group.
 				# If the groupId is 0, then the all lights group was selected.
 				if groupId != "0":
 					groupLights = self.hueConfigDict[hubNumber]['groups'][groupId]['lights']
-					if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"sceneLightsListGenerator: groupLights value:{}".format(groupLights))
+					if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"sceneLightsListGenerator: groupLights value:{}".format(groupLights))
 					# Get the intersection of scene lights and group lights.
 					intersectingLights = list(set(sceneLights) & set(groupLights))
 				else:
 					# Since no group limit was selected, all lights in the scene
 					#   should appear in the list.
 					intersectingLights = sceneLights
-				if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"sceneLightsListGenerator: intersectingLights value:{}".format(intersectingLights))
+				if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"sceneLightsListGenerator: intersectingLights value:{}".format(intersectingLights))
 
 				# Get the name on the Hue bridge for each light.
 				for lightId in intersectingLights:
@@ -5757,7 +5754,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def groupLightsListGenerator(self, filter="", valuesDict=None, typeId="", deviceId=0):
 		# Used by action dialogs to generate lists of lights in a Hue group.
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting groupLightsListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  deviceId: {}".format(filter, valuesDict, typeId, deviceId))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting groupLightsListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  deviceId: {}".format(filter, valuesDict, typeId, deviceId))
 
 		xList = list()	# List item list.
 		groupId = ""
@@ -5776,7 +5773,7 @@ class Plugin(indigo.PluginBase):
 				else:
 					if groupId in  self.hueConfigDict[self.hubNumberSelected ]['groups']:
 						groupLights = self.hueConfigDict[self.hubNumberSelected ]['groups'][groupId]['lights']
-				if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"groupLightsListGenerator: groupLights value:{}".format(groupLights))
+				if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"groupLightsListGenerator: groupLights value:{}".format(groupLights))
 
 				# Get the name on the Hue bridge for each light.
 				for lightId in groupLights:
@@ -5794,7 +5791,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def sensorListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
 		# Used in actions and device configuration windows that need a list of sensor devices.
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting sensorListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, valuesDict, typeId, targetId))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting sensorListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, valuesDict, typeId, targetId))
 
 		xList = list()
 		addAtEnd = []
@@ -5871,7 +5868,7 @@ class Plugin(indigo.PluginBase):
 		if addAtEnd != []:
 			xList.append(addAtEnd)
 		xList = sorted(xList, key = lambda x: x[1])
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"sensorListGenerator: Return sensor list is {}".format(xList) )
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"sensorListGenerator: Return sensor list is {}".format(xList) )
 
 		return xList
 
@@ -5879,7 +5876,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def lightsListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
 		# Used in actions and device configuration windows that need a list of sensor devices.
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting lightsListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, valuesDict, typeId, targetId))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting lightsListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, valuesDict, typeId, targetId))
 
 		xList = list()
 		if self.hubNumberSelected == "":
@@ -5901,7 +5898,7 @@ class Plugin(indigo.PluginBase):
 			xList.append(addAtEnd)
 		xList = sorted(xList, key = lambda x: x[1])
 		# Debug
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"lightsListGenerator: Return lights list is {}".format(xList) )
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"lightsListGenerator: Return lights list is {}".format(xList) )
 
 		return xList
 
@@ -5910,7 +5907,7 @@ class Plugin(indigo.PluginBase):
 	# confirm hub number selection
 	########################################
 	def confirmGWNumber(self, valuesDict, dummy1="", dummy2=""):
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting confirmGWNumber.\n  filter: {}".format(valuesDict) )
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting confirmGWNumber.\n  filter: {}".format(valuesDict) )
 		self.hubNumberSelected = valuesDict['hubNumber']
 		valuesDict['confirmHubNumberText'] = 'Bridge selected, continue with selections'
 		valuesDict['confirmHubNumberTextVisible'] = True
@@ -10284,6 +10281,12 @@ class Plugin(indigo.PluginBase):
 		errorsDict['showAlertText'] = ""
 		actionType = "action"
 		# Work with both Menu and Action actions.
+
+		if str(action.get('deviceId', 0)) == "0": 
+			errorsDict['showAlertText'] = '"all" devices currently not supported'
+			self.indiLOG.log(30,"recallPreset,\"all\" devices currently not supported: \n{}".format(str(action)))
+			return (False, action, errorsDict)
+
 		try:
 			device = indigo.devices[int(action.get('deviceId', 0))]
 			actionType = "menu"
@@ -10548,7 +10551,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def printsListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
 		# Used in actions that need a list of Hue bridge devices.
-		#if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting printsListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, str(valuesDict), typeId, targetId))
+		#if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting printsListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, str(valuesDict), typeId, targetId))
 		xList = list()
 
 		for hubNumber in sorted(self.ipAddresses, key=self.ipAddresses.get):
@@ -10692,7 +10695,7 @@ class Plugin(indigo.PluginBase):
 	# print  Preset Menu Action to log 
 	########################################
 	def displayPreset(self, valuesDict, typeId):
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting displayPreset. action values:\n{}\nType ID:{}\n".format(valuesDict, typeId) )
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting displayPreset. action values:\n{}\nType ID:{}\n".format(valuesDict, typeId) )
 		errorsDict = indigo.Dict()
 		errorsDict['showAlertText'] = ""
 
@@ -10777,7 +10780,7 @@ class Plugin(indigo.PluginBase):
 	# print config etc
 	########################################
 	def printHueData(self, valuesDict, menuItem):
-		if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting printHueData. menuItem:{}, {} ".format(menuItem, str(valuesDict)))
+		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting printHueData. menuItem:{}, {} ".format(menuItem, str(valuesDict)))
  
 		try:
 			indigoList = {}

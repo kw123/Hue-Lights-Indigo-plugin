@@ -399,6 +399,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<Name>Effect</Name>
 		<CallbackMethod>effect</CallbackMethod>
 		<ConfigUI>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Gateway this preset is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" filter="active" dynamicReload="false"> </List>
+			</Field>
 			<Field type="menu" id="effect" defaultValue="none"
 				tooltip="Select a preset effect. Effect presets are usually built into the light device itself. These presets are not the same as Hue Lights presets.">
 				<Label>Presets:</Label>
