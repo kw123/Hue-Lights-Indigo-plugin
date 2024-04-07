@@ -1,11 +1,15 @@
 ========================================
+2022.16.58 @ 2024-04-07
+1. fixed menue to exclude sensors in scenes and presets, or give warning msg
+
+
+========================================
 2022.16.57 @ 2024-04-01
 1. fixed menue to exclude sensors in scenes and presets, or give warning msg
-========================================
 
+========================================
 2022.16.56 @ 2024-04-01
 1. fixed line 2496, in validateActionConfigUi ... type: 'in <string>' requires string as left operand, not type
-========================================
 
 
 ========================================

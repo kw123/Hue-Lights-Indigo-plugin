@@ -10274,29 +10274,26 @@ class Plugin(indigo.PluginBase):
 
 	# Recall Preset Action
 	########################################
-	def recallPreset(self, action, device):
+	def recallPreset(self, action0, device):
 		testdebug = False
-		if testdebug or self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting recallPreset. action values:\n{}\nDevice/Type ID:\n{}\n".format(action, device))
+		if testdebug or self.decideMyLog("EditSetup"): self.indiLOG.log(10,"Starting recallPreset. action values:\n{}\n\n\nDevice/Type ID:>>{}<<\n".format(action0, device))
 		errorsDict = indigo.Dict()
 		errorsDict['showAlertText'] = ""
 		actionType = "action"
 		# Work with both Menu and Action actions.
 
-		if str(action.get('deviceId', 0)) == "0": 
-			errorsDict['showAlertText'] = '"all" devices currently not supported'
-			self.indiLOG.log(30,"recallPreset,\"all\" devices currently not supported: \n{}".format(str(action)))
-			return (False, action, errorsDict)
-
 		try:
-			device = indigo.devices[int(action.get('deviceId', 0))]
+			device = indigo.devices[int(action0.get('deviceId', 0))]
 			actionType = "menu"
+			action = action0
+			if str(action.get('deviceId', 0)) == "0": 
+				errorsDict['showAlertText'] = '"all" devices currently not supported'
+				self.indiLOG.log(30,"recallPreset,\"all\" devices currently not supported: \n{}".format(str(action)))
+				return (False, action, errorsDict)
+
 		except AttributeError:
+			action = action0.props
 			# This is an action, not a menu call.
-			pass
-		except Exception:
-			self.indiLOG.log(30,"recallPreset, action not properly defined: {}".format(str(action)))
-			errorsDict['showAlertText'] = "error, see log"
-			return (False, action, errorsDict)
 
 		# Check if the target is a light or group.
 		if device.deviceTypeId in kGroupDeviceTypeIDs:
@@ -10313,10 +10310,7 @@ class Plugin(indigo.PluginBase):
 			return (False, action, errorsDict)
 
 		# Get the presetId.
-		if actionType == "menu":
-			presetId = action.get('presetId', False)
-		else:
-			presetId = action.props.get('presetId', False)
+		presetId = action.get('presetId', False)
 
 		if not presetId:
 			self.doErrorLog("No Preset specified.")
@@ -10329,8 +10323,8 @@ class Plugin(indigo.PluginBase):
 			presetId -= 1
 
 		# Get the Ramp Rate.
+		rampRate = action.get('rate', "")
 		if actionType == "menu":
-			rampRate = action.get('rate', "")
 			# Validate Ramp Rate.
 			if len(rampRate) > 0:
 				try:
@@ -10349,8 +10343,6 @@ class Plugin(indigo.PluginBase):
 					errorsDict['rate'] = "Invalid Ramp Rate value: {}  @line#:{})".format(e,sys.exc_info()[2].tb_lineno)
 					errorsDict['showAlertText'] += errorsDict['rate']
 					return (False, action, errorsDict)
-		else:
-			rampRate = action.props.get('rate', "")
 
 		# If there is no Ramp Rate specified, use -1.
 		if rampRate == "":
