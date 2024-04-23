@@ -100,8 +100,8 @@ class Plugin(indigo.PluginBase):
 		self.pluginShortName 			= "Hue Lights"
 
 		### one list for all devices on all bridges related to indigo devices 
-		self.deviceList 				= {}			# list of device IDs to monitor (one list for all devices on all bridges)
-		self.controlDeviceList 			= {}	    # list of virtual dimmer device IDs that control bulb devices
+		self.deviceList 				= dict()			# list of device IDs to monitor (one list for all devices on all bridges)
+		self.controlDeviceList 			= dict()	    # list of virtual dimmer device IDs that control bulb devices
 		self.brighteningList 			= []	    # list of device IDs being brightened
 		self.dimmingList 				= []			# list of device IDs being dimmed
 		### one for each bridge read from bridge
@@ -122,15 +122,15 @@ class Plugin(indigo.PluginBase):
 		self.lastReminderHubNumberNotPresent = time.time()
 		self.lastGWConfirmClick 		= 0
 
-		self.updateList 				= {}
-		self.bridgeRequestsSession		= {}
-		self.bridgesAvailable 			= {}
+		self.updateList 				= dict()
+		self.bridgeRequestsSession		= dict()
+		self.bridgesAvailable 			= dict()
 		self.bridgesAvailableSelected	= ""
 		self.findHueBridgesNowForce		= 0
 		self.tryAutoCreateTimeWindow 	= 0
-		self.tryAutoCreateValuesDict 	= {}
+		self.tryAutoCreateValuesDict 	= dict()
 		self.pairedBridgeExec 			= ""
-		self.missingOnHubs				= {}
+		self.missingOnHubs				= dict()
 		self.printMissingOnHubeverySecs = 600 # check every 10 minutes and print if missing
 		self.hubNumberSelectedTo		= ""
 		self.hubNumberSelectedFrom		= ""
@@ -536,7 +536,7 @@ class Plugin(indigo.PluginBase):
 					self.excecStatesUpdate()
 
 				if time.time() - self.tryAutoCreateTimeWindow < 0 and time.time() - lasttryAutoCreateValuesDict > 5:
-					if self.tryAutoCreateValuesDict != {}:
+					if self.tryAutoCreateValuesDict != dict():
 						lasttryAutoCreateValuesDict = time.time()
 						self.restartPairing(self.tryAutoCreateValuesDict)
 					else:
@@ -666,7 +666,7 @@ class Plugin(indigo.PluginBase):
 					if not found:
 						name = "Hue_light_{}_{}_{}".format(hubNumber, theID, theDict[theID]['name'])
 						address = ""
-						props = {}
+						props = dict()
 						props['hubNumber'] = hubNumber
 						props['bulbId'] = theID
 						props['type'] = theDict[theID]['type']
@@ -836,8 +836,8 @@ class Plugin(indigo.PluginBase):
 
 		try:
 			if errorsDict is None:
-				errorsDict = {}
-			jsonData = {}
+				errorsDict = dict()
+			jsonData = dict()
 			ipAddress = self.ipAddresses[hubNumber]
 			if not self.isValidIP(ipAddress):
 				if ipAddress == "": 
@@ -2786,7 +2786,7 @@ class Plugin(indigo.PluginBase):
 				return valuesDict, errorsDict
 
 			self.tryAutoCreateTimeWindow = 0
-			self.tryAutoCreateValuesDict = {}
+			self.tryAutoCreateValuesDict = dict()
 			## option keep / create
 			if self.bridgesAvailableSelected == "":
 				if self.hubNumberSelected in self.ipAddresses:
@@ -2841,7 +2841,7 @@ class Plugin(indigo.PluginBase):
 		else:
 			autoSearch = False
 			self.tryAutoCreateTimeWindow = 0
-			self.tryAutoCreateValuesDict = {}
+			self.tryAutoCreateValuesDict = dict()
 
 		if not self.isValidIP(valuesDict['address']):
 			self.indiLOG.log(20,"starting restartPairing. not a valid ip address \"{}\".".format(valuesDict['address']))
@@ -3005,7 +3005,7 @@ class Plugin(indigo.PluginBase):
 				self.pluginPrefs['addresses'] = valuesDict['addresses']
 				self.lastGWConfirmClick  = 0
 				self.tryAutoCreateTimeWindow = 0
-				self.tryAutoCreateValuesDict = {}
+				self.tryAutoCreateValuesDict = dict()
 				self.pairedBridgeExec = "success"
 				self.lastTimeForAll = time.time() - (self.goAllRefresh-25)
 				return valuesDict, errorsDict
@@ -5427,9 +5427,9 @@ class Plugin(indigo.PluginBase):
 			elif deviceAction 	in ["Replace_with_other_Indigo_device"]:	addToString = "-replCandidate"
 			else:															addToString = ""
 
-			thisDeviceExists = {}
+			thisDeviceExists = dict()
 			addAtEnd = ""
-			otherExistingIndigoDevs = {}
+			otherExistingIndigoDevs = dict()
 			for devId in self.deviceList:
 				dev = indigo.devices[devId]
 				props = dev.pluginProps
@@ -5525,10 +5525,10 @@ class Plugin(indigo.PluginBase):
 					hubNumbers = {self.hubNumberSelected:True}
 
 
-			currentDev = {}
-			existing = {}
+			currentDev = dict()
+			existing = dict()
 			addAtEnd = ""
-			excludeList = {}
+			excludeList = dict()
 			for devId in self.deviceList:
 				dev = indigo.devices[devId]
 				props = dev.pluginProps
@@ -5556,8 +5556,8 @@ class Plugin(indigo.PluginBase):
 					else:
 						xList.append([memberId, "{}-{}:{}".format(hubNumber, memberId, details['name'])])
 
-			if currentDev == {}:	xList.append((0,"all"))
-			if addAtEnd !="":		xList.append(addAtEnd)
+			if currentDev == dict():	xList.append((0,"all"))
+			if addAtEnd !="":			xList.append(addAtEnd)
 		except Exception:
 			self.indiLOG.log(30,"Unable to obtain the configuration from the Hue bridge.{}".format(self.hubNumberSelected), exc_info=True)
 
@@ -5758,7 +5758,7 @@ class Plugin(indigo.PluginBase):
 
 		xList = list()	# List item list.
 		groupId = ""
-		groupLights = {}
+		groupLights = dict()
 		try:
 			groupId = valuesDict.get('groupId', "")
 
@@ -6155,7 +6155,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def excecStatesUpdate(self):
 		temp = copy.deepcopy(self.updateList)
-		self.updateList = {}
+		self.updateList = dict()
 		for devId in temp:
 			indigo.devices[devId].updateStatesOnServer(temp[devId])
 			#self.indiLOG.log(10," devid:{} chlist:{}".format(devId,self.updateList[devId] ))
@@ -6499,7 +6499,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			if not  self.pluginPrefs.get('autoCreatedNewDevices', False): return 
 
-			valuesDict = {}
+			valuesDict = dict()
 			valuesDict["hueFolderName"] = ''
 			updateDevices = {'lights':'createLights','sensors':'createSensors','groups':'createGroups'}
 			for dType in updateDevices:
@@ -6529,7 +6529,7 @@ class Plugin(indigo.PluginBase):
 	def updateTheTypeList(self, theType):
 		if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Starting update {} List.".format(theType))
 		# 
-		lastCount = {}
+		lastCount = dict()
 		hubNumber = "undefined"
 		try:
 			for hubNumber in self.ipAddresses:
@@ -6541,7 +6541,7 @@ class Plugin(indigo.PluginBase):
 				if hubNumber not in self.hueConfigDict:
 					self.hueConfigDict[hubNumber] = {theType:{}}
 				if theType not in self.hueConfigDict[hubNumber]:
-					self.hueConfigDict[hubNumber][theType] = {}
+					self.hueConfigDict[hubNumber][theType] = dict()
 
 				lastCount[hubNumber] = len(self.hueConfigDict[hubNumber][theType])
 
@@ -10564,8 +10564,8 @@ class Plugin(indigo.PluginBase):
 	def findHueBridges(self):# , startTime):
 		self.indiLOG.log(10,"findHueBridges:  process starting")
 		self.findHueBridgesDict['status'] = "running"
-		bridgesAvailableOld = {}
-		self.bridgesAvailable = {}
+		bridgesAvailableOld = dict()
+		self.bridgesAvailable = dict()
 		self.timeWhenNewBridgeRunFinished = 0
 		normalwaitBetweentriesFindBridges = 300
 		first = True
@@ -10587,9 +10587,9 @@ class Plugin(indigo.PluginBase):
 				ret, err = self.readPopen(cmd)
 				if self.decideMyLog("FindHueBridge"): self.indiLOG.log(10,"findHueBridges:  (1) cmd:{}, ret={}".format(cmd, ret))
 				lines = ret.split("\n")
-				huesFound = {}
-				bridgeIds = {}
-				ipAddress = {}
+				huesFound = dict()
+				bridgeIds = dict()
+				ipAddress = dict()
 				count = 0
 				for line in lines:
 					if self.searchForStringinFindHueBridge in line:
@@ -10775,7 +10775,7 @@ class Plugin(indigo.PluginBase):
 		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting printHueData. menuItem:{}, {} ".format(menuItem, str(valuesDict)))
  
 		try:
-			indigoList = {}
+			indigoList = dict()
 			sortBy = valuesDict['sortBy']
 
 			if valuesDict['whatToPrint'] == "shortBridgeInfo":
@@ -10902,7 +10902,7 @@ class Plugin(indigo.PluginBase):
 					theDict = self.hueConfigDict[hubNumber][valuesDict['whatToPrint']]
 					outs.append("==  Bridge:{}, ipNumber:{}, hostId:{}, paired:{}, #of lights:{}, sorted by:{}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], self.paired[hubNumber], len(theDict), sortBy))
 								 #123 12345678901 12345678901234567890123456 12345678901234567890123456789 12345678901234567890123456789 1234567890123456789012345 12345678901234567890123456789 12345678901 1234567890123456789012345 123456789 12345 
-					outs.append(" ID ONoff Reach modelId--------- type--------------------- uniqueid------------------ Name------------------------------- ProductId-------------------- manufacturername------------- ProductName------------------ Group indigoDevName-----")
+					outs.append(" ID ONoff Reach modelId--------- type--------------------- uniqueid------------------ SNumber Name------------------------------- ProductId-------------------- manufacturername------------- ProductName------------------ Group indigoDevName-----")
 
 					if   sortBy in ['type','name','modelid']: 	IDlist = self.makeSortedIDList(theDict, sortBy)
 					else:										IDlist = sorted(theDict, key=lambda key: int(key))
@@ -10910,6 +10910,11 @@ class Plugin(indigo.PluginBase):
 					for IDi in IDlist:
 						ID = str(IDi)
 						temp = theDict[ID]
+						try: 
+							device = indigo.devices[hueIdToIndigoName[hubNumber][ID]]
+							serialNumber = device.pluginProps.get("serialNumber","")
+						except:
+							serialNumber = ""
 						out  = 										 '{:>3s} '.format(ID)
 						if "state" in temp:
 							out += self.printColumns(temp['state'],	 '  {:<4}',	'reachable') 
@@ -10919,6 +10924,7 @@ class Plugin(indigo.PluginBase):
 						out += self.printColumns(temp,				 '{:17s}',	'modelid') 
 						out += self.printColumns(temp,				 '{:26s}',	'type') 
 						out += self.printColumns(temp,				 '{:27s}',	'uniqueid') 
+						out += "{:8s}".format(serialNumber) 
 						out += self.printColumns(temp,				 '{:36s}',	'name') 
 						out += self.printColumns(temp,				 '{:30s}',	'productid') 
 						out += self.printColumns(temp,				 '{:30s}',	'manufacturername') 
@@ -10942,12 +10948,17 @@ class Plugin(indigo.PluginBase):
 
 					outs.append( "==   Bridge:{}, ipNumber:{}, hostId:{}, paired:{}, #of phys:{}/Sensors:{}, sorted by:{}".format(hubNumber, self.ipAddresses[hubNumber],self.hostIds[hubNumber], self.paired[hubNumber], physicalSensors, len(theDict), sortBy))
 							#1234 12345678901     12345678901234567890123456789 12345678901234567890123456789 12345678901234567890123456789 1234567890123456789     123456 123456 123456 1234567890123456789    1234567890 
-					outs.append(" ID ONoff Reach Status lastupdated-------- modelid----------------------- type--------------- Name------------------------- productname------------------  manufacturername------------- Group Indigo Device")
+					outs.append(" ID ONoff Reach Status lastupdated-------- modelid----------------------- type--------------- SNumber Name------------------------- productname------------------  manufacturername------------- Group Indigo Device")
 				
 					if   sortBy in ['type','name','modelid']: 	IDlist = self.makeSortedIDList(theDict, sortBy)
 					else:										IDlist = sorted(theDict, key=lambda key: int(key))
 
 					for IDi in IDlist:
+						try: 
+							device = indigo.devices[hueIdToIndigoName[hubNumber][ID]]
+							serialNumber = device.pluginProps.get("serialNumber","")
+						except:
+							serialNumber = ""
 						ID = str(IDi)
 						temp = theDict[ID]
 						out  = 										 '{:>3s} '.format(ID)
@@ -10961,6 +10972,7 @@ class Plugin(indigo.PluginBase):
 						else:								  out += '{:24s}'.format(" ")
 						out += self.printColumns(temp,				 '{:31s}',	'modelid') 
 						out += self.printColumns(temp,				 '{:20s}',	'type') 
+						out += "{:8s}".format(serialNumber) 
 						out += self.printColumns(temp,				 '{:30s}',	'name') 
 						out += self.printColumns(temp,				 '{:31s}',	'productname') 
 						out += self.printColumns(temp,				 '{:30s}',	'manufacturername') 
@@ -11291,11 +11303,11 @@ class Plugin(indigo.PluginBase):
 	# nake a dict of hue indigo devices {id:indigoName} for specific dev types 
 	########################################
 	def getIndigoDevDict(self, typeName):
-		hueIdToIndigoName = {}
-		indigoNameToHueId = {}
+		hueIdToIndigoName = dict()
+		indigoNameToHueId = dict()
 		for hubNumber in self.ipAddresses:
-			hueIdToIndigoName[hubNumber] = {}
-			indigoNameToHueId[hubNumber] = {}
+			hueIdToIndigoName[hubNumber] = dict()
+			indigoNameToHueId[hubNumber] = dict()
 		for dev in indigo.devices.iter(self.pluginId):
 			props = dev.pluginProps
 			if typeName in props:
@@ -11340,7 +11352,7 @@ class Plugin(indigo.PluginBase):
 	def getDebugLevels(self, useMe=dict()):
 		try:
 			self.debugLevel	= []
-			if useMe == {}:
+			if useMe == dict():
 				for d in _debugAreas:
 					if self.pluginPrefs.get('debug'+d, False): self.debugLevel.append(d)
 				self.showLoginTest = self.pluginPrefs.get("showLoginTest", True)
@@ -11550,8 +11562,8 @@ class LevelFormatter(logging.Formatter):
 ####-------------------------------------------------------------------------####
 	def __init__(self, fmt=None, datefmt=None, level_fmts=dict(), level_date=dict()):
 		formt = None
-		self._level_formatters = {}
-		self._level_date_format = {}
+		self._level_formatters = dict()
+		self._level_date_format = dict()
 		for level, formt in level_fmts.items():
 			# Could optionally support level names too
 			self._level_formatters[level] = logging.Formatter(fmt=formt, datefmt=level_date[level])

@@ -67,6 +67,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="savedBrightness" type="textfield" hidden="true" />
+			<Field id="serialNumber" type="textfield"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -227,6 +231,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="savedBrightness" type="textfield" hidden="true" />
+			<Field id="serialNumber" type="textfield"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -352,6 +360,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="savedBrightness" type="textfield" hidden="true" />
+			<Field id="serialNumber" type="textfield"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -512,6 +524,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="savedBrightness" type="textfield" hidden="true" />
+			<Field id="serialNumber" type="textfield"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -667,6 +683,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="savedBrightness" type="textfield" hidden="true" />
+			<Field id="serialNumber" type="textfield"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -750,6 +770,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
+			</Field>
+			<Field id="serialNumber" type="textfield"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -993,6 +1017,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
+			<Field id="serialNumber" type="textfield"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -1103,6 +1131,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
+			<Field id="serialNumber" type="textfield"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -1202,6 +1234,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
+			</Field>
+			<Field id="serialNumber" type="textfield"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -1322,6 +1358,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
+			<Field id="serialNumber" type="textfield"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -1420,6 +1460,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
+			</Field>
+			<Field id="serialNumber" type="textfield"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -1585,6 +1629,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
+			<Field id="serialNumber" type="textfield"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -1688,6 +1736,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
+			</Field>
+			<Field id="serialNumber" type="textfield"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -1816,6 +1868,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</Field>
 			<!-- The buttonBeingHeld property is used by the plugin to track when a button is being held down since the Hue bridge doesn't do that for us, but the switch does report button release events, so we can figure it out ourselves. -->
 			<Field id="buttonBeingHeld" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="serialNumber" type="textfield"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -1998,6 +2054,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</Field>
 			<!-- The buttonBeingHeld property is used by the plugin to track when a button is being held down since the Hue bridge doesn't do that for us, but the switch does report button release events, so we can figure it out ourselves. -->
 			<Field id="buttonBeingHeld" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="serialNumber" type="textfield"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -2166,6 +2226,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</Field>
 			<!-- The buttonBeingHeld property is used by the plugin to track when a button is being held down since the Hue bridge doesn't do that for us, but the switch does report button release events, so we can figure it out ourselves. -->
 			<Field id="buttonBeingHeld" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="serialNumber" type="textfield"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">

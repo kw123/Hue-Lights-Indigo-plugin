@@ -1,6 +1,14 @@
 ========================================
+2022.16.59 @ 2024-04-23
+1. added option to enter serial number from the bulb (and sensor) into indigo device edit.
+   This info is then available in reports ie print lights. 
+   In case you have to re-learn a light to a hue hub you can get that info from here.
+   BUT you need to maintain that info manually. There is no known way to get the serial number from the hub.
+
+
+========================================
 2022.16.58 @ 2024-04-07
-1. fixed menue to exclude sensors in scenes and presets, or give warning msg
+1. fixed ACTION for preset
 
 
 ========================================
