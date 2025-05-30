@@ -297,9 +297,10 @@ others: fixed at 3-5 minutes
 	<Field    id="debugEditSetup"          		type="checkbox"         > <Label>     ... (3)  Edit indigo devs config etc:</Label>  </Field>
 	<Field    id="debugReadFromBridge"          type="checkbox"         > <Label>     ... (4)  Read From Bridge:</Label>  </Field>
 	<Field    id="debugSendCommandsToBridge"    type="checkbox"         > <Label>     ... (5)  Send Commands To Bridge:</Label>  </Field>
-	<Field    id="debugUpdateIndigoDevices"     type="checkbox"         > <Label>     ... (6)  Update Indigo Devices:</Label>  </Field>
-	<Field    id="debugFindHueBridge"           type="checkbox"         > <Label>     ... (7)  find Hue bridges:</Label>  </Field>
-	<Field    id="debugSpecial"       			type="checkbox"         > <Label>     ... (8)  special debug (only for development):</Label>  </Field>
+	<Field    id="debugAction"   				type="checkbox"         > <Label>     ... (6)  Send Action:</Label>  </Field>
+	<Field    id="debugUpdateIndigoDevices"     type="checkbox"         > <Label>     ... (7)  Update Indigo Devices:</Label>  </Field>
+	<Field    id="debugFindHueBridge"           type="checkbox"         > <Label>     ... (8)  find Hue bridges:</Label>  </Field>
+	<Field    id="debugSpecial"       			type="checkbox"         > <Label>     ... (9)  special debug (only for development):</Label>  </Field>
 	<Field    id="debugall"            			type="checkbox"         > <Label>     ... (99) all of the above .. everything:</Label>  </Field>
 
 	<Field id="sepbr3" type="separator"/>
