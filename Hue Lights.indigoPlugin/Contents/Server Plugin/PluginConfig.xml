@@ -7,6 +7,7 @@
 	<Field id="showGwClick"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showGwClickConfirm"		type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showGwMod"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
+	<Field id="showApiMod"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showGwDel"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showGwKeep"	 			type="checkbox" defaultValue="false" hidden="true">    </Field>
 
@@ -44,12 +45,47 @@ C. Change debugging levels</Label>
 			tooltip="">
 		<Label>Select action for the bridge:</Label>
 	  <List>
+		<Option value="api">change api version</Option>
 		<Option value="add">add or re-pair a new bridge</Option>
 		<Option value="modify">change the ip number</Option>
 		<Option value="delete">delete an existing bridge</Option>
-		<Option value="keep">don't change anything</Option>
+		<Option value="keep">don't change any.thing</Option>
 	  </List>
     </Field>
+
+<!-- api      -->
+	<Field id="labelAPI" type="label" visibleBindingId="showApiMod" visibleBindingValue="true" >
+		<Label>
+== Modify API version of a bridge: Select bridge, select API version, click on CONFIRM:
+</Label>
+	</Field>
+
+	<Field id="modAPIList" type="menu" defaultValue="0"
+		visibleBindingId="showApiMod" visibleBindingValue="true"
+		tooltip="">
+		<Label>Select a Hue Bridge to modify:</Label>
+			<List class="self" method="gwListGenerator" filter="notEmpty" dynamicReload="true" />
+ 	</Field>
+
+	<Field id="newAPIVersion" visibleBindingId="showApiMod" visibleBindingValue="true" type="menu" >
+		<Label>select API version for this bridge:</Label>
+		<List>
+			<Option value="1">api v 1</Option>
+			<Option value="2">api v 2 available on hue pro bridge </Option>
+		</List>
+	</Field>
+
+	<Field id="confirmAPIMod"
+			type="button" 
+			visibleBindingId="showApiMod" visibleBindingValue="true"
+			tooltip="">
+		<Label>click to change API version#</Label>
+		<Title>CONFIRM</Title>
+		<CallbackMethod>confirmAPIMod</CallbackMethod>
+    </Field>
+
+<!-- delete GW     -->
+
 
 <!-- modify      -->
 	<Field id="labelModify" type="label" visibleBindingId="showGwMod" visibleBindingValue="true" >

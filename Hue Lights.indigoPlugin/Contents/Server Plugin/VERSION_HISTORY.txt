@@ -1,23 +1,54 @@
 ========================================
-2022.20.60 @ 2025-11-05
-1. added support for hue pro bridge
+2022.20.62@ 2025-11-05
+A. added support for hue pro bridge
    this is the first beta version.
-   
+B. added print pro bridge events to log (for debugging )
+
+
 steps:
-0. delete in hue plugin the to be migrated bridge in config top item ()
-1. setup new pro bridge, run updates
-2. follow described migration like:
-https://www.philips-hue.com/en-us/support/article/how-to-upgrade-to-the-hue-bridge-pro/000010
+0. Install the new plugin version
+    delete in hue plugin the to be migrated bridge in config top item: "Add/delete/modify a bridge "
+    this will not delete any indigo device
+   
+1. connect new pro bridge to network, power up
+     if you have several bridges try to place the new one so that it can "see" all of them
+     mine selected to use an already occupied zigbee channel, no problems so far, but I don't believe that is good.
+     There are 4 channels available 11, 15, 20,25 (they share the wifi spectrum side bands)
+[attachment=0]Screenshot 2025-11-05 at 13.19.58.png[/attachment] Modifying them after migration is not possible. you would need to reset everything (lamps switches, bridge..) and reinstall everything
+
+2. follow described migration like in:
+[url]https://www.philips-hue.com/en-us/support/article/how-to-upgrade-to-the-hue-bridge-pro/000010[/url]
+it will take some time as you must first update EVERYTHING 
+
 3. after migration is complete, in plugin config 
-   Add/delete/modify a bridge 
-   add or re-pair a new bridge
-   select the SAME bridge number you just deleted !! this is important !!
-     if the bridge is not listed click "Excec Search now" and wait some seconds
+   -Add/delete/modify a bridge 
+   --add or re-pair a new bridge
+   ---select the SAME bridge number you just deleted !! this is important !!
+   --- if the bridge is not listed click "Exec Search now" and wait some seconds
+
 4. press the button on the hue pro bridge
+
 5. click on confirm
 
 that should do it.
-if auto matic did not work use the manual steps.
+if automatic did not work use the manual steps.
+
+All indigo  devices  of the deleted and  newly paid bridge should be working again w/o issues
+Again !! you must use the same bridge number for old and new !!
+
+There is a also a menu item to manually do these steps (overwrite bridge)
+but only if you know how and why this works 
+requires terminal interaction ...
+
+
+This plugin version will NOT add any new functionality. it is using the same calls to the hue bridge, 
+- Only some minor changes (https instead of http and verify=False in request calls)
+- The pairing process had to be changed.
+- the get basic configuration call was changed (check if the ip number is a hue bridge)
+
+Any new functionality (using the new API calls)  in due time.
+
+I like to make sure that this works completely before adding functions 
 
 There is a also a menu item to manually do these steps (overwrite bridge)
    

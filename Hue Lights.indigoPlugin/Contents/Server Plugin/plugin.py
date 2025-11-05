@@ -41,6 +41,8 @@ import threading
 import codecs
 import subprocess
 import requests
+import threading
+
 requests.adapters.DEFAULT_RETRIES = 3
 kTimeout = 4		# seconds
 
@@ -84,6 +86,7 @@ kDefaultPluginPrefs = {
 kmaxHueItems = {'lights':50, 'sensors':50, 'groups':64, 'scenes':200, 'rules':200, 'schedules':100, 'resourcelinks':64}
 
 kPossibleHubVersions = ["1","2"]
+kPossibleAPIVersions = ["1","2"]
 ################################################################################
 class Plugin(indigo.PluginBase):
 	########################################
@@ -110,8 +113,11 @@ class Plugin(indigo.PluginBase):
 		self.hueConfigDict 				= {"0":{}}   # Entire Hue bridge configuration dictionary.
 		self.ipAddresses 				= {"0":{}}	    # Hue bridge IP addresses 
 		defHubVersions 					= {"0":kPossibleHubVersions[0],"1":kPossibleHubVersions[0],"2":kPossibleHubVersions[0],"3":kPossibleHubVersions[0],"4":kPossibleHubVersions[0]}
+		defAPIbVersions 				= {"0":kPossibleAPIVersions[0],"1":kPossibleAPIVersions[0],"2":kPossibleAPIVersions[0],"3":kPossibleAPIVersions[0],"4":kPossibleAPIVersions[0]}
 		self.hubVersion 				= json.loads(pluginPrefs.get('hubVersion', json.dumps(defHubVersions)))
+		self.apiVersion					= json.loads(pluginPrefs.get('apiVersion', json.dumps(defAPIbVersions)))
 		self.httpS 						= {"1":"http","2":"https"}
+		self.listenThread 				= {}
 
 		self.hubNumberSelected 			= "0"    # default hub number 
 		self.lastErrorMessage 			= ""	    # last error message displayed in log
@@ -432,7 +438,7 @@ class Plugin(indigo.PluginBase):
 
 		self.indiLOG.log(20,"... initialized")
 
-
+	
 		try:
 			while True:
 				# We're using time sharing techniques here based on
@@ -2580,6 +2586,8 @@ class Plugin(indigo.PluginBase):
 			if hubNumber in self.ipAddresses and  hubNumber in self.hueConfigDict and "lights" in self.hueConfigDict[hubNumber]:
 				if filter == "" or filter in['active', 'notEmpty']:
 					xList.append((hubNumber, "{}-{} fully configured and used".format(hubNumber, self.ipAddresses[hubNumber])))
+				if filter == "api2" and self.apiVersion[hubNumber] == "2":
+					xList.append((hubNumber, "{}-{}".format(hubNumber, self.ipAddresses[hubNumber])))
 			elif hubNumber in self.ipAddresses and  hubNumber in self.hueConfigDict:
 				if filter == "":
 					xList.append((hubNumber, "{}-{} configured, not contacted ".format(hubNumber, self.ipAddresses[hubNumber])))
@@ -2615,6 +2623,7 @@ class Plugin(indigo.PluginBase):
 			valuesDict['changeGW'] 					= False
 			valuesDict['showGwAdd'] 				= False
 			valuesDict['showGwMod'] 				= False
+			valuesDict['showApiMod'] 				= False
 			valuesDict['showGwDel'] 				= False
 			valuesDict['pairMsg'] 					= ""
 			valuesDict['gwModNewIp'] 				= ""
@@ -2656,6 +2665,7 @@ class Plugin(indigo.PluginBase):
 			valuesDict['showGwAdd']						= False
 			valuesDict['showGwClick']					= False
 			valuesDict['showGwClickConfirm']			= False
+			valuesDict['showApiMod']					= False
 			valuesDict['showGwMod']						= False
 			valuesDict['showGwDel']						= False
 			valuesDict['gwModNewIp']					= ""
@@ -2679,6 +2689,11 @@ class Plugin(indigo.PluginBase):
 
 				elif valuesDict['gwAction'] == "delete":
 					valuesDict['showGwDel']					= True
+
+
+				elif valuesDict['gwAction'] == "api":
+					valuesDict['showApiMod']				= True
+
 
 		except Exception:
 				self.indiLOG.log(30,"", exc_info=True)
@@ -2728,6 +2743,44 @@ class Plugin(indigo.PluginBase):
 			errorsDict['showAlertText'] = "bridge deleted from indigo. Dont forget to <Save> at exit"
 			valuesDict['gwAction'] = "keep"
 
+			return valuesDict, errorsDict
+		except Exception:
+				self.indiLOG.log(30,"", exc_info=True)
+		valuesDict['gwDelResponse'] = "check logfile"
+		errorsDict['showAlertText'] = "check logfile for error message"
+		return valuesDict, errorsDict
+
+
+	# delete existing gateway
+	########################################
+	def confirmAPIMod(self, valuesDict):
+
+		isError = False
+		errorsDict = indigo.Dict()
+		errorsDict['showAlertText'] = ""
+		try:
+			#self.indiLOG.log(10,"confirmGWMod valuesDict:{}".format(valuesDict))
+			if valuesDict['modAPIList'] not in khubNumbersAvailable:
+				errorsDict['showAlertText'] = "bridge# not selected"
+				return valuesDict, errorsDict
+
+			self.hubNumberSelected = valuesDict['modAPIList']
+
+			if not self.hubNumberSelected in self.ipAddresses:
+				errorsDict['showAlertText'] = "bridge does not have ip number"
+				valuesDict['gwAction'] = "keep"
+				return valuesDict, errorsDict
+
+			self.indiLOG.log(20,"bridge:{} has new API V:{}, old:{}".format(self.hubNumberSelected, self.apiVersion[self.hubNumberSelected], valuesDict["newAPIVersion"]))
+			self.apiVersion[self.hubNumberSelected] = valuesDict["newAPIVersion"]
+			self.pluginPrefs['apiVersion'] = json.dumps(self.apiVersion)
+
+			if self.hubNumberSelected != "0":
+				self.hubNumberSelected = "0"
+
+			errorsDict['showAlertText'] = "API version updated:{}  <Save> at exit".format(valuesDict["newAPIVersion"])
+			valuesDict['gwAction'] = "api"
+			
 			return valuesDict, errorsDict
 		except Exception:
 				self.indiLOG.log(30,"", exc_info=True)
@@ -3109,6 +3162,7 @@ class Plugin(indigo.PluginBase):
 			self.pluginPrefs['addresses'] = json.dumps(self.ipAddresses)
 			self.pluginPrefs['hostIds'] = json.dumps(self.hostIds)
 			self.pluginPrefs['hubVersion'] = json.dumps(self.hubVersion)
+			self.pluginPrefs['apiVersion'] = json.dumps(self.apiVersion)
 
 			# If the number of Preset Memories was changed, add or remove Presets as needed.
 			self.maxPresetCount = int(valuesDict.get('maxPresetCount', "30"))
@@ -4912,6 +4966,103 @@ class Plugin(indigo.PluginBase):
 			self.logger.error("", exc_info=True)
 		self.resetBridgeBusy(hubNumber)
 		return valuesDict
+
+
+
+
+	########################################
+	def execEventlogging(self, valuesDict, dummy1="", dummy2=""):
+		if self.decideMyLog("Special"): self.indiLOG.log(20,"execEventlogging VD {}".format(valuesDict) )
+		
+		hubNumber = valuesDict['hubNumber']
+		enableEvents = int(valuesDict['enableEvents'])
+		self.startEventListenersThreads(hubNumber, enableEvents)
+		return valuesDict
+
+	######################
+	def startEventListenersThreads(self, hubNumber, enableEvents):
+		try:
+			if hubNumber not in self.apiVersion: return 
+			if self.apiVersion[hubNumber] != "2": return 
+			if hubNumber not in self.listenThread:
+				self.listenThread[hubNumber] = {}
+				self.listenThread[hubNumber]["status"]  = "run"
+				self.listenThread[hubNumber]["logLevel"]  = str(enableEvents)
+				self.listenThread[hubNumber]["thread"]  = threading.Thread(name='listenToEvents', target=self.listenToEvents, args=(hubNumber,))
+				self.listenThread[hubNumber]["thread"].start()
+				return
+								
+			if enableEvents == -1: 
+				self.listenThread[hubNumber]["status"] = "stop"
+				time.sleep(1)
+				del self.listenThread[hubNumber]
+				return 
+			
+			if self.listenThread[hubNumber]["status"] == "run": 
+				if self.listenThread[hubNumber]["logLevel"] != str(enableEvents):
+					self.indiLOG.log(20,"Eventlogging changing logging to:{}".format(str(enableEvents)) )
+					self.listenThread[hubNumber]["logLevel"]  = str(enableEvents)
+				return 
+			
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return 
+
+	######################
+	######################
+	def listenToEvents(self, hubNumber):
+		
+		tStart = time.time()
+		logLevel = int(self.listenThread[hubNumber]["logLevel"])
+		nSeconds = 100.
+		try:
+			headers = {
+				"hue-application-key": self.hostIds[hubNumber],
+				"Accept": "text/event-stream"
+			}
+			EVENT_STREAM_URL = "https://{}/eventstream/clip/v2".format(self.ipAddresses[hubNumber])
+			self.indiLOG.log(20,"Connecting to Hue EventStream... at {}".format(EVENT_STREAM_URL))
+
+			response = requests.get(
+				EVENT_STREAM_URL,
+				headers=headers,
+				stream=True,
+				verify=False,
+				timeout=None
+			)
+			
+			#if time.time() - tStart > nSeconds: return 
+			
+			if self.listenThread[hubNumber]["status"] != "run": return 
+
+			if response.status_code == 200:
+				self.indiLOG.log(20,"Connected! Listening for events...\n")
+				
+				for line in response.iter_lines():
+					if hubNumber not in self.listenThread: 
+						self.indiLOG.log(20,"stopping event logging ")
+						return 
+					if self.listenThread[hubNumber]["status"] != "run":
+						self.indiLOG.log(20,"stopping event logging ")
+						return 
+					if line:
+						decoded_line = line.decode('utf-8')
+						
+						if decoded_line.startswith('data:'):
+							data_str = decoded_line[5:].strip()
+							try:
+								data = json.loads(data_str)
+								self.indiLOG.log(logLevel,"event from:{}, event:{}".format(hubNumber, json.dumps(data, indent=2)))
+							except json.JSONDecodeError:
+								pass
+									
+		except Exception:
+			self.logger.error("", exc_info=True)
+		self.indiLOG.log(20,"stopping event logging ")
+		return 
+
+
+
 
 	######################
 	def menuDeleteSensor(self, valuesDict, typeId=u"", devId=0):
@@ -9155,6 +9306,7 @@ class Plugin(indigo.PluginBase):
 					self.pluginPrefs['hostIds'] = json.dumps(self.hostIds)
 
 			self.pluginPrefs['hubVersion'] = json.dumps(self.hubVersion)
+			self.pluginPrefs['apiVersion'] = json.dumps(self.apiVersion)
 
 			# Get the entire configuration from the Hue bridge.
 			self.getHueConfig()
@@ -10796,6 +10948,7 @@ class Plugin(indigo.PluginBase):
 		self.trackSpecificDevice = 0
 		return 
 	# print config etc
+	
 	########################################
 	def printHueData(self, valuesDict, menuItem):
 		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting printHueData. menuItem:{}, {} ".format(menuItem, str(valuesDict)))
@@ -10805,7 +10958,7 @@ class Plugin(indigo.PluginBase):
 			sortBy = valuesDict['sortBy']
 
 			if valuesDict['whatToPrint'] == "shortBridgeInfo":
-				self.indiLOG.log(20,"bridge lights groups scenes users resources Active/rules schedules Physicl/sensors ZigBChanl hostIds / user names ------------------- ip Numbers ---- BridgeIds-------")
+				self.indiLOG.log(20,"bridge lights groups scenes users resources Active/rules schedules Physicl/sensors ZigBChanl hostIds / keys / user names ------------ ip Numbers ---- BridgeIds------- apiV")
 				#self.indiLOG.log(20,"Max       /{:2}    /{:2}    /{:2}                   /{:2}       /{:2}     /{:2}     ".format(kmaxHueItems["lights"], kmaxHueItems["groups"], kmaxHueItems["scenes"], kmaxHueItems["rules"], kmaxHueItems["schedules"], kmaxHueItems["sensors"] ))
 				hublist = []
 				for hubNumber in self.ipAddresses:
@@ -10823,7 +10976,7 @@ class Plugin(indigo.PluginBase):
 								if self.hueConfigDict[hubNumber]['sensors'][ii].get('type','').find("CLIPGenericStatus") ==-1:
 									physicalSensors +=1
 
-							self.indiLOG.log(20,"#{:5s} {:6d} {:6d} {:6d} {:5d} {:9d}  {:5d}/{:<5d} {:9d} {:7d}/{:<7d} {:9} {:20s} {:15s} {:16}".format(
+							self.indiLOG.log(20,"#{:5s} {:6d} {:6d} {:6d} {:5d} {:9d}  {:5d}/{:<5d} {:9d} {:7d}/{:<7d} {:9} {:20s} {:15s} {:16} {:>3}".format(
 								hubNumber,
 								len(self.hueConfigDict[hubNumber]['lights'] ), 
 								len(self.hueConfigDict[hubNumber]['groups'] ), 
@@ -10837,7 +10990,8 @@ class Plugin(indigo.PluginBase):
 								len(self.hueConfigDict[hubNumber]['sensors'] ), 
 								self.hueConfigDict[hubNumber]['config']['zigbeechannel'],
 								self.hostIds[hubNumber],self.ipAddresses[hubNumber], 
-							self.hueConfigDict[hubNumber]['config']['bridgeid']) 
+								self.hueConfigDict[hubNumber]['config']['bridgeid'],
+								self.apiVersion[hubNumber]) 
 							)
 						else:
 							self.indiLOG.log(30,"#{:5s}; ipNumber:{} --- not properly setup, no data received from bridge, try to re-pair".format(hubNumber, self.ipAddresses[hubNumber]))

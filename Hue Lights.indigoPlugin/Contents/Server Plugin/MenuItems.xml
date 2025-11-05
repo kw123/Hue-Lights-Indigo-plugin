@@ -622,19 +622,55 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 	</MenuItem>
 
 	<MenuItem id="sep4" />
-	<MenuItem id="overwritebridgeid">
-		<Name>Overwrite bridge...</Name>
+	<MenuItem id="printeventstolog">
+		<Name>Print Hue Pro bridge Events to log...</Name>
 		<ConfigUI>
-	<Field id="lab10" type="label" >
-		<Label>this is for experts ony. you must have generated the heu bridge username manuall beforeand past it ihere 
+		<Field id="lab10" type="label" >
+			<Label>this option enables/ disables printing of events to log for hue PRO bridges </Label>
+		</Field>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Gateway / Bridge">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" filter="api2" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select Bridge Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
+			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default ="first select hue bridge" >	</Field>
+			
+			<Field id="enableEvents" type="menu" >
+				<Label>enable / disable event printing:</Label>
+				<List>
+					<Option value="-1">stop </Option>
+					<Option value="10">print to plugin.log file </Option>
+					<Option value="20">print to logfile </Option>
+				</List>
+			</Field>
+
+			<Field id="confirmeventlogginf" type="button">
+				<Label>click to</Label>
+				<Title>start/stop event logging</Title>
+				<CallbackMethod>execEventlogging</CallbackMethod>
+			</Field>
+
+		</ConfigUI>
+	</MenuItem>
+
+	<MenuItem id="overwritebridgeid">
+		<Name>Overwrite bridge. (manual config of bridge)..</Name>
+		<ConfigUI>
+		<Field id="lab10" type="label" >
+			<Label>this is for experts ony. you must have generated the heu bridge username manuall beforeand past it ihere 
  you can generate it with:
      curl -X POST https://huprobridgeIPnumber/api --insecure -H "Content-Type: application/json" -d '{"devicetype":anynamehere, "generateclientkey":true}'
  you will get something like this:
  	[{"success":{"username":"asldjflksjflksjqfkljqdf","clientkey":"lkdjlksjqdflk;qjdf"}}]
 use the username as the key id here 	
 you also must enter the ip and the hub number 	       
-		</Label>
-	</Field>
+			</Label>
+		</Field>
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge">
 				<Label>Hue Bridge number:</Label>
@@ -669,6 +705,7 @@ you also must enter the ip and the hub number
 
 		</ConfigUI>
 	</MenuItem>
+
 
 	<MenuItem id="sep5" />
 	<MenuItem id="toggleDebug">
