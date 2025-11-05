@@ -1,5 +1,5 @@
 ========================================
-2022.18.59 @ 2025-10-05
+2022.20.60 @ 2025-11-05
 1. added support for hue pro bridge
    this is the first beta version.
    
