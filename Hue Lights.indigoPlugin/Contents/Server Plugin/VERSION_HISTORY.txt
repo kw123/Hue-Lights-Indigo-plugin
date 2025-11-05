@@ -1,4 +1,29 @@
 ========================================
+2022.18.59 @ 2025-10-05
+1. added support for hue pro bridge
+   this is the first beta version.
+   
+steps:
+0. delete in hue plugin the to be migrated bridge in config top item ()
+1. setup new pro bridge, run updates
+2. follow described migration like:
+https://www.philips-hue.com/en-us/support/article/how-to-upgrade-to-the-hue-bridge-pro/000010
+3. after migration is complete, in plugin config 
+   Add/delete/modify a bridge 
+   add or re-pair a new bridge
+   select the SAME bridge number you just deleted !! this is important !!
+     if the bridge is not listed click "Excec Search now" and wait some seconds
+4. press the button on the hue pro bridge
+5. click on confirm
+
+that should do it.
+if auto matic did not work use the manual steps.
+
+There is a also a menu item to manually do these steps (overwrite bridge)
+   
+
+
+========================================
 2022.16.59 @ 2024-04-23
 1. added option to enter serial number from the bulb (and sensor) into indigo device edit.
    This info is then available in reports ie print lights. 
