@@ -63,16 +63,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
 			</Field>
-			<Field id="forceBrightnessOff" type="checkbox" defaultValue="false"
-				tooltip="Check this box if lamp does not turn off when sending off command">
-				<Label>Force brightness = 0 when off</Label>
-			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="savedBrightness" type="textfield" hidden="true" />
 			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number (printed on the device, typical 6 letters) in case it needs to be re-learned">
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -231,16 +227,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
 			</Field>
-			<Field id="forceBrightnessOff" type="checkbox" defaultValue="false"
-				tooltip="Check this box if lamp does not turn off when sending off command">
-				<Label>Force brightness = 0 when off</Label>
-			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="savedBrightness" type="textfield" hidden="true" />
 			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number (printed on the device, typical 6 letters) in case it needs to be re-learned">
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -364,16 +356,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
 			</Field>
-			<Field id="forceBrightnessOff" type="checkbox" defaultValue="false"
-				tooltip="Check this box if lamp does not turn off when sending off command">
-				<Label>Force brightness = 0 when off</Label>
-			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="savedBrightness" type="textfield" hidden="true" />
 			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number (printed on the device, typical 6 letters) in case it needs to be re-learned">
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -532,16 +520,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
 			</Field>
-			<Field id="forceBrightnessOff" type="checkbox" defaultValue="false"
-				tooltip="Check this box if lamp does not turn off when sending off command">
-				<Label>Force brightness = 0 when off</Label>
-			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="savedBrightness" type="textfield" hidden="true" />
 			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number (printed on the device, typical 6 letters) in case it needs to be re-learned">
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -695,16 +679,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
 			</Field>
-			<Field id="forceBrightnessOff" type="checkbox" defaultValue="false"
-				tooltip="Check this box if lamp does not turn off when sending off command">
-				<Label>Force brightness = 0 when off</Label>
-			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="savedBrightness" type="textfield" hidden="true" />
 			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number (printed on the device, typical 6 letters) in case it needs to be re-learned">
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -792,7 +772,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number (printed on the device, typical 6 letters) in case it needs to be re-learned">
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -905,10 +885,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</Field>
 			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
-			</Field>
-			<Field id="forceBrightnessOff" type="checkbox" defaultValue="false"
-				tooltip="Check this box if lamp does not turn off when sending off command">
-				<Label>Force brightness = 0 when off</Label>
 			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
@@ -1042,8 +1018,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number (printed on the device, typical 6 letters) in case it needs to be re-learned">
-				<Label>Serial Number on Sensor:</Label>
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -1156,8 +1132,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number (printed on the device, typical 6 letters) in case it needs to be re-learned">
-				<Label>Serial Number on Sensor:</Label>
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -1260,8 +1236,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number (printed on the device, typical 6 letters) in case it needs to be re-learned">
-				<Label>Serial Number on Sensor:</Label>
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -1383,8 +1359,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number (printed on the device, typical 6 letters) in case it needs to be re-learned">
-				<Label>Serial Number on Sensor:</Label>
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -1486,8 +1462,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number (printed on the device, typical 6 letters) in case it needs to be re-learned">
-				<Label>Serial Number on Sensor:</Label>
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -1654,8 +1630,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number (printed on the device, typical 6 letters) in case it needs to be re-learned">
-				<Label>Serial Number on Sensor:</Label>
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -1762,8 +1738,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number (printed on the device, typical 6 letters) in case it needs to be re-learned">
-				<Label>Serial Number on Sensor:</Label>
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -1893,8 +1869,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<!-- The buttonBeingHeld property is used by the plugin to track when a button is being held down since the Hue bridge doesn't do that for us, but the switch does report button release events, so we can figure it out ourselves. -->
 			<Field id="buttonBeingHeld" type="checkbox" hidden="true" defaultValue="false" />
 			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number (printed on the device, typical 6 letters) in case it needs to be re-learned">
-				<Label>Serial Number on Sensor:</Label>
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -2079,8 +2055,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<!-- The buttonBeingHeld property is used by the plugin to track when a button is being held down since the Hue bridge doesn't do that for us, but the switch does report button release events, so we can figure it out ourselves. -->
 			<Field id="buttonBeingHeld" type="checkbox" hidden="true" defaultValue="false" />
 			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number (printed on the device, typical 6 letters) in case it needs to be re-learned">
-				<Label>Serial Number on Sensor:</Label>
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -2251,8 +2227,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<!-- The buttonBeingHeld property is used by the plugin to track when a button is being held down since the Hue bridge doesn't do that for us, but the switch does report button release events, so we can figure it out ourselves. -->
 			<Field id="buttonBeingHeld" type="checkbox" hidden="true" defaultValue="false" />
 			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number (printed on the device, typical 6 letters) in case it needs to be re-learned">
-				<Label>Serial Number on Sensor:</Label>
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
 		<States>

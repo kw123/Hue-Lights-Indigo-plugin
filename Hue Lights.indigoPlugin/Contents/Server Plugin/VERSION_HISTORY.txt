@@ -1,12 +1,4 @@
 ========================================
-2022.17.60 @ 2025-06-01
-1. added option to enter serial number from the bulb (and sensor) into indigo device edit.
-   This info is then available in reports ie print lights. 
-   In case you have to re-learn a light to a hue hub you can get that info from here.
-   BUT you need to maintain that info manually. There is no known way to get the serial number from the hub.
-2.added  >>>> the hub does not answer ping <<<< to log when the network is not working properly
-
-========================================
 2022.16.59 @ 2024-04-23
 1. added option to enter serial number from the bulb (and sensor) into indigo device edit.
    This info is then available in reports ie print lights. 

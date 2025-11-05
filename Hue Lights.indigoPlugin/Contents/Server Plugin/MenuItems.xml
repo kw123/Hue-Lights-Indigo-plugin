@@ -620,7 +620,57 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 			</Field>
 		</ConfigUI>
 	</MenuItem>
+
 	<MenuItem id="sep4" />
+	<MenuItem id="overwritebridgeid">
+		<Name>Overwrite bridge...</Name>
+		<ConfigUI>
+	<Field id="lab10" type="label" >
+		<Label>this is for experts ony. you must have generated the heu bridge username manuall beforeand past it ihere 
+ you can generate it with:
+     curl -X POST https://huprobridgeIPnumber/api --insecure -H "Content-Type: application/json" -d '{"devicetype":anynamehere, "generateclientkey":true}'
+ you will get something like this:
+ 	[{"success":{"username":"asldjflksjflksjqfkljqdf","clientkey":"lkdjlksjqdflk;qjdf"}}]
+use the username as the key id here 	
+you also must enter the ip and the hub number 	       
+		</Label>
+	</Field>
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Gateway / Bridge">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select Bridge Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
+			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default ="first select hue bridge" >	</Field>
+			
+			<Field id="newKey" type="textfield">
+				<Label>enter new app key id(username):</Label>
+			</Field>
+			<Field id="newIpNumber" type="textfield" >
+				<Label>enter new IPnumber or leave empty to not change:</Label>
+			</Field>
+			<Field id="newHubVersion" type="menu" >
+				<Label>enter hub version:</Label>
+				<List>
+					<Option value="1">hue hub version 2 </Option>
+					<Option value="2">hue hub pro </Option>
+				</List>
+			</Field>
+
+			<Field id="confirmGNewkey" type="button">
+				<Label>click to</Label>
+				<Title>Confirm new key</Title>
+				<CallbackMethod>execNewKey</CallbackMethod>
+			</Field>
+
+		</ConfigUI>
+	</MenuItem>
+
+	<MenuItem id="sep5" />
 	<MenuItem id="toggleDebug">
 		<Name>Toggle debug...</Name>
 		<ConfigUI>

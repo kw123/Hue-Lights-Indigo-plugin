@@ -69,6 +69,14 @@ C. Change debugging levels</Label>
 	<Label>Enter new IP address:</Label>
 	</Field>
 
+	<Field id="newHubVersionIP" visibleBindingId="showGwMod" visibleBindingValue="true" type="menu" >
+		<Label>enter hub version (leave Blank to keep):</Label>
+		<List>
+			<Option value="1">hue hub version 2 </Option>
+			<Option value="2">hue hub pro </Option>
+		</List>
+	</Field>
+
 	<Field id="confirmGWMod"
 			type="button" 
 			visibleBindingId="showGwMod" visibleBindingValue="true"
@@ -122,15 +130,14 @@ The plugin will do it in the background every 5 minutes automatically. With this
     </Field>
 
 	<Field id="labeUpdateBr" type="label" alignWithControl="true" fontColor="darkgray" fontSize="small"
-			visibleBindingId="showGwAdd" visibleBindingValue="true"
-	>
+			visibleBindingId="showGwAdd" visibleBindingValue="true">
 		<Label>click on Exec search now if you have added a Hue Bridge, that has not been configured</Label>
 	</Field>
 
 
 	<Field id="showbridgesUpdateText" type="textfield" fontColor="darkgray" fontSize="small" visibleBindingId="showGwAdd" visibleBindingValue="true" >
 		<Label>
-</Label>
+		</Label>
 	</Field>
 
 
@@ -141,6 +148,14 @@ You must start with  nummer 0">
 		<Label>Select a Hue Bridge # for (re-) Pairing:</Label>
 			<List class="self" method="gwListGenerator" filter="" dynamicReload="true" />
  	</Field>
+
+	<Field id="newHubVersionPair" visibleBindingId="showGwAdd" visibleBindingValue="true" type="menu" >
+		<Label>enter hub version (leave Blank to keep):</Label>
+		<List>
+			<Option value="1">hue hub version 2 </Option>
+			<Option value="2">hue hub pro </Option>
+		</List>
+	</Field>
 
 	<Field id="selecthubNumberGWPair"
 			visibleBindingId="showGwAdd" visibleBindingValue="true"
@@ -297,10 +312,9 @@ others: fixed at 3-5 minutes
 	<Field    id="debugEditSetup"          		type="checkbox"         > <Label>     ... (3)  Edit indigo devs config etc:</Label>  </Field>
 	<Field    id="debugReadFromBridge"          type="checkbox"         > <Label>     ... (4)  Read From Bridge:</Label>  </Field>
 	<Field    id="debugSendCommandsToBridge"    type="checkbox"         > <Label>     ... (5)  Send Commands To Bridge:</Label>  </Field>
-	<Field    id="debugAction"   				type="checkbox"         > <Label>     ... (6)  Send Action:</Label>  </Field>
-	<Field    id="debugUpdateIndigoDevices"     type="checkbox"         > <Label>     ... (7)  Update Indigo Devices:</Label>  </Field>
-	<Field    id="debugFindHueBridge"           type="checkbox"         > <Label>     ... (8)  find Hue bridges:</Label>  </Field>
-	<Field    id="debugSpecial"       			type="checkbox"         > <Label>     ... (9)  special debug (only for development):</Label>  </Field>
+	<Field    id="debugUpdateIndigoDevices"     type="checkbox"         > <Label>     ... (6)  Update Indigo Devices:</Label>  </Field>
+	<Field    id="debugFindHueBridge"           type="checkbox"         > <Label>     ... (7)  find Hue bridges:</Label>  </Field>
+	<Field    id="debugSpecial"       			type="checkbox"         > <Label>     ... (8)  special debug (only for development):</Label>  </Field>
 	<Field    id="debugall"            			type="checkbox"         > <Label>     ... (99) all of the above .. everything:</Label>  </Field>
 
 	<Field id="sepbr3" type="separator"/>
