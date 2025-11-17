@@ -341,7 +341,19 @@ others: fixed at 3-5 minutes
 	</Field>
 
 
-	<Field id="setdebug" type="label" >	<Label>Set debug areas ...</Label></Field>
+	<Field id="setDev" type="label" fontColor="orange" >	<Label>For development and beta users: plugin must be restarted with any change:</Label></Field>
+	<Field id="useApi2ForComm"	 		 type="checkbox" defaultValue="true" > 		<Label>Use api-v2 for communication to Bridge (must be on):</Label>   	</Field>
+	<Field id="useApi2ForLightEvents"	 type="checkbox" defaultValue="true" >    	<Label>Use api-v2 for Light events:</Label>    							</Field>
+	<Field id="useApi2ForLightGeneral"	 type="checkbox" defaultValue="False" >   	<Label>Use api-v2 for Light in general (not impl):</Label>   			</Field>
+	<Field id="useApi2ForSensorEvents"	 type="checkbox" defaultValue="true" >   	<Label>Use api-v2 for sensor events(not impl:</Label>    				</Field>
+	<Field id="useApi2ForSensorGeneral"	 type="checkbox" defaultValue="False" >   	<Label>Use api-v2 for Sensor in general (not impl):</Label>   		 	</Field>
+	<Field id="useApi2ForGroupsrEvents"	 type="checkbox" defaultValue="False" >   	<Label>Use api-v2 for groups events (not impl):</Label>  				</Field>
+	<Field id="useApi2ForGroupsGeneral"	 type="checkbox" defaultValue="False" >   	<Label>Use api-v2 for Groups in general (not impl):</Label>  		  	</Field>
+	<Field id="useApi2ForBasicEvents"	 type="checkbox" defaultValue="False" >  	<Label>Use api-v2 for Basic parameters events(not impl:</Label>    		</Field>
+	<Field id="useApi2ForBasicGeneral"	 type="checkbox" defaultValue="False" >  	<Label>Use api-v2 for Basic parameters in general(not impl</Label> 		</Field>
+
+
+	<Field id="setdebug" type="label" fontColor="orange" >	<Label>Set debug areas ...</Label></Field>
 	<Field    id="showLoginTest"                 type="checkbox"        > <Label> show logging test at startup:</Label>  </Field>
 	<Field    id="debugInit"          			type="checkbox"         > <Label> Debug...                   ... (1)  Init:</Label>  </Field>
 	<Field    id="debugLoop"          			type="checkbox"         > <Label>     ... (2)  Loop:</Label>  </Field>

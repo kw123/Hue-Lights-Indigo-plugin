@@ -639,8 +639,16 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 			<Field id="confirmHubNumberText" type="textfield" default ="first select hue bridge" >	</Field>
-			
-			<Field id="enableEvents" type="menu" >
+			<!-->
+			<Field id="enableEvents" type="menu" defaultValue="1">
+				<Label>enable / disable event processing:</Label>
+				<List>
+					<Option value="-1">stop </Option>
+					<Option value="1">use events for plugin processing</Option>
+				</List>
+			</Field>
+			-->
+			<Field id="logLevel" type="menu" defaultValue="10">
 				<Label>enable / disable event printing:</Label>
 				<List>
 					<Option value="-1">stop </Option>

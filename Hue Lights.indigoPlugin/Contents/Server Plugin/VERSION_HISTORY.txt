@@ -1,3 +1,9 @@
+
+========================================
+2022.16.60 @ 2025-11-17
+1. added various  steps to integrate hue pro bridge.
+
+
 ========================================
 2022.20.62@ 2025-11-05
 A. added support for hue pro bridge

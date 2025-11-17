@@ -42,6 +42,7 @@ import codecs
 import subprocess
 import requests
 import threading
+import queue 
 
 requests.adapters.DEFAULT_RETRIES = 3
 kTimeout = 4		# seconds
@@ -57,7 +58,27 @@ logging.getLogger('requests').setLevel(logging.WARNING)
 
 _debugAreas = ['Init','Loop','EditSetup','ReadFromBridge','SendCommandsToBridge','UpdateIndigoDevices','FindHueBridge','Special','all']
 
+_hueV1Types 			= ["lights", "sensors", "groups"]
+_indigoDevIdtoV1Types 	= [["bulbId","lights"], ["sensorId","sensors"], ["groupId","groups"]]
+_mapHueV1toIndigoIdType = {"lights":"bulbId", "sensors":"sensorId", "groups":"grouId" }
+_mapServiceTypetoV1Type = {"light":"lights", "button":"sensors", "relative_rotary":"sensors", "group": "groups", "scene": "groups", "zone": "groups", "motion": "sensors", "temperature": "sensors", "light_level":"sensors"}
+_notAccptedEventTypes 	= [] #["grouped_motion", "grouped_light_level"]
 
+_skipServiceTypes	= [
+				None,
+				"device",
+				"matter",
+				"matter_fabric",
+				"bridge_home",
+				"zgp_connectivity",
+				"camera_motion",
+				"contact",
+				"tamper",
+				"bell_button",
+				"smart_scene"
+]
+
+_serviceTypesToIndigoClass = {"button":"sensor", "temperature":"sensor", "light":"bulb", "relative_rotary":"sensor", "device_Power":"sensor", "motion":"sensor", "light_level":"sensor"}
 _defaultDateStampFormat = "%Y-%m-%d %H:%M:%S"
 
 # new plugin prefs props has to be set here
@@ -80,13 +101,25 @@ kDefaultPluginPrefs = {
 				"debugFindHueBridge":					False,
 				"debugSpecial":							False,
 				"debugall":								False,
+				"useApi2ForComm":						True,
+				"useApi2ForLightEvents":				True,
+				"useApi2ForLightGeneral":				False,
+				"useApi2ForSensorEvents":				True,
+				"useApi2ForSensorGeneral":				False,
+				"useApi2ForGroupsEvents":				False,
+				"useApi2ForGroupsGeneral":				False,
+				"useApi2ForBasicEvents":				False,
+				"useApi2ForBasicGeneral":				False,
 				"searchForStringinFindHueBridge":		'Hue Bridge',
 				'logAnyChanges':						'leaveToDevice' # can be leaveToDevice / no / yes
 				}
 kmaxHueItems = {'lights':50, 'sensors':50, 'groups':64, 'scenes':200, 'rules':200, 'schedules':100, 'resourcelinks':64}
-
+kHueBridges 	= 5
 kPossibleHubVersions = ["1","2"]
 kPossibleAPIVersions = ["1","2"]
+
+
+
 ################################################################################
 class Plugin(indigo.PluginBase):
 	########################################
@@ -100,13 +133,19 @@ class Plugin(indigo.PluginBase):
 		indigo.server.log('Starting plugin initialization.')
 		self.hostId 					= pluginPrefs.get('hostId', '')	# Username/key used to access Hue bridge Old
 		self.hostIds 					= json.loads(pluginPrefs.get('hostIds', '{"0":""}'))	# Username/key used to access Hue bridge for multiple bridge
+		for ii in range(kHueBridges):
+			if str(ii) not in self.hostIds :
+				self.hostIds[str(ii)] = ""
 		self.pluginShortName 			= "Hue Lights"
-
+		self.allV2Data					= {str(xx) : {"devices":dict(), "services":dict()} for xx in range(kHueBridges)}
+		self.serviceidToIndigoId		= {str(xx) : dict() for xx in range(kHueBridges)}
 		### one list for all devices on all bridges related to indigo devices 
 		self.deviceList 				= dict()			# list of device IDs to monitor (one list for all devices on all bridges)
+		self.hueIdV1ToIndigoId			= {str(xx) : {"lights":{}, "sensors":{}, "groups":{}} for xx in range(kHueBridges)} # {"lights":{}, "sensors":{}, "groups":{}}
+		self.huehueDeviceIdToIndigoId	= {}
 		self.controlDeviceList 			= dict()	    # list of virtual dimmer device IDs that control bulb devices
-		self.brighteningList 			= []	    # list of device IDs being brightened
-		self.dimmingList 				= []			# list of device IDs being dimmed
+		self.brighteningList 			= list()	    # list of device IDs being brightened
+		self.dimmingList 				= list()			# list of device IDs being dimmed
 		### one for each bridge read from bridge
 		self.paired 					= {"0":False}		# if paired with Hue bridge or not
 		self.notPairedMsg 				= {"0":0}
@@ -117,7 +156,7 @@ class Plugin(indigo.PluginBase):
 		self.hubVersion 				= json.loads(pluginPrefs.get('hubVersion', json.dumps(defHubVersions)))
 		self.apiVersion					= json.loads(pluginPrefs.get('apiVersion', json.dumps(defAPIbVersions)))
 		self.httpS 						= {"1":"http","2":"https"}
-		self.listenThread 				= {}
+		self.listenThread 				= dict()
 
 		self.hubNumberSelected 			= "0"    # default hub number 
 		self.lastErrorMessage 			= ""	    # last error message displayed in log
@@ -235,6 +274,11 @@ class Plugin(indigo.PluginBase):
 		if self.decideMyLog("Init"): self.indiLOG.log(10,"Running plugin version check (if enabled).")
 
 
+		self.indiLOG.log(10,"checking directoru: {}".format(self.indigoPreferencesPluginDir))
+		if not os.path.isdir(self.indigoPreferencesPluginDir):
+			self.indiLOG.log(10,"making directoru: {}".format(self.indigoPreferencesPluginDir))
+			os.mkdir(self.indigoPreferencesPluginDir)
+
 		# Prior to version 1.2.0, the "presets" property did not exist in the plugin preferences.
 		#   If that property does not exist, add it.
 		# As of version 1.2.6, there were 30 presets instead of 10.
@@ -340,7 +384,9 @@ class Plugin(indigo.PluginBase):
 			# Update the device lists and the device states and props.
 
 			pluginProps = device.pluginProps
-			# Hue Device Attribute Controller
+			hubNumber = pluginProps.get('hubNumber','0')
+			hueDeviceId = device.states.get("hueDeviceId",None)
+					
 			if device.deviceTypeId == "hueAttributeController":
 				if device.id not in self.controlDeviceList:
 					try:
@@ -351,14 +397,17 @@ class Plugin(indigo.PluginBase):
 			# Hue Groups
 			elif device.deviceTypeId in kGroupDeviceTypeIDs:
 				if device.id not in self.deviceList:
+					indigodevCat = "groupId"
 					try:
 						if self.decideMyLog("Init"): self.indiLOG.log(10,"Hue Group device definition:\n{}".format(device))
 					except Exception:
 						self.indiLOG.log(30,"Hue Group device definition cannot be displayed", exc_info=True)
-					if "groupId" in pluginProps:
-						self.deviceList[device.id] = {'typeId':device.deviceTypeId, 'hubNumber':pluginProps.get('hubNumber','0'), 'groupId':pluginProps.get('groupId','0')}
+					if indigodevCat in pluginProps:
+						self.deviceList[device.id] = {'typeId':device.deviceTypeId, 'hubNumber':hubNumber, "hueType":"", "indigoCat": indigodevCat, "indigoV1Number":pluginProps.get('indigodevCat','0'), "hueDeviceId":hueDeviceId}
+						self.hueIdV1ToIndigoId[hubNumber]["groups"][pluginProps.get('groupId','0')] = device.id
 					else:
-						self.deviceList[device.id] = {'typeId':device.deviceTypeId, 'hubNumber':'0', 'groupId':'0'}
+						self.deviceList[device.id] = {'typeId':device.deviceTypeId, 'hubNumber':'0', "indigoCat": indigodevCat, 'indigoV1Number':'0', "hueDeviceId":hueDeviceId}
+						self.hueIdV1ToIndigoId[hubNumber]["groups"][pluginProps.get('groupId','0')] = device.id
 					if self.decideMyLog("Init"): self.indiLOG.log(10,"Hue device deviceList:\n{}".format(device.id, self.deviceList[device.id] ))
 			# Other Hue Devices, bulbs, sensors
 			else:
@@ -371,15 +420,12 @@ class Plugin(indigo.PluginBase):
 						#   this error instead of the actual bulb definition.
 						self.indiLOG.log(30,"Hue Group device definition cannot be displayed", exc_info=True)
 					#self.indiLOG.log(20,"Hue adding devid for light {}, #:{}".format(device.name, device.id ))
-					if "bulbId" in pluginProps:
-						self.deviceList[device.id] = {'typeId':device.deviceTypeId, 'hubNumber':pluginProps.get('hubNumber','0'), 'bulbId':pluginProps.get('bulbId','0')}
-					elif "sensorId" in pluginProps:
-						self.deviceList[device.id] = {'typeId':device.deviceTypeId, 'hubNumber':pluginProps.get('hubNumber','0'), 'sensorId':pluginProps.get('sensorId','0')}
-					elif "groupId" in pluginProps:
-						self.deviceList[device.id] = {'typeId':device.deviceTypeId, 'hubNumber':pluginProps.get('groupId','0'), 'bulbId':pluginProps.get('groupId','0')}
-					else:
-						self.deviceList[device.id] = {'typeId':device.deviceTypeId, 'hubNumber':'-1', '':'0'}
-					if self.decideMyLog("Init"): self.indiLOG.log(10,"Hue device deviceList:\n{}".format(device.id, self.deviceList[device.id] ))
+					for indigodevCat, huecat in _indigoDevIdtoV1Types:
+						if indigodevCat in pluginProps:
+							self.deviceList[device.id] = {'typeId':device.deviceTypeId, 'hubNumber':hubNumber, "indigoCat": indigodevCat, "indigoV1Number":pluginProps.get(indigodevCat,'0'), "hueDeviceId":hueDeviceId, "serviceIds":[]}
+							self.hueIdV1ToIndigoId[hubNumber][huecat][pluginProps.get(indigodevCat,'0')] = device.id
+			if hueDeviceId is not None:
+				self.huehueDeviceIdToIndigoId[hueDeviceId] = device.id
 		except Exception:
 			self.indiLOG.log(30,"", exc_info=True)
 		return 
@@ -435,8 +481,12 @@ class Plugin(indigo.PluginBase):
 		lasttryAutoCreateValuesDict = 0
 		self.printHueData({"whatToPrint":"NoHudevice", "sortBy":""},"")
 		self.printHueData({"whatToPrint":"NoIndigoDevice", "sortBy":""},"OnlySupportedDevices")
-
+		for hubNumber in range(5):
+			self.startEventListenersThreads(str(hubNumber), 10, 1)
+		self.startdelayedActionThreads(10)
+		
 		self.indiLOG.log(20,"... initialized")
+		
 
 	
 		try:
@@ -715,13 +765,13 @@ class Plugin(indigo.PluginBase):
 				if "sensors" not in self.hueConfigDict[hubNumber]: continue
 				theDict = self.hueConfigDict[hubNumber]['sensors']
 				for theID in theDict:
-					deviceTypeIdCandidates = []
+					deviceTypeIdCandidates= list()
 					theType = theDict[theID]['type'] # eg ZLLRelativeRotary, ZLLSwitch, ..
 					for indigoTypes in kmapIndigoDevTypeToSensorType: #  eg: "hueDimmerSwitch": 			['RWL020', 'RWL021', 'RWL022'],
 						if theType.find(kmapIndigoDevTypeToSensorType[indigoTypes]) == 0:
 							deviceTypeIdCandidates.append(indigoTypes)
 
-					if deviceTypeIdCandidates == []:
+					if deviceTypeIdCandidates == list():
 						if  mode != "background":
 							self.indiLOG.log(10,"autocreateNewDevices sensor Bridge:{:>2s}; id:{:>3s}; type:{:25s}      not supported(1)".format(hubNumber, theID, theDict[theID]['type']))
 						continue
@@ -750,7 +800,7 @@ class Plugin(indigo.PluginBase):
 					if not found:
 						name = "Hue_sensor_{}_{}_{}".format(hubNumber, theID, theDict[theID]['name'])
 						address = ""
-						props ={}
+						props = dict()
 						props['hubNumber'] = hubNumber
 						props['sensorId'] = theID
 						props['modelId'] = theDict[theID]['modelid']
@@ -798,7 +848,7 @@ class Plugin(indigo.PluginBase):
 					if not found:
 						name = "Hue_group_{}_{}_{}".format(hubNumber, theID, theDict[theID]['name'])
 						address = ""
-						props ={}
+						props = dict()
 						props['hubNumber'] = hubNumber
 						props['groupId'] = theID
 						props['type'] = theDict[theID]['type']
@@ -959,7 +1009,7 @@ class Plugin(indigo.PluginBase):
 			if   'bulbId'		in newProps:						newProps['address'] 							= "{} (Lid:{}-{})".format(self.ipAddresses[hubNumber], hubNumber, newProps['bulbId'])
 			elif 'groupId'		in newProps:						newProps['address'] 							= "{} (Gid:{}-{})".format(self.ipAddresses[hubNumber], hubNumber, newProps['groupId'])
 			elif 'sensorId'		in newProps:						newProps['address'] 							= "{} (Sid:{}-{})".format(self.ipAddresses[hubNumber], hubNumber, newProps['sensorId'])
-			elif 'bulbDeviceId'	in newProps:						newProps['address'] 							= "{} (Aid:{}-{})".format(devId, 						hubNumber, newProps['bulbDeviceId'])
+			elif 'bulbDeviceId'	in newProps:						newProps['address'] 							= "{} (Aid:{}-{})".format(devId, 					   hubNumber, newProps['bulbDeviceId'])
 			else:													newProps['address'] 							= ""
 
 			#self.indiLOG.log(20,"validateRGBWhiteOnOffetc: {}, devtype {} props:{}".format(devName, deviceTypeId, newProps ))
@@ -2563,7 +2613,7 @@ class Plugin(indigo.PluginBase):
 		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting gwListGeneratorPrefs:  bridgesAvailable:{}, filter:{},\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format( self.bridgesAvailable, filter, str(valuesDict)[0:30], typeId, targetId))
 
 		xList = list()
-		availableIPHubs = []
+		availableIPHubs= list()
 		self.bridgesAvailableSelected = ""
 		for bridgeId in self.bridgesAvailable:
 			if not self.bridgesAvailable[bridgeId]['linked']:
@@ -2726,6 +2776,12 @@ class Plugin(indigo.PluginBase):
 
 			if self.hubNumberSelected in self.hueConfigDict:
 				del self.hueConfigDict[self.hubNumberSelected]
+
+			if self.hubNumberSelected in self.apiVersion:
+				self.apiVersion[self.hubNumberSelected] = "1"
+
+			if self.hubNumberSelected in self.hostIds:
+				self.hostIds[self.hubNumberSelected] = ""
 
 			if self.hubNumberSelected in self.paired:
 				del self.paired[self.hubNumberSelected]
@@ -2944,7 +3000,7 @@ class Plugin(indigo.PluginBase):
 
 			# Quick and dirty check to see if this is a Philips Hue bridge.
 			try: makeJ = json.loads(r.content)
-			except: makeJ = {}
+			except: makeJ = dict()
 			if "modelid" not in makeJ:
 				# If "Philips hue bridge" doesn't exist in the response, it's not a Hue bridge.
 				self.indiLOG.log(20,"No \"modelId\":  string found in response. This isn't a Hue bridge. (initial test /nouser/config )")
@@ -3459,7 +3515,7 @@ class Plugin(indigo.PluginBase):
 				# example, depending on how the device's properties (SupportsColor, SupportsRGB,
 				# SupportsWhite, SupportsTwoWhiteLevels, SupportsWhiteTemperature) have
 				# been specified.
-				channelKeys = []
+				channelKeys= list()
 				if device.supportsRGB:
 					channelKeys.extend(['redLevel', 'greenLevel', 'blueLevel'])
 				if device.supportsWhiteTemperature:
@@ -3644,7 +3700,7 @@ class Plugin(indigo.PluginBase):
 				# example, depending on how the device's properties (SupportsColor, SupportsRGB,
 				# SupportsWhite, SupportsTwoWhiteLevels, SupportsWhiteTemperature) have
 				# been specified.
-				channelKeys = []
+				channelKeys= list()
 				if device.supportsRGB:
 					channelKeys.extend(['redLevel', 'greenLevel', 'blueLevel'])
 				if device.supportsWhiteTemperature:
@@ -3829,7 +3885,7 @@ class Plugin(indigo.PluginBase):
 				# example, depending on how the device's properties (SupportsColor, SupportsRGB,
 				# SupportsWhite, SupportsTwoWhiteLevels, SupportsWhiteTemperature) have
 				# been specified.
-				channelKeys = []
+				channelKeys= list()
 				if device.supportsRGB:
 					channelKeys.extend(['redLevel', 'greenLevel', 'blueLevel'])
 				if device.supportsWhiteTemperature:
@@ -4021,7 +4077,7 @@ class Plugin(indigo.PluginBase):
 				# example, depending on how the device's properties (SupportsColor, SupportsRGB,
 				# SupportsWhite, SupportsTwoWhiteLevels, SupportsWhiteTemperature) have
 				# been specified.
-				channelKeys = []
+				channelKeys= list()
 				if device.supportsRGB:
 					channelKeys.extend(['redLevel', 'greenLevel', 'blueLevel'])
 				if device.supportsWhiteTemperature:
@@ -4436,7 +4492,7 @@ class Plugin(indigo.PluginBase):
 				# example, depending on how the device's properties (SupportsColor, SupportsRGB,
 				# SupportsWhite, SupportsTwoWhiteLevels, SupportsWhiteTemperature) have
 				# been specified.
-				channelKeys = []
+				channelKeys= list()
 				if device.supportsRGB:
 					channelKeys.extend(['redLevel', 'greenLevel', 'blueLevel'])
 				if device.supportsWhiteTemperature:
@@ -4916,9 +4972,9 @@ class Plugin(indigo.PluginBase):
 			for deviceId in copy.deepcopy(self.deviceList):
 				## if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(30,"actionEnableDisableSensor deviceId {}, hub#{}, sensorID:{}".format(self.deviceList[deviceId], hubNumber,sensorId))
 				if self.deviceList[deviceId]['typeId'] not in kmapSensordevTypeToModelId:	continue
-				if self.deviceList[deviceId]['hubNumber']  != hubNumber: 					continue
-				if 'sensorId' not in self.deviceList[deviceId]:								continue
-				if self.deviceList[deviceId]['sensorId']  != sensorId: 						continue
+				if self.deviceList[deviceId]['hubNumber'] != hubNumber: 					continue
+				if self.deviceList[deviceId]["indigoCat"] != 'sensorId':					continue
+				if self.deviceList[deviceId]['indigoV1Number']  != sensorId: 				continue
 				device = indigo.devices[deviceId]
 				devSensorId = device.pluginProps.get('sensorId', -1)
 
@@ -4969,39 +5025,94 @@ class Plugin(indigo.PluginBase):
 
 
 
+	########################################
+	def loopDelayedAction(self):
+		try:
+			while self.delayedActionThread["status"] == "run":	
+				time.sleep(0.5)
+				while not self.delayedActionThread["actions"].empty():
+					action = self.delayedActionThread["actions"].get()
+					#self.indiLOG.log(20,"action:{} ".format(action))
+					if time.time() - action["executionTime"] < 0:
+						self.delayedActionThread["actions"].put(action)
+						time.sleep(0.5)
+						continue
+					devid = action["devid"]
+					state = action["state"]
+					value = action["value"]
+					uiValue = action.get("uiValue",None)
+					uiImage = action.get("uiImage",None)
+					dev = indigo.devices[devid]
+					if uiValue is not None and uiImage is not None:
+						dev.updateStateOnServer(state, value, uiValue=uiValue, uiImage=uiImage)
+					elif uiImage is not None:
+						dev.updateStateOnServer(state, value, uiImage=uiImage)
+					elif uiValue is not None:
+						dev.updateStateOnServer(state, value, uiValue=uiValue)
+					else:
+						dev.updateStateOnServer(state, value)
+		except Exception:
+			self.logger.error("", exc_info=True)
+
+
+
+	########################################
+	def startdelayedActionThreads(self, logLevel):
+		try:
+			if self.decideMyLog("Special"): self.indiLOG.log(20,"startdelayedActionThreads ")
+			self.delayedActionThread = dict()
+			self.delayedActionThread["status"]  = "run"
+			self.delayedActionThread["logLevel"]  = logLevel
+			self.delayedActionThread["actions"]  = queue.Queue()
+			self.delayedActionThread["thread"]  = threading.Thread(name='loopDelayedAction', target=self.loopDelayedAction)
+			self.delayedActionThread["thread"].start()
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return 
 
 	########################################
 	def execEventlogging(self, valuesDict, dummy1="", dummy2=""):
 		if self.decideMyLog("Special"): self.indiLOG.log(20,"execEventlogging VD {}".format(valuesDict) )
 		
 		hubNumber = valuesDict['hubNumber']
-		enableEvents = int(valuesDict['enableEvents'])
-		self.startEventListenersThreads(hubNumber, enableEvents)
+		enableEvents = int(valuesDict.get('enableEvents', -0))
+		logLevel = int(valuesDict['logLevel'])
+		self.startEventListenersThreads(hubNumber, logLevel, enableEvents)
 		return valuesDict
 
 	######################
-	def startEventListenersThreads(self, hubNumber, enableEvents):
+	def startEventListenersThreads(self, hubNumber, logLevel, enableEvents):
 		try:
 			if hubNumber not in self.apiVersion: return 
-			if self.apiVersion[hubNumber] != "2": return 
+			if hubNumber not in self.hostIds: return
+			if self.apiVersion.get(hubNumber,"") != "2": return 
+			if  not self.pluginPrefs.get("useApi2ForLightEvents", "False") and not self.pluginPrefs.get("useApi2ForSensorEvents", "False"): return 
+
 			if hubNumber not in self.listenThread:
-				self.listenThread[hubNumber] = {}
+				if self.decideMyLog("Special"): self.indiLOG.log(20,"execEventlogging hubNumber:{}".format(hubNumber) )
+				self.listenThread[hubNumber] = dict()
 				self.listenThread[hubNumber]["status"]  = "run"
-				self.listenThread[hubNumber]["logLevel"]  = str(enableEvents)
+				self.listenThread[hubNumber]["logLevel"]  = logLevel
+				self.listenThread[hubNumber]["fileName"]  = self.indigoPreferencesPluginDir+"hueEvents.json"
+				self.listenThread[hubNumber]["enableEvents"]  = enableEvents
 				self.listenThread[hubNumber]["thread"]  = threading.Thread(name='listenToEvents', target=self.listenToEvents, args=(hubNumber,))
 				self.listenThread[hubNumber]["thread"].start()
 				return
 								
 			if enableEvents == -1: 
 				self.listenThread[hubNumber]["status"] = "stop"
-				time.sleep(1)
+				time.sleep(3)
 				del self.listenThread[hubNumber]
 				return 
 			
 			if self.listenThread[hubNumber]["status"] == "run": 
-				if self.listenThread[hubNumber]["logLevel"] != str(enableEvents):
-					self.indiLOG.log(20,"Eventlogging changing logging to:{}".format(str(enableEvents)) )
-					self.listenThread[hubNumber]["logLevel"]  = str(enableEvents)
+				if self.listenThread[hubNumber]["logLevel"] != logLevel:
+					self.indiLOG.log(20,"Eventlogging changing logging to:{}".format(logLevel ))
+					self.listenThread[hubNumber]["logLevel"]  = logLevel
+					
+				if self.listenThread[hubNumber]["enableEvents"] != int(enableEvents):
+					self.indiLOG.log(20,"Eventlogging changing useV2Events to:{}".format(str(enableEvents)) )
+					self.listenThread[hubNumber]["enableEvents"]  = int(enableEvents)
 				return 
 			
 		except Exception:
@@ -5013,15 +5124,24 @@ class Plugin(indigo.PluginBase):
 	def listenToEvents(self, hubNumber):
 		
 		tStart = time.time()
-		logLevel = int(self.listenThread[hubNumber]["logLevel"])
+		logLevel = self.listenThread[hubNumber]["logLevel"]
+		enableEvents = self.listenThread[hubNumber]["enableEvents"]
+		fileName = self.listenThread[hubNumber]["fileName"]
 		nSeconds = 100.
+		debug = False
+		nextId = -1
+		nWrites = 0
 		try:
+			if hubNumber not in self.hostIds:
+				self.hostIds[hubNumber] = ""
+				self.indiLOG.log(20,"Connecting to events from  hubNumber:{} not setup:  hostIds:{}".format(hubNumber, self.hostIds))
+				return 
 			headers = {
 				"hue-application-key": self.hostIds[hubNumber],
 				"Accept": "text/event-stream"
 			}
 			EVENT_STREAM_URL = "https://{}/eventstream/clip/v2".format(self.ipAddresses[hubNumber])
-			self.indiLOG.log(20,"Connecting to Hue EventStream... at {}".format(EVENT_STREAM_URL))
+			self.indiLOG.log(20,"Connecting to Hue EventStream hubNumber:{} .. at {}, logLevel:{}, writing events to:{}, ".format(hubNumber, EVENT_STREAM_URL, logLevel, fileName))
 
 			response = requests.get(
 				EVENT_STREAM_URL,
@@ -5032,13 +5152,14 @@ class Plugin(indigo.PluginBase):
 			)
 			
 			#if time.time() - tStart > nSeconds: return 
+			self.indiLOG.log(20," running: {}, sec since start:{:9.1f}".format(hubNumber, time.time() - tStart))
 			
 			if self.listenThread[hubNumber]["status"] != "run": return 
 
 			if response.status_code == 200:
-				self.indiLOG.log(20,"Connected! Listening for events...\n")
+				self.indiLOG.log(20,"Connected Listening for events on hub Number: {} at:{}".format(hubNumber, EVENT_STREAM_URL))
 				
-				for line in response.iter_lines():
+				for line in response.iter_lines(decode_unicode=True):
 					if hubNumber not in self.listenThread: 
 						self.indiLOG.log(20,"stopping event logging ")
 						return 
@@ -5046,26 +5167,594 @@ class Plugin(indigo.PluginBase):
 						self.indiLOG.log(20,"stopping event logging ")
 						return 
 					if line:
-						decoded_line = line.decode('utf-8')
+						if debug: self.indiLOG.log(20,"Connected! Listening for events  in line for hub Number: {}".format(hubNumber))
+
+						if line.startswith('id: '):
+							nextId = line.strip().split()[1]
 						
-						if decoded_line.startswith('data:'):
-							data_str = decoded_line[5:].strip()
+						elif line.startswith('data: '):
+							data_str = line[5:].strip()
 							try:
-								data = json.loads(data_str)
-								self.indiLOG.log(logLevel,"event from:{}, event:{}".format(hubNumber, json.dumps(data, indent=2)))
-							except json.JSONDecodeError:
-								pass
+								events = json.loads(data_str)
+								#if debug:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"event from:{}, id:{}, event:{}".format(hubNumber, nextId, json.dumps(events, indent=2)))
+								if self.listenThread[hubNumber]["logLevel"] >= 0 and fileName !="":
+									#self.indiLOG.log(20,"writing event to  :{}".format(fileName))
+									nWrites += 1
+									if nWrites > 100:
+										f = open(fileName,"w")
+										nWrites = 0
+									else:
+										f = open(fileName,"a")
 									
+									f.write("{}\n".format(json.dumps(events, indent=2)))
+									f.close()
+								if self.listenThread[hubNumber]["enableEvents"] > 0:
+									self.digestV2Event(hubNumber, nextId, events, self.listenThread[hubNumber]["logLevel"])
+							except json.JSONDecodeError:
+								self.indiLOG.log(20,"Connected! Listening json error  hub Number:{}, data received:<{}<".format(hubNumber, data_str))
+						else:
+								pass
+								#if debug:self.indiLOG.log(20,"event from:{}, decoded_line:>{}<".format(hubNumber, decoded_line))
 		except Exception:
 			self.logger.error("", exc_info=True)
-		self.indiLOG.log(20,"stopping event logging ")
+		self.indiLOG.log(20,"stopping event receiving ")
+		return 
+
+	######################
+	def digestV2Event(self, hubNumber, nextId, events, logLevel):
+		try:	
+			for hueEvent in events:
+				evDateString = hueEvent.get("creationtime",datetime.datetime.now().strftime(_defaultDateStampFormat))
+				dt = datetime.datetime.fromisoformat(evDateString)
+				sinceEpoch = dt.timestamp()
+				evType = hueEvent.get("type","empty")
+				evData = hueEvent.get("data",[])
+
+				if evType == "update":
+					stateUpdateList = []
+					for eventDict in hueEvent["data"]:
+						event = None
+						found = False 
+						indigoIdFromChild = None 
+						indigoIdFromOwner = None
+						servicetype = eventDict["type"]
+
+						serviceId = eventDict["id"]
+						indigoId = self.serviceidToIndigoId[hubNumber].get(serviceId, None)
+						id_v1 = eventDict.get("id_v1",None)
+						if id_v1 is None: continue
+						xx, vType, id1 = id_v1.split("/")
+						if vType == "": 
+								if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"digestV2Event  indigoId:{} vtype bad , digestV2Event:{},".format(  indigoId, eventDict))	
+								continue
+						if indigoId is None:
+							if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"digestV2Event for indigoId  trying vType:{}, id1:{}, eventDict:{}".format( vType, id1, eventDict))	
+							if vType in self.hueIdV1ToIndigoId[hubNumber]:
+								if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"digestV2Event found vType, id1:{} in dict:{}?".format( id1, self.hueIdV1ToIndigoId[hubNumber][vType])	)
+								if id1 in self.hueIdV1ToIndigoId[hubNumber][vType]:
+									indigoId = self.hueIdV1ToIndigoId[hubNumber][vType][id1]
+									if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"digestV2Event found id1, indigoId:{}".format(indigoId )	)
+						
+						if indigoId is not None:
+							try: 
+								indigoDevice = indigo.devices[int(indigoId)]
+							except Exception:
+								if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"digestV2Event  indigoId:{} does not give valid device, digestV2Event:{}".format(  indigoId, eventDict), exc_info=True)	
+								continue
+						else:
+							if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"digestV2Event  indigoId:{} does not give valid device, digestV2Event:{}".format(  indigoId, eventDict), exc_info=True)	
+							continue
+		
+		
+						if 	servicetype in _notAccptedEventTypes:	
+							found = True
+							if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"event from hub#:{}, evType:{}, id_v1:{} ignored,".format(hubNumber, servicetype, id_v1))
+							continue		
+				
+						indigoClass = _mapHueV1toIndigoIdType.get(vType,None)
+						if servicetype not in self.allV2Data[hubNumber]["services"]: 
+							if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"event from hub#:{}, evType:{}, id_v1:{} ignored, srviceType:{} not found ,".format(hubNumber, servicetype, id_v1, servicetype))
+							continue
+						if serviceId in self.allV2Data[hubNumber]["services"][servicetype]:
+							indigoIdFromChild = self.allV2Data[hubNumber]["services"][servicetype][serviceId].get("indigoId",-1)
+						else:
+							indigoIdFromChild = None
+						
+
+						if id1 in self.hueIdV1ToIndigoId[hubNumber][vType]:
+							indigoIdFromOwner = self.hueIdV1ToIndigoId[hubNumber][vType][id1]
+
+						if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"event from hub#:{}, nextId:{}, evType:{}, servicetype:{}, serviceId:{}, id_v1:{}, indigoDevId:{}=={} ?,".format(hubNumber, nextId, evType, servicetype, serviceId, id_v1, indigoIdFromOwner, indigoId))
+						if servicetype == "light":
+							stateUpdateList = self.fillIndigoStatesWithApi2_light_Events(					servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=0)
+
+						elif servicetype == "light_level":
+							self.fillIndigoStatesWithApi2_light_level_Events( 								servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1)
+		
+						if servicetype == "motion":
+							stateUpdateList = self.fillIndigoStatesWithApi2_motion_Events(					servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1)
+
+						elif servicetype == "temperature":
+							stateUpdateList = self.fillIndigoStatesWithApi2_temperature_Events(				servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1)
+
+						elif servicetype == "button":
+							stateUpdateList = self.fillIndigoStatesWithApi2_button_Events(					servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1)
+
+						elif servicetype == "relative_rotary":
+							stateUpdateList = self.fillIndigoStatesWithApi2_relative_rotary_Events(			servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1)
+
+						if servicetype == "grouped_light":
+							stateUpdateList = self.fillIndigoStatesWithApi2_grouped_light_Events(	servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1)
+
+						if servicetype == "device_power":
+							self.fillIndigoStatesWithApi2_device_power_Events( 								servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1)
+
+						elif servicetype == "bridge":
+							stateUpdateList = self.fillIndigoStatesWithApi2_bridge_Events(					servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1)
+
+						elif servicetype == "device_software_update":
+							stateUpdateList = self.fillIndigoStatesWithApi2_device_software_update_Events(	servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1)
+
+						elif servicetype == "motion_area_candidate":
+							stateUpdateList = self.fillIndigoStatesWithApi2_motion_area_candidate_Events(		servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1)
+
+						elif servicetype == "zigbee_connectivity":
+							stateUpdateList = self.fillIndigoStatesWithApi2_zigbee_connectivityy_Events(		servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1)
+
+						elif servicetype == "zigbee_device_discovery":
+							stateUpdateList = self.fillIndigoStatesWithApi2_zigbee_device_discoveryy_Events(	servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1)
+
+
+						else:
+							stateUpdateList = self.fillIndigoStatesWithApi2_other_Events(	servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1)
+
+
+						if stateUpdateList != []:
+							if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"write--> event from hub#:{}, id:{}, stateUpdateList:{}".format(hubNumber, id1, stateUpdateList))
+							self.updateDeviceState(indigoDevice, stateUpdateList, calledFrom="digestV2Event",log=False)
+						
+				elif evType == "add":
+					pass
+				elif evType == "delete":
+					pass
+				elif evType == "error":
+					pass
+					
+					
+
+		except Exception:
+			self.logger.error("", exc_info=True)
 		return 
 
 
+	######################	
+	def fillIndigoStatesWithApi2_other_Events(self, servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1):
 
+		try:
+			if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"into:{:20}, eventDict:{}".format(servicetype, eventDict))
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return stateUpdateList
+
+
+	######################	
+	def fillIndigoStatesWithApi2_grouped_light_Events(self, servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1):
+
+		try:
+			if self.pluginPrefs.get("useApi2ForGroupsEvents", False): return stateUpdateList
+			if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"into:{:20}, eventDict:{}".format(servicetype, eventDict))
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return stateUpdateList
+
+
+	######################	
+	def fillIndigoStatesWithApi2_zigbee_connectivity_Events(self, servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1):
+
+		try:
+			if self.pluginPrefs.get("useApi2ForBasicEvents", False): return stateUpdateList
+			if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"into:{:20}, eventDict:{}".format(servicetype, eventDict))
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return stateUpdateList
+
+	######################	
+	def fillIndigoStatesWithApi2_zigbee_device_discovery_Events(self, servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1):
+
+		try:
+			if self.pluginPrefs.get("useApi2ForBasicEvents", False): return stateUpdateList
+			if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"into:{:20}, eventDict:{}".format(servicetype, eventDict))
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return stateUpdateList
+
+	######################	
+	def fillIndigoStatesWithApi2_motion_area_candidate_Events(self, servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1):
+
+		try:
+			if self.pluginPrefs.get("useApi2ForBasicEvents", False): return stateUpdateList
+			if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"into:{:20}, eventDict:{}".format(servicetype, eventDict))
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return stateUpdateList
+
+	######################	
+	def fillIndigoStatesWithApi2_device_software_update_Events(self, servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1):
+
+		try:
+			if self.pluginPrefs.get("useApi2ForBasicEvents", False): return stateUpdateList
+			if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"into:{:20}, eventDict:{}".format(servicetype, eventDict))
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return stateUpdateList
+
+
+	######################	
+	def fillIndigoStatesWithApi2_bridge_Events(self, servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1):
+
+		try:
+			if self.pluginPrefs.get("useApi2ForBasicEvents", False): return stateUpdateList
+			if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"into:{:20}, eventDict:{}".format(servicetype, eventDict))
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return stateUpdateList
+
+	######################	
+	def fillIndigoStatesWithApi2_DevicePower_Events(self, servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1):
+		"""
+		eventDict:{'id': 'cb5939d4-da9e-4b71-ab0b-33cef5100e82', 'id_v1': '/sensors/130', 'owner': {'rid': 'f59242d4-9fdb-419d-bf3a-c8b43656833f', 'rtype': 'device'}, 
+		'power_state': {'battery_level': 83, 'battery_state': 'normal'}, 'type': 'device_power'}
+
+		"""
+		try:
+			if self.pluginPrefs.get("useApi2ForBasicEvents", False): return stateUpdateList
+			if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"into:{:20}, eventDict:{}".format(servicetype, eventDict))
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return stateUpdateList
+
+
+	######################	
+	def fillIndigoStatesWithApi2_bridge_Events(self, servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1):
+
+		try:
+			if self.pluginPrefs.get("useApi2ForBasicEvents", False): return stateUpdateList
+			if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"into:{:20}, eventDict:{}".format(servicetype, eventDict))
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return stateUpdateList
+
+
+	######################	
+	def fillIndigoStatesWithApi2_relative_rotary_Events(self, servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=1):
+		"""
+			{'id': '2ab760ec-74ac-4031-bf1e-b37e74243b3e', 'id_v1': '/sensors/77', 'owner': {'rid': '23f2b929-b61d-4aef-be5b-3c6cc5af7ddf', 'rtype': 'device'}, 
+			'relative_rotary': {'last_event': {'action': 'start', 'rotation': {'direction': 'counter_clock_wise', 'duration': 400, 'steps': 75}}, 
+				'rotary_report': {'action': 'start' / repeat , 'rotation': {'direction': 'counter_clock_wise'/ clock_wise, 'duration': 400, 'steps': 75}, 'updated': '2025-11-10T20:15:27.986Z'}}, 'type': 'relative_rotary'}
+				
+				  {
+ 		"""
+		try:
+			if self.pluginPrefs.get("useApi2ForSensorEvents", False): return stateUpdateList
+			if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"into:{:20}, eventDict:{}".format(servicetype, eventDict))
+			if "type" not in eventDict: 												return stateUpdateList
+			if eventDict["type"] != servicetype: 										return stateUpdateList
+			if servicetype not in eventDict:											return stateUpdateList
+			if "rotary_report" not in eventDict[servicetype]: 							return stateUpdateList
+			rotation = eventDict[servicetype]["rotary_report"]["rotation"]
+			sign = 1 if rotation["direction"] == "clock_wise" else -1
+
+			stateUpdateList = self.checkIfUpdateState(indigoDevice, 'rotaryEventID', 			nextId, 					stateUpdateList=stateUpdateList)
+			stateUpdateList = self.checkIfUpdateState(indigoDevice, 'expectedEventDuration', 	rotation["duration"],		stateUpdateList=stateUpdateList)
+			stateUpdateList = self.checkIfUpdateState(indigoDevice, 'expectedRotation', 		rotation["steps"]*sign, 	stateUpdateList=stateUpdateList)
+			stateUpdateList = self.checkIfUpdateState(indigoDevice, 'onOffState', 				True, 						stateUpdateList=stateUpdateList, uiValue="on", uiImage=indigo.kStateImageSel.PowerOn )
+			self.delayedActionThread["actions"].put({"executionTime":time.time()+2 , "devid":indigoDevice.id, "state":"onOffState", "value": False,  "uiValue":"off", "uiImage":indigo.kStateImageSel.PowerOff})
+
+
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return stateUpdateList
+
+
+
+	######################	
+	def fillIndigoStatesWithApi2_button_Events(self, servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=True):
+		"""
+2025-11-10 22:00:25 into:button              , eventDict:{'button': {'button_report': {'event': 'initial_press', 'updated': '2025-11-10T21:00:25.844Z'}, 'last_event': 'initial_press'}, 
+										'id': '38fba031-fa86-477c-8334-d3cdddb40d5a', 'id_v1': '/sensors/78', 'owner': {'rid': '23f2b929-b61d-4aef-be5b-3c6cc5af7ddf', 'rtype': 'device'}, 'type': 'button'}
+
+2025-11-10 22:00:26 into:button              , eventDict:{'button': {'button_report': {'event': 'short_release', 'updated': '2025-11-10T21:00:25.969Z'}, 'last_event': 'short_release'}, 
+										'id': '38fba031-fa86-477c-8334-d3cdddb40d5a', 'id_v1': '/sensors/78', 'owner': {'rid': '23f2b929-b61d-4aef-be5b-3c6cc5af7ddf', 'rtype': 'device'}, 'type': 'button'}
+
+		"""
+		try:
+			if self.pluginPrefs.get("useApi2ForSensorEvents", False): return stateUpdateList
+			if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"into:{:20}, eventDict:{}".format(servicetype, eventDict))
+			servicetype = "button"
+			if "type" not in eventDict: 												return stateUpdateList
+			if eventDict["type"] != servicetype: 										return stateUpdateList
+			if servicetype not in eventDict:											return stateUpdateList
+			if "button_report" not in eventDict[servicetype]: 							return stateUpdateList
+			if "services" not in self.allV2Data[hubNumber]: 							return stateUpdateList
+			if servicetype not in self.allV2Data[hubNumber]["services"]:				return stateUpdateList
+			if serviceId not in self.allV2Data[hubNumber]["services"][servicetype]: 	return stateUpdateList
+
+			services = self.allV2Data[hubNumber]["services"][servicetype][serviceId]
+
+			if "buttonNumber" not in services: 		return stateUpdateList
+			buttonNumber = services["buttonNumber"]
+			if buttonNumber < 1: 														return stateUpdateList
+
+			button_report = eventDict[servicetype]["button_report"]
+			if "event" not in button_report: 											return stateUpdateList
+
+			event = button_report["event"]
+			buttonMap = {"initial_press": "On", "repeat":"Hold", "short_release":"ReleaseShort", "long_release":"ReleaseLong", "long_press":"LongPress"}
+			if event in ["initial_press"]: onOff = True
+			else:						   onOff = False
+
+			stateName = "button"+str(buttonNumber)+buttonMap.get(event,"")
+
+			stateUpdateList = self.checkIfUpdateState(indigoDevice, stateName, 			"On",   				stateUpdateList=stateUpdateList )
+			stateUpdateList = self.checkIfUpdateState(indigoDevice, "onOffState", 		onOff,  				stateUpdateList=stateUpdateList )
+			stateUpdateList = self.checkIfUpdateState(indigoDevice, "lastButtonPressed",str(buttonNumber), 		stateUpdateList=stateUpdateList )
+			stateUpdateList = self.checkIfUpdateState(indigoDevice, "buttonEventId", 	str(nextId),  			stateUpdateList=stateUpdateList )
+			self.delayedActionThread["actions"].put({"executionTime":time.time()+2 , "devid":indigoDevice.id, "state":"onOffState", "value": False,  "uiValue":"off"})
+			self.delayedActionThread["actions"].put({"executionTime":time.time()+2 , "devid":indigoDevice.id, "state":stateName, "value": "Off"})
+			#if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"BUTON :::: event from hub#:{}, id:{}, stateUpdateList:{}".format(hubNumber, id1, stateUpdateList))
+
+
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return stateUpdateList
+
+
+	######################	
+	def fillIndigoStatesWithApi2_motion_Events(self, servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=True):
+		try:
+			if self.pluginPrefs.get("useApi2ForSensorEvents", False): return stateUpdateList
+			#if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"into:{:20}, eventDict:{}".format(servicetype, eventDict))
+			if "type" not in eventDict: 			return stateUpdateList
+			if eventDict["type"] != servicetype: 	return stateUpdateList
+			if servicetype not in eventDict:		return stateUpdateList
+			
+			rep = servicetype+"_report"
+			if rep not in eventDict[servicetype]: return stateUpdateList
+			#if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"into:{:20}: pass 1".format(servicetype))
+
+			event = eventDict[servicetype][rep]
+			if "changed" in event:
+				updated = datetime.datetime.fromisoformat(event["changed"]).strftime(_defaultDateStampFormat)
+			stateUpdateList = self.checkIfUpdateState(indigoDevice, 'updated', updated, stateUpdateList=stateUpdateList)
+				
+			if "sensitivity" in eventDict:
+				sData = eventDict["sensitivity"]
+				sensitivity = sData["sensitivity"]
+				sensitivityMax = sData["sensitivity_max"]
+				sensitivitySet = sData["set"]
+				stateUpdateList = self.checkIfUpdateState(indigoDevice, 'sensitivitySet',	sensitivitySet, stateUpdateList=stateUpdateList)
+				stateUpdateList = self.checkIfUpdateState(indigoDevice, 'sensitivity', 		sensitivity, 	stateUpdateList=stateUpdateList )
+				stateUpdateList = self.checkIfUpdateState(indigoDevice, 'sensitivityMax',	sensitivityMax, stateUpdateList=stateUpdateList )
+
+			if "motion" in eventDict[servicetype]:
+				on = eventDict[servicetype]["motion"]
+				if on: 					sensorIcon = indigo.kStateImageSel.MotionSensorTripped
+				else:					sensorIcon = indigo.kStateImageSel.MotionSensor
+
+				stateUpdateList = self.checkIfUpdateState(indigoDevice, 'onOffState', on,  uiValue= "on" if on else "off", uiImage=sensorIcon, stateUpdateList=stateUpdateList)
+			#if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"into:{:20}: stateUpdateList:{}".format(servicetype, stateUpdateList))
+
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return stateUpdateList
+
+
+
+	######################	
+	def fillIndigoStatesWithApi2_temperature_Events(self, servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=True):
+		try:
+			if self.pluginPrefs.get("useApi2ForSensorEvents", False): return stateUpdateList
+	
+			#if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"into:{:20}, eventDict:{}".format(servicetype, eventDict))
+			if "type" not in eventDict: 		return stateUpdateList
+			if eventDict["type"] != servicetype: 	return stateUpdateList
+			if servicetype not in eventDict: 	return stateUpdateList
+			
+			#if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"into:{:20}: pass 1".format(servicetype))
+			rep = servicetype+"_report"
+			if rep not in eventDict[servicetype]: return stateUpdateList
+
+			event = eventDict[servicetype][rep]
+			if "changed" in event:
+				updated = datetime.datetime.fromisoformat(event["changed"]).strftime(_defaultDateStampFormat)
+			else: 
+				updated = datetime.datetime.now().strftime(_defaultDateStampFormat)
+			stateUpdateList = self.checkIfUpdateState(indigoDevice, 'updated', updated, stateUpdateList=stateUpdateList)
+				
+			if servicetype in eventDict[servicetype]:
+				sensorOffset = indigoDevice.pluginProps.get('sensorOffset', 0)
+				try:
+					sensorOffset = round(float(sensorOffset), 1)
+				except Exception:
+					# If there's any conversion error, just use a zero offset.
+					sensorOffset = 0.0
+				# Get the temperature scale specified in the device settings.
+				temperatureScale = indigoDevice.pluginProps.get('temperatureScale', "c").upper()
+
+				temperature = eventDict[servicetype][servicetype]
+				temperatureC = temperature + sensorOffset
+				temperatureF = float(temperature) * 9.0 / 5.0 + 32.0 + sensorOffset
+				if temperatureScale != "C":
+					sensorValue   = temperatureF
+				else:
+					sensorValue   = temperatureC
+				
+				stateUpdateList = self.checkIfUpdateState(indigoDevice, 'temperatureF', temperatureF,  uiValue= "{} \xba{}".format(temperatureF, temperatureScale),  stateUpdateList=stateUpdateList)
+				stateUpdateList = self.checkIfUpdateState(indigoDevice, 'temperatureC', temperatureC,  uiValue= "{} \xba{}".format(temperatureC, temperatureScale),  stateUpdateList=stateUpdateList)
+				stateUpdateList = self.checkIfUpdateState(indigoDevice, 'sensorValue',  temperature,   uiValue= "{} \xba{}".format(sensorValue,  temperatureScale), uiImage=indigo.kStateImageSel.TemperatureSensor, stateUpdateList=stateUpdateList)
+			
+			#if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"into:{:20}: stateUpdateList:{}".format(servicetype, stateUpdateList))
+
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return stateUpdateList
+
+
+
+	######################	
+	def fillIndigoStatesWithApi2_light_level_Events(self, servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=True):
+		#{'id': 'bfdd4fd6-835d-4d1d-b89d-c1f76dfa4444', 'id_v1': '/sensors/128', 
+		#'light': {'light_level': 0, 'light_level_report': {'changed': '2025-11-10T18:06:26.508Z', 'light_level': 0}, 'light_level_valid': True}, 
+		# 'owner': {'rid': '65b07c3f-8f50-4ea9-b035-e809ef87b325', 'rtype': 'device'}, 'type': 'light_level'}
+
+		try:
+			if self.pluginPrefs.get("useApi2ForLightEvents", False): return stateUpdateList
+			dataTag = "light"
+			if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"into:{:20}, eventDict:{}".format(servicetype, eventDict))
+			if "type" not in eventDict: 			return stateUpdateList
+			if eventDict["type"] != servicetype:	return stateUpdateList
+			if dataTag not in eventDict: 			return stateUpdateList
+	
+			darkThreshold = 65534
+			thresholdOffset = 7000
+			
+			luminanceRaw = eventDict[dataTag].get("light_level")
+			try:
+				luminance = pow(10.0, (luminanceRaw - 1.0) / 10000.0)
+				darkThreshold = pow(10.0, (darkThreshold - 1.0) / 10000.0)
+				thresholdOffset = pow(10.0, (thresholdOffset - 1.0) / 10000.0)
+			except TypeError:
+					# In rare circumstances, the value returned from the Hue bridge for
+					# luminanceRaw might not be a number.  Rather than throw a Python
+					# error in the Indigo log, let's just ignore the error and set
+					# the lux value and the thresholds to 0 for now.
+					pass
+			darkThreshold = 10
+			thresholdOffset = 0.0
+
+			# If the luminanceRaw value is 0, that means the light level is blow
+			# detectable levels, which should be reported as a light level of 0 lux.
+			if luminanceRaw == 0:
+				luminance = 0.0
+
+
+			# Determine to how many decimal places the sensor value should be
+			# rounded based on how much luminance there is.
+			if 0 < luminance < 10:
+				sensorPrecision = 2
+			elif 10 <= luminance < 100:
+				sensorPrecision = 1
+			else:
+				sensorPrecision = 0
+			# Now round and set the sensorValue.
+			if sensorPrecision > 0:
+				sensorValue = round(luminance, sensorPrecision)
+			else:
+				sensorValue = int(round(luminance, 0))
+			sensorUiValue = "{} lux".format(sensorValue)
+			if sensorValue > darkThreshold: 	daylight = True;  dark = False
+			else:							 	daylight = False; dark = True
+
+			if daylight:
+				sensorIcon = indigo.kStateImageSel.LightSensorOn
+			else:
+				sensorIcon = indigo.kStateImageSel.LightSensor
+
+			stateUpdateList = self.checkIfUpdateState(indigoDevice, 'dark', 			dark, 			stateUpdateList=stateUpdateList )
+			#stateUpdateList = self.checkIfUpdateState(indigoDevice, 'darkThreshold',	darkThreshold,	stateUpdateList=stateUpdateList )
+			stateUpdateList = self.checkIfUpdateState(indigoDevice, 'daylight', 		daylight, 		stateUpdateList=stateUpdateList )
+			stateUpdateList = self.checkIfUpdateState(indigoDevice, 'luminance', 		luminance, 		stateUpdateList=stateUpdateList, decimalPlaces=sensorPrecision )
+			stateUpdateList = self.checkIfUpdateState(indigoDevice, 'luminanceRaw',		luminanceRaw,	stateUpdateList=stateUpdateList, decimalPlaces=sensorPrecision )
+			stateUpdateList = self.checkIfUpdateState(indigoDevice, 'sensorValue', 		sensorValue,  	stateUpdateList=stateUpdateList, decimalPlaces=sensorPrecision,	uiValue=sensorUiValue, uiImage=sensorIcon, )
+			if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"into:{:20}: stateUpdateList:{}".format(servicetype, stateUpdateList))
+
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return stateUpdateList
+
+
+
+	def doLightUpdate(self, indigoDevice, eventDict, stateUpdateList):
+		try:
+			found = True
+			on = None
+			mirek = None
+			dType = 0
+			bulb = {"modelid":None, "type":None, "state":{"reachable":True}}
+			if "on" in eventDict:
+				on = eventDict["on"].get("on",None)
+				bulb["state"]["on"] = on
+				dType = 1
+				stateUpdateList = self.checkIfUpdateState(indigoDevice, 'onOffState', on,  uiValue= "on" if on else "off", stateUpdateList=stateUpdateList)
+				
+			if "dimming" in eventDict:
+				brightness = eventDict["dimming"].get("brightness",0.0)
+				bulb["state"]["bri"] = int(brightness *2.55)
+				dType += 2
+				stateUpdateList = self.checkIfUpdateState(indigoDevice, 'brightnessLevel', int(brightness), stateUpdateList=stateUpdateList)
+				
+			if "color_temperature" in eventDict:
+				if "mirek" in eventDict["color_temperature"]:
+					mirek = eventDict["color_temperature"]["mirek"]
+					mirek_valid = eventDict["color_temperature"]["mirek_valid"]
+					if mirek_valid:
+						currentBrightness = indigoDevice.states["brightnessLevel"]
+						colorTemp = int(round(1000000.0/max(1.,mirek)))
+						bulb["state"]["ct"] = mirek
+						dType += 4
+						stateUpdateList = self.checkIfUpdateState(indigoDevice, 'colorTemp', 		colorTemp, stateUpdateList=stateUpdateList)
+						stateUpdateList = self.checkIfUpdateState(indigoDevice, 'whiteTemperature', colorTemp, stateUpdateList=stateUpdateList)
+						if currentBrightness >= 0:
+							stateUpdateList = self.checkIfUpdateState(indigoDevice, 'whiteLevel', 	int(currentBrightness), stateUpdateList=stateUpdateList)
+			
+			if "color" in eventDict:
+				if "xy" in eventDict["color"]:
+					x = eventDict["color"]["xy"].get("x",0.0)
+					y = eventDict["color"]["xy"].get("y",0.0)
+					bulb["state"]["xy"] = [x,y]
+					dType += 8
+					colorX = max(0.00001, x)
+					colorY = max(0.00001, y)
+					currentBrightness = indigoDevice.states["brightnessLevel"]
+					xyY = xyYColor(colorX, colorY, currentBrightness/100.)
+					rgb = xyY.convert_to('rgb')
+					# Let's also convert the xyY color to HSB so that related device states in Indigo are updated correctly.
+					hsb = xyY.convert_to('hsv')
+					hue = int(round(hsb.hsv_h * 182.0))
+					saturation = int(round(hsb.hsv_s * 100))
+					colorRed = int(round(rgb.rgb_r))
+					colorGreen = int(round(rgb.rgb_g))
+					colorBlue = int(round(rgb.rgb_b))
+					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'brightnessLevel', 	int(currentBrightness), stateUpdateList=stateUpdateList)
+					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'saturation', 	saturation, stateUpdateList=stateUpdateList)
+					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'whiteLevel', 100 - saturation, stateUpdateList=stateUpdateList )
+					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'colorX', 		colorX, 	stateUpdateList=stateUpdateList,  decimalPlaces=4)
+					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'colorY', 		colorY, 	stateUpdateList=stateUpdateList,  decimalPlaces=4)
+					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'colorRed', 	colorRed, 	stateUpdateList=stateUpdateList)
+					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'colorGreen', 	colorGreen, stateUpdateList=stateUpdateList)
+					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'colorBlue', 	colorBlue, 	stateUpdateList=stateUpdateList)
+					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'redLevel', 	colorRed, 	stateUpdateList=stateUpdateList)
+					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'greenLevel', 	colorGreen, stateUpdateList=stateUpdateList)
+					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'blueLevel', 	colorBlue,	stateUpdateList=stateUpdateList)
+					if logLevel > 0: self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"fillIndigoStatesWithApi2_LightEvents write--> event from hub#:{}, id:{}, stateUpdateList:{}".format(hubNumber, id1, stateUpdateList))
+					if logLevel > 0: self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"fillIndigoStatesWithApi2_LightEvents write--> states:{}".format(indigoDevice.states))
+		
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return stateUpdateList, bulb, dType
+
+	######################	
+	def fillIndigoStatesWithApi2_light_Events(self, servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList, logLevel=False):
+		try:
+			if self.pluginPrefs.get("useApi2ForLightEvents", False): return stateUpdateList
+			stateUpdateList, bulb, dType = self.doLightUpdate(indigoDevice, eventDict, stateUpdateList)
+								
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return stateUpdateList
 
 	######################
-	def menuDeleteSensor(self, valuesDict, typeId=u"", devId=0):
+	def menuDeleteSensor(self, valuesDict, typeId="", devId=0):
 		try:
 			self.menuDeleteDevice(valuesDict, 'sensorId', 'sensors', kSwitchTypeIDs)
 		except Exception:
@@ -5074,7 +5763,7 @@ class Plugin(indigo.PluginBase):
 
 
 	######################
-	def menuDeleteLight(self, valuesDict, typeId=u"", devId=0):
+	def menuDeleteLight(self, valuesDict, typeId="", devId=0):
 		try:
 			self.menuDeleteDevice(valuesDict, 'bulbId', 'lights', kLightDeviceTypeIDs)
 		except Exception:
@@ -5086,7 +5775,7 @@ class Plugin(indigo.PluginBase):
 	def menuDeleteDevice(self, valuesDict, tag, devType, listOfDevices):
 		try:
 			self.indiLOG.log(10,"Starting menuDelete{} with {}.".format(devType, valuesDict))
-			ID  = valuesDict.get('bulbId', "")
+			ID  = valuesDict.get(tag, "")
 			hubNumber = valuesDict.get('hubNumber', "")
 			if hubNumber == "": return valuesDict
 
@@ -5094,8 +5783,8 @@ class Plugin(indigo.PluginBase):
 				## if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(30,"actionEnableDisableSensor deviceId {}, hub#{}, sensorID:{}".format(self.deviceList[deviceId], hubNumber,sensorId))
 				if self.deviceList[deviceId]['typeId'] not in listOfDevices:	continue
 				if self.deviceList[deviceId]['hubNumber']  != hubNumber: 		continue
-				if tag not in self.deviceList[deviceId]:						continue
-				if self.deviceList[deviceId][tag]  != bulbId: 					continue
+				if self.deviceList[deviceId]["indigoCat"] != tag:				continue
+				if self.deviceList[deviceId]['indigoV1Number'] != ID: 			continue
 				device = indigo.devices[deviceId]
 				devId = device.pluginProps.get(tag, -1)
 
@@ -5108,7 +5797,7 @@ class Plugin(indigo.PluginBase):
 				
 				self.setBridgeBusy(hubNumber, calledfrom="menuDeleteDevice")
 				command = self.httpS[self.hubVersion[hubNumber]]+"://{}/api/{}/{}/{}".format(ipAddress, self.hostIds[hubNumber], devType, ID)
-				self.indiLOG.log(20,"Sending URL request: {}".format(command))
+				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(20,"Sending URL request: {}".format(command))
 				try:
 					r = requests.delete(command, data="", timeout=kTimeout, headers={'Connection':'close'}, verify=False)
 				except requests.exceptions.Timeout:
@@ -5193,8 +5882,8 @@ class Plugin(indigo.PluginBase):
 		try:
 			#self.indiLOG.log(30,"menu rename {} / {} / {} / {} / {}".format( tag, useId, hubNumber, theID, newName))
 			for deviceId in copy.deepcopy(self.deviceList):
-				if useId not in self.deviceList[deviceId]:				continue
-				if self.deviceList[deviceId][useId]  != theID: 			continue
+				if useId not in self.deviceList[deviceId]["indigoCat"] != useId:		continue
+				if self.deviceList[deviceId]["indigoV1Number"]  != theID: 			continue
 				device = indigo.devices[deviceId]
 				if hubNumber != device.pluginProps.get('hubNumber', -1):	
 					self.indiLOG.log(0,"not passed 4,{}:  hubNumber:{},ID:{}, pb-hubNumber:{}".format(device.name, hubNumber, theID,  device.pluginProps.get(hubNumber, -1) ))
@@ -5226,7 +5915,7 @@ class Plugin(indigo.PluginBase):
 				
 				command = self.httpS[self.hubVersion[hubNumber]]+"://{}/api/{}/{}/{}/".format(ipAddress, self.hostIds[hubNumber], tag, theID)
 				requestData = json.dumps({ "name": newName})
-				if self.decideMyLog("Special") or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Sending URL request: {}, data:{}".format(command, requestData))
+				if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"Sending URL request: {}, data:{}".format(command, requestData))
 				try:
 					self.setBridgeBusy(hubNumber, calledfrom="execRename")
 					r = requests.put(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'}, verify=False)
@@ -5351,7 +6040,7 @@ class Plugin(indigo.PluginBase):
 		if self.decideMyLog("Loop"): self.indiLOG.log(10,"Starting calcRgbHexValsFromRgbLevels.")
 		if self.decideMyLog("Loop"): self.indiLOG.log(10,"valuesDict: {}".format(valuesDict))
 		# Convert RGB integer values to RGB hex values.
-		rgbHexVals = []
+		rgbHexVals= list()
 		for channel in ['red', 'green', 'blue']:
 			fieldValue = 0
 			# Make sure the field values are integers.
@@ -5372,7 +6061,7 @@ class Plugin(indigo.PluginBase):
 			self.indiLOG.log(10,"Starting calcRgbHexValsFromHsbLevels.")
 			self.indiLOG.log(10,"valuesDict: {}".format(valuesDict))
 		# Convert HSB integer values to RGB hex values.
-		rgbHexVals = []
+		rgbHexVals= list()
 		hue = 0
 		saturation = 0
 		brightness = 0
@@ -5646,7 +6335,7 @@ class Plugin(indigo.PluginBase):
 		except Exception:
 			self.indiLOG.log(30,"Unable to obtain the configuration from the Hue bridge #{}".format(hubNumber), exc_info=True)
 
-		if xList ==[]:
+		if xList == list():
 			self.indiLOG.log(20,"!!! no correntsponding light found, please check your selections !!!\nyour selection was: Bridge# {}, indigo devType:\"{}\"=\"{}\" maps to hue-type:\"{}\"\navailable on the Bridge# {} are:\n{}".format(
 								hubNumber, typeId, kmapIndigodevTypeToIndigofulldevType.get(typeId,""),  kmapIndigoDevTypeToHueType.get(typeId,""), hubNumber, availableButWrongDevtype))
 			self.printHueData({"whatToPrint":"mappingOfNames","sortBy":""},"")
@@ -5942,7 +6631,7 @@ class Plugin(indigo.PluginBase):
 		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Starting sensorListGenerator.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, valuesDict, typeId, targetId))
 
 		xList = list()
-		addAtEnd = []
+		addAtEnd= list()
 		if self.hubNumberSelected == "":
 			hubNumbers = self.ipAddresses
 		else:
@@ -6013,7 +6702,7 @@ class Plugin(indigo.PluginBase):
 				elif filter.find('oneSensor') > -1 and sensorDetails['type'] in kSupportedSensorTypes:
 					xList.append([sensorId, "{}".format(sensorDetails['name'])])
 
-		if addAtEnd != []:
+		if addAtEnd != list():
 			xList.append(addAtEnd)
 		xList = sorted(xList, key = lambda x: x[1])
 		if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"sensorListGenerator: Return sensor list is {}".format(xList) )
@@ -6031,7 +6720,7 @@ class Plugin(indigo.PluginBase):
 			hubNumbers = self.ipAddresses
 		else:
 			hubNumbers = {self.hubNumberSelected:True}
-		addAtEnd = []
+		addAtEnd= list()
 		for hubNumber in hubNumbers:
 			# Iterate over our sensors, and return a sorted list in Indigo's format
 			#   The "lambda" keyword in Python creates an inline function. Here it returns the device name.
@@ -6042,7 +6731,7 @@ class Plugin(indigo.PluginBase):
 					xList.append([bulbId, "{}".format(lightDetails['name'])])
 					addAtEnd = ['*', 'all lights, use * for new name']
 
-		if addAtEnd != []:
+		if addAtEnd != list():
 			xList.append(addAtEnd)
 		xList = sorted(xList, key = lambda x: x[1])
 		# Debug
@@ -6227,21 +6916,23 @@ class Plugin(indigo.PluginBase):
 
 	# Update Device State
 	########################################
-	def updateDeviceState(self, device, state, value=None, decimalPlaces=None, uiValue=None, uiImage=None, calledFrom=""):
+	def updateDeviceState(self, device, state, value=None, decimalPlaces=None, uiValue=None, uiImage=None, calledFrom="", log=False):
 		# Change the device state or states on the server
 		#   if it's different than the current state.
 		try:
 			# Note that the uiImage value, if passed, should be a valid
 			# Indigo State Image Select Enumeration value as defined at
 			# http://wiki.indigodomo.com/doku.php?id=indigo_7_documentation:device_class.
-			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
+			logChanges = log or  (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
 			if self.trackSpecificDevice == device.id:	sendLog = 20
 			else: 										sendLog = self.sendDeviceUpdatesTo
-
+			logChanges or self.decideMyLog("UpdateIndigoDevices")
+			if logChanges: self.indiLOG.log(20,"updateDeviceState dev:{}, state:{}".format(device.name, state) )			# Create a temporary key/value list to be used for device updating.
+			
 			# First determine if we've been sent a key/value list or a device object.
 			if state.__class__ == list:
-				## self.indiLOG.log(20,"updateDeviceState into list update {}".format(dev.name) )			# Create a temporary key/value list to be used for device updating.
-				tempKeyValList = []
+				if logChanges: self.indiLOG.log(20,"updateDeviceState into list update {}".format(device.name) )			# Create a temporary key/value list to be used for device updating.
+				tempKeyValList= list()
 				# Loop through the key/value items in the list.
 				for statesDict in state:
 					# Make sure the minimum required dictionary items exist.
@@ -6260,7 +6951,7 @@ class Plugin(indigo.PluginBase):
 					# First, if the state doesn't even exist on the device, force a reload
 					#   of the device configuration to try to add the new state.
 					if sKey not in device.states:
-						if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(20,"The \"{}\" device doesn't have the \"{}\" state.  Updating device.".format(device.name , sKey))
+						if logChanges: self.indiLOG.log(20,"The \"{}\" device doesn't have the \"{}\" state.  Updating device.".format(device.name , sKey))
 						device.stateListOrDisplayStateIdChanged()
 						continue
 
@@ -6268,7 +6959,7 @@ class Plugin(indigo.PluginBase):
 					if statesDict['value'] == device.states.get(sKey, None):
 						continue
 					try:
-						if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"updateDeviceState: Updating device \"{}\" state: {}. Old value = {}. New value = {}".format(device.name, sKey, device.states.get(sKey, ""), statesDict["value"]))
+						if logChanges: self.indiLOG.log(10,"updateDeviceState: Updating device \"{}\" state: {}. Old value = {}. New value = {}".format(device.name, sKey, device.states.get(sKey, ""), statesDict["value"]))
 					except Exception:
 						self.indiLOG.log(30,"updateDeviceState: Updating device \"{}\" state: Unable to display state".format( device.name), exc_info=True)
 
@@ -6278,12 +6969,14 @@ class Plugin(indigo.PluginBase):
 						device.updateStateImageOnServer(uiImage)
 						# Delete the uiImage dictionary item as its not a valid key name for Indigo device updates.
 						del statesDict['uiImage']
-
+					if statesDict.get("decimalPlaces","abc") is None:
+						del statesDict["decimalPlaces"]
 					# Add the statesDict dictionary to the temporary key/value list to be updated in the device.
 					tempKeyValList.append(statesDict)
 
 				# End loop through state key/value list.
 				# Update all the states that have changed on the device at one time.
+				if logChanges: self.indiLOG.log(10,"updateDeviceState: Updating device \"{}\"  valueList = {}".format(device.name, tempKeyValList))
 				device.updateStatesOnServer(tempKeyValList)
 
 			# If state wasn't a list, treat it like a string and just update 1 device state.
@@ -6297,7 +6990,7 @@ class Plugin(indigo.PluginBase):
 				#   of the device configuration to try to add the new state.
 				if device.states.get(state, None) is None:
 					return 
-					if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"The {} device doesn't have the \"{}\" state.  Updating device.".format(device.name , state))
+					if logChanges: self.indiLOG.log(10,"The {} device doesn't have the \"{}\" state.  Updating device.".format(device.name , state))
 					device.stateListOrDisplayStateIdChanged()
 
 				# Set the initial UI Value to the same raw value in newValue.
@@ -6308,7 +7001,7 @@ class Plugin(indigo.PluginBase):
 				# Now update the state if the new value (rounded if needed) is different.
 				if (value != device.states.get(state, None)):
 					try:
-						if logChanges or self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(sendLog,"updateDeviceState: Updating device \"{}\" state: \"{}\". Old value = {}. New value = {}".format(device.name , state, device.states.get(state, ""), value))
+						if logChanges: self.indiLOG.log(sendLog,"updateDeviceState: Updating device \"{}\" state: \"{}\". Old value = {}. New value = {}".format(device.name , state, device.states.get(state, ""), value))
 					except Exception:
 						self.indiLOG.log(30,"updateDeviceState: Updating device \"{}\" state: Unable to display state".format( device.name), exc_info=True)
 
@@ -6342,7 +7035,11 @@ class Plugin(indigo.PluginBase):
 				self.setlastBatteryReplaced(device, value)
 			if device.states[key] != value:
 				if stateUpdateList is not None: 
-					stateUpdateList.append( {"key":key, "value":value, "uiValue":uiValue, "decimalPlaces":decimalPlaces, "uiImage":uiImage} )
+					if decimalPlaces is None:
+						stateUpdateList.append( {"key":key, "value":value, "uiValue":uiValue, "uiImage":uiImage} )
+					else:
+						stateUpdateList.append( {"key":key, "value":value, "uiValue":uiValue, "decimalPlaces":decimalPlaces, "uiImage":uiImage} )
+					
 					return stateUpdateList
 				self.updateDeviceState(device, key, value, uiValue=uiValue, decimalPlaces=decimalPlaces, uiImage=uiImage)
 		return stateUpdateList		
@@ -6510,7 +7207,7 @@ class Plugin(indigo.PluginBase):
 			self.doErrorLog("Error retrieving Hue bulb device status: >>{}<< for device :{}".format(errorDict['error']['description'], device.name))
 			return
 		except KeyError:
-			errorDict = []
+			errorDict= list()
 			# If there was a KeyError, then there were no processing errors.
 
 		# Call the method to update the Indigo device with the Hue device info.
@@ -6546,7 +7243,7 @@ class Plugin(indigo.PluginBase):
 			self.doErrorLog("Error retrieving Hue groups device status: >>{}<< for device :{}".format(errorDict['error']['description'], device.name))
 			return
 		except KeyError:
-			errorDict = []
+			errorDict= list()
 			# If there was a KeyError, then there were no processing errors.
 
 		# Call the method to update the Indigo device with the Hue group data.
@@ -6581,14 +7278,289 @@ class Plugin(indigo.PluginBase):
 			self.doErrorLog("Error retrieving Hue sensor device status: >>{}<< for device :{}".format(errorDict['error']['description'], device.name))
 			return
 		except KeyError:
-			errorDict = []
+			errorDict= list()
 			# If there was a KeyError, then there were no processing errors.
 
 		# Call the method to update the Indigo device with the Hue device info.
 		self.hueConfigDict[hubNumber]['sensors'][sensorId] = sensor
-		self.parseOneHueSensorData(sensor, device)
+		self.parseOneHueSensorData(hubNumber, sensor, device)
 
 		return
+
+
+	########################################
+
+	def getV2AllConfig(self, hubNumber, endpoint):
+
+		try:
+			if hubNumber not in self.allV2Data:
+				self.allV2Data[hubNumber] = dict()
+			errorsDict = dict()
+			errDict1 = ""
+			errDict2 = ""
+			jsonData = dict()
+			ipAddress = self.ipAddresses[hubNumber]
+			if not self.isValidIP(ipAddress):
+				if ipAddress == "": 
+					return (False, "", errorsDict) # this happens during setup of hub, for some time ip number is not defined, suppress error msg
+				errorText = self.doErrorLog("hub#:{} no valid IP number: >>{}<<".format(hubNumber, ipAddress))
+				errorsDict[errDict1] = errorText
+				errorsDict[errDict2] += errorsDict[errDict1]
+				return (False, "", errorsDict)
+
+			url = self.httpS[self.hubVersion[hubNumber]]+"://{}/clip/v2/{}".format(ipAddress, endpoint)
+			headers = { "hue-application-key": self.hostIds[hubNumber], 'Connection':'close'}
+			if False and self.decideMyLog("Special"): self.indiLOG.log(20,"Sending URL request: {}, headers:{}".format(url, headers) )
+			if hubNumber not in self.bridgeRequestsSession:
+				self.bridgeRequestsSession[hubNumber] = {"lastInit": 0, "session" : ""}
+			#self.connectToBridge(hubNumber)
+			try:
+				self.setBridgeBusy(hubNumber, calledfrom="getV2AllConfig")
+				r = requests.get(url, headers=headers, verify=False, timeout=3.)
+				self.resetBridgeBusy(hubNumber)
+			except requests.exceptions.Timeout:
+				if self.checkForLastNotPairedMessage(hubNumber):
+					errorText = self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on. (1)".format(ipAddress, kTimeout),force=True)
+					errorsDict[errDict1] = errorText
+					errorsDict[errDict2] += errorsDict[errDict1]
+					self.resetBridgeBusy(hubNumber)
+				return (False, "", errorsDict)
+			except requests.exceptions.ConnectionError:
+				if self.checkForLastNotPairedMessage(hubNumber):
+					if self.decideMyLog("Special"): self.indiLOG.log(20,"Data url:{}".format(url) )
+					errorText = self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(2)".format(ipAddress, force=True))
+					errorsDict[errDict1] = errorText
+					errorsDict[errDict2] += errorsDict[errDict1]
+				self.resetBridgeBusy(hubNumber)
+				return (False, "", errorsDict)
+			except Exception :
+				self.logger.error("", exc_info=True)
+				self.resetBridgeBusy(hubNumber)
+				return (False, "", errorsDict)
+
+			if self.decideMyLog("ReadFromBridge"): self.indiLOG.log(10,"Data from bridge: {}".format(r.content.decode("utf-8")) )
+			# Convert the response to a Python object.
+			try:
+				jsonData = json.loads(r.content)
+			except Exception:
+				# There was an error in the returned data.
+				self.logger.error("", exc_info=True)
+				errorsDict[errDict1] = "Error retrieving Hue device data from bridge. See Indigo log."
+				errorsDict[errDict2] += errorsDict[errDict1]
+				return (False, "",  errorsDict)
+			self.notPairedMsg[hubNumber] = time.time() - 90
+			self.resetBridgeBusy(hubNumber)
+			return True, jsonData, errorsDict
+		except Exception:
+			self.logger.error("", exc_info=True)
+		self.resetBridgeBusy(hubNumber)
+		return False, jsonData, errorsDict
+		
+	########################################
+	def fillAllDataV2(self, hubNumber):
+		try:
+			if self.apiVersion.get(hubNumber,None) != "2": return 
+			doPrint = False
+			retCode, allData, errorsDict = self.getV2AllConfig(hubNumber, "resource")
+			#self.indiLOG.log(20,"bridge#{}  V2 data data returned >{}<, errors:{}".format(hubNumber, str(responseData)[0:200], errorsDict ))
+			if not retCode or allData.get("errors",[]) != list():
+				self.indiLOG.log(30,"bridge#{}  data returned >{}<, errors:{}".format(hubNumber, str(allData)[0:200], errorsDict ))
+				return 
+	
+			#self.indiLOG.log(30,"hubNumber:{}, allV2Data:{} ".format(hubNumber,  self.allV2Data))
+			initDev = {}
+			initServiceId = {}
+			first = True
+			devList = dict()
+			for dev in indigo.devices.iter(self.pluginId):
+				props = dev.pluginProps
+				if "hubNumber" in props:
+					if props["hubNumber"] == hubNumber:
+						devList[dev.id] = dev
+
+
+			for bridgeObject in allData["data"]:
+				if bridgeObject.get("type",None) == "device":
+					hueDeviceId = bridgeObject["id"] 
+					id_v1 = bridgeObject.get("id_v1",None)
+					if id_v1 is not None:
+						xx, v1type, id1 = id_v1.split("/")
+					else:
+						xx, v1type, id1 = "","",""
+					doPrint = False #True if  id_v1 == "/lights/51" else False
+					#if doPrint: self.indiLOG.log(30," v1_id{}: bridgeObject:{} ".format( id_v1, str(bridgeObject) [0:100]))
+					
+					if id_v1 is None and  "product_data" in bridgeObject:
+						if  bridgeObject["product_data"].get('product_name','') != "Hue Bridge":
+							self.indiLOG.log(30,"object does not have a v1_id:  bridgeObject:{}, ".format( json.dumps(bridgeObject, sort_keys=True, indent=2)))
+	
+					self.allV2Data[hubNumber]["devices"][hueDeviceId] = {"services":dict(), "id_v1": id_v1}
+					self.allV2Data[hubNumber]["devices"][hueDeviceId]["product_data"] = bridgeObject.get("product_data", dict())
+					self.allV2Data[hubNumber]["devices"][hueDeviceId]["metadata"] = bridgeObject.get("metadata", dict())
+
+					if "services" in bridgeObject:
+						for xy in bridgeObject["services"]:
+							if "rtype" in xy:
+								rtype = xy["rtype"] 
+								self.allV2Data[hubNumber]["devices"][hueDeviceId]["services"][rtype] = [xy["rid"],{}]
+					indigoId = None
+					for devId in devList:
+						dev = devList[devId]
+						props = dev.pluginProps
+						hubNumberIndigo = props["hubNumber"]
+						if hubNumberIndigo == hubNumber:
+							for indigodevCat, huecat in _indigoDevIdtoV1Types:
+								if huecat == v1type and indigodevCat in props:
+									if id1 == props.get(indigodevCat,'-1'):
+										indigoId = devId
+										break
+					first = False
+					self.allV2Data[hubNumber]["devices"][hueDeviceId]["indigoId"] = indigoId
+					if doPrint: self.indiLOG.log(30,"devices:::: v1_id{}: hueDeviceId:{},rtyp?{},  children:{} ".format( id_v1, hueDeviceId, rtype  in _mapServiceTypetoV1Type, json.dumps(self.allV2Data[hubNumber]["devices"][hueDeviceId], sort_keys=True, indent=2) ))
+	
+			for bridgeObject in allData["data"]:
+				servicetype =  bridgeObject.get("type",None)
+			
+				if servicetype in _skipServiceTypes: continue
+					#self.indiLOG.log(30,"bridge#{} skip ..  serviceType:{}  !=  objservicetype:{} : {}".format(hubNumber, servicetype,  bridgeObject.get("type",None), str(bridgeObject)[0:100]))
+
+				if servicetype not in _mapServiceTypetoV1Type:
+					lookForIndigoId = False
+				else:
+					lookForIndigoId = True
+				
+				
+				serviceId = bridgeObject["id"] 
+				if "owner" not in bridgeObject:
+					continue
+				hueDeviceId = bridgeObject["owner"]["rid"]
+				id_v1 =  bridgeObject.get("id_v1", None) 
+				if id_v1 is not None:
+					xx, v1type, id1 = id_v1.split("/")
+				else:
+					xx, v1type, id1 = "","",""
+				doPrint = v1type == "sensors" and id1 == "111"# True if  id_v1 == "/lights/51" else False
+				
+				if servicetype   not in self.allV2Data[hubNumber]["services"]:							self.allV2Data[hubNumber]["services"][servicetype] 								= dict()
+				if serviceId     not in self.allV2Data[hubNumber]["services"][servicetype] :			self.allV2Data[hubNumber]["services"][servicetype][serviceId] 					= dict()
+				if "hueDeviceId" not in self.allV2Data[hubNumber]["services"][servicetype][serviceId]:	self.allV2Data[hubNumber]["services"][servicetype][serviceId]["hueDeviceId"] 	=  hueDeviceId
+				if "id_v1"       not in self.allV2Data[hubNumber]["services"][servicetype][serviceId]:	self.allV2Data[hubNumber]["services"][servicetype][serviceId]["id_v1"] 			= id_v1
+	
+				for xx in bridgeObject:
+																										self.allV2Data[hubNumber]["services"][servicetype][serviceId][xx] 				= bridgeObject[xx]
+
+				if servicetype == "button":																self.allV2Data[hubNumber]["services"][servicetype][serviceId]["buttonNumber"] 	= bridgeObject["metadata"]["control_id"]
+				indigoId = None
+
+				if v1type != "":
+					indigodevCat = ""
+					for xxx, huecat in _indigoDevIdtoV1Types: #  ==  bulbId, lights
+						if huecat == v1type:
+							indigodevCat = xxx
+							break
+					#if doPrint: self.indiLOG.log(30,"services::::: v1_id{}:  indigodevCat:{}, #ofdevs:{}".format( id_v1, indigodevCat, len(devList)) )
+					if indigodevCat != "": 
+				
+						if lookForIndigoId:
+							initServiceId[serviceId] = True
+							self.allV2Data[hubNumber]["services"][servicetype][serviceId]["indigoId"]  = ""
+							indigoIdV1 = -1
+							for devid in devList:
+								dev = devList[devid]
+								props = dev.pluginProps
+								if props["hubNumber"] == hubNumber:
+									#if doPrint: self.indiLOG.log(20,"services::1 indigodevC dev:{:20};   {} in props:{}?".format( dev.name, indigodevCat,  indigodevCat in props))
+									if indigodevCat in props:
+										#f doPrint: self.indiLOG.log(20,"services::2  indigo v1 # {}".format( props.get(indigodevCat,'-1') ))
+										if id1 == props.get(indigodevCat,'-1'):  # 20
+											indigoIdV1 = devid
+											self.allV2Data[hubNumber]["services"][servicetype][serviceId]["indigoId"] = devid
+											if devid not in initDev:
+												serviceIdList = ""
+												initDev[indigoIdV1] = True
+											else:
+												serviceIdList = dev.states["serviceIds"]
+											serviceIdList = serviceIdList+servicetype+":"+serviceId+","
+											dev.updateStateOnServer("serviceIds", serviceIdList)
+											if devid not in self.deviceList:
+												self.deviceList[devid] = {'typeId':dev.deviceTypeId, 'hubNumber':hubNumber, "hueType":servicetype,  "indigoCat": _serviceTypesToIndigoClass.get(servicetype,None), "indigoV1Number":id1, "hueDeviceId":hueDeviceId, "serviceIds":[]}
+											if "serviceIds" not in self.deviceList[devid]:
+												self.deviceList[devid]["serviceIds"]=[s]
+											if serviceId not in self.deviceList[devid]["serviceIds"]:
+												self.deviceList[devid]["serviceIds"].append(serviceId)
+											self.serviceidToIndigoId[hubNumber][serviceId] = devid
+											break
+						#if doPrint: self.indiLOG.log(30,"services:::3 v1_id{}:  hueDeviceId:{}, v1type?{},  service:{} ".format( id_v1, indigoIdV1, v1type  in _mapServiceTypetoV1Type, json.dumps(self.allV2Data[hubNumber]["services"][servicetype][serviceId], sort_keys=True, indent=2) ))
+
+			for hueDeviceId in self.allV2Data[hubNumber]["devices"]:
+				for servicetype in self.allV2Data[hubNumber]["devices"][hueDeviceId]["services"]:
+					serviceId, service = self.allV2Data[hubNumber]["devices"][hueDeviceId]["services"][servicetype]
+					if  servicetype in self.allV2Data[hubNumber]["services"]:
+						if serviceId in self.allV2Data[hubNumber]["services"][servicetype]:
+							self.allV2Data[hubNumber]["devices"][hueDeviceId]["services"][servicetype][1] = self.allV2Data[hubNumber]["services"][servicetype][serviceId]
+
+			## now make this flat, forward and backwards		
+			for indigioId in self.deviceList:
+				cleanupList = []
+				if "serviceIds" in self.deviceList[indigioId]:
+					for xx in self.deviceList[indigioId]["serviceIds"]:
+						if xx in cleanupList: continue
+						cleanupList.append(xx)
+					self.deviceList[indigioId]["serviceIds"] = cleanupList
+
+			temp = {}	
+			temp2 = {}	
+			for servicetype in self.allV2Data[hubNumber]["services"]:
+					if servicetype not in temp2: 
+						temp2[servicetype] = []
+					for serviceId in self.allV2Data[hubNumber]["services"][servicetype]:
+						temp2[servicetype].append(serviceId)
+						if "indigoId" in self.allV2Data[hubNumber]["services"][servicetype][serviceId]:
+							indigoId = self.allV2Data[hubNumber]["services"][servicetype][serviceId]["indigoId"]
+							if indigoId not in temp:
+								temp[indigoId] = {}
+							if 	servicetype not in temp[indigoId]:
+								temp[indigoId][servicetype] = []
+							if serviceId not in temp[indigoId][servicetype]:
+								temp[indigoId][servicetype].append(serviceId)
+			self.indigoIdToService = copy.deepcopy(temp)
+			self.servicetypeToServiceid = copy.deepcopy(temp2)
+			
+
+			temp = {}		
+			for service in self.allV2Data[hubNumber]["services"]:
+				for servicetype in self.allV2Data[hubNumber]["services"]:
+						for serviceId in self.allV2Data[hubNumber]["services"][servicetype]:
+								temp[serviceId] = servicetype
+			self.serviceIdToServicetype = copy.deepcopy(temp)
+			
+			
+			f = open(self.indigoPreferencesPluginDir+"servicetypeToServiceid.json","w")
+			f.write("{}\n".format(json.dumps(self.servicetypeToServiceid, indent=2)))
+			f.close()
+			
+			f = open(self.indigoPreferencesPluginDir+"serviceIdToServicetype.json","w")
+			f.write("{}\n".format(json.dumps(self.serviceIdToServicetype, indent=2)))
+			f.close()
+			
+			f = open(self.indigoPreferencesPluginDir+"indigoIdToService.json","w")
+			f.write("{}\n".format(json.dumps(self.indigoIdToService, indent=2)))
+			f.close()
+				
+			f = open(self.indigoPreferencesPluginDir+"serviceidToIndigoId.json","w")
+			f.write("{}\n".format(json.dumps(self.serviceidToIndigoId, indent=2)))
+			f.close()
+			
+			f = open(self.indigoPreferencesPluginDir+"allV2Data.json","w")
+			f.write("{}\n".format(json.dumps(self.allV2Data, indent=2)))
+			f.close()
+			
+			f = open(self.indigoPreferencesPluginDir+"deviceList.json","w")
+			f.write("{}\n".format(json.dumps(self.deviceList, indent=2)))
+			f.close()
+			
+		except Exception:
+			self.logger.error("", exc_info=True)
 
 	# Get Entire Hue bridge Config
 	########################################
@@ -6606,9 +7578,13 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(30,"bridge#{} -bad ip# {} or hostId:{}, errCode:{}".format(hubNumber, ipAddress, hostId, errorCode))
 				continue
 			try:
-
+			
+				self.fillAllDataV2(hubNumber)
+				
+				
 				# Send the command and parse the response
-				retCode, responseData, errorsDict =  self.commandToHub_HTTP( hubNumber, "")
+					 
+				retCode, responseData, errorsDict =  self.commandToHub_HTTP(hubNumber, "")
 				if not retCode: 
 					self.indiLOG.log(30,"bridge#{} -ip:{}, hostId:{}; data returned >{}<, errors:{}".format(hubNumber, ipAddress, hostId, responseData, errorsDict ))
 					continue
@@ -6819,7 +7795,9 @@ class Plugin(indigo.PluginBase):
 
 	# Parse One Hue Light Data
 	########################################
-	def parseOneHueLightData(self, bulb, device, hubNumber="", bulbId=""):
+	def parseOneHueLightData(self, bulb, device, hubNumber="", bulbId="", apiV2=False):
+		
+
 		## if if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"Starting parseOneHueLightData.")
 
 		# Take the bulb passed to this method, look up the data already obtained from the Hue bridge
@@ -6830,6 +7808,7 @@ class Plugin(indigo.PluginBase):
 		saturation = ""
 		colorMode = ""
 		colorTemp = ""
+
 		try:
 			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
 			if self.trackSpecificDevice == device.id:	
@@ -6837,10 +7816,11 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(sendLog, "Tracking:{}".format(bulb) )
 			else: 	sendLog = self.sendDeviceUpdatesTo
 
+			if self.apiVersion.get(hubNumber,"1") == "2" and self.pluginPrefs.get("useApi2ForLightGeneral", "False"): return
+
 			deviceId = device.id
 			devName = device.name
-			stateUpdateList = []
-			decimalPlaces = 4
+			stateUpdateList= list()
 
 
 			#if device.id == 1144808261:   self.indiLOG.log(10,"parseOneHueLightData: {}, hubNumber:{}, bulbId:{},     hue dict:{} ".format(device.name, hubNumber, bulbId, bulb))
@@ -6882,20 +7862,25 @@ class Plugin(indigo.PluginBase):
 			if brightnessLevel == 0 and brightness > 0:
 				brightnessLevel = 1
 
+			if apiV2: 
+				modelId 				= bulb.get('modelid', "")
+				dType 					= bulb.get('type', "")
 
-			nameOnBridge 			= bulb.get('name', "no name")
-			modelId 				= bulb.get('modelid', "")
-			manufacturerName 		= bulb.get('manufacturername', "")
-			swVersion 				= bulb.get('swversion', "")
-			dType 					= bulb.get('type', "")
-			uniqueId 				= bulb.get('uniqueid', "")
-
-			stateUpdateList = self.checkIfUpdateState(device, 'nameOnBridge', nameOnBridge, stateUpdateList=stateUpdateList )
-			stateUpdateList = self.checkIfUpdateState(device, 'uniqueId', uniqueId, stateUpdateList=stateUpdateList)
-			stateUpdateList = self.checkIfUpdateState(device, 'swVersion', swVersion, stateUpdateList=stateUpdateList)
-			stateUpdateList = self.checkIfUpdateState(device, 'manufacturerName', manufacturerName, stateUpdateList=stateUpdateList)
-			stateUpdateList = self.checkIfUpdateState(device, 'type', dType, stateUpdateList=stateUpdateList)
-			stateUpdateList = self.checkIfUpdateState(device, 'modelId', modelId, stateUpdateList=stateUpdateList)
+			else:
+				nameOnBridge 			= bulb.get('name', "no name")
+				modelId 				= bulb.get('modelid', "")
+				manufacturerName 		= bulb.get('manufacturername', "")
+				swVersion 				= bulb.get('swversion', "")
+				dType 					= bulb.get('type', "")
+				uniqueId 				= bulb.get('uniqueid', "")
+	
+				stateUpdateList = self.checkIfUpdateState(device, 'nameOnBridge', nameOnBridge, stateUpdateList=stateUpdateList )
+				stateUpdateList = self.checkIfUpdateState(device, 'uniqueId', uniqueId, stateUpdateList=stateUpdateList)
+				stateUpdateList = self.checkIfUpdateState(device, 'swVersion', swVersion, stateUpdateList=stateUpdateList)
+				stateUpdateList = self.checkIfUpdateState(device, 'manufacturerName', manufacturerName, stateUpdateList=stateUpdateList)
+				stateUpdateList = self.checkIfUpdateState(device, 'type', dType, stateUpdateList=stateUpdateList)
+				stateUpdateList = self.checkIfUpdateState(device, 'modelId', modelId, stateUpdateList=stateUpdateList)
+			if logChanges: self.indiLOG.log(20, " dev :{} bulb:{}".format(devName, bulb))
 
 
 			#   Update Indigo states and properties common to all Hue devices.
@@ -6909,33 +7894,35 @@ class Plugin(indigo.PluginBase):
 				# Update the savedBrightness property to the current brightness level.
 				if brightnessLevel != device.pluginProps.get('savedBrightness', -1):
 					tempProps['savedBrightness'] = brightness
-
-			# Update the Hue device name.
-			if nameOnBridge != device.pluginProps.get('nameOnBridge', ""):
-				tempProps['nameOnBridge'] = nameOnBridge
-			# Update the modelId.
-			if modelId != device.pluginProps.get('modelId', ""):
-				tempProps['modelId'] = modelId
-			# Update the manufacturer name.
-			if manufacturerName != device.pluginProps.get('manufacturerName', ""):
-				tempProps['manufacturerName'] = manufacturerName
-			# Update the software version for the device on the Hue bridge.
-			if swVersion != device.pluginProps.get('swVersion', ""):
-				tempProps['swVersion'] = swVersion
-			# Update the type as defined by Hue.
-			if dType != device.pluginProps.get('type', ""):
-				tempProps['type'] = dType
-			# Update the unique ID (MAC address) of the Hue device.
-			if uniqueId != device.pluginProps.get('uniqueId', ""):
-				tempProps['uniqueId'] = uniqueId
-			# If there were property changes, update the device.
-			if tempProps != device.pluginProps:
-				self.updateDeviceProps(device, tempProps)
+			
+			if not apiV2: 
+				# Update the Hue device name.
+				if nameOnBridge != device.pluginProps.get('nameOnBridge', ""):
+					tempProps['nameOnBridge'] = nameOnBridge
+				# Update the modelId.
+				if modelId != device.pluginProps.get('modelId', ""):
+					tempProps['modelId'] = modelId
+				# Update the manufacturer name.
+				if manufacturerName != device.pluginProps.get('manufacturerName', ""):
+					tempProps['manufacturerName'] = manufacturerName
+				# Update the software version for the device on the Hue bridge.
+				if swVersion != device.pluginProps.get('swVersion', ""):
+					tempProps['swVersion'] = swVersion
+				# Update the type as defined by Hue.
+				if dType != device.pluginProps.get('type', ""):
+					tempProps['type'] = dType
+				# Update the unique ID (MAC address) of the Hue device.
+				if uniqueId != device.pluginProps.get('uniqueId', ""):
+					tempProps['uniqueId'] = uniqueId
+				# If there were property changes, update the device.
+				if tempProps != device.pluginProps:
+					self.updateDeviceProps(device, tempProps)
 
 			# Device-type-specific data...
 
 			# -- "Extended color light" --
 			if dType == kHueBulbDeviceIDType:
+				if logChanges: self.indiLOG.log(20, " into {}".format(kHueBulbDeviceIDType))
 				if 'brightnessLevel' not in device.states:
 					self.doErrorLog("Device \"{}\" does not have state \"brightnessLevel\"".format(device.name), level=30)
 					return 
@@ -6989,7 +7976,6 @@ class Plugin(indigo.PluginBase):
 					colorGreen = 0
 					colorBlue = 0
 					brightnessLevel = 0
-					decimalPlaces = 0
 
 
 				# Update the Indigo device if the Hue device is on.
@@ -7002,8 +7988,8 @@ class Plugin(indigo.PluginBase):
 					stateUpdateList = self.checkIfUpdateState(device , 'brightnessLevel', brightnessLevel, stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'hue', hue, stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'saturation', saturation, stateUpdateList=stateUpdateList )
-					stateUpdateList = self.checkIfUpdateState(device , 'colorX', colorX, decimalPlaces=decimalPlaces, stateUpdateList=stateUpdateList )
-					stateUpdateList = self.checkIfUpdateState(device , 'colorY', colorY, decimalPlaces=decimalPlaces, stateUpdateList=stateUpdateList )
+					stateUpdateList = self.checkIfUpdateState(device , 'colorX', colorX, decimalPlaces=4, stateUpdateList=stateUpdateList )
+					stateUpdateList = self.checkIfUpdateState(device , 'colorY', colorY, decimalPlaces=4, stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'colorRed', colorRed, stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'colorGreen', colorGreen, stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'colorBlue', colorBlue, stateUpdateList=stateUpdateList )
@@ -7011,9 +7997,9 @@ class Plugin(indigo.PluginBase):
 					stateUpdateList = self.checkIfUpdateState(device , 'colorMode', colorMode, stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'whiteLevel', 100 - saturation, uiValue="{}".format(int(100 - saturation)), stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'whiteTemperature', colorTemp, uiValue="{}".format(int(colorTemp)), stateUpdateList=stateUpdateList )
-					stateUpdateList = self.checkIfUpdateState(device , 'redLevel', int(round(colorRed * 100.0 / 255.0)), uiValue="{}".format(int(colorTemp)), stateUpdateList=stateUpdateList )
+					stateUpdateList = self.checkIfUpdateState(device , 'redLevel', int(round(colorRed * 100.0 / 255.0)),     uiValue="{}".format(int(round(colorRed * 100.0 / 255.0))), stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'greenLevel', int(round(colorGreen * 100.0 / 255.0)), uiValue="{}".format(int(round(colorGreen * 100.0 / 255.0))), stateUpdateList=stateUpdateList )
-					stateUpdateList = self.checkIfUpdateState(device , 'blueLevel', int(round(colorBlue * 100.0 / 255.0)), uiValue="{}".format(int(round(colorBlue * 100.0 / 255.0))), stateUpdateList=stateUpdateList )
+					stateUpdateList = self.checkIfUpdateState(device , 'blueLevel', int(round(colorBlue * 100.0 / 255.0)),   uiValue="{}".format(int(round(colorBlue * 100.0 / 255.0))), stateUpdateList=stateUpdateList )
 
 				else:
 					# Unrecognized on state, but not important enough to mention in regular log.
@@ -7163,7 +8149,6 @@ class Plugin(indigo.PluginBase):
 					colorGreen = 0
 					colorBlue = 0
 					brightnessLevel = 0
-					decimalPlaces = 0
 
 				# Update the Indigo device if the Hue device is on.
 				if str(onState) in ['True', 'False']:
@@ -7178,8 +8163,8 @@ class Plugin(indigo.PluginBase):
 						#
 						stateUpdateList = self.checkIfUpdateState(device , 'hue', hue, stateUpdateList=stateUpdateList )
 						stateUpdateList = self.checkIfUpdateState(device , 'saturation', saturation, stateUpdateList=stateUpdateList )
-						stateUpdateList = self.checkIfUpdateState(device , 'colorX', colorX, decimalPlaces=decimalPlaces, stateUpdateList=stateUpdateList )
-						stateUpdateList = self.checkIfUpdateState(device , 'colorY', colorY, decimalPlaces=decimalPlaces, stateUpdateList=stateUpdateList )
+						stateUpdateList = self.checkIfUpdateState(device , 'colorX', colorX, decimalPlaces=4, stateUpdateList=stateUpdateList )
+						stateUpdateList = self.checkIfUpdateState(device , 'colorY', colorY, decimalPlaces=4, stateUpdateList=stateUpdateList )
 						stateUpdateList = self.checkIfUpdateState(device , 'colorRed', colorRed, stateUpdateList=stateUpdateList )
 						stateUpdateList = self.checkIfUpdateState(device , 'colorGreen', colorGreen, stateUpdateList=stateUpdateList )
 						stateUpdateList = self.checkIfUpdateState(device , 'colorBlue', colorBlue, stateUpdateList=stateUpdateList )
@@ -7273,7 +8258,6 @@ class Plugin(indigo.PluginBase):
 					colorGreen = 0
 					colorBlue = 0
 					brightnessLevel = 0
-					decimalPlaces = 0
 
 
 				# Update the Indigo device if the Hue device is on.
@@ -7283,8 +8267,8 @@ class Plugin(indigo.PluginBase):
 					stateUpdateList = self.checkIfUpdateState(device , 'brightnessLevel', brightnessLevel, stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'hue', hue, stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'saturation', saturation, stateUpdateList=stateUpdateList )
-					stateUpdateList = self.checkIfUpdateState(device , 'colorX', colorX, decimalPlaces=decimalPlaces, stateUpdateList=stateUpdateList )
-					stateUpdateList = self.checkIfUpdateState(device , 'colorY', colorY, decimalPlaces=decimalPlaces, stateUpdateList=stateUpdateList )
+					stateUpdateList = self.checkIfUpdateState(device , 'colorX', colorX, decimalPlaces=4, stateUpdateList=stateUpdateList )
+					stateUpdateList = self.checkIfUpdateState(device , 'colorY', colorY, decimalPlaces=4, stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'colorRed', colorRed, stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'colorGreen', colorGreen, stateUpdateList=stateUpdateList )
 					stateUpdateList = self.checkIfUpdateState(device , 'colorBlue', colorBlue, stateUpdateList=stateUpdateList )
@@ -7429,8 +8413,7 @@ class Plugin(indigo.PluginBase):
 			else: 	sendLog = self.sendDeviceUpdatesTo
 
 			deviceId = device.id
-			decimalPlaces = 4
-			stateUpdateList = []
+			stateUpdateList= list()
 			# Separate out the specific Hue group data.
 			stateUpdateList = self.checkIfUpdateState(device, 'lightIds', ",".join(group.get('lights', "")), stateUpdateList=stateUpdateList )
 			stateUpdateList = self.checkIfUpdateState(device, 'sensorIds', ",".join(group.get('sensors', "")), stateUpdateList=stateUpdateList )
@@ -7527,7 +8510,6 @@ class Plugin(indigo.PluginBase):
 				colorGreen = 0
 				colorBlue = 0
 				brightnessLevel = 0
-				decimalPlaces = 0
 
 			# Update the Indigo device if the Hue device is on.
 			if str(onState) in ['True', 'False']:
@@ -7539,8 +8521,8 @@ class Plugin(indigo.PluginBase):
 				stateUpdateList = self.checkIfUpdateState(device , 'brightnessLevel', brightnessLevel, stateUpdateList=stateUpdateList )
 				stateUpdateList = self.checkIfUpdateState(device , 'hue', hue, stateUpdateList=stateUpdateList )
 				stateUpdateList = self.checkIfUpdateState(device , 'saturation', saturation, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device , 'colorX', colorX, decimalPlaces=decimalPlaces, stateUpdateList=stateUpdateList )
-				stateUpdateList = self.checkIfUpdateState(device , 'colorY', colorY, decimalPlaces=decimalPlaces, stateUpdateList=stateUpdateList )
+				stateUpdateList = self.checkIfUpdateState(device , 'colorX', colorX, decimalPlaces=4, stateUpdateList=stateUpdateList )
+				stateUpdateList = self.checkIfUpdateState(device , 'colorY', colorY, decimalPlaces=4, stateUpdateList=stateUpdateList )
 				stateUpdateList = self.checkIfUpdateState(device , 'colorRed', colorRed, stateUpdateList=stateUpdateList )
 				stateUpdateList = self.checkIfUpdateState(device , 'colorGreen', colorGreen, stateUpdateList=stateUpdateList )
 				stateUpdateList = self.checkIfUpdateState(device , 'colorBlue', colorBlue, stateUpdateList=stateUpdateList )
@@ -7622,14 +8604,14 @@ class Plugin(indigo.PluginBase):
 						continue
 					if "sensors" in self.hueConfigDict[hubNumber]:
 						if device.pluginProps['sensorId'] in self.hueConfigDict[hubNumber]['sensors'] :
-							self.parseOneHueSensorData(self.hueConfigDict[hubNumber]['sensors'][device.pluginProps['sensorId']], device)
+							self.parseOneHueSensorData(hubNumber, self.hueConfigDict[hubNumber]['sensors'][device.pluginProps['sensorId']], device)
 		except Exception:
 			self.logger.error("", exc_info=True)
 		return 
 
 	# Parse One Hue theDict Data
 	########################################
-	def parseOneHueSensorData(self, sensor, device):
+	def parseOneHueSensorData(self, hubNumber, sensor, device):
 		#self.indiLOG.log(20,"Starting parseOneHueSensorData. device:{:25s}".format(device.name))
 		sensorValue = ""
 		try:
@@ -7640,8 +8622,9 @@ class Plugin(indigo.PluginBase):
 			else: 	
 				sendLog = self.sendDeviceUpdatesTo
 
+			if self.apiVersion.get(hubNumber,"1") == "2" and self.pluginPrefs.get("useApi2ForLightGeneral", False): return
 
-			stateUpdateList = []
+			stateUpdateList= list()
 
 
 			#if device.id == 75886730: self.indiLOG.log(20,"parseOneHueSensorData  dev>{}< type:{}, sensor:{}".format(device.name, device.deviceTypeId, sensor ))
@@ -8062,7 +9045,7 @@ class Plugin(indigo.PluginBase):
 
 			# End if this is a Hue Smart Button sensor.
 
-			if stateUpdateList != [] or changedTimeStamp:
+			if stateUpdateList != list() or changedTimeStamp:
 				stateUpdateList.append( {"key":"lastUpdated", "value":lastUpdated} )
 				self.updateDeviceState(device, stateUpdateList)
 
@@ -8744,6 +9727,7 @@ class Plugin(indigo.PluginBase):
 		# brightness:	Integer from 0 to 255.
 		# rampRate:		Optional float from 0 to 540.0 (higher values will probably work too).
 		try:
+			
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
 			if not paired: return 
 			logChanges = (self.pluginPrefs['logAnyChanges'] == "yes") or self.trackSpecificDevice == device.id or (self.pluginPrefs['logAnyChanges'] == "leaveToDevice" and device.pluginProps.get('logChanges', True))
@@ -8880,6 +9864,7 @@ class Plugin(indigo.PluginBase):
 			self.updateDeviceState(device, 'colorMode', "xy")
 			self.updateDeviceState(device, 'colorX', round(colorX, 4))
 			self.updateDeviceState(device, 'colorY', round(colorY, 4))
+			
 		except Exception:
 			self.logger.error("", exc_info=True)
 
@@ -9275,8 +10260,6 @@ class Plugin(indigo.PluginBase):
 			## old if only one hub, expaned to option of having multiple hubs
 			oldVersionipAddress = self.pluginPrefs.get('address', None)
 			tempIP= json.loads(self.pluginPrefs.get('addresses', '{"0":""}'))
-			tempIP= json.loads(self.pluginPrefs.get('addresses', '{"0":""}'))
-
 
 			if tempIP == {'0':''} and oldVersionipAddress is not None:
 				tempIP['0'] = oldVersionipAddress
@@ -10822,7 +11805,7 @@ class Plugin(indigo.PluginBase):
 					if self.findHueBridgesDict['status'] == "stop": return 
 					if self.pluginState == "stop": return
 
-					hubNumbers = []
+					hubNumbers = list()
 					for hubNumber in self.ipAddresses:
 						if hubNumber in self.hueConfigDict:
 							hubNumbers.append(hubNumber)
@@ -10930,10 +11913,10 @@ class Plugin(indigo.PluginBase):
 			for deviceId in copy.deepcopy(self.deviceList):
 				if "hubNumber" not in self.deviceList[deviceId]: 		continue
 				if self.deviceList[deviceId]['hubNumber'] != hubNumber: continue
-				if idType not in self.deviceList[deviceId]: 			continue
-				if self.deviceList[deviceId][idType] != ID: 			continue
+				if self.deviceList[deviceId]["indigoCat"] != idType: 	continue
+				if self.deviceList[deviceId]["indigoV1Number"] != ID: 	continue
 				device = indigo.devices[deviceId]
-				self.indiLOG.log(20,"startTrackSpecificDevice: Bridge:{}, id:{}, type:{}, bridgeName:{}, devId:{}, IndigoName:{}.".format(hubNumber, self.deviceList[deviceId][idType], whatToPrint, self.hueConfigDict[hubNumber][whatToPrint][ID]['name'], deviceId, device.name))
+				self.indiLOG.log(20,"startTrackSpecificDevice: Bridge:{}, id:{}, type:{}, bridgeName:{}, devId:{}, IndigoName:{}.".format(hubNumber, self.deviceList[deviceId]["indigoV1Number"], whatToPrint, self.hueConfigDict[hubNumber][whatToPrint][ID]['name'], deviceId, device.name))
 				self.trackSpecificDevice = deviceId
 				return 
 			self.indiLOG.log(30,"startTrackSpecificDevice: Bridge:{}, id:{}, type:{} not found ".format(hubNumber, self.deviceList[deviceId][idType], whatToPrint))
@@ -10960,7 +11943,7 @@ class Plugin(indigo.PluginBase):
 			if valuesDict['whatToPrint'] == "shortBridgeInfo":
 				self.indiLOG.log(20,"bridge lights groups scenes users resources Active/rules schedules Physicl/sensors ZigBChanl hostIds / keys / user names ------------ ip Numbers ---- BridgeIds------- apiV")
 				#self.indiLOG.log(20,"Max       /{:2}    /{:2}    /{:2}                   /{:2}       /{:2}     /{:2}     ".format(kmaxHueItems["lights"], kmaxHueItems["groups"], kmaxHueItems["scenes"], kmaxHueItems["rules"], kmaxHueItems["schedules"], kmaxHueItems["sensors"] ))
-				hublist = []
+				hublist= list()
 				for hubNumber in self.ipAddresses:
 					hublist.append(hubNumber)
 
@@ -11055,7 +12038,10 @@ class Plugin(indigo.PluginBase):
 					outs.append("bridgeId: {}, ipAddress:{},  used in plugin:{}, BridgeNumber:{}".format(bridgeId, self.bridgesAvailable[bridgeId]['ipAddress'], self.bridgesAvailable[bridgeId]['linked'], self.bridgesAvailable[bridgeId]['hubNumber']))
 
 				self.indiLOG.log(20,"\n".join(outs)+"\n")
-
+				for dType in self.hueIdV1ToIndigoId[hubNumber]:
+					self.indiLOG.log(20,"\nhueIdV1ToIndigoId: {} -- {}".format(dType, self.hueIdV1ToIndigoId[hubNumber][dType]))
+				for dType in self.deviceList:
+					self.indiLOG.log(20,"\ndeviceList: {} -- {}".format(dType, self.deviceList[dType]))
 
 			elif valuesDict['whatToPrint'].find("configJson") > -1:
 				for hubNumber in self.ipAddresses:
@@ -11419,7 +12405,7 @@ class Plugin(indigo.PluginBase):
 				elif whatToPrint == "scenes":	idType = "sceneId"
 				else: idType = ""
 				self.indiLOG.log(20,"printHueData --- {}: Bridge:{}, {}={}: Hue-Dict\n{} ".format(whatToPrint, hubNumber, idType, ID, json.dumps(self.hueConfigDict[hubNumber][whatToPrint][ID], indent=2, sort_keys=True)))
-				if idType !="":
+				if idType != "":
 					devFound = False
 					for devId in self.deviceList:
 						try:
@@ -11449,8 +12435,8 @@ class Plugin(indigo.PluginBase):
 	# nake a sorted list for the key 
 	########################################
 	def makeSortedIDList(self, theDict, sortBy):
-		IDlist = []
-		zz = []
+		IDlist= list()
+		zz= list()
 		for ID in theDict:
 			if sortBy in theDict[ID]:
 				zz.append( theDict[ID][sortBy] +";"+ID)
@@ -11500,7 +12486,7 @@ class Plugin(indigo.PluginBase):
 	# nake a list of hue indigo devices 
 	########################################
 	def getIndigoHIT(self, IdType):
-		xList =[]
+		xList = list()
 		for dev in indigo.devices.iter(self.pluginId):
 			props = dev.pluginProps
 			H = props.get('hubNumber','0')
@@ -11531,7 +12517,7 @@ class Plugin(indigo.PluginBase):
 ####-------------------------------------------------------------------------####
 	def getDebugLevels(self, useMe=dict()):
 		try:
-			self.debugLevel	= []
+			self.debugLevel	= list()
 			if useMe == dict():
 				for d in _debugAreas:
 					if self.pluginPrefs.get('debug'+d, False): self.debugLevel.append(d)

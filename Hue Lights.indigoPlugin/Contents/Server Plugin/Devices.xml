@@ -104,12 +104,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ControlPageLabel>Blue Level (0-255)</ControlPageLabel>
 			</State>
 			<State id="colorX">
-				<ValueType>Number</ValueType>
+				<ValueType>real</ValueType>
 				<TriggerLabel>X Color Chromaticity</TriggerLabel>
 				<ControlPageLabel>X Color Chromaticity (CIE 1931)</ControlPageLabel>
 			</State>
 			<State id="colorY">
-				<ValueType>Number</ValueType>
+				<ValueType>real</ValueType>
 				<TriggerLabel>Y Color Chromaticity</TriggerLabel>
 				<ControlPageLabel>Y Color Chromaticity (CIE 1931)</ControlPageLabel>
 			</State>
@@ -162,6 +162,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="serviceIds">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceIds</TriggerLabel>
+				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -292,6 +297,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceIds">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceIds</TriggerLabel>
+				<ControlPageLabel>serviceIds</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- LightStrips Device -->
@@ -397,12 +407,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ControlPageLabel>Blue Level (0-255)</ControlPageLabel>
 			</State>
 			<State id="colorX">
-				<ValueType>Number</ValueType>
+				<ValueType>real</ValueType>
 				<TriggerLabel>X Color Chromaticity</TriggerLabel>
 				<ControlPageLabel>X Color Chromaticity (CIE 1931)</ControlPageLabel>
 			</State>
 			<State id="colorY">
-				<ValueType>Number</ValueType>
+				<ValueType>real</ValueType>
 				<TriggerLabel>Y Color Chromaticity</TriggerLabel>
 				<ControlPageLabel>Y Color Chromaticity (CIE 1931)</ControlPageLabel>
 			</State>
@@ -455,6 +465,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="serviceIds">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceIds</TriggerLabel>
+				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -561,12 +576,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ControlPageLabel>Blue Level (0-255)</ControlPageLabel>
 			</State>
 			<State id="colorX">
-				<ValueType>Number</ValueType>
+				<ValueType>real</ValueType>
 				<TriggerLabel>X Color Chromaticity</TriggerLabel>
 				<ControlPageLabel>X Color Chromaticity (CIE 1931)</ControlPageLabel>
 			</State>
 			<State id="colorY">
-				<ValueType>Number</ValueType>
+				<ValueType>real</ValueType>
 				<TriggerLabel>Y Color Chromaticity</TriggerLabel>
 				<ControlPageLabel>Y Color Chromaticity (CIE 1931)</ControlPageLabel>
 			</State>
@@ -614,6 +629,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="serviceIds">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceIds</TriggerLabel>
+				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -734,6 +754,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceIds">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceIds</TriggerLabel>
+				<ControlPageLabel>serviceIds</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- On/Off Only Device -->
@@ -816,6 +841,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="serviceIds">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceIds</TriggerLabel>
+				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -923,12 +953,12 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ControlPageLabel>Blue Level (0-255)</ControlPageLabel>
 			</State>
 			<State id="colorX">
-				<ValueType>Number</ValueType>
+				<ValueType>real</ValueType>
 				<TriggerLabel>X Color Chromaticity</TriggerLabel>
 				<ControlPageLabel>X Color Chromaticity (CIE 1931)</ControlPageLabel>
 			</State>
 			<State id="colorY">
-				<ValueType>Number</ValueType>
+				<ValueType>real</ValueType>
 				<TriggerLabel>Y Color Chromaticity</TriggerLabel>
 				<ControlPageLabel>Y Color Chromaticity (CIE 1931)</ControlPageLabel>
 			</State>
@@ -986,6 +1016,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="serviceIds">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceIds</TriggerLabel>
+				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1087,6 +1122,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="serviceIds">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceIds</TriggerLabel>
+				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1207,6 +1247,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceIds">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceIds</TriggerLabel>
+				<ControlPageLabel>serviceIds</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 	<!--   LUMINANCE   -->
@@ -1296,7 +1341,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>Luminance (raw value)</TriggerLabel>
 				<ControlPageLabel>Luminance (raw value)</ControlPageLabel>
 			</State>
-			<State id="darkThreshold">
+			<State id="darkThresLongPress">
 				<ValueType>Number</ValueType>
 				<TriggerLabel>Dark Threshold (lux)</TriggerLabel>
 				<ControlPageLabel>Dark Threshold (lux)</ControlPageLabel>
@@ -1330,6 +1375,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="serviceIds">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceIds</TriggerLabel>
+				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1434,6 +1484,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceIds">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceIds</TriggerLabel>
+				<ControlPageLabel>serviceIds</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 
@@ -1482,10 +1537,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>ON Button Press</TriggerLabel>
                 <ControlPageLabel>ON Button Press</ControlPageLabel>
             </State>
-			<State id="button1Hold">
+			<State id="button1LongPress">
 				<ValueType>Boolean</ValueType>
-				<TriggerLabel>ON Button Press and Hold</TriggerLabel>
-				<ControlPageLabel>ON Button Press and Hold</ControlPageLabel>
+				<TriggerLabel>ON Button Long Press</TriggerLabel>
+				<ControlPageLabel>ON Button Long Press</ControlPageLabel>
 			</State>
             <State id="button1ReleaseShort">
                 <ValueType>Boolean</ValueType>
@@ -1502,10 +1557,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>DIM UP Button Press</TriggerLabel>
                 <ControlPageLabel>DIM UP Button Press</ControlPageLabel>
             </State>
-            <State id="button2Hold">
+            <State id="button2LongPress">
                 <ValueType>Boolean</ValueType>
-                <TriggerLabel>DIM UP Button Press and Hold</TriggerLabel>
-                <ControlPageLabel>DIM UP Button Press and Hold</ControlPageLabel>
+                <TriggerLabel>DIM UP Button Long Press</TriggerLabel>
+                <ControlPageLabel>DIM UP Button Long Press</ControlPageLabel>
             </State>
             <State id="button2ReleaseShort">
                 <ValueType>Boolean</ValueType>
@@ -1522,10 +1577,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>DIM DOWN Button Press</TriggerLabel>
                 <ControlPageLabel>DIM DOWN Button Press</ControlPageLabel>
             </State>
-            <State id="button3Hold">
+            <State id="button3LongPress">
                 <ValueType>Boolean</ValueType>
-                <TriggerLabel>DIM DOWN Button Press and Hold</TriggerLabel>
-                <ControlPageLabel>DIM DOWN Button Press and Hold</ControlPageLabel>
+                <TriggerLabel>DIM DOWN Button Long Press</TriggerLabel>
+                <ControlPageLabel>DIM DOWN Button Long Press</ControlPageLabel>
             </State>
             <State id="button3ReleaseShort">
                 <ValueType>Boolean</ValueType>
@@ -1542,10 +1597,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>OFF Button Press</TriggerLabel>
                 <ControlPageLabel>OFF Button Press</ControlPageLabel>
             </State>
-            <State id="button4Hold">
+            <State id="button4LongPress">
                 <ValueType>Boolean</ValueType>
-                <TriggerLabel>OFF Button Press and Hold</TriggerLabel>
-                <ControlPageLabel>OFF Button Press and Hold</ControlPageLabel>
+                <TriggerLabel>OFF Button Long Press</TriggerLabel>
+                <ControlPageLabel>OFF Button Long Press</ControlPageLabel>
             </State>
             <State id="button4ReleaseShort">
                 <ValueType>Boolean</ValueType>
@@ -1601,6 +1656,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="serviceIds">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceIds</TriggerLabel>
+				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1665,10 +1725,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>Button Long Release</TriggerLabel>
                 <ControlPageLabel>Button Long Release</ControlPageLabel>
             </State>
-            <State id="button1Hold">
+            <State id="button1LongPress">
                 <ValueType>Boolean</ValueType>
-                <TriggerLabel>Button Press and Hold</TriggerLabel>
-                <ControlPageLabel>Button Press and Hold</ControlPageLabel>
+                <TriggerLabel>Button Long Press</TriggerLabel>
+                <ControlPageLabel>Button Long Press</ControlPageLabel>
             </State>
 			<State id="online">
 				<ValueType>Boolean</ValueType>
@@ -1709,6 +1769,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="serviceIds">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceIds</TriggerLabel>
+				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1758,7 +1823,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>Button 1 Press</TriggerLabel>
                 <ControlPageLabel>Button 1 Press</ControlPageLabel>
             </State>
-			<State id="button1Hold">
+			<State id="button1LongPress">
 				<ValueType>Boolean</ValueType>
 				<TriggerLabel>Button 1 Press and Hold</TriggerLabel>
 				<ControlPageLabel>Button 1 Press and Hold</ControlPageLabel>
@@ -1778,7 +1843,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>Button 2 Press</TriggerLabel>
                 <ControlPageLabel>Button 2 Press</ControlPageLabel>
             </State>
-			<State id="button2Hold">
+			<State id="button2LongPress">
 				<ValueType>Boolean</ValueType>
 				<TriggerLabel>Button 2 Press and Hold</TriggerLabel>
 				<ControlPageLabel>Button 2 Press and Hold</ControlPageLabel>
@@ -1838,6 +1903,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceIds">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceIds</TriggerLabel>
+				<ControlPageLabel>serviceIds</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 
@@ -1889,10 +1959,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>LEFT TOP Button Press</TriggerLabel>
                 <ControlPageLabel>LEFT TOP Button Press</ControlPageLabel>
             </State>
-            <State id="button1Hold">
+            <State id="button1LongPress">
                 <ValueType>Boolean</ValueType>
-                <TriggerLabel>LEFT TOP Button Press and Hold</TriggerLabel>
-                <ControlPageLabel>LEFT TOP Button Press and Hold</ControlPageLabel>
+                <TriggerLabel>LEFT TOP Button Long Press</TriggerLabel>
+                <ControlPageLabel>LEFT TOP Button Long Press</ControlPageLabel>
             </State>
             <State id="button1Release">
                 <ValueType>Boolean</ValueType>
@@ -1904,10 +1974,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>LEFT BOTTOM Button Press</TriggerLabel>
                 <ControlPageLabel>LEFT BOTTOM Button Press</ControlPageLabel>
             </State>
-            <State id="button2Hold">
+            <State id="button2LongPress">
                 <ValueType>Boolean</ValueType>
-                <TriggerLabel>LEFT BOTTOM Button Press and Hold</TriggerLabel>
-                <ControlPageLabel>LEFT BOTTOM Button Press and Hold</ControlPageLabel>
+                <TriggerLabel>LEFT BOTTOM Button Long Press</TriggerLabel>
+                <ControlPageLabel>LEFT BOTTOM Button Long Press</ControlPageLabel>
             </State>
             <State id="button2Release">
                 <ValueType>Boolean</ValueType>
@@ -1919,10 +1989,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>RIGHT BOTTOM Button Press</TriggerLabel>
                 <ControlPageLabel>RIGHT BOTTOM Button Press</ControlPageLabel>
             </State>
-            <State id="button3Hold">
+            <State id="button3LongPress">
                 <ValueType>Boolean</ValueType>
-                <TriggerLabel>RIGHT BOTTOM Button Press and Hold</TriggerLabel>
-                <ControlPageLabel>RIGHT BOTTOM Button Press and Hold</ControlPageLabel>
+                <TriggerLabel>RIGHT BOTTOM Button Long Press</TriggerLabel>
+                <ControlPageLabel>RIGHT BOTTOM Button Long Press</ControlPageLabel>
             </State>
             <State id="button3Release">
                 <ValueType>Boolean</ValueType>
@@ -1934,10 +2004,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>RIGHT TOP Button Press</TriggerLabel>
                 <ControlPageLabel>RIGHT TOP Button Press</ControlPageLabel>
             </State>
-            <State id="button4Hold">
+            <State id="button4LongPress">
                 <ValueType>Boolean</ValueType>
-                <TriggerLabel>RIGHT TOP Button Press and Hold</TriggerLabel>
-                <ControlPageLabel>RIGHT TOP Button Press and Hold</ControlPageLabel>
+                <TriggerLabel>RIGHT TOP Button Long Press</TriggerLabel>
+                <ControlPageLabel>RIGHT TOP Button Long Press</ControlPageLabel>
             </State>
             <State id="button4Release">
                 <ValueType>Boolean</ValueType>
@@ -1949,10 +2019,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>COMBINED TOP Button Press</TriggerLabel>
                 <ControlPageLabel>COMBINED TOP Button Press</ControlPageLabel>
             </State>
-            <State id="button5Hold">
+            <State id="button5LongPress">
                 <ValueType>Boolean</ValueType>
-                <TriggerLabel>COMBINED TOP Button Press and Hold</TriggerLabel>
-                <ControlPageLabel>COMBINED TOP Button Press and Hold</ControlPageLabel>
+                <TriggerLabel>COMBINED TOP Button Long Press</TriggerLabel>
+                <ControlPageLabel>COMBINED TOP Button Long Press</ControlPageLabel>
             </State>
             <State id="button5Release">
                 <ValueType>Boolean</ValueType>
@@ -1964,10 +2034,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>COMBINED BOTTOM Button Press</TriggerLabel>
                 <ControlPageLabel>COMBINED BOTTOM Button Press</ControlPageLabel>
             </State>
-            <State id="button6Hold">
+            <State id="button6LongPress">
                 <ValueType>Boolean</ValueType>
-                <TriggerLabel>COMBINED BOTTOM Button Press and Hold</TriggerLabel>
-                <ControlPageLabel>COMBINED BOTTOM Button Press and Hold</ControlPageLabel>
+                <TriggerLabel>COMBINED BOTTOM Button Long Press</TriggerLabel>
+                <ControlPageLabel>COMBINED BOTTOM Button Long Press</ControlPageLabel>
             </State>
             <State id="button6Release">
                 <ValueType>Boolean</ValueType>
@@ -2024,6 +2094,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceIds">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceIds</TriggerLabel>
+				<ControlPageLabel>serviceIds</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 
@@ -2075,10 +2150,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>Left Top Button Press</TriggerLabel>
                 <ControlPageLabel>Left Top Button Press</ControlPageLabel>
             </State>
-            <State id="button1Hold">
+            <State id="button1LongPress">
                 <ValueType>Boolean</ValueType>
-                <TriggerLabel>Left Top Button Press and Hold</TriggerLabel>
-                <ControlPageLabel>Left Top Button Press and Hold</ControlPageLabel>
+                <TriggerLabel>Left Top Button Long Press</TriggerLabel>
+                <ControlPageLabel>Left Top Button Long Press</ControlPageLabel>
             </State>
             <State id="button1ReleaseShort">
                 <ValueType>Boolean</ValueType>
@@ -2095,10 +2170,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>Top Right Button Press</TriggerLabel>
                 <ControlPageLabel>Top Right  Button Press</ControlPageLabel>
             </State>
-            <State id="button2Hold">
+            <State id="button2LongPress">
                 <ValueType>Boolean</ValueType>
-                <TriggerLabel>Top Right  Button Press and Hold</TriggerLabel>
-                <ControlPageLabel>Top Right  Button Press and Hold</ControlPageLabel>
+                <TriggerLabel>Top Right  Button Long Press</TriggerLabel>
+                <ControlPageLabel>Top Right  Button Long Press</ControlPageLabel>
             </State>
             <State id="button2ReleaseShort">
                 <ValueType>Boolean</ValueType>
@@ -2115,10 +2190,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>Left BOTTOM Button Press</TriggerLabel>
                 <ControlPageLabel>Left BOTTOM Button Press</ControlPageLabel>
             </State>
-            <State id="button3Hold">
+            <State id="button3LongPress">
                 <ValueType>Boolean</ValueType>
-                <TriggerLabel>Left Bottom Button Press and Hold</TriggerLabel>
-                <ControlPageLabel>Left Bottom Button Press and Hold</ControlPageLabel>
+                <TriggerLabel>Left Bottom Button Long Press</TriggerLabel>
+                <ControlPageLabel>Left Bottom Button Long Press</ControlPageLabel>
             </State>
             <State id="button3ReleaseShort">
                 <ValueType>Boolean</ValueType>
@@ -2135,10 +2210,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>Bottom Right  Button Press</TriggerLabel>
                 <ControlPageLabel>Bottom Right  Button Press</ControlPageLabel>
             </State>
-            <State id="button4Hold">
+            <State id="button4LongPress">
                 <ValueType>Boolean</ValueType>
-                <TriggerLabel>Bottom Right Button Press and Hold</TriggerLabel>
-                <ControlPageLabel>Bottom Right  Button Press and Hold</ControlPageLabel>
+                <TriggerLabel>Bottom Right Button Long Press</TriggerLabel>
+                <ControlPageLabel>Bottom Right  Button Long Press</ControlPageLabel>
             </State>
             <State id="button4ReleaseShort">
                 <ValueType>Boolean</ValueType>
@@ -2194,6 +2269,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="serviceIds">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceIds</TriggerLabel>
+				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -2291,6 +2371,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="serviceIds">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceIds</TriggerLabel>
+				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
