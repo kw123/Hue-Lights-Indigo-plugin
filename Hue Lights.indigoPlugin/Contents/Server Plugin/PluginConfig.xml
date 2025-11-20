@@ -345,7 +345,7 @@ others: fixed at 3-5 minutes
 	<Field id="useApi2ForComm"	 		 type="checkbox" defaultValue="true" > 		<Label>Use api-v2 for communication to Bridge (must be on):</Label>   	</Field>
 	<Field id="useApi2ForLightEvents"	 type="checkbox" defaultValue="true" >    	<Label>Use api-v2 for Light events:</Label>    							</Field>
 	<Field id="useApi2ForLightGeneral"	 type="checkbox" defaultValue="False" >   	<Label>Use api-v2 for Light in general (not impl):</Label>   			</Field>
-	<Field id="useApi2ForSensorEvents"	 type="checkbox" defaultValue="true" >   	<Label>Use api-v2 for sensor events(not impl:</Label>    				</Field>
+	<Field id="useApi2ForSensorEvents"	 type="checkbox" defaultValue="true" >   	<Label>Use api-v2 for sensor events:</Label>    				</Field>
 	<Field id="useApi2ForSensorGeneral"	 type="checkbox" defaultValue="False" >   	<Label>Use api-v2 for Sensor in general (not impl):</Label>   		 	</Field>
 	<Field id="useApi2ForGroupsrEvents"	 type="checkbox" defaultValue="False" >   	<Label>Use api-v2 for groups events (not impl):</Label>  				</Field>
 	<Field id="useApi2ForGroupsGeneral"	 type="checkbox" defaultValue="False" >   	<Label>Use api-v2 for Groups in general (not impl):</Label>  		  	</Field>

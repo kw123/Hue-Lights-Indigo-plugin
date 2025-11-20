@@ -652,8 +652,8 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 				<Label>enable / disable event printing:</Label>
 				<List>
 					<Option value="-1">stop </Option>
-					<Option value="10">print to plugin.log file </Option>
-					<Option value="20">print to logfile </Option>
+					<Option value="10">print to plugin.log </Option>
+					<Option value="20">print to log and plugin.log </Option>
 				</List>
 			</Field>
 

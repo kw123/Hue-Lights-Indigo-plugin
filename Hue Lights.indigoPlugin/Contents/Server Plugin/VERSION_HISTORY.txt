@@ -1,5 +1,13 @@
 
 ========================================
+2022.20.63 @ 2025-11-17
+1. added various  steps to integrate hue pro bridge.
+   now supports V2 events for lights and sensors,  
+   not supported V2 groups, scenes.. using v1 api 
+
+
+
+========================================
 2022.16.60 @ 2025-11-17
 1. added various  steps to integrate hue pro bridge.
 
