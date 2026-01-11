@@ -170,6 +170,7 @@ class Plugin(indigo.PluginBase):
 		self.lastReminderHubNumberNotPresent = time.time()
 		self.lastGWConfirmClick 		= 0
 
+		self.ignoreMovedDevice			= dict()  #for move old to new brigde process
 		self.updateList 				= dict()
 		self.bridgeRequestsSession		= dict()
 		self.bridgesAvailable 			= dict()
@@ -180,8 +181,8 @@ class Plugin(indigo.PluginBase):
 		self.pairedBridgeExec 			= ""
 		self.missingOnHubs				= dict()
 		self.printMissingOnHubeverySecs = 600 # check every 10 minutes and print if missing
-		self.hubNumberSelectedTo		= ""
-		self.hubNumberSelectedFrom		= ""
+		self.hubNumberSelectedOld		= ""
+		self.hubNumberSelectedNew		= ""
 
 ##############  common for all plugins ############
 		self.getInstallFolderPath		= indigo.server.getInstallFolderPath()+"/"
@@ -403,7 +404,7 @@ class Plugin(indigo.PluginBase):
 					except Exception:
 						self.indiLOG.log(30,"Hue Group device definition cannot be displayed", exc_info=True)
 					if indigodevCat in pluginProps:
-						self.deviceList[device.id] = {'typeId':device.deviceTypeId, 'hubNumber':hubNumber, "hueType":"", "indigoCat": indigodevCat, "indigoV1Number":pluginProps.get('indigodevCat','0'), "hueDeviceId":hueDeviceId}
+						self.deviceList[device.id] = {'typeId':device.deviceTypeId, 'hubNumber':hubNumber, "hueType":"", "indigoCat": indigodevCat, "indigoV1Number":pluginProps.get(indigodevCat,'0'), "hueDeviceId":hueDeviceId}
 						self.hueIdV1ToIndigoId[hubNumber]["groups"][pluginProps.get('groupId','0')] = device.id
 					else:
 						self.deviceList[device.id] = {'typeId':device.deviceTypeId, 'hubNumber':'0', "indigoCat": indigodevCat, 'indigoV1Number':'0', "hueDeviceId":hueDeviceId}
@@ -702,6 +703,9 @@ class Plugin(indigo.PluginBase):
 				theDict = self.hueConfigDict[hubNumber]['lights']
 				for theID in theDict:
 					deviceTypeId = ""
+					
+					if hubNumber in self.ignoreMovedDevice and 'lights' in self.ignoreMovedDevice[hubNumber] and theID in self.ignoreMovedDevice[hubNumber]['lights']: continue
+					
 					for typId in kmapHueTypeToIndigoDevType:
 						ll = len(typId)
 						if theDict[theID]['type'][0:ll].find(typId) == 0:
@@ -765,6 +769,7 @@ class Plugin(indigo.PluginBase):
 				if "sensors" not in self.hueConfigDict[hubNumber]: continue
 				theDict = self.hueConfigDict[hubNumber]['sensors']
 				for theID in theDict:
+					if hubNumber in self.ignoreMovedDevice and 'sensors' in self.ignoreMovedDevice[hubNumber] and theID in self.ignoreMovedDevice[hubNumber]['sensors']: continue
 					deviceTypeIdCandidates= list()
 					theType = theDict[theID]['type'] # eg ZLLRelativeRotary, ZLLSwitch, ..
 					for indigoTypes in kmapIndigoDevTypeToSensorType: #  eg: "hueDimmerSwitch": 			['RWL020', 'RWL021', 'RWL022'],
@@ -836,6 +841,7 @@ class Plugin(indigo.PluginBase):
 				if "groups" not in self.hueConfigDict[hubNumber]: continue
 				theDict = self.hueConfigDict[hubNumber]['groups']
 				for theID in theDict:
+					if hubNumber in self.ignoreMovedDevice and 'groups' in self.ignoreMovedDevice[hubNumber] and theID in self.ignoreMovedDevice[hubNumber]['groups']: continue
 					found = False
 					for dev in indigo.devices.iter(self.pluginId):
 						if dev.deviceTypeId != deviceTypeId: continue
@@ -6804,11 +6810,11 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def confirmGWNumbers(self, valuesDict, dummy1="", dummy2=""):
 
-		self.hubNumberSelectedFrom = valuesDict['hubNumberFrom']
-		self.hubNumberSelectedTo = valuesDict['hubNumberTo']
-		if self.hubNumberSelectedTo == self.hubNumberSelectedFrom:
+		self.hubNumberSelectedOld = valuesDict['hubNumberOld']
+		self.hubNumberSelectedNew = valuesDict['hubNumberNew']
+		if self.hubNumberSelectedNew == self.hubNumberSelectedOld:
 			valuesDict['MSG'] = 'must select 2 different bridges'
-			self.indiLOG.log(30,"Move DEV.. must select 2 different bridges from >{}< and to >{}< are the same ".format(self.hubNumberSelectedTo, self.hubNumberSelectedTo))
+			self.indiLOG.log(30,"Move DEV.. must select 2 different bridges from >{}< and to >{}< are the same ".format(self.hubNumberSelectedNew, self.hubNumberSelectedOld))
 			return valuesDict
 		valuesDict['MSG'] = 'Bridge selected, continue with selections'
 		#if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Move DEV.. bridges selected: from:{} to {}".format(self.hubNumberSelectedFrom, self.hubNumberSelectedTo))
@@ -6817,23 +6823,23 @@ class Plugin(indigo.PluginBase):
 
 
 	########################################
-	def sensLightGeneratorForMove(self, filter="", valuesDict=None, typeId="", targetId=0):
+	def GroupSensLightGeneratorForMove(self, filter="", valuesDict=None, typeId="", targetId=0):
 		# Used in actions and device configuration windows that need a list of sensor devices.
 		#if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Move DEV..  starting lightsListGeneratorForMove.\n  filter: {}\n  valuesDict: {}\n  typeId: {}\n  targetId: {}".format(filter, valuesDict, typeId, targetId))
 
 		xList = list()
-		if self.hubNumberSelectedFrom == "":
-			return [["0","please select FROM bridge first"]]
-		if self.hubNumberSelectedTo == "":
-			return [["0","please select TO bridge first"]]
+		if self.hubNumberSelectedOld == "":
+			return [["0","please select Old bridge first"]]
+		if self.hubNumberSelectedNew == "":
+			return [["0","please select New bridge first"]]
 	
-		fromTo, sensorOrLight = filter.split("-") 
+		fromTo, sensorOrLightOrGroup = filter.split("-") 
 
 		for dev in indigo.devices.iter(self.pluginId):
 			hubN = str(dev.pluginProps.get("hubNumber","")) 
-			if ( ( fromTo == "from" and hubN == self.hubNumberSelectedFrom ) or 
-				 ( fromTo == "to"   and hubN == self.hubNumberSelectedTo   )  ):
-				if  sensorOrLight in dev.pluginProps: 
+			if ( ( fromTo == "old" and hubN == self.hubNumberSelectedOld ) or 
+				 ( fromTo == "new"   and hubN == self.hubNumberSelectedNew   )  ):
+				if  sensorOrLightOrGroup in dev.pluginProps: 
 					xList.append([dev.id, "{}/{}".format(dev.name, dev.deviceTypeId)])
 
 		xList = sorted(xList, key = lambda x: x[1])
@@ -6843,77 +6849,164 @@ class Plugin(indigo.PluginBase):
 		return xList
 
 
+	########################################
+	def moveAllToNewBridgePrintOnly(self, valuesDict, dummy1="", dummy2=""):
+		self.moveAllToNewBridge(valuesDict, printOnly=True)
+
+	########################################
+	def moveAllToNewBridge(self, valuesDict, dummy1="", dummy2="", printOnly=False):
+	
+		# this will loop through old bridge and new bridge
+		# will try to find a match in device name on bridge
+		# then call  executeMoveToNewBridge to move that device to new bridge
+		#
+		try:
+			self.indiLOG.log(20,"moveAllToNewBridge: .. looping through all devices on bridge#{} and trying to find matches on bridge#{}".format(self.hubNumberSelectedOld, self.hubNumberSelectedNew) )
+			noMatch = []
+			matchFound = ""
+			types = ["bulbId", "sensorId", "groupId"]
+
+			# this makes it much faster
+			allDevs = []
+			for dev in indigo.devices.iter(self.pluginId):
+				allDevs.append(dev)
+
+			for devOld in allDevs:
+				propsOld = devOld.pluginProps
+				hubNumbnerOld = propsOld.get("hubNumber","")
+				if hubNumbnerOld != self.hubNumberSelectedOld: 						continue
+				nameOnBridge = devOld.states.get("nameOnBridge","yy")
+				moved = False
+				for devTypeId in types:
+					if devTypeId not in propsOld: 									continue
+					devTypeIdOld = propsOld[devTypeId]
+					break
+
+				for devNew in allDevs:
+					if devOld.id == devNew.id: 										continue
+					propsNew = devNew.pluginProps
+					hubNumbnerNew = propsNew.get("hubNumber","")
+					if hubNumbnerNew != self.hubNumberSelectedNew: 					continue
+					if nameOnBridge != devNew.states.get("nameOnBridge","xx"): 		continue
+					if devTypeId not in propsNew: 									continue
+					
+					valuesDict[devTypeId+"New"] = devNew.id
+					valuesDict[devTypeId+"Old"] = devOld.id
+					if printOnly:
+						matchFound += "{}{:>3} {:35s} - {:47s} -> {:>3} {:}\n".format(devTypeId[0], devTypeIdOld, nameOnBridge, devNew.name,  propsNew[devTypeId], devOld.name)
+						moved = True
+						break
+					else:
+						self.executeMoveToNewBridge(valuesDict, devTypeId)
+						moved = True
+						break
+							
+	
+				if not moved: 
+					noMatch.append("{}{:>3} {:35s} - {}".format(devTypeId[0],devTypeIdOld, nameOnBridge, devOld.name))
+			noMatch = "\n".join(sorted(noMatch))
+			self.indiLOG.log(20,"moveAllToNewBridge: .. If there are found matches: !!! there can be acidental matches with same name on bridge.  change those first before actually moving !!!")
+			self.indiLOG.log(20,"moveAllToNewBridge: ..    found matches for ... \n ID name on bridge --------------------  - indigo name----------------------------------       ID indigo Name on new Bridge \n{} END OF MATCHES ======================".format(matchFound) )
+			self.indiLOG.log(20,"moveAllToNewBridge: .. No matches  found on new bridge for  ...\n  ID name on bridge -------------------- - indigo name on old bridge ----------------------------------\n{}".format(noMatch) )
+		except Exception:
+			self.indiLOG.log(30,"", exc_info=True)
+
 
 	# now execute the move
 	########################################
-	def executeMoveLightToNewBridge(self, valuesDict, dummy1="", dummy2=""):
-			return self.executeMoveToNewBridge(valuesDict, "bulbId")
+	def executeMoveGroupToNewBridge(self, valuesDict, dummy1="", dummy2=""):
+			return self.executeMoveToNewBridge(valuesDict, "groupId")
 	########################################
 	def executeMoveSensorToNewBridge(self, valuesDict, dummy1="", dummy2=""):
 			return self.executeMoveToNewBridge(valuesDict, "sensorId")
+	########################################
+	def executeMoveLightToNewBridge(self, valuesDict, dummy1="", dummy2=""):
+			return self.executeMoveToNewBridge(valuesDict, "bulbId")
 
 	# now execute the move
 	########################################
 	def executeMoveToNewBridge(self, valuesDict, devType):
+		# this will move a device from an old bridge to a new bridge
+		#
 		try:
-			if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Move DEV..  Starting ExecuteMoveToNewBridge: {}".format(valuesDict) )
-			if self.hubNumberSelectedFrom == "":
-				valuesDict["MSG"] = "ERROR: select FROM bridge"
-				self.indiLOG.log(30,"Move DEV..  ERROR:  bridge FROM is not selected" )
+			self.indiLOG.log(20,"Move DEV..  Starting ExecuteMoveToNewBridge: {}".format(valuesDict) )
+			if self.hubNumberSelectedOld== "":
+				valuesDict["MSG"] = "ERROR: select old bridge"
+				self.indiLOG.log(30,"Move DEV..  ERROR:  bridge Old is not selected" )
 				return valuesDict
-			if self.hubNumberSelectedTo == "":
-				valuesDict["MSG"] = "ERROR: select TO bridge"
-				self.indiLOG.log(30,"Move DEV..  ERROR:  TO bridge TO is not selected" )
+			if self.hubNumberSelectedNew == "":
+				valuesDict["MSG"] = "ERROR: select new bridge"
+				self.indiLOG.log(30,"Move DEV..  ERROR:  bridge New is not selected" )
 				return valuesDict
-			fromID = devType+"From"
-			toID = devType+"To"
-			theIDTo = int(valuesDict[toID])
-			theIdFrom = int(valuesDict[fromID])
+			newID = devType+"New"
+			oldID = devType+"Old"
+			theIDNew = int(valuesDict[newID]) # these the bub sensor group ids 
+			theIdOld = int(valuesDict[oldID])
 
-			try: devFrom = indigo.devices[theIdFrom]
+			try: devOld = indigo.devices[theIdOld]
 			except:
-				valuesDict["MSG"] = "ERROR: FROM dev not in indigo"
-				if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Move DEV..  FROM dev does not exist in indigo >{}<".format(self.hubNumberSelectedFrom, theIdFrom ) )
+				valuesDict["MSG"] = "ERROR: Old dev not in indigo"
+				if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Move DEV..  New dev does not exist in indigo >{}<".format(self.hubNumberSelectedOld, theIdOld ) )
 				return valuesDict
-			try: devTo = indigo.devices[theIDTo]
+				
+			try: devNew= indigo.devices[theIDNew]
 			except:
-				valuesDict["MSG"] = "ERROR: TO dev not in indigo"
-				if self.decideMyLog("EditSetup"): self.indiLOG.log(20,"Move DEV..  To dev does not exist in indigo >{}<".format(self.hubNumberSelectedTo, theIDTo ) )
+				valuesDict["MSG"] = "ERROR: New dev not in indigo"
+				self.indiLOG.log(20,"Move DEV..  new does not exist in indigo >{}<".format(self.hubNumberSelectedNew, theIDNew ) )
 				return valuesDict
 
-			propsFrom = devFrom.pluginProps
-			propsTo = devTo.pluginProps
+			propsOld = devOld.pluginProps
+			propsNew = devNew.pluginProps
 
-			if devFrom.deviceTypeId != devTo.deviceTypeId:
-				self.indiLOG.log(30,"Move DEV..  from >{}<  to  >{}<  have differnt devType ids: {} != {}".format(devFrom.name, devTo.name,  devFrom.deviceTypeId , devTo.deviceTypeId) )
+			if devOld.deviceTypeId != devNew.deviceTypeId:
+				self.indiLOG.log(30,"Move DEV..  Old >{}<  tNew  >{}<  have differnt devType ids: {} != {}".format(devOld.name, devNew.name,  devOld.deviceTypeId , devNew.deviceTypeId) )
 				valuesDict["MSG"] = "ERROR: differnt dev types"
 				return valuesDict
 
-			self.indiLOG.log(20,"Move DEV:{}  to  {}".format(devFrom.name, devTo.name ) )
-			for state in devFrom.states:
-				if state not in devTo.states:
-					self.indiLOG.log(20,"Move  state>{}< not in >TODEV< , skipping".format(state) )
+			self.indiLOG.log(20,"Move DEV:{}  to  {}".format(devNew.name, devOld.name ) )
+			for state in devNew.states:
+				if state not in devOld.states:
+					self.indiLOG.log(20,"Move  state>{}< not in >old< , skipping".format(state) )
 					continue
-				self.indiLOG.log(20,"Move DEV: moving state: {} value >{}< overwriting state value: >{}<".format( state, devFrom.states[state], devTo.states[state]) )
-				devTo.updateStateOnServer(state, devFrom.states[state])
+				self.indiLOG.log(20,"Move DEV: moving state: {} value >{}< overwriting state value: >{}<".format( state, devNew.states[state], devOld.states[state]) )
+				devOld.updateStateOnServer(state, devOld.states[state])
 
-			for prop in propsFrom:
-				self.indiLOG.log(20,"Move DEV:  moving prop: {} value >{}< overwriting old prop ".format(prop, propsFrom[prop]) )
-				propsTo[prop] = propsFrom[prop]		
-			del self.deviceList[devFrom.id]
+			for prop in propsNew:
+				self.indiLOG.log(20,"Move DEV:  moving prop: {} value >{}< overwriting old prop ".format(prop, propsNew[prop]) )
+				propsOld[prop] = propsNew[prop]		
+			del self.deviceList[devNew.id]
 
-			devTo.replacePluginPropsOnServer(propsTo)
-			devTo.name += "-new"
-			devTo.replaceOnServer()
+			devidReplaced = False
+			for hueDeviceId in self.allV2Data[self.hubNumberSelectedNew]["devices"]:
+				if self.allV2Data[self.hubNumberSelectedNew]["devices"][hueDeviceId]["indigoId"]  == theIDNew:
+					self.allV2Data[self.hubNumberSelectedNew]["devices"][hueDeviceId]["indigoId"] = devOld.id
+					if theIDNew in  self.deviceList:
+						self.deviceList[theIdOld] = copy.deepcopy(self.deviceList[theIDNew])
+						del self.deviceList[theIDNew] 
+					devidReplaced = True
 
-			devFromName = devFrom.name
-			devFromType = devFrom.deviceTypeId
-			indigo.device.delete(devFrom)
+			devOld.replacePluginPropsOnServer(propsOld)
+			devOld.name += "-new"
+			devOld.replaceOnServer()
+			
+			devtypeName =  devType[:-2]+"s"  #   {"sensorId": "sensors", "lightId": "lights", "groupId": "groups", 
+			if self.hubNumberSelectedOld not in self.ignoreMovedDevice:
+				self.ignoreMovedDevice[self.hubNumberSelectedOld] = {}
+			if devtypeName not in self.ignoreMovedDevice[self.hubNumberSelectedOld]:
+				self.ignoreMovedDevice[self.hubNumberSelectedOld][devtypeName] = {}
+			
+			self.ignoreMovedDevice[self.hubNumberSelectedOld][devtypeName][theIdOld] = time.time()
+			devOld = indigo.devices[theIdOld]
+			indigo.device.delete(devNew)
 
-			self.indiLOG.log(20,"Move DEV..  Bridge/Dev/type: {}/{}/{} has properties from newly moved hue device, new indigo dev:{}/{}/{} is deleted".format(self.hubNumberSelectedTo, devTo.name, devTo.deviceTypeId, self.hubNumberSelectedFrom, devFromName, devFromType ) )
+			self.indiLOG.log(20,"Move DEV..  Bridge/Dev/type: {}/{}/{} has properties from newly created hue device, new indigo dev:{}/{}/{} is deleted, devId:{} was replaced".format(self.hubNumberSelectedOld, devOld.name, devOld.deviceTypeId, self.hubNumberSelectedNew, devOld.name, devOld.deviceTypeId, devidReplaced ) )
 			valuesDict["MSG"] = "device moved"
+			self.deviceStartComm(devOld)
+
 			self.lastTimeForAll  = 10 # force a refresh read from hue hubs and sync w indigo
 			self.lastTimeForCheck = 10
+			
+			
 		except Exception:
 			self.indiLOG.log(30,"", exc_info=True)
 
@@ -7087,7 +7180,7 @@ class Plugin(indigo.PluginBase):
 					props = copy.deepcopy(vd)
 
 		if hubNumber not in self.ipAddresses or not self.isValidIP(self.ipAddresses[hubNumber]):
-			self.doErrorLog("bridge number {} not registered in ip-addresses {}, please try to re-pair bridge in config ".format(hubNumber, self.ipAddresses), level=30)
+			self.doErrorLog("bridge number {} not registered in ip-addresses {}, please try to re-pair bridge in config  device causing this:{}".format(hubNumber, self.ipAddresses, device.name), level=30)
 			return 
 
 		newProps = self.validateRGBWhiteOnOffetc(props, deviceTypeId=device.deviceTypeId, devId=device.id, devName=device.name)

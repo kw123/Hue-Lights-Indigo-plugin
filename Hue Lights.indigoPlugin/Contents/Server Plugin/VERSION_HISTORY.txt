@@ -1,5 +1,12 @@
 
 ========================================
+2022.21.63 @ 2026-01-11
+1. added various functions to support migration to pro bridge
+- added menu to move individual devices or all from old to new bridge
+- added option to print possible moves of devices to check consistency etc. 
+
+
+========================================
 2022.20.63 @ 2025-11-17
 1. added various  steps to integrate hue pro bridge.
    now supports V2 events for lights and sensors,  

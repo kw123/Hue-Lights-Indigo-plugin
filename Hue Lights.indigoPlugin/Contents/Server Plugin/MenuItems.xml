@@ -193,7 +193,7 @@ eg Hue_light_0_30_Stairs</Label>
 
 
 	<MenuItem id="moveDevBetweenBridges">
-		<Name>Move Device from one bridge to another...</Name>
+		<Name>Move Device(s) from one bridge to another...</Name>
 		<ConfigUI>
 
 			<Field id="instructions1" type="label">
@@ -203,10 +203,10 @@ Then it will delete the new indigo device, as the old device will have all the p
 This way you can keep names, triggers, actions, scripts, indigo ids etc
 SEQUENCE:
 1. delete device on old bridge with the Hue app (not in indigo)
-2. create new Hue device on new Hue bridge (with the Hue app).
+2. create new Hue device on new Hue bridge (with the Hue app or through migrating from old version bridge to pro version.
    Indigo will auto create the new device w new bridge number. 
    you will have one orphan(old)indigo device and one new indigo device
-3. use this menue (old = device in indigo you want to keep)
+3. use this menu (old = device in indigo you want to keep)
 - select bridge of old device
 - select bridge of new device
 - select device you want to keep OLD
@@ -218,19 +218,24 @@ The NEW indigo device will be deleted in INDIGO
 
 !!! make sure you select the right devices!!! 
 It Does not work for different device types 
-The plugin only performs a highlevel check on type of bulb/sensor.
+The plugin only performs a highlevel check on type of bulb/sensor/groups.
+
+The device on the old hub will be ignored until you  reload the plugin.
+After reload if the device still exists on the old bridge (and the bridge exists) 
+ then the old device will be re-created again.
+ you then must delete it on the hub or switch off the old bridge
 </Label>
 			</Field>
 
-			<Field id="hubNumberFrom" type="menu"
+			<Field id="hubNumberOld" type="menu"
 				tooltip="Select the Gateway / Bridge of OLD device">
-				<Label>Hue Bridge number (w NEW Device):</Label>
+				<Label>Hue Bridge number (w OLD Device):</Label>
 				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 
-			<Field id="hubNumberTo" type="menu"
+			<Field id="hubNumberNew" type="menu"
 				tooltip="Select the Gateway / Bridge of NEW device">
-				<Label>Hue Bridge number(w OLD device):</Label>
+				<Label>Hue Bridge number(w NEW device):</Label>
 				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
 			</Field>
 
@@ -241,20 +246,48 @@ The plugin only performs a highlevel check on type of bulb/sensor.
 			</Field>
 
 			<Field id="MSG" type="textfield" default ="first select hue bridges" >	</Field>
+
+
+			<Field id="sepall" type="label">
+				<Label>Move all devices, use for migration of bridge------------------------------</Label>
+			</Field>
+
+			<Field id="execMoveAllToNewBridgeprintOnly" type="button">
+				<Label>click to</Label>
+				<Title>Print device matches</Title>
+				<CallbackMethod>moveAllToNewBridgePrintOnly</CallbackMethod>
+			</Field>
+	
+			<Field id="instructionsall" type="label">
+				<Label>ONLY move after you do have done a print of move candidates / matches</Label>
+			</Field>
+
+			<Field id="execMoveAllToNewBridge" type="button">
+				<Label>click to</Label>
+				<Title>move all devices</Title>
+				<CallbackMethod>moveAllToNewBridge</CallbackMethod>
+			</Field>
+
+
+
+			<Field id="sepallEnd" type="label">
+				<Label>Move individual devices------------------------------------------------------</Label>
+			</Field>
 			<Field id="sep1" type="label">
 				<Label>Either move light:                           .</Label>
 			</Field>
 
-			<Field id="bulbIdFrom" type="menu"
+
+			<Field id="bulbIdOld" type="menu"
 				tooltip="Select a lights/ bulb Device.">
-				<Label>Select LIGHT (on new bridge) - will be deleted:</Label>
-				<List class="self" method="sensLightGeneratorForMove" filter="from-bulbId"  dynamicReload="true"/>
+				<Label>Select LIGHT (on OLD bridge) - indigo dev will be kept:</Label>
+				<List class="self" method="GroupSensLightGeneratorForMove" filter="old-bulbId"  dynamicReload="true"/>
 			</Field>
 
-			<Field id="bulbIdTo" type="menu"
+			<Field id="bulbIdNew" type="menu"
 				tooltip="Select a lights/ bulb Device.">
-				<Label>Select LIGHT (on old bridge) - will be kept w new props:</Label>
-				<List class="self" method="sensLightGeneratorForMove" filter="to-bulbId"  dynamicReload="true"/>
+				<Label>Select LIGHT (on new bridge) - will be deleted:</Label>
+				<List class="self" method="GroupSensLightGeneratorForMove" filter="new-bulbId"  dynamicReload="true"/>
 			</Field>
 
 			<Field id="execMoveLight" type="button">
@@ -267,22 +300,45 @@ The plugin only performs a highlevel check on type of bulb/sensor.
 				<Label>Or move Sensor:                              .</Label>
 			</Field>
 
-			<Field id="sensorIdFrom" type="menu"
+			<Field id="sensorIdOld" type="menu"
 				tooltip="Select a Sensor Device.">
 				<Label>Select SENSOR (on new bridge) - will be deleted:</Label>
-				<List class="self" method="sensLightGeneratorForMove" filter="from-sensorId"  dynamicReload="true"/>
+				<List class="self" method="GroupSensLightGeneratorForMove" filter="old-sensorId"  dynamicReload="true"/>
 			</Field>
 
-			<Field id="sensorIdTo" type="menu"
+			<Field id="sensorIdNew" type="menu"
 				tooltip="Select a Sensor Device.">
 				<Label>Select SENSOR (on old bridge) - will be kept w new props:</Label>
-				<List class="self" method="sensLightGeneratorForMove" filter="to-sensorId"  dynamicReload="true"/>
+				<List class="self" method="GroupSensLightGeneratorForMove" filter="new-sensorId"  dynamicReload="true"/>
 			</Field>
 
 			<Field id="execMoveSensor" type="button">
 				<Label>Click to</Label>
 				<Title>Execute Move Sensor</Title>
 				<CallbackMethod>executeMoveSensorToNewBridge</CallbackMethod>
+			</Field>
+
+
+			<Field id="sepg" type="label">
+				<Label>Or move Group:                              .</Label>
+			</Field>
+
+			<Field id="groupIdOld" type="menu"
+				tooltip="Select a group Device.">
+				<Label>Select Group (on new bridge) - will be deleted:</Label>
+				<List class="self" method="GroupSensLightGeneratorForMove" filter="old-groupId"  dynamicReload="true"/>
+			</Field>
+
+			<Field id="groupIdNew" type="menu"
+				tooltip="Select a group Device.">
+				<Label>Select Group (on old bridge) - will be kept w new props:</Label>
+				<List class="self" method="GroupSensLightGeneratorForMove" filter="new-groupId"  dynamicReload="true"/>
+			</Field>
+
+			<Field id="execMoveGroupr" type="button">
+				<Label>Click to</Label>
+				<Title>Execute Move Group</Title>
+				<CallbackMethod>executeMoveGroupToNewBridge</CallbackMethod>
 			</Field>
 
 
