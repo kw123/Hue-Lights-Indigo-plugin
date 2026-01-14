@@ -354,7 +354,7 @@ kTemperatureSensorDeviceIDs = 'SML'
 # Compatible switches/dimmers
 #						ZGPSWITCH should not be here
 ## kSwitchDeviceIDs = ['ZGPSWITCH', 					'SWT001', 'RWL020', 'RWL021', 'RWL022', 'ROM001', 'RDM001', 'RDM002', 'FOHSWITCH', 'PTM215Z','LXN-3S27LX1.0']
-kSwitchDeviceIDs = ['SWT001', 'RWL020', 'RWL021', 'RWL022', 'ROM001', 'RDM001', 'RDM002', 'FOHSWITCH', 'PTM215Z','LXN-3S27LX1.0']
+kSwitchDeviceIDs = ['SWT001', 'RWL020', 'RWL021', 'RWL022', 'ROM001', 'RDM001', 'RDM002', 'RDM005', 'FOHSWITCH', 'PTM215Z','LXN-3S27LX1.0']
 
 
 ### Other Constants ###
@@ -462,7 +462,7 @@ kmapSensordevTypeToModelId = {
 								"hueMotionTemperatureSensor": ['SML003'],
 								"hueMotionLightSensor": 	['SML003'],
 								"hueDimmerSwitch": 			['RWL020', 'RWL021', 'RWL022'],
-								"hueSmartButton": 			['ROM001'],
+								"hueSmartButton": 			['ROM001','RDM005'],
 								"hueWallSwitchModule": 		['RDM001'],
 								"hueTapSwitch": 			['ZGPSWITCH', 'SWT001'],
 								"hueRotaryWallRing": 		['RDM002'],

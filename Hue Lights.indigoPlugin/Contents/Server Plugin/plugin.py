@@ -2722,15 +2722,15 @@ class Plugin(indigo.PluginBase):
 			valuesDict['showGwClick']					= False
 			valuesDict['showGwClickConfirm']			= False
 			valuesDict['showApiMod']					= False
-			valuesDict['showGwMod']						= False
+			valuesDict['showGwModIP']					= False
 			valuesDict['showGwDel']						= False
 			valuesDict['gwModNewIp']					= ""
 					
 			if  valuesDict['changeGW']:
 				valuesDict['showGWAction']					= True
 
-				if valuesDict['gwAction'] == "modify":
-					valuesDict['showGwMod']					= True
+				if valuesDict['gwAction'] == "modIP":
+					valuesDict['showGwModIP']				= True
 
 				elif valuesDict['gwAction'] == "add":
 					valuesDict['showGwAdd']					= True
@@ -2813,7 +2813,7 @@ class Plugin(indigo.PluginBase):
 		return valuesDict, errorsDict
 
 
-	# delete existing gateway
+	# 
 	########################################
 	def confirmAPIMod(self, valuesDict):
 
@@ -2833,7 +2833,7 @@ class Plugin(indigo.PluginBase):
 				valuesDict['gwAction'] = "keep"
 				return valuesDict, errorsDict
 
-			self.indiLOG.log(20,"bridge:{} has new API V:{}, old:{}".format(self.hubNumberSelected, self.apiVersion[self.hubNumberSelected], valuesDict["newAPIVersion"]))
+			self.indiLOG.log(20,"bridge:{} has old API V:{}, new:{}".format(self.hubNumberSelected, self.apiVersion[self.hubNumberSelected], valuesDict["newAPIVersion"]))
 			self.apiVersion[self.hubNumberSelected] = valuesDict["newAPIVersion"]
 			self.pluginPrefs['apiVersion'] = json.dumps(self.apiVersion)
 
@@ -2853,7 +2853,7 @@ class Plugin(indigo.PluginBase):
 
 	# modify existing gateway
 	########################################
-	def confirmGWMod(self, valuesDict):
+	def confirmGWIP(self, valuesDict):
 		try:
 			errorsDict = indigo.Dict()
 			errorsDict['showAlertText'] = ""
@@ -2876,10 +2876,6 @@ class Plugin(indigo.PluginBase):
 				self.ipAddresses[self.hubNumberSelected] = newIpNumber
 				errorsDict['showAlertText'] = "IP# changed successfully, dont forget to <Save> at exit"
 				valuesDict['gwAction'] = "keep"
-				version = valuesDict['newHubVersionIP']
-				if version in kPossibleHubVersions:
-					self.hubVersion[self.hubNumberSelected] = version
-					errorsDict['showAlertText'] = "vers:"+  version +" "+ errorsDict['showAlertText'] 
 				return valuesDict, errorsDict
 
 			else:
@@ -3041,14 +3037,14 @@ class Plugin(indigo.PluginBase):
 	
 			self.indiLOG.log(20,"Attempting to pair with the Hue bridge at \"{}\".".format(valuesDict['address']))
 
+
 			if self.hubVersion[self.hubNumberSelected] == "2":
 				requestData = json.dumps({"devicetype":"Indigo Hue Lights#1", "generateclientkey":True})
 			else: # old v1 bridge "
 				requestData = json.dumps({"devicetype": "Indigo Hue Lights"})
 
-			if self.decideMyLog("Special") or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(20,"SEND is {}".format(requestData) )
 			command = https+"://{}/api".format(valuesDict['address'])
-			if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(10,"SEND is {}, {}".format(command, requestData) )
+			if self.decideMyLog("SendCommandsToBridge") or self.decideMyLog("Special"): self.indiLOG.log(10,"SEND {}, data={}".format(command, requestData) )
 			self.setBridgeBusy(self.hubNumberSelected, calledfrom="restartPairing-2")
 			r = requests.post(command, data=requestData, timeout=kTimeout, headers={'Connection':'close'}, verify=False)
 			self.resetBridgeBusy(self.hubNumberSelected)

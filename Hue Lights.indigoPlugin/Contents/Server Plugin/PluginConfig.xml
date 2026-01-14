@@ -6,7 +6,7 @@
 	<Field id="showGwAdd"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showGwClick"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showGwClickConfirm"		type="checkbox" defaultValue="false" hidden="true">    </Field>
-	<Field id="showGwMod"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
+	<Field id="showGwModIP"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showApiMod"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showGwDel"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showGwKeep"	 			type="checkbox" defaultValue="false" hidden="true">    </Field>
@@ -24,7 +24,16 @@ A. Add/modify/delete a bridge
     ::: If you change any setting for a hue bridge, you must click on
         &lt;Save&gt; not &lt;Cancel&gt; at exit to fully save settings :::
 B. Change general parameters
-C. Change debugging levels</Label>
+C. Change debugging levels
+Comments:
+The bridges come in different hard and software version.
+  bridge v2 supports API v1
+  bridge pro supports API v1 and v2
+Make sure you set that up correctly. 
+  Set api in: add/delete/modify a bridge .. change api version
+  Set bridge version in:  add/delete/modify a bridge .. add or re-pair a new bridge
+"bridge" "hub" and "gateway" are used interchangeably 
+</Label>
 	</Field>
 
 
@@ -47,7 +56,7 @@ C. Change debugging levels</Label>
 	  <List>
 		<Option value="api">change api version</Option>
 		<Option value="add">add or re-pair a new bridge</Option>
-		<Option value="modify">change the ip number</Option>
+		<Option value="modIP">change the ip number</Option>
 		<Option value="delete">delete an existing bridge</Option>
 		<Option value="keep">don't change any.thing</Option>
 	  </List>
@@ -88,38 +97,30 @@ C. Change debugging levels</Label>
 
 
 <!-- modify      -->
-	<Field id="labelModify" type="label" visibleBindingId="showGwMod" visibleBindingValue="true" >
+	<Field id="labelModify" type="label" visibleBindingId="showGwModIP" visibleBindingValue="true" >
 		<Label>
 == Modify IP# of a bridge: Select bridge, enter new IP#, click on CONFIRM:
 </Label>
 	</Field>
 
 	<Field id="modGWList" type="menu" defaultValue="0"
-		visibleBindingId="showGwMod" visibleBindingValue="true"
+		visibleBindingId="showGwModIP" visibleBindingValue="true"
 		tooltip="">
 		<Label>Select a Hue Bridge to modify:</Label>
 			<List class="self" method="gwListGenerator" filter="notEmpty" dynamicReload="true" />
  	</Field>
 
-	<Field id="gwModNewIp" type="textfield"  visibleBindingId="showGwMod" visibleBindingValue="true" >
+	<Field id="gwModNewIp" type="textfield"  visibleBindingId="showGwModIP" visibleBindingValue="true" >
 	<Label>Enter new IP address:</Label>
 	</Field>
 
-	<Field id="newHubVersionIP" visibleBindingId="showGwMod" visibleBindingValue="true" type="menu" >
-		<Label>enter hub version (leave Blank to keep):</Label>
-		<List>
-			<Option value="1">hue hub version 2 </Option>
-			<Option value="2">hue hub pro </Option>
-		</List>
-	</Field>
-
-	<Field id="confirmGWMod"
+	<Field id="confirmGWIP"
 			type="button" 
-			visibleBindingId="showGwMod" visibleBindingValue="true"
+			visibleBindingId="showGwModIP" visibleBindingValue="true"
 			tooltip="">
 		<Label>click to modify IP#</Label>
 		<Title>CONFIRM</Title>
-		<CallbackMethod>confirmGWMod</CallbackMethod>
+		<CallbackMethod>confirmGWMIP</CallbackMethod>
     </Field>
 
 <!-- delete GW     -->
@@ -150,7 +151,7 @@ C. Change debugging levels</Label>
 
 	<Field id="labelNew" type="label" visibleBindingId="showGwAdd" visibleBindingValue="true" >
 		<Label>
-== Pair or (re-)pair a  new or existing Hue Bridge with indigo:
+== Pair or (re-)pair a  new or existing Hue Bridge with indigo, make sure you have selected the proper API version:
 </Label>
 	</Field>
 

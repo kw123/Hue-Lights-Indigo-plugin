@@ -1,4 +1,10 @@
 
+
+========================================
+2022.22.63 @ 2026-01-14
+1. added new smart button version: RDM005 = hueSmartButton
+2. clarified selections of hu bridge api and pro versions
+
 ========================================
 2022.21.63 @ 2026-01-11
 1. added various functions to support migration to pro bridge

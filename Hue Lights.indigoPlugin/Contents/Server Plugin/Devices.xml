@@ -4,7 +4,10 @@
 	<Device type="dimmer" id="hueBulb">
 		<Name>Hue Color/Ambiance and compatible</Name>
 		<ConfigUI>
-
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+	
 			<Field id="deviceAction" type="menu" defaultValue="False" hidden="false"
 				tooltip="use this to replace eg a broken hue light. (a: normal edit ) (b: link this device to a new Hue device) (c: copy other indigo device to this device, incl link to its hue device, after save: delete the other device.)"> 
 				<Label>Edit / Replace a device </Label>
@@ -174,7 +177,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="dimmer" id="hueAmbiance">
 		<Name>Ambiance Lights (color temperature)</Name>
 		<ConfigUI>
-
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+		
 			<Field id="deviceAction" type="menu" defaultValue="False" hidden="false"
 				tooltip="use this to replace eg a broken hue light. (a: normal edit ) (b: link this device to a new Hue device) (c: copy other indigo device to this device, incl link to its hue device, after save: delete the other device.)"> 
 				<Label>Edit / Replace a device </Label>
@@ -308,7 +314,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="dimmer" id="hueLightStrips">
 		<Name>Light Strips</Name>
 		<ConfigUI>
-
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+	
 			<Field id="deviceAction" type="menu" defaultValue="False" hidden="false"
 				tooltip="use this to replace eg a broken hue light. (a: normal edit ) (b: link this device to a new Hue device) (c: copy other indigo device to this device, incl link to its hue device, after save: delete the other device.)"> 
 				<Label>Edit / Replace a device </Label>
@@ -477,7 +486,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="dimmer" id="hueLivingColorsBloom">
 		<Name>Color Lights (Aura, Bloom, StoryLight, LivingColors, etc.)</Name>
 		<ConfigUI>
-
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+	
 			<Field id="deviceAction" type="menu" defaultValue="False" hidden="false"
 				tooltip="use this to replace eg a broken hue light. (a: normal edit ) (b: link this device to a new Hue device) (c: copy other indigo device to this device, incl link to its hue device, after save: delete the other device.)"> 
 				<Label>Edit / Replace a device </Label>
@@ -641,7 +653,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="dimmer" id="hueLivingWhites">
 		<Name>LivingWhites (Hue Lux, generic dimmable device, etc.)</Name>
 		<ConfigUI>
-
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+	
 			<Field id="deviceAction" type="menu" defaultValue="False" hidden="false"
 				tooltip="use this to replace eg a broken hue light. (a: normal edit ) (b: link this device to a new Hue device) (c: copy other indigo device to this device, incl link to its hue device, after save: delete the other device.)"> 
 				<Label>Edit / Replace a device </Label>
@@ -765,7 +780,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="relay" id="hueOnOffDevice">
 		<Name>On/Off Device (Hue Smart Plug, etc.)</Name>
 		<ConfigUI>
-
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+	
 			<Field id="deviceAction" type="menu" defaultValue="False" hidden="false"
 				tooltip="use this to replace eg a broken hue light. (a: normal edit ) (b: link this device to a new Hue device) (c: copy other indigo device to this device, incl link to its hue device, after save: delete the other device.)"> 
 				<Label>Edit / Replace a device </Label>
@@ -853,6 +871,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="dimmer" id="hueGroup">
 		<Name>Hue Group</Name>
 		<ConfigUI>
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+			
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
@@ -1032,6 +1054,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="sensor" id="hueMotionSensor">
 		<Name>Hue Motion Sensor (Motion)</Name>
 		<ConfigUI>
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+			
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
@@ -1134,6 +1160,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<Device type="sensor" id="hueMotionTemperatureSensor">
 		<Name>Hue Motion Sensor (Temperature)</Name>
 		<ConfigUI>
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+			
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
@@ -1258,6 +1288,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<Device type="sensor" id="hueMotionLightSensor">
 		<Name>Hue Motion Sensor (Luminance)</Name>
 		<ConfigUI>
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+			
 			<Field id="AllowOnStateChange" 		type="checkbox" defaultValue="false" hidden="false" ><Label>Allow OnStateChange:</Label></Field>
 			<Field id="SupportsOnState" 		type="checkbox" defaultValue="true"  hidden="false" ><Label>Supports OnState:</Label></Field>
 			<Field id="hubNumber" type="menu"
@@ -1388,6 +1422,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<Device type="sensor" id="hueTapSwitch">
 		<Name>Hue Tap Switch</Name>
 		<ConfigUI>
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+			
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
@@ -1496,6 +1534,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<Device type="sensor" id="hueDimmerSwitch">
 		<Name>Hue Dimmer Switch</Name>
 		<ConfigUI>
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+			
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
@@ -1669,6 +1711,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<Device type="sensor" id="hueSmartButton">
 		<Name>Hue Smart Button</Name>
 		<ConfigUI>
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+			
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
@@ -1782,6 +1828,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<Device type="sensor" id="hueWallSwitchModule">
 		<Name>Hue Wall Switch Module</Name>
 		<ConfigUI>
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+			
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
@@ -1915,7 +1965,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<Device type="sensor" id="runLessWireSwitch">
 		<Name>Run Less Wire, Niko Switch, FriendsOfHue</Name>
 		<ConfigUI>
-			
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+				
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
@@ -2106,7 +2159,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<Device type="sensor" id="hueRotaryWallSwitches">
 		<Name>Rotary Wall Switch Switches part</Name>
 		<ConfigUI>
-			
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+				
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
@@ -2283,7 +2339,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<Device type="sensor" id="hueRotaryWallRing">
 		<Name>Rotary Wall Switch rotate part</Name>
 		<ConfigUI>
-			
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+				
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
@@ -2387,6 +2446,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<Device type="dimmer" id="hueAttributeController">
 		<Name>Hue Device Attribute Controller</Name>
 		<ConfigUI>
+
 			<Field id="hubNumber" type="menu"
 				tooltip="Select the Gateway / Bridge this device is associated with">
 				<Label>Hue Bridge number:</Label>
