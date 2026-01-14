@@ -2908,16 +2908,10 @@ class Plugin(indigo.PluginBase):
 				valuesDict['showAlertText'] = "Bridge# wrong"
 				return valuesDict, errorsDict
 
-			if self.hubNumberSelected in self.ipAddresses:
-				version = valuesDict['newHubVersionPair']
-				if version in kPossibleHubVersions:
-					self.hubVersion[self.hubNumberSelected] = version
-
-
 			self.tryAutoCreateTimeWindow = 0
 			self.tryAutoCreateValuesDict = dict()
 			## option keep / create
-			if self.decideMyLog("Special") or self.decideMyLog("EditSetup"): self.indiLOG.log(20,"selHubNumberGWPair: (2) bridgesAvailableSelected:{}, hubVersion:{}".format(self.bridgesAvailableSelected,  self.hubVersion))
+			self.indiLOG.log(20,"selHubNumberGWPair: bridgesAvailableSelected:{}, hubVersions:{}".format(self.bridgesAvailableSelected,  self.hubVersion))
 
 			if self.bridgesAvailableSelected == "":
 				if self.hubNumberSelected in self.ipAddresses:
@@ -2931,9 +2925,10 @@ class Plugin(indigo.PluginBase):
 					self.selHubNumberLast = time.time() + 180
 			else:
 					bridgeId = self.bridgesAvailableSelected
-					if self.decideMyLog("Special") or self.decideMyLog("EditSetup"): self.indiLOG.log(20,"selHubNumberGWPair: (3) bridgeId:{}, ip:{}".format(bridgeId,  self.bridgesAvailable[bridgeId]['ipAddress']))
+					self.indiLOG.log(20,"selHubNumberGWPair: (3) bridgeId:{}, ip:{}".format(bridgeId,  self.bridgesAvailable[bridgeId]['ipAddress']))
 					if self.isValidIP(self.bridgesAvailable[bridgeId]['ipAddress']):
 						valuesDict['address'] = self.bridgesAvailable[bridgeId]['ipAddress']
+						self.ipAddresses[self.hubNumberSelected] = valuesDict['address']
 						self.selHubNumberLast = time.time() + 120
 						if self.hubNumberSelected in self.hostIds:
 							valuesDict['hostId'] = self.hostIds[self.hubNumberSelected] 
@@ -2947,7 +2942,18 @@ class Plugin(indigo.PluginBase):
 
 					self.findHueBridgesNow = time.time() + 10
 			self.lastGWConfirmClick  = time.time() + 180
-			if self.decideMyLog("Special") or self.decideMyLog("EditSetup"): self.indiLOG.log(20,"selHubNumberGWPair: (4) tryAutoCreateTimeWindow:{}, tryAutoCreateValuesDict:{}".format(self.tryAutoCreateTimeWindow, str(self.tryAutoCreateValuesDict)[0:50] ))
+			self.indiLOG.log(20,"selHubNumberGWPair: (4) hubNumberSelected:{}, ipAddress:{}, hostId:{},".format(self.hubNumberSelected, self.ipAddresses.get(self.hubNumberSelected,"none"), valuesDict['hostId'] ))
+
+
+			if self.hubNumberSelected in self.ipAddresses:
+				version = valuesDict['newHubVersionPair']
+				if version in kPossibleHubVersions:
+					self.hubVersion[self.hubNumberSelected] = version
+			else:
+				self.indiLOG.log(20,"error hubnumer:{} not in ip address lists:{}".format(self.hubNumberSelected,   self.ipAddresses))
+				valuesDict['showAlertText'] = "ip # not set"
+				return valuesDict, errorsDict
+			
 
 			
 		except Exception:
@@ -3070,6 +3076,11 @@ class Plugin(indigo.PluginBase):
 						if not autoSearch: errorsDict['showAlertText'] += errorsDict['startPairingButton'] + "\n\n"
 						return valuesDict, errorsDict
 
+					elif errorCode == 4:
+						errorText = self.doErrorLog("Error #4 likely wrong bridge type selected: {}  should be 2 = pro ".format( self.hubVersion[self.hubNumberSelected]), level=30)
+						errorsDict['showAlertText'] += errorText
+						return valuesDict, errorsDict
+					
 					else:
 						errorText = self.doErrorLog("Error #{} from the Hue bridge. Description: \"{}\".".format(errorCode, errorDict.get('description', "(No Description)")), level=30)
 						errorsDict['showAlertText'] += errorText

@@ -120,7 +120,7 @@ Make sure you set that up correctly.
 			tooltip="">
 		<Label>click to modify IP#</Label>
 		<Title>CONFIRM</Title>
-		<CallbackMethod>confirmGWMIP</CallbackMethod>
+		<CallbackMethod>confirmGWIP</CallbackMethod>
     </Field>
 
 <!-- delete GW     -->
