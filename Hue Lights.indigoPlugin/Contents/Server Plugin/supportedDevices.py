@@ -390,7 +390,7 @@ keventButtonSettings = {
 	'hueDimmerSwitch':{
 		'stateNames':			['','button1',	'button2',			'button3',					'button4'],					# this is for dev states, starts with 1 index is button
 		'buttontexts':			['','on',		'dim Up',			'dim Down',					'Hue/off'], 				# this is for logfile, index is button #
-		'stateSuffix':			[	'On',		'LongPress',				'ReleaseShort',				'ReleaseLong'],				# this is for dev states eg button1On, index is event type
+		'stateSuffix':			[	'On',		'LongPress',		'ReleaseShort',				'ReleaseLong'],				# this is for dev states eg button1On, index is event type
 		'textSuffix':			['press', 		'press and hold',	'press with short release',	'press with long release'],	# this is for logfile, index is event type
 		'findbuttonNumbers':	{'//':1000,'buttonNumbers':{1:1,2:2,3:3,4:4}}, 												# 1000,1001...4003
 		'findEventType':		{'%':1000,'evType':{0:0,1:1,2:2,3:3}},  													# use the x000,1,2,3
@@ -399,7 +399,7 @@ keventButtonSettings = {
 	'hueRotaryWallSwitches':{
 		'stateNames':			['','button1',	'button2',			'button3',					'button4'],
 		'buttontexts':			['','top Left',	'top Right',		'bottom Left',				'bottom Right'],
-		'stateSuffix':			['On',			'LongPress', 			'ReleaseShort',				'ReleaseLong'],
+		'stateSuffix':			['On',			'LongPress', 		'ReleaseShort',				'ReleaseLong'],
 		'textSuffix':			['press',		'press and hold',	'press with short release',	'press with long release'],
 		'findbuttonNumbers':	{'//':1000,'buttonNumbers':{1:1,2:2,3:3,4:4}}, # 1000,1001...4003
 		'findEventType': 		{'%':1000,'evType':{0:0,1:1,2:2,3:3}},# use the x000,1,2,3
@@ -462,7 +462,7 @@ kmapSensordevTypeToModelId = {
 								"hueMotionTemperatureSensor": ['SML003'],
 								"hueMotionLightSensor": 	['SML003'],
 								"hueDimmerSwitch": 			['RWL020', 'RWL021', 'RWL022'],
-								"hueSmartButton": 			['ROM001','RDM005'],
+								"hueSmartButton": 			['ROM001', 'RDM005'],
 								"hueWallSwitchModule": 		['RDM001'],
 								"hueTapSwitch": 			['ZGPSWITCH', 'SWT001'],
 								"hueRotaryWallRing": 		['RDM002'],
@@ -484,6 +484,7 @@ kmapIndigoDevTypeToSensorType = {
 							}
 
 ksupportsOnState = 			{
+								"hueMotionArea":				True,
 								"hueMotionSensor": 				True,
 								"hueMotionTemperatureSensor": 	False,
 								"hueMotionLightSensor": 		False,
@@ -497,7 +498,8 @@ ksupportsOnState = 			{
 							}
 
 ksupportsSensorValue = 			{
-								"hueMotionSensor": 				True,
+								"hueMotionArea":				False,
+								"hueMotionSensor": 				False,
 								"hueMotionTemperatureSensor": 	True,
 								"hueMotionLightSensor": 		True,
 								"hueDimmerSwitch": 				False,

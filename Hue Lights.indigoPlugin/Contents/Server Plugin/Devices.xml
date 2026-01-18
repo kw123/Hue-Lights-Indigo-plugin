@@ -1154,11 +1154,17 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>serviceIds</TriggerLabel>
 				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
+			<State id="eventNumber">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>eventNumber</TriggerLabel>
+				<ControlPageLabel>eventNumber</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
+	
 	<!--   TEMPERATURE   -->
 	<Device type="sensor" id="hueMotionTemperatureSensor">
-		<Name>Hue Motion Sensor (Temperature)</Name>
+		<Name>Hue Temperature Sensor</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -1177,7 +1183,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
 
 			<Field id="sensorId" type="menu"
-				tooltip="Select a Hue Motion Sensor.">
+				tooltip="Select a Hue Temerature Sensor.">
 				<Label>Hue Sensor:</Label>
 				<List class="self" method="sensorListGenerator" filter="hueMotionTemperatureSensor"  dynamicReload="true"/>
 			</Field>
@@ -1284,9 +1290,10 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 		</States>
 	</Device>
+	
 	<!--   LUMINANCE   -->
 	<Device type="sensor" id="hueMotionLightSensor">
-		<Name>Hue Motion Sensor (Luminance)</Name>
+		<Name>Hue Light Sensor</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -1307,7 +1314,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
 
 			<Field id="sensorId" type="menu"
-				tooltip="Select a Hue Motion Sensor.">
+				tooltip="Select a Hue light Sensor.">
 				<Label>Hue Sensor:</Label>
 				<List class="self" method="sensorListGenerator" filter="hueMotionLightSensor"  dynamicReload="true"/>
 			</Field>
@@ -2441,6 +2448,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 
 
 
+
+
 	<!-- ATTRIBUTE CONTROLLER VIRTUAL DEVICE -->
     <!-- Hue Device Attribute Controller (Virtual Dimmer Device) -->
 	<Device type="dimmer" id="hueAttributeController">
@@ -2509,6 +2518,82 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
 			</State>
+		</States>
+	</Device>
+
+
+
+	<!--   MOTION   convienience event sensor bridge pro api2 only-->
+	<Device type="sensor" id="hueMotionArea">
+		<Name>Hue Motion area</Name>
+		<ConfigUI>
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+			
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
+			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
+			<Field id="sensorId" type="menu"
+				tooltip="Select a Hue Motion Sensor.">
+				<Label>Hue Sensor:</Label>
+				<List class="self" method="sensorListGenerator" filter="hueMotionArea"  dynamicReload="true"/>
+			</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
+			</Field>
+		</ConfigUI>
+		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="sensitivity">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Sensitivity</TriggerLabel>
+				<ControlPageLabel>Sensitivity</ControlPageLabel>
+			</State>
+			<State id="sensitivityMax">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Maximum Sensitivity</TriggerLabel>
+				<ControlPageLabel>Maximum Sensitivity</ControlPageLabel>
+			</State>
+			<State id="enabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>enabled</TriggerLabel>
+				<ControlPageLabel>enabled</ControlPageLabel>
+			</State>
+			<State id="lastUpdated">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="eventNumber">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>eventNumber</TriggerLabel>
+				<ControlPageLabel>eventNumber</ControlPageLabel>
+			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+
 		</States>
 	</Device>
 

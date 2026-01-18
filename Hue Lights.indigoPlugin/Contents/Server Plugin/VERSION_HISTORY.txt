@@ -1,4 +1,11 @@
 
+========================================
+2022.23.64 @ 2026-01-18
+1. added assign modelid if not found in defs to similar device eg if RDM005 not defined, try to look in product name to find know device that matches
+2. added support for hue motion area events: with the new pro bridge you can use the lamps in the room to detect movements
+ if you have setup a motionarea zone then the plugin will create the corresponding device and will set onOffState to True=on  / False=off if motion is detected /  expired.
+3. added eventNumber to motion devices (lso ond ones), +=1 if state goes from off to on
+
 
 ========================================
 2022.22.64 @ 2026-01-14

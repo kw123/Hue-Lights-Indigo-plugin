@@ -269,18 +269,18 @@ Shown after successful pairing process</Label>
 
 
 
-	<Field id="timeScaleFactor" type="menu" default="1.0"
+	<Field id="timeScaleFactor" type="menu" default="10"
 		tooltip="scale factor for light, sensors, groups: set higher if you have cpu load issues, lower if you like faster response time, default: sensors every 1 sec, lights,groups every 5 secs, other = every 3..5 minutes fixed  ">
 		<Label>How often the Hue Bridge should be read:</Label>
 	  <List>
-		<Option value="10.">lights every 50 secs, sensors 20secs, likley too slow </Option>
-		<Option value="4.0">lights every 20 secs, sensors 8 secs, likley too slow</Option>
-		<Option value="2.0">lights every 10 secs, sensors 4 secs</Option>
-		<Option value="1.5">lights every 7.5 secs, sensors 3 secs</Option>
-		<Option value="1.0">lights = every 5 secs, sensors 2 secs(default)</Option>
-		<Option value="0.5">lights = every 2.5 secs, sensors 1 sec</Option>
-		<Option value="0.2">lights = every 1 secs, sensors every .4 secs</Option>
-		<Option value="0.1">lights = every 0.5 secs, sensors every .2 secs, likely too fast for several reasons</Option>
+		<Option value="100">lights every 50 secs, sensors 20secs, likley too slow </Option>
+		<Option value="40">lights every 20 secs, sensors 8 secs, likley too slow</Option>
+		<Option value="20">lights every 10 secs, sensors 4 secs</Option>
+		<Option value="15">lights every 7.5 secs, sensors 3 secs</Option>
+		<Option value="10">lights = every 5 secs, sensors 2 secs(default)</Option>
+		<Option value="5">lights = every 2.5 secs, sensors 1 sec</Option>
+		<Option value="2">lights = every 1 secs, sensors every .4 secs</Option>
+		<Option value="1">lights = every 0.5 secs, sensors every .2 secs, likely too fast for several reasons</Option>
 	 </List>
  	</Field>
 	<Field id="timeScaleFactorLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
@@ -288,7 +288,8 @@ Shown after successful pairing process</Label>
 sensors: 2 secs,
 lights and groups: 5 secs
 with this scale factor you can make that more frequent or less frequent
-others: fixed at 3-5 minutes 
+others: fixed at 3-5 minutes
+if you have a bridge pro and use api v2 you can use a less frequent value 
  </Label>
 	</Field>
 
@@ -363,7 +364,8 @@ others: fixed at 3-5 minutes
 	<Field    id="debugSendCommandsToBridge"    type="checkbox"         > <Label>     ... (5)  Send Commands To Bridge:</Label>  </Field>
 	<Field    id="debugUpdateIndigoDevices"     type="checkbox"         > <Label>     ... (6)  Update Indigo Devices:</Label>  </Field>
 	<Field    id="debugFindHueBridge"           type="checkbox"         > <Label>     ... (7)  find Hue bridges:</Label>  </Field>
-	<Field    id="debugSpecial"       			type="checkbox"         > <Label>     ... (8)  special debug (only for development):</Label>  </Field>
+	<Field    id="debugWriteData"        		type="checkbox"         > <Label>     ... (8)  write data read to prefs dir:</Label>  </Field>
+	<Field    id="debugSpecial"       			type="checkbox"         > <Label>     ... (9)  special debug (only for development):</Label>  </Field>
 	<Field    id="debugall"            			type="checkbox"         > <Label>     ... (99) all of the above .. everything:</Label>  </Field>
 
 	<Field id="sepbr3" type="separator"/>
