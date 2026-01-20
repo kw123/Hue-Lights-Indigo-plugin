@@ -1,5 +1,9 @@
 
 ========================================
+2022.23.65 @ 2026-01-18
+1. fixed bug introduced in 2022.23.64
+
+========================================
 2022.23.64 @ 2026-01-18
 1. added assign modelid if not found in defs to similar device eg if RDM005 not defined, try to look in product name to find know device that matches
 2. added support for hue motion area events: with the new pro bridge you can use the lamps in the room to detect movements

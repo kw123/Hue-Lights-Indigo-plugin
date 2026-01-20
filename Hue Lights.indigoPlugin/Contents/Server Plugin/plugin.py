@@ -5095,11 +5095,11 @@ class Plugin(indigo.PluginBase):
 					value = action["value"]
 					uiValue = action.get("uiValue",None)
 					uiImage = action.get("uiImage",None)
-					dev = indigo.devices[devid]
+					device = indigo.devices[devid]
 					if uiValue is not None:
-						dev.updateStateOnServer(state, value, uiValue=uiValue)
+						device.updateStateOnServer(state, value, uiValue=uiValue)
 					else:
-						dev.updateStateOnServer(state, value)
+						device.updateStateOnServer(state, value)
 
 					if uiImage is not None:
 						device.updateStateImageOnServer(uiImage)
@@ -5236,7 +5236,7 @@ class Plugin(indigo.PluginBase):
 						
 								if self.listenThread[hubNumber]["logLevel"] >= 0 and fileName != "":
 									nWrites += 1
-									if nWrites > 1000:
+									if nWrites > 100: # store the last 100 events only 
 										f = open(fileName,"w")
 										nWrites = 0
 									else:
@@ -5283,7 +5283,7 @@ class Plugin(indigo.PluginBase):
 								if "owner" in eventDict:
 									ownerId =  eventDict["owner"]["rid"]
 									if "motion_area_configuration" in self.allV2Data[hubNumber]["services"] and ownerId in self.allV2Data[hubNumber]["services"]["motion_area_configuration"]:
-										#if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"digestV2Event (0) motion_area_configuration:{},".format( json.dumps(self.allV2Data[hubNumber]["services"]["motion_area_configuration"][ownerId], indent=2)))	
+										if logLevel > 0:self.indiLOG.log(self.listenThread[hubNumber]["logLevel"],"digestV2Event (0) motion_area_configuration:{},".format( json.dumps(self.allV2Data[hubNumber]["services"]["motion_area_configuration"][ownerId], indent=2)))	
 								
 										indigoId = self.allV2Data[hubNumber]["services"]["motion_area_configuration"][ownerId]["indigoId"]
 										vType = "motion_area_configuration"
@@ -7704,7 +7704,7 @@ class Plugin(indigo.PluginBase):
 											if devid not in self.deviceList:
 												self.deviceList[devid] = {'typeId':dev.deviceTypeId, 'hubNumber':hubNumber, "hueType":servicetype,  "indigoCat": _serviceTypesToIndigoClass.get(servicetype,None), "indigoV1Number":id1, "owner":owner, "serviceIds":list()}
 											if "serviceIds" not in self.deviceList[devid]:
-												self.deviceList[devid]["serviceIds"]=[s]
+												self.deviceList[devid]["serviceIds"]=[]
 											if serviceId not in self.deviceList[devid]["serviceIds"]:
 												self.deviceList[devid]["serviceIds"].append(serviceId)
 											self.serviceidToIndigoId[hubNumber][serviceId] = devid
@@ -7795,13 +7795,14 @@ class Plugin(indigo.PluginBase):
 		for hubNumber in self.ipAddresses:
 			# 
 			ipAddress, hostId, errorCode = self.getadresses(hubNumber)
-			if errorCode >0: 
+			if errorCode > 0: 
 				self.indiLOG.log(30,"bridge#{} -bad ip# {} or hostId:{}, errCode:{}".format(hubNumber, ipAddress, hostId, errorCode))
 				continue
 			try:
 			
+				#this is for api v2 
 				self.fillAllDataV2(hubNumber)
-				
+				# rest is api v1
 				
 				# Send the command and parse the response
 					 
@@ -7860,7 +7861,7 @@ class Plugin(indigo.PluginBase):
 				self.indiLOG.log(30,"Unable to obtain the configuration from the Hue bridge.{}".format(hubNumber), exc_info=True)
 				
 		if self.decideMyLog("WriteData"): 
-			fileName = self.indigoPreferencesPluginDir+"alldata.json"
+			fileName = self.indigoPreferencesPluginDir+"allV1Data.json"
 			self.indiLOG.log(20,"writing in coming data to .{}".format(fileName))
 			f = open(fileName,"w")
 			f.write("{}\n".format(json.dumps(self.hueConfigDict, indent=2)))
@@ -7910,7 +7911,7 @@ class Plugin(indigo.PluginBase):
 									motionInfo["indigoId"] =  devId
 									on = True if motionInfo['motion']['motion'] else False
 									if dev.states["onOffState"] != on:
-										dev.updateStateOnServer('onOffState', on, uiValue="on" if onOff else "off")
+										dev.updateStateOnServer('onOffState', on, uiValue="on" if on else "off")
 									if dev.states["enabled"] != motionInfo['enabled']:
 										dev.updateStateOnServer('enabled', motionInfo['enabled'])
 									if on: 				sensorIcon = indigo.kStateImageSel.MotionSensorTripped
@@ -7950,7 +7951,7 @@ class Plugin(indigo.PluginBase):
 							dev.updateStateOnServer('enabled', motionInfo['enabled'] )
 							dev.updateStateOnServer('nameOnBridge', motionInfo["name"])
 							on = True if motionInfo['motion']['motion'] else False
-							dev.updateStateOnServer('onOffState', on, uiValue="on" if onOff else "off") 
+							dev.updateStateOnServer('onOffState', on, uiValue="on" if on else "off") 
 							if on: 				sensorIcon = indigo.kStateImageSel.MotionSensorTripped
 							else:				sensorIcon = indigo.kStateImageSel.MotionSensor
 							dev.updateStateImageOnServer(sensorIcon)
