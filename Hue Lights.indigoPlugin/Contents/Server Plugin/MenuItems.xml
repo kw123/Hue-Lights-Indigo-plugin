@@ -302,13 +302,13 @@ After reload if the device still exists on the old bridge (and the bridge exists
 
 			<Field id="sensorIdOld" type="menu"
 				tooltip="Select a Sensor Device.">
-				<Label>Select SENSOR (on new bridge) - will be deleted:</Label>
+				<Label>Select SENSOR (on new bridge) - indigo dev will be kept</Label>
 				<List class="self" method="GroupSensLightGeneratorForMove" filter="old-sensorId"  dynamicReload="true"/>
 			</Field>
 
 			<Field id="sensorIdNew" type="menu"
 				tooltip="Select a Sensor Device.">
-				<Label>Select SENSOR (on old bridge) - will be kept w new props:</Label>
+				<Label>Select SENSOR (on old bridge) - will be deleted::</Label>
 				<List class="self" method="GroupSensLightGeneratorForMove" filter="new-sensorId"  dynamicReload="true"/>
 			</Field>
 
@@ -325,13 +325,13 @@ After reload if the device still exists on the old bridge (and the bridge exists
 
 			<Field id="groupIdOld" type="menu"
 				tooltip="Select a group Device.">
-				<Label>Select Group (on new bridge) - will be deleted:</Label>
+				<Label>Select Group (on new bridge) - indigo dev will be kept:</Label>
 				<List class="self" method="GroupSensLightGeneratorForMove" filter="old-groupId"  dynamicReload="true"/>
 			</Field>
 
 			<Field id="groupIdNew" type="menu"
 				tooltip="Select a group Device.">
-				<Label>Select Group (on old bridge) - will be kept w new props:</Label>
+				<Label>Select Group (on old bridge) - will be deleted:</Label>
 				<List class="self" method="GroupSensLightGeneratorForMove" filter="new-groupId"  dynamicReload="true"/>
 			</Field>
 

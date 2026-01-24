@@ -1,5 +1,12 @@
 
 ========================================
+2022.24.67 @ 2026-01-23
+1. fixed bug  in print config, # of users and # of scence were flipped
+2. added event data will  update "enabled", "health" for motion area devices
+3. added events for groups. Now rooms cenes get updated dynamically for hue pro bridges
+4. reduced indigo dev state updates. In my setup cpu usage down from 3-10% to 0.5-5%
+
+========================================
 2022.23.66 @ 2026-01-18
 1. fixed bug introduced in 2022.23.64
 

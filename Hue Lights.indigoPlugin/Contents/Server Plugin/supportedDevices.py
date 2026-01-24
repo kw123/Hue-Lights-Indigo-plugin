@@ -209,7 +209,7 @@
 # GLEDOPTO							=	GLEDOPTO Generic ZigBee color light strip (color and color temp)
 # GL-C-006                          =   GLEDOPTO Generic ZigBee color light strip (color and color temp)
 # GL-C-007							=	GLEDOPTO Generic ZigBee color light strip (color and color temp)
-# GL-C-008                          =   CLEDOPTO Generic ZigBee color light strip (color and color temp)
+# GL-C-008                          =   GLEDOPTO Generic ZigBee color light strip (color and color temp)
 # GL-C-009                          =   GLEDOPTO Generic ZigBee dimmable LED controller (no color control)
 # GL-B-001Z                         =   GLEDOPTO Generic ZigBee color light bulb (color and color temp)
 # GL-B-007Z                         =   GLEDOPTO Generic ZigBee color light bulb (color and color temp)
@@ -291,7 +291,7 @@ kLivingColorsDeviceIDs = ['LLC001', 'LLC005', 'LLC006', 'LLC007', 'LLC010', 'LLC
 kLivingColorsDeviceIDType = 'Color light'
 
 # Compatible Ambiance devices (Color Temperature only) == 'Color temperature light'
-kAmbianceDeviceIDs = ['LLM010', 'LLM011', 'LLM012', 'LTW001', 'LTC001', 'LTC003', 'LTC002', 'LTC003', 'LTW004', 'LTC011', 'LTW010', 'LTW011', 'LTW012', 'LTW013', 'LTW014', 'LTW015', 'LTE001', 'LTF001', 'LTF002', 'LTG001', 'LTG002', 'LTD001', 'LTD002', 'LTP001', 'LTP002', 'LTP003', 'LTP004', 'LTP005', 'LTD003', 'LTD009', 'LTD010', 'LTD011', 'LFF001', 'LTT001', 'LDT001', 'LTB002', 'LTA001', 'LTA002', 'LTA003', 'LTA008', 'LTA009', 'LTA010', 'HML001', 'HML002', 'HML003', 'HML004', 'HML005', 'HML006', '3402931P7', '3261330P6', 'Classic A60 TW', 'PAR16 50 TW', 'RS 128 T', 'RS 228 T', 'FLOALT panel WS 30x90', 'FLOALT panel WS 30x30', 'FLS-CT', 'TRADFRI bulb E26 WS opal 1000lm', 'TRADFRI bulb E27 WS opal 1000lm', 'TRADFRI bulb E27 WS opal 980lm', 'TRADFRI bulb E14 WS opal 600lm', 'TRADFRI bulb GU10 WS 400lm', 'ZBT-ColorTemperature', 'TS0502A', 'MR16 TW OSRAM']#, 'Ceiling TW OSRAM']
+kAmbianceDeviceIDs = ['LLM010', 'LLM011', 'LLM012', 'LTW001', 'LTC001', 'LTC002', 'LTC003', 'LTW004', 'LTC011', 'LTW010', 'LTW011', 'LTW012', 'LTW013', 'LTW014', 'LTW015', 'LTE001', 'LTF001', 'LTF002', 'LTG001', 'LTG002', 'LTD001', 'LTD002', 'LTP001', 'LTP002', 'LTP003', 'LTP004', 'LTP005', 'LTD003', 'LTD009', 'LTD010', 'LTD011', 'LFF001', 'LTT001', 'LDT001', 'LTB002', 'LTA001', 'LTA002', 'LTA003', 'LTA008', 'LTA009', 'LTA010', 'HML001', 'HML002', 'HML003', 'HML004', 'HML005', 'HML006', '3402931P7', '3261330P6', 'Classic A60 TW', 'PAR16 50 TW', 'RS 128 T', 'RS 228 T', 'FLOALT panel WS 30x90', 'FLOALT panel WS 30x30', 'FLS-CT', 'TRADFRI bulb E26 WS opal 1000lm', 'TRADFRI bulb E27 WS opal 1000lm', 'TRADFRI bulb E27 WS opal 980lm', 'TRADFRI bulb E14 WS opal 600lm', 'TRADFRI bulb GU10 WS 400lm', 'ZBT-ColorTemperature', 'TS0502A', 'MR16 TW OSRAM']#, 'Ceiling TW OSRAM']
 kAmbianceDeviceIDType = 'Color temperature light'
 
 # Compatible LivingWhites devices. (Dimming only.  No color change of any kind) == "Dimmable light"
@@ -304,7 +304,7 @@ kOnOffOnlyDeviceIDType = 'On/Off'  # plug-in unit'
 
 # All compatible light devices
 kCompatibleDeviceIDs = kHueBulbDeviceIDs + kAmbianceDeviceIDs + kLivingColorsDeviceIDs + kLightStripsDeviceIDs + kLivingWhitesDeviceIDs + kOnOffOnlyDeviceIDs
-kCompatibleDeviceIDType = kHueBulbDeviceIDType + kAmbianceDeviceIDType + kLivingColorsDeviceIDType + kLightStripsDeviceIDType + kLivingWhitesDeviceIDType + kOnOffOnlyDeviceIDType
+kCompatibleDeviceIDType = [kHueBulbDeviceIDType, kAmbianceDeviceIDType, kLivingColorsDeviceIDType, kLightStripsDeviceIDType, kLivingWhitesDeviceIDType, kOnOffOnlyDeviceIDType]
 
 
 
@@ -433,10 +433,10 @@ keventButtonSettings = {
 		'eventTypesEnabled':	{0:True,1:False,2:False,3:False,4:False,5:False,6:False}
 		},
 	'runLessWireSwitch':{
-		'stateNames':			['','button1', 'button2', 'button3', 'button4', 'button5', 'button6'],
-		'buttontexts':			['','button1', 'button2', 'button3', 'button4', 'combined bottom', 'combined top'],
-		'stateSuffix':			['On',			'LongPress',				'','','',	'BeingHeld',	'Release'],
-		'textSuffix':			['Press',		'press and hold',	'','','',	'being held', 'release'],
+		'stateNames':			['',	'button1', 		'button2', 'button3', 'button4', 'button5', 		'button6'],
+		'buttontexts':			['',	'button1', 		'button2', 'button3', 'button4', 'combined bottom', 'combined top'],
+		'stateSuffix':			['On',	'LongPress',	'',			'',			'',			'BeingHeld',	'Release'],
+		'textSuffix':			['Press','press and hold','',		'',			'',			'being held', 	'release'],
 		'findbuttonNumbers':	{'//':1,'buttonNumbers': {16:1,20:1, 17:2,21:2, 18:3,22:3, 19:4,23:4, 96:5,97:5, 98:5,99:5, 100:6,101:6}}, #map eventid to button # used this is done explicitely as there is not easy algorithm to use
 		'findEventType':		{'%':9999,		'evType':{16:5,20:6, 17:5,21:6, 18:5,22:6, 19:5,23:6, 96:5,97:6, 98:5,99:6, 100:5,101:6}},  #map eventid to event type used
 		'eventTypesEnabled':	{0:True,1:True,2:False,3:False,4:False,5:True,6:True}

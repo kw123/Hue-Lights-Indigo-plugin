@@ -349,7 +349,7 @@ if you have a bridge pro and use api v2 you can use a less frequent value
 	<Field id="useApi2ForLightGeneral"	 type="checkbox" defaultValue="False" >   	<Label>Use api-v2 for Light in general (not impl):</Label>   			</Field>
 	<Field id="useApi2ForSensorEvents"	 type="checkbox" defaultValue="true" >   	<Label>Use api-v2 for sensor events:</Label>    				</Field>
 	<Field id="useApi2ForSensorGeneral"	 type="checkbox" defaultValue="False" >   	<Label>Use api-v2 for Sensor in general (not impl):</Label>   		 	</Field>
-	<Field id="useApi2ForGroupsrEvents"	 type="checkbox" defaultValue="False" >   	<Label>Use api-v2 for groups events (not impl):</Label>  				</Field>
+	<Field id="useApi2ForGroupsEvents"	 type="checkbox" defaultValue="False" >   	<Label>Use api-v2 for groups events:</Label>  				</Field>
 	<Field id="useApi2ForGroupsGeneral"	 type="checkbox" defaultValue="False" >   	<Label>Use api-v2 for Groups in general (not impl):</Label>  		  	</Field>
 	<Field id="useApi2ForBasicEvents"	 type="checkbox" defaultValue="False" >  	<Label>Use api-v2 for Basic parameters events(not impl:</Label>    		</Field>
 	<Field id="useApi2ForBasicGeneral"	 type="checkbox" defaultValue="False" >  	<Label>Use api-v2 for Basic parameters in general(not impl</Label> 		</Field>

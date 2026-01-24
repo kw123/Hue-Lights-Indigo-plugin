@@ -1109,6 +1109,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>Maximum Sensitivity</TriggerLabel>
 				<ControlPageLabel>Maximum Sensitivity</ControlPageLabel>
 			</State>
+			<State id="motionValid">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>motionValid</TriggerLabel>
+				<ControlPageLabel>motionValid</ControlPageLabel>
+			</State>
 			<State id="online">
 				<ValueType>Boolean</ValueType>
 				<TriggerLabel>Online</TriggerLabel>
@@ -2029,7 +2034,12 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>LEFT TOP Button Release</TriggerLabel>
                 <ControlPageLabel>LEFT TOP Button Release</ControlPageLabel>
             </State>
-            <State id="button2On">
+             <State id="button1ReleaseShort">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>LEFT TOP Button Release SHort</TriggerLabel>
+                <ControlPageLabel>LEFT TOP Button Release Short</ControlPageLabel>
+            </State>
+           <State id="button2On">
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>LEFT BOTTOM Button Press</TriggerLabel>
                 <ControlPageLabel>LEFT BOTTOM Button Press</ControlPageLabel>
@@ -2043,6 +2053,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>LEFT BOTTOM Button Release</TriggerLabel>
                 <ControlPageLabel>LEFT BOTTOM Button Release</ControlPageLabel>
+            </State>
+             <State id="button2ReleaseShort">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>LEFT BOTTOM Button Release SHort</TriggerLabel>
+                <ControlPageLabel>LEFT BOTTOM Button Release Short</ControlPageLabel>
             </State>
             <State id="button3On">
                 <ValueType>Boolean</ValueType>
@@ -2059,6 +2074,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>RIGHT BOTTOM Button Release</TriggerLabel>
                 <ControlPageLabel>RIGHT BOTTOM Button Release</ControlPageLabel>
             </State>
+             <State id="button3ReleaseShort">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>RIGHT BOTTOM Button Release SHort</TriggerLabel>
+                <ControlPageLabel>RIGHT BOTTOM Button Release Short</ControlPageLabel>
+            </State>
             <State id="button4On">
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>RIGHT TOP Button Press</TriggerLabel>
@@ -2073,6 +2093,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>RIGHT TOP Button Release</TriggerLabel>
                 <ControlPageLabel>RIGHT TOP Button Release</ControlPageLabel>
+            </State>
+            <State id="button4ReleaseShort">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>RIGHT TOP Button Release SHort</TriggerLabel>
+                <ControlPageLabel>RIGHT TOP Button Release Short</ControlPageLabel>
             </State>
             <State id="button5On">
                 <ValueType>Boolean</ValueType>
@@ -2089,7 +2114,12 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <TriggerLabel>COMBINED TOP Button Release</TriggerLabel>
                 <ControlPageLabel>COMBINED TOP Button Release</ControlPageLabel>
             </State>
-            <State id="button6On">
+             <State id="button5ReleaseShort">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>COMBINED TOP Button Release SHort</TriggerLabel>
+                <ControlPageLabel>COMBINED TOP Button Release Short</ControlPageLabel>
+            </State>
+           <State id="button6On">
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>COMBINED BOTTOM Button Press</TriggerLabel>
                 <ControlPageLabel>COMBINED BOTTOM Button Press</ControlPageLabel>
@@ -2103,6 +2133,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>COMBINED BOTTOM Button Release</TriggerLabel>
                 <ControlPageLabel>COMBINED BOTTOM Button Release</ControlPageLabel>
+            </State>
+            <State id="button6ReleaseShort">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>COMBINED BOTTOM Button Release SHort</TriggerLabel>
+                <ControlPageLabel>COMBINED BOTTOM Button Release Short</ControlPageLabel>
             </State>
             <State id="buttonBeingHeld">
                 <ValueType>Boolean</ValueType>
@@ -2573,6 +2608,16 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 				<TriggerLabel>enabled</TriggerLabel>
 				<ControlPageLabel>enabled</ControlPageLabel>
 			</State>
+			<State id="motionValid">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>motionValid</TriggerLabel>
+				<ControlPageLabel>motionValid</ControlPageLabel>
+			</State>
+			<State id="health">
+				<ValueType>String</ValueType>
+				<TriggerLabel>health</TriggerLabel>
+				<ControlPageLabel>health</ControlPageLabel>
+			</State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Last Updated on Hub</TriggerLabel>
@@ -2592,6 +2637,69 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
 				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+
+		</States>
+	</Device>
+
+	<!--   MOTION   convienience event sensor bridge pro api2 only-->
+	<Device type="sensor" id="hueGroupedMotion">
+		<Name>Hue Grouped Motion</Name>
+		<ConfigUI>
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+			
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
+			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
+			</Field>
+		</ConfigUI>
+		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="enabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>enabled</TriggerLabel>
+				<ControlPageLabel>enabled</ControlPageLabel>
+			</State>
+			<State id="lastUpdated">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="eventNumber">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>eventNumber</TriggerLabel>
+				<ControlPageLabel>eventNumber</ControlPageLabel>
+			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
 			</State>
 
 		</States>
