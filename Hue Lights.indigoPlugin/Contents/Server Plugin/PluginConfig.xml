@@ -343,18 +343,6 @@ if you have a bridge pro and use api v2 you can use a less frequent value
 	</Field>
 
 
-	<Field id="setDev" type="label" fontColor="orange" >	<Label>For development and beta users: plugin must be restarted with any change:</Label></Field>
-	<Field id="useApi2ForComm"	 		 type="checkbox" defaultValue="true" > 		<Label>Use api-v2 for communication to Bridge (must be on):</Label>   	</Field>
-	<Field id="useApi2ForLightEvents"	 type="checkbox" defaultValue="true" >    	<Label>Use api-v2 for Light events:</Label>    							</Field>
-	<Field id="useApi2ForLightGeneral"	 type="checkbox" defaultValue="False" >   	<Label>Use api-v2 for Light in general (not impl):</Label>   			</Field>
-	<Field id="useApi2ForSensorEvents"	 type="checkbox" defaultValue="true" >   	<Label>Use api-v2 for sensor events:</Label>    				</Field>
-	<Field id="useApi2ForSensorGeneral"	 type="checkbox" defaultValue="False" >   	<Label>Use api-v2 for Sensor in general (not impl):</Label>   		 	</Field>
-	<Field id="useApi2ForGroupsEvents"	 type="checkbox" defaultValue="False" >   	<Label>Use api-v2 for groups events:</Label>  				</Field>
-	<Field id="useApi2ForGroupsGeneral"	 type="checkbox" defaultValue="False" >   	<Label>Use api-v2 for Groups in general (not impl):</Label>  		  	</Field>
-	<Field id="useApi2ForBasicEvents"	 type="checkbox" defaultValue="False" >  	<Label>Use api-v2 for Basic parameters events(not impl:</Label>    		</Field>
-	<Field id="useApi2ForBasicGeneral"	 type="checkbox" defaultValue="False" >  	<Label>Use api-v2 for Basic parameters in general(not impl</Label> 		</Field>
-
-
 	<Field id="setdebug" type="label" fontColor="orange" >	<Label>Set debug areas ...</Label></Field>
 	<Field    id="showLoginTest"                 type="checkbox"        > <Label> show logging test at startup:</Label>  </Field>
 	<Field    id="debugInit"          			type="checkbox"         > <Label> Debug...                   ... (1)  Init:</Label>  </Field>
@@ -364,8 +352,9 @@ if you have a bridge pro and use api v2 you can use a less frequent value
 	<Field    id="debugSendCommandsToBridge"    type="checkbox"         > <Label>     ... (5)  Send Commands To Bridge:</Label>  </Field>
 	<Field    id="debugUpdateIndigoDevices"     type="checkbox"         > <Label>     ... (6)  Update Indigo Devices:</Label>  </Field>
 	<Field    id="debugFindHueBridge"           type="checkbox"         > <Label>     ... (7)  find Hue bridges:</Label>  </Field>
-	<Field    id="debugWriteData"        		type="checkbox"         > <Label>     ... (8)  write data read to prefs dir:</Label>  </Field>
-	<Field    id="debugSpecial"       			type="checkbox"         > <Label>     ... (9)  special debug (only for development):</Label>  </Field>
+	<Field    id="debugEventApi"        		type="checkbox"         > <Label>     ... (8)  event api v2:</Label>  </Field>
+	<Field    id="debugWriteData"        		type="checkbox"         > <Label>     ... (9)  write data read to prefs dir:</Label>  </Field>
+	<Field    id="debugSpecial"       			type="checkbox"         > <Label>     ... (10)  special debug (only for development):</Label>  </Field>
 	<Field    id="debugall"            			type="checkbox"         > <Label>     ... (99) all of the above .. everything:</Label>  </Field>
 
 	<Field id="sepbr3" type="separator"/>

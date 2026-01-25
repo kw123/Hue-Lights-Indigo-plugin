@@ -1,5 +1,11 @@
 
 ========================================
+2022.24.68 @ 2026-01-25
+1. removed some api v2 debug statements
+
+
+
+========================================
 2022.24.67 @ 2026-01-23
 1. fixed bug  in print config, # of users and # of scence were flipped
 2. added event data will  update "enabled", "health" for motion area devices
