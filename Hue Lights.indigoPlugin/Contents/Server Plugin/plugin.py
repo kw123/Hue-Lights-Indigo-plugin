@@ -125,7 +125,7 @@ class Plugin(indigo.PluginBase):
 		super(Plugin, self).__init__(pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
 		indigo.server.log('Starting plugin initialization.')
 		self.hostId 					= pluginPrefs.get('hostId', '')	# Username/key used to access Hue bridge Old
-		self.hostIds 					= json.loads(pluginPrefs.get("hostIds", "{'0':''}"))	# Username/key used to access Hue bridge for multiple bridge
+		self.hostIds 					= json.loads(pluginPrefs.get("hostIds", '{"0":""}'))	# Username/key used to access Hue bridge for multiple bridge
 		for ii in range(kHueBridges):
 			if str(ii) not in self.hostIds :
 				self.hostIds[str(ii)] = ''
