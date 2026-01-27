@@ -125,7 +125,7 @@ class Plugin(indigo.PluginBase):
 		super(Plugin, self).__init__(pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
 		indigo.server.log('Starting plugin initialization.')
 		self.hostId 					= pluginPrefs.get('hostId', '')	# Username/key used to access Hue bridge Old
-		self.hostIds 					= json.loads(pluginPrefs.get("hostIds", "{'0':''}"))	# Username/key used to access Hue bridge for multiple bridge
+		self.hostIds 					= json.loads(pluginPrefs.get("hostIds", '{"0":""}'))	# Username/key used to access Hue bridge for multiple bridge
 		for ii in range(kHueBridges):
 			if str(ii) not in self.hostIds :
 				self.hostIds[str(ii)] = ''
@@ -187,10 +187,6 @@ class Plugin(indigo.PluginBase):
 		self.indigoRootPath 			= indigo.server.getInstallFolderPath().split('Indigo')[0]
 		self.pathToPlugin 				= self.completePath(os.getcwd())
 		self.showLoginTest 				= pluginPrefs.get('showLoginTest',True)
-
-		major, minor, release 			= map(int, indigo.server.version.split('.'))
-		self.indigoVersion 				= float(major)+float(minor)/10.
-		self.indigoRelease 				= release
 
 		self.pluginVersion				= pluginVersion
 		self.pluginId					= pluginId
@@ -558,7 +554,7 @@ class Plugin(indigo.PluginBase):
 						# Make sure the device is in the deviceList.
 						if brightenDeviceId in self.deviceList:
 							# Increase the brightness level by 10 percent.
-							brightenDevice = indigo.devices[brightenDeviceId]
+							brightenDevice = self.deviceCopiesFromIndigo[brightenDeviceId]
 							hubNumber = brightenDevice.pluginProps['hubNumber']
 							brightness = brightenDevice.states['brightnessLevel']
 							if self.decideMyLog("Loop"): self.indiLOG.log(10,"Brightness: {}".format(brightness))
@@ -589,7 +585,7 @@ class Plugin(indigo.PluginBase):
 						# Make sure the device is in the deviceList.
 						if dimDeviceId in self.deviceList:
 							# Decrease the brightness level by 10 percent.
-							dimDevice = indigo.devices[dimDeviceId]
+							dimDevice = self.deviceCopiesFromIndigo[dimDeviceId]
 							hubNumber = dimDevice.pluginProps['hubNumber']
 							brightness = dimDevice.states['brightnessLevel']
 							brightness -= 12
@@ -855,6 +851,7 @@ class Plugin(indigo.PluginBase):
 								folder			= self.hueFolderID,
 								props			= props
 								)
+							self.deviceCopiesFromIndigo[dev.id] = self.getIndigoDevice(dev.id, calledFrom="autocreateNewDevices, createLights")
 							props = dev.pluginProps
 							newProps = self.validateDeviceConfigUi(props, deviceTypeId, dev.id)
 							dev.updateStateOnServer('modelId', theDict[theID]['modelid'])
@@ -866,7 +863,7 @@ class Plugin(indigo.PluginBase):
 						except Exception:
 							self.logger.error("", exc_info=True)
 							self.logger.error("name:{}, deviceTypeId:{}, dict:{}".format(name, deviceTypeId, theDict[theID]))
-							oldDev = indigo.devices[name]
+							oldDev = self.deviceCopiesFromIndigo[name]
 							self.logger.error("existing deviceTypeId:{}, props:{}".format(oldDev.deviceTypeId, str(oldDev.pluginProps)))
 
 
@@ -951,6 +948,7 @@ class Plugin(indigo.PluginBase):
 							folder			= self.hueFolderID,
 							props			= props
 							)
+						self.deviceCopiesFromIndigo[dev.id] = self.getIndigoDevice(dev.id, calledFrom="autocreateNewDevices, createLights")
 						props = dev.pluginProps
 						dev.updateStateOnServer('modelId', modelid)
 						newProps = self.validateDeviceConfigUi(props, deviceTypeId, dev.id)
@@ -962,7 +960,7 @@ class Plugin(indigo.PluginBase):
 					except Exception:
 						self.logger.error("", exc_info=True)
 						self.logger.error("name:{}, deviceTypeId:{}, dict:{}".format(name, deviceTypeId, theDict[theID]))
-						oldDev = indigo.devices[name]
+						oldDev = self.deviceCopiesFromIndigo[name]
 						self.logger.error("existing deviceTypeId:{}, props:{}".format(oldDev.deviceTypeId, str(oldDev.pluginProps)))
 
 		if valuesDict.get('createGroups',False):
@@ -1010,6 +1008,7 @@ class Plugin(indigo.PluginBase):
 								folder			= self.hueFolderID,
 								props			= props
 								)
+							self.deviceCopiesFromIndigo[dev.id] = self.getIndigoDevice(dev.id, calledFrom="autocreateNewDevices, createLights")
 							props = dev.pluginProps
 							newProps = self.validateDeviceConfigUi(props, deviceTypeId, dev.id)
 							dev.replacePluginPropsOnServer(newProps[1])
@@ -1020,7 +1019,7 @@ class Plugin(indigo.PluginBase):
 						except Exception:
 							self.logger.error("", exc_info=True)
 							self.logger.error("name:{}, deviceTypeId:{}, dict:{}".format(name, deviceTypeId, theDict[theID]))
-							oldDev = indigo.devices[name]
+							oldDev = self.deviceCopiesFromIndigo[name]
 							self.logger.error("existing deviceTypeId:{}, props:{}".format(oldDev.deviceTypeId, str(oldDev.pluginProps)))
 
 		if (mode == "background" and (createdLights > 0 or createdSensors > 0 or createdGroups > 0)   ) or mode != "background":
@@ -1292,9 +1291,8 @@ class Plugin(indigo.PluginBase):
 						if otherDeviceId not in indigo.devices: 
 							del self.deviceList[otherDeviceId]
 							continue
-						otherDevice = indigo.devices[otherDeviceId]
+						otherDevice = self.deviceCopiesFromIndigo[otherDeviceId]
 						if valuesDict['bulbId'] == otherDevice.pluginProps.get('bulbId', 0) and hubNumber == otherDevice.pluginProps.get('hubNumber', 0):
-							otherDevice = indigo.devices[otherDeviceId]
 							errorsDict['bulbId'] = "This Hue device is already being controlled by the \"{}\" Indigo device. Choose a different Hue bulb to control.".format(otherDevice.name)
 							errorsDict['showAlertText'] += errorsDict['bulbId'] + "\n\n"
 							return (False, valuesDict, errorsDict)
@@ -1408,11 +1406,13 @@ class Plugin(indigo.PluginBase):
 			valuesDict['nameOnHub'] = group.get('name', "")
 			valuesDict['type'] = group.get('type', "")
 			# Make sure the group ID isn't used by another device.
-			for otherDeviceId in self.deviceList:
+			for otherDeviceId in copy.copy(self.deviceList):
 				if otherDeviceId != deviceId:
-					otherDevice = indigo.devices[otherDeviceId]
+					if otherDeviceId not in indigo.devices: 
+						del self.deviceList[otherDeviceId]
+						continue
+					otherDevice = self.deviceCopiesFromIndigo[otherDeviceId]
 					if valuesDict['groupId'] == otherDevice.pluginProps.get('groupId', 0) and hubNumber == otherDevice.pluginProps.get('hubNumber', 0):
-						otherDevice = indigo.devices[otherDeviceId]
 						isError = True
 						errorsDict['groupId'] = "This Hue group is already being controlled by the \"{}\" Indigo device. Choose a different Hue group to control.".format(otherDevice.name)
 						errorsDict['showAlertText'] += errorsDict['groupId'] + "\n\n"
@@ -1483,11 +1483,13 @@ class Plugin(indigo.PluginBase):
 				return (False, valuesDict, errorsDict)
 
 			# Make sure the sensor ID isn't used by another device.
-			for otherDeviceId in self.deviceList:
+			for otherDeviceId in copy.copy(self.deviceList):
 				if otherDeviceId != deviceId:
-					otherDevice = indigo.devices[otherDeviceId]
+					if otherDeviceId not in indigo.devices: 
+						del self.deviceList[otherDeviceId]
+						continue
+					otherDevice = self.deviceCopiesFromIndigo[otherDeviceId]
 					if sensorId == otherDevice.pluginProps.get('sensorId', 0) and hubNumber == otherDevice.pluginProps.get('hubNumber', 0):
-						otherDevice = indigo.devices[otherDeviceId]
 						isError = True
 						errorsDict['sensorId'] = "This Hue device is already being controlled by the \"{}\" Indigo device. Choose a different Hue Motion Sensor.".format(otherDevice.name)
 						errorsDict['showAlertText'] += errorsDict['sensorId'] + "\n\n"
@@ -1530,9 +1532,9 @@ class Plugin(indigo.PluginBase):
 			# Make sure the sensor ID isn't used by another device.
 			for otherDeviceId in self.deviceList:
 				if otherDeviceId != deviceId:
-					otherDevice = indigo.devices[otherDeviceId]
+					otherDevice = indigo.devices[int(otherDeviceId)]
 					if valuesDict['sensorId'] == otherDevice.pluginProps.get('sensorId', 0) and hubNumber == otherDevice.pluginProps.get('hubNumber', 0):
-						otherDevice = indigo.devices[otherDeviceId]
+						otherDevice = indigo.devices[int(otherDeviceId)]
 						isError = True
 						errorsDict['sensorId'] = "This Hue device is already being controlled by the \"{}\" Indigo device. Choose a different temperature sensor.".format(otherDevice.name)
 						errorsDict['showAlertText'] += errorsDict['sensorId'] + "\n\n"
@@ -6941,256 +6943,7 @@ class Plugin(indigo.PluginBase):
 		
 	########################################
 	def fillAllDataV2(self):
-		"""
-	self.allV2Raw[hubNumber] structure
-	  data[
-	  {},
-	  {},
-	  ...
-	  {}
-	    ]
-	 each {} describes one object 
-	 
-	 	all have a 
-	 		field "type"
-	 	some have 
-	 		metadata for names 
-	 		owner
-	 		"id"
-	 eg:
- devices::::::::::::      
-      {
-        "id": "1c8310aa-34fe-40f4-9057-85e50cb4657b",
-        "id_v1": "/lights/79",   
-        "product_data": {    "model_id": "1746330P7", "manufacturer_name": "Signify Netherlands B.V.",  "product_name": "Hue Appear outdoor wall",
-         			 "product_archetype": "wall_lantern",  "certified": true,  "software_version": "1.122.8", "hardware_platform_type": "100b-11f"   },
-        "metadata": {  "name": "Stairs 1",    "archetype": "wall_lantern"    },
-        "identify": {},
-        "services": [  
-          {"rid": "07f26949-aba9-4b78-bc8e-1f564af87877", "rtype": "zigbee_connectivity" },
-          {"rid": "003216ce-ec1f-4152-8baa-b3d09ccf27ee", "rtype": "light" },  point to id, type light with propties of the light (color dim ,..)
-          {"rid": "29128816-c577-47e6-a76c-1a21ba16c689" "rtype": "entertainment"       },
-          {"rid": "ed90259e-c765-4faf-99d0-bc40cff99423", "rtype": "motion_area_candidate"         },
-          {"rid": "495674da-08f3-461c-8963-c8f082d99ebe","rtype": "device_software_update"        }
-        ],
- ==>     "type": "device"
-      },
-        {
-        "id": "7b6d6487-ae43-4b25-9a0e-6539e7822675",
-        "id_v1": "/sensors/202",
-        "product_data": {"model_id": "RDM002","manufacturer_name": "Signify Netherlands B.V.","product_name": "Hue tap dial switch", "product_archetype": "unknown_archetype", "certified": true, "software_version": "2.77.39","hardware_platform_type": "100b-121 },
-        "metadata": {"name": "Family rotary 5","archetype": "unknown_archetype"},
-        "services": [
-          {"rid": "6b55e5e4-2f57-42cc-af6e-91ec424480f2","rtype":"zigbee_connectivity"          },
-          {"rid": "49793126-6497-43be-b9d9-49023cb4b511","rtype":"relative_rotary"          },
-          {"rid": "d1ecf451-0c84-4037-8ca1-1d12250519d8","rtype":"device_power"          },
-          {"rid": "4f96f19d-e0bf-4fcf-b314-9219dff02e1e","rtype":"button"          },  points to id type button
-          {"rid": "ca7c89dc-e5c8-44d7-b49b-23d441189c83","rtype":"button"          },
-          {"rid": "0133b2e5-c8a3-4433-ada7-657b3fb35c6a","rtype":"button"          },
-          {"rid": "0b9eb5d7-7bec-4c05-a7eb-4577bf40e1e1","rtype":"button"          },
-          {"rid": "aec97290-a318-4bfe-b6d6-b7f7ca732377","rtype":"device_software_update"          }
-        ],
-==>      "type": "device"
-      },
-       {
-        "id": "ff086367-246d-47b1-bb59-e6a8a2150a41",
-        "id_v1": "/sensors/213",
-        "product_data": { "model_id": "SML003","manufacturer_name": "Signify Netherlands B.V.","product_name": "Hue motion sensor","product_archetype": "unknown_archetype","certified": true,"software_version": "2.77.35","hardware_platform_type": "100b-11b"        },
-        "metadata": {"name": "Family 1 ","archetype": "unknown_archetype"        },
-        "identify": {},
-        "usertest": {"status": "set","usertest": false        },
-        "services": [
-          {"rid": "364f6f71-3e5d-4044-95d3-51ce3f9829a4","rtype": "zigbee_connectivity"          },
-          {"rid": "25079e4f-3159-4318-856d-ce5c2f0e7feb","rtype": "motion"          },  points to id type motion
-          {"rid": "1d528de1-0fab-4de1-bbde-f12312bf763a","rtype": "device_power"          },
-          {"rid": "79812996-45bd-4640-b5b9-077af7c120f4","rtype": "light_level"          },
-          {"rid": "78965d34-f55b-43f9-a6a3-591058e48e97","rtype": "temperature"          },
-          {"rid": "203b828e-a606-4d4a-b448-88f155325089","rtype": "device_software_update"          }
-        ],
- ==>      "type": "device"
-      },
 
-       {
-        "id": "0133b2e5-c8a3-4433-ada7-657b3fb35c6a",
-        "id_v1": "/sensors/203",
-        "owner": {"rid": "7b6d6487-ae43-4b25-9a0e-6539e7822675", "rtype": "device"        },
-        "metadata": { "control_id": 3        },
-        "button": {"last_event": "short_release",
-          "button_report": {  "updated": "2026-01-25T11:31:22.597Z","event": "short_release"          },
-          "repeat_interval": 800,
-          "event_values": [ "initial_press","repeat", "short_release", "long_release", "long_press"          ]
-        },
-===>        "type": "button"
-      },
- 
-     
- groups / zones :::::   
- 
-       {
-        "id": "0b608acc-efa3-44ad-b16f-0c6c2c861a26",
-        "id_v1": "/groups/9",
-        "children": [{ "rid": "07dc27de-197d-4385-babe-23b594644b62", "rtype": "device"          }        ],
-        "services": [ { "rid": "7f066238-6e9d-4594-b30d-3c911386ed38", "rtype": "grouped_light"          }        ],
-        "metadata": {"name": "Bathroom guest 1 VL","archetype": "bathroom" },
-==>     "type": "room"
-      },
-
- 
-  
-        "id": "ad1e0ab1-92c4-4ff3-98bb-b91511363a02",
-        "id_v1": "/groups/92",
-        "children": [ { "rid": "f9b8b921-6de6-4d64-b970-6f7201c18e83","rtype": "light"  }        ],
-        "services": [{"rid": "283c368d-7ae4-4970-a7df-a433580fa0ca","rtype": "grouped_light"      }        ],
-        "metadata": {   "name": "Mb rechts Zone",  "archetype": "bedroom"
-        },
- ==>   "type": "zone"
-      },
-
-
-  
-      
-services:::    
-
-      {
-        "id": "ce511cbd-48f6-45b8-993e-90a9611d9c7a",
-        "id_v1": "/sensors/222",
-        "owner": {"rid": "1f98e34f-cb16-4f99-a469-6dcaf2e5f172",          "rtype": "device"        },
-        "enabled": true,
-        "motion": {"motion": false, "motion_valid": true, "motion_report": { "changed": "2026-01-25T13:20:55.799Z", "motion": false          }
-        },
-        "sensitivity": {  "status": "set",  "sensitivity": 2, "sensitivity_max": 4        },
- ==>       "type": "motion"
-      },
- 
-      {
-        "id": "1ddadbb2-b265-4b57-9549-e450ee2d867e",
-        "name": "MotionAware kitchen",
-        "group": { "rid": "2d1a60e4-7a1b-49d6-8db3-49bf4b69641e","rtype": "room"        },
-        "participants": [
-          {"resource": {"rid": "261c45d8-ecae-4ff3-b51c-7d785335486a",  "rtype": "motion_area_candidate"            },
-            "status": { "health": "healthy"            }
-          },
-        ],
-        "services": [
-          { "rid": "ceb353c5-e030-4d71-a593-d9ae29320e42","rtype": "convenience_area_motion"          },
-          { "rid": "23ac586f-c41f-4449-bd1b-5303f9f65388","rtype": "security_area_motion"          }
-        ],
-        "health": "healthy",
-        "enabled": true,
- ===>       "type": "motion_area_configuration"
-      },
-         {
-        "id": "3f0c7874-cf76-4285-96fa-3b916972bb79",
-        "owner": {"rid": "78d40e26-7080-4bab-b39a-1628a6f7c455","rtype": "motion_area_configuration"        },  points back to "motion_area_configuration"
-        "enabled": true,
-        "motion": { "motion": false,"motion_valid": true,"motion_report": {"changed": "2026-01-25T13:41:25.487Z","motion": false}
-        },
-        "sensitivity": {"sensitivity": 2,"sensitivity_max": 4 },
- ==>    "type": "convenience_area_motion"
-      },
-
-
-
-
-==== other stuff
- 
- 	    {"id": "015c575e-6a8a-4571-9c77-cfb57a9c2ce5",
-    ==>  "type": "behavior_instance",
-        "script_id": "67d9395b-4403-42cc-b5f0-740b699d67c6",
-        "enabled": true,    "state": {  "source_type": "device",    "model_id": "FOHSWITCH"   },
-        "configuration": {}
-        "status": "running",
-        "last_error": "",
-        "metadata": {  "name": "Family FOH 2"     }
-        "id": "3d23183f-baf2-4367-8aa2-dd92dd63cc9e",
-        "id_v1": "/sensors/152", 
-        "owner": { "rid": "90cfe19e-0b21-4b51-bab7-34285b0a4dbd",  "rtype": "device" },
-        "metadata": { "control_id": 1  },
-        "button": {"last_event": "short_release", "button_report": {   "updated": "2026-01-24T18:28:54.666Z",  "event": "short_release"  },
-         		"repeat_interval": 800,  "event_values": [  "initial_press", "repeat",  "short_release",  "long_release",  "long_press"  ]
-        },
-
-     
-       {
-        "id": "d187d104-9aed-440e-954e-a346c2aa4e59",
-        "id_v1": "/sensors/151",
-        "owner": { "rid": "90cfe19e-0b21-4b51-bab7-34285b0a4dbd","rtype": "device" },
-        "power_state": { "battery_state": "normal","battery_level": 100      },
- ==>    "type": "device_power"
-      },
-
-    {
-    	"f6dd62cb-6928-4be6-97a1-b4bd0b0ab140": {
-          "owner": {"rid": "f6ef42fc-06f4-4289-9a16-3f9bc2e984d5","rtype": "device"       },
-          "id_v1": "/lights/66",
-          "status": "connected",
-          "mac_address": "00:17:88:01:0b:26:e3:e7",
-  ==>     "type": "zigbee_connectivity"
-        },
-      
-		{
-        "id": "4ace9514-8aec-472e-940e-6f50a822d497",
-        "owner": {"rid": "5e347ca5-5b52-4547-a23e-d6f492b63ef4", "rtype": "device"     },
-        "state": "no_update",
-        "problems": [],
- ==>    "type": "device_software_update"
-      },
-
-
-
-all clip :
-        "resources": [
-# supported
-          "grouped_light",
-          "grouped_motion",
-          "room",
-          "zone",
-          "button",
-          "device",
-          "light",
-          "light_level",
-          "motion",
-          "relative_rotary",
-          "temperature",
-          "motion_area_configuration",
-          "convenience_area_motion",
-
-          "grouped_light_level",
-          "contact",
-          "scene",
-
-
-## tbd
-          "device_power",
-          "device_software_update",
-          "service_group",
-
- # not used , no plans
-          "entertainment",
-          "tamper",
-          "zigbee_device_discovery",
-          "bell_button",
-          "security_area_motion",
-          "clip",
-          "entertainment_configuration"
-          "matter",
-          "matter_fabric",
-          "bridge_home",
-          "bridge",
-          "zigbee_connectivity",
-          "zgp_connectivity",
-          "camera_motion",
-           "speaker",
-           "behavior_script",
-          "behavior_instance",
-          "geofence_client",
-          "geolocation",
-          "smart_scene",
-      ],
-
-	
-		"""
-	
 	
 		for hubNumber in self.ipAddresses:
 			if not self.isValidIP(self.ipAddresses[hubNumber]): continue
@@ -7424,7 +7177,7 @@ all clip :
 		#   sensor device, group, scene, trigger rule, and schedule on the bridge.
 		#   For this reason, this method should not be called frequently to avoid
 		#   causing Hue bridge performance degredation.
-		if True or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(20,"Starting getHueConfig. calledFrom:" + calledFrom)
+		if self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(20,"Starting getHueConfig. calledFrom:" + calledFrom)
 
 		self.getALLIndigoDevice()
 		self.fillAllDataV2()
@@ -7513,14 +7266,14 @@ all clip :
 	def getConvenienceAreaMotionInfo(self, hubNumber, motionAreaId):
 	
 		services = self.allV2Data[hubNumber]['services']
-		if "convenience_area_motion" not in services: return None
+		if "convenience_area_motion" not in services: return None, None
 
 		for dId in services['convenience_area_motion']:
 			convArea = services['convenience_area_motion'][dId]
 			#indigo.server.log(f"owner:{owner}; convArea:{convArea}")
 			if "owner" in convArea:
 				if convArea['owner'].get('rid',None) == motionAreaId:
-					return convArea['motion']
+					return convArea['motion'], convArea['sensitivity']
 		return None	
 
 	
@@ -7538,6 +7291,11 @@ all clip :
 		if convId not in services['motion_area_configuration']: return None, None
 		return services['motion_area_configuration'][convId], services['motion_area_configuration'][convId].get('indigoId', None)
 
+
+
+
+
+
 	# do motion area event setups
 	########################################
 	def checkMotionAreaEventSetupAll(self, calledFrom=""):
@@ -7550,197 +7308,213 @@ all clip :
 			if hubNumber not in self.allV2Data: return
 			#indigo.server.log(f"hubNumber:{hubNumber}, checkMotionAreaEventSetup:{calledFrom}")
 			addIndigoDevice = list()
-			if "motion_area_configuration" in self.allV2Data[hubNumber]['services']:
+			services = self.allV2Data[hubNumber]['services']
+			if "motion_area_configuration" in services:
 			
-				for maId in self.allV2Data[hubNumber]['services']['motion_area_configuration']:
-						motionConfig = self.allV2Data[hubNumber]['services']['motion_area_configuration'][maId]
-						motionConfig['motion'] = self.getConvenienceAreaMotionInfo(hubNumber, maId)
+				for maId in services['motion_area_configuration']:
+						motionInfo = services['motion_area_configuration'][maId]
+						motionInfo['motion'], motionInfo['sensitivity'] = self.getConvenienceAreaMotionInfo(hubNumber, maId)
 
 						found = 0
 						for devId in self.deviceCopiesFromIndigo:
 							dev = self.deviceCopiesFromIndigo[devId]
 							props = dev.pluginProps
 							if dev.deviceTypeId == "hueMotionArea":
-								anyChange = False
 								if dev.states['ownerId'] == maId:
+									temp = list()
 									found = devId
-									motionConfig['indigoId'] =  devId
+									motionInfo['indigoId'] =  devId
 									for state, hueState in [['enabled','enabled'],['nameOnBridge','name'],['health','health']]: # hue data bug: "enabled" always gives True
-										if state in dev.states and hueState in motionConfig:
-											#if devId ==  410296648 and state == "enabled": self.indiLOG.log(30," -- {}, ownerId:{}, state:{}, dev:{} vs minfo:{}".format(dev.name, maId, state, dev.states[state] , motionConfig))
-											if dev.states[state] != motionConfig[hueState]:						
-												dev.updateStateOnServer(state, motionConfig[hueState] )
-												anyChange = True
-									if "sensitivity" in dev.states and "sensitivity" in motionConfig and "sensitivity" in motionConfig['sensitivity']:
-										if dev.states['sensitivity'] != motionConfig['sensitivity']['sensitivity']:				
-											dev.updateStateOnServer('sensitivity', motionConfig['sensitivity']['sensitivity'])
-											anyChange = True
+										if state in dev.states and hueState in motionInfo:
+											#if devId ==  410296648 and state == "enabled": self.indiLOG.log(30," -- {}, ownerId:{}, state:{}, dev:{} vs minfo:{}".format(dev.name, maId, state, dev.states[state] , motionInfo))
+											if dev.states[state] != motionInfo[hueState]:						
+												temp.append({'key':state, 'value':motionInfo[hueState] })
+									if "sensitivity" in dev.states and "sensitivity" in motionInfo and "sensitivity" in motionInfo['sensitivity']:
+										if dev.states['sensitivity'] != motionInfo['sensitivity']['sensitivity']:				
+											temp.append({'key':'sensitivity','value': motionInfo['sensitivity']['sensitivity']})
 	
-									on = True if motionConfig['motion']['motion'] else False
+									on = True if motionInfo['motion']['motion'] else False
 									if dev.states['onOffState'] != on:
-										dev.updateStateOnServer('onOffState', on, uiValue="on" if on else "off")
-										anyChange = True
+										temp.append({'key':'onOffState','value': on, 'uiValue':"on" if on else "off"})
 
-									if on: 				sensorIcon = indigo.kStateImageSel.MotionSensorTripped
-									else:				sensorIcon = indigo.kStateImageSel.MotionSensor
-									dev.updateStateImageOnServer(sensorIcon)
-									if anyChange:
+									if temp != list():
+										dev.updateStatesOnServer(temp)
+										if on: 				sensorIcon = indigo.kStateImageSel.MotionSensorTripped
+										else:				sensorIcon = indigo.kStateImageSel.MotionSensor
+										dev.updateStateImageOnServer(sensorIcon)
 										self.deviceCopiesFromIndigo[dev.id] = self.getIndigoDevice(dev.id, calledFrom="checkMotionAreaEventSetup, update")
 
 									break
-						if not found:
+						if found == 0:
 							addIndigoDevice.append(maId)
-							
+		
+						
 			if self.addNewMotionAreas  and len(addIndigoDevice) > 0:
 				for maId in addIndigoDevice:
-						motionConfig = self.allV2Data[hubNumber]['services']['motion_area_configuration'][maId]
-						useName = motionConfig['name'].replace(" ","_")
-						name = f"Hue_Area_Motion_{hubNumber}_{useName}"
-						address = self.ipAddresses[hubNumber]
-						props = dict()
-						props['hubNumber'] = hubNumber
-						props['logChanges'] = self.pluginPrefs.get('logDefaultForNewDevices', "off") == "on"
-						#indigo.server.log(f"motionConfig:{motionConfig}")
-						try:
-							dev = indigo.device.create(
-								protocol		= indigo.kProtocol.Plugin,
-								address			= address,
-								name			= name,
-								description		= "created by bridge scan",
-								pluginId		= self.pluginId,
-								deviceTypeId	= "hueMotionArea",
-								folder			= self.hueFolderID,
-								props			= props
-								)
-							motionConfig['indigoId'] =  devId
-							dev.updateStateOnServer('created', datetime.datetime.now().strftime(u"%Y-%m-%d %H:%M:%S") )
-							dev.updateStateOnServer('ownerId', maId )
-							dev.updateStateOnServer('sensitivity', motionConfig['sensitivity']['sensitivity'] )
-							dev.updateStateOnServer('sensitivityMax', motionConfig['sensitivity']['sensitivity_max'] )
-							dev.updateStateOnServer('enabled', motionConfig['enabled'] )
-							dev.updateStateOnServer('health', motionConfig['health'] )
-							dev.updateStateOnServer('nameOnBridge', motionConfig['name'])
-							dev.updateStateOnServer('eventNumber', 0)
-							on = True if motionConfig['motion']['motion'] else False
-							dev.updateStateOnServer('onOffState', on, uiValue="on" if on else "off") 
-							if on: 				sensorIcon = indigo.kStateImageSel.MotionSensorTripped
-							else:				sensorIcon = indigo.kStateImageSel.MotionSensor
-							dev.updateStateImageOnServer(sensorIcon)
-							self.deviceCopiesFromIndigo[dev.id] = self.getIndigoDevice(dev.id, calledFrom="checkMotionAreaEventSetup, create")
-						except Exception:
-							self.logger.error("", exc_info=True)
+					motionInfo = services['motion_area_configuration'][maId]
+					useName = motionInfo['name'].replace(" ","_")
+					name = f"Hue_Area_Motion_{hubNumber}_{useName}"
+					address = self.ipAddresses[hubNumber]
+					props = dict()
+					props['hubNumber'] = hubNumber
+					props['logChanges'] = self.pluginPrefs.get('logDefaultForNewDevices', "off") == "on"
+					try:
+						dev = indigo.device.create(
+							protocol		= indigo.kProtocol.Plugin,
+							address			= address,
+							name			= name,
+							description		= "created by bridge scan",
+							pluginId		= self.pluginId,
+							deviceTypeId	= "hueMotionArea",
+							folder			= self.hueFolderID,
+							props			= props
+							)
+						motionInfo['indigoId'] =  devId
+						temp = []
+						temp.append({'key':'created','value': datetime.datetime.now().strftime(u"%Y-%m-%d %H:%M:%S")})
+						temp.append({'key':'ownerId','value': maId})
+						temp.append({'key':'sensitivity','value': motionInfo['sensitivity']['sensitivity']})
+						temp.append({'key':'sensitivityMax','value': motionInfo['sensitivity']['sensitivity_max']})
+						temp.append({'key':'enabled','value': motionInfo['enabled']})
+						temp.append({'key':'health','value': motionInfo['health']})
+						temp.append({'key':'nameOnBridge','value': motionInfo['name']})
+						temp.append({'key':'eventNumber','value': 0})
+						on = True if motionInfo['motion']['motion'] else False
+						temp.append({'key':'onOffState','value': on, 'uiValue':"on" if on else "off"})
+						dev.updateStatesOnServer(temp)
+						if on: 				sensorIcon = indigo.kStateImageSel.MotionSensorTripped
+						else:				sensorIcon = indigo.kStateImageSel.MotionSensor
+						dev.updateStateImageOnServer(sensorIcon)
+						self.deviceCopiesFromIndigo[dev.id] = self.getIndigoDevice(dev.id, calledFrom="checkMotionAreaEventSetup, create")
+						self.indiLOG.log(30,'Motion_area-- created new device: "{}"'.format(name))
+					except Exception:
+						self.logger.error("", exc_info=True)
 		except Exception:
 			self.logger.error("", exc_info=True)
 		return
 		
 	# do motion area event setups
 	########################################
+
+	########################################
+	def getGroupedMotionInfo(self, hubNumber, ownerId):
+		# adding name, triggerid and rtype 
+		services = self.allV2Data[hubNumber]['services']
+		motionInfo = services['grouped_motion'][ownerId]
+		motionInfo['name']  = None
+		motionInfo['triggerId']  = None
+		motionInfo['rtype']  = None
+		rtype = ""
+		if "owner" in motionInfo and "rtype" in motionInfo['owner'] and "rid" in motionInfo['owner']:
+			test = motionInfo['owner']['rtype'] 
+			if test != "bridge_home" or not self.ignoreBridgeHome:
+				rtype = test
+				dId = motionInfo['owner']['rid'] 
+				if dId in services[rtype]:
+					convArea = services[rtype][dId]
+					if "metadata" in convArea:
+						motionInfo['name'] 		= convArea['metadata']['name']
+					else:
+						motionInfo['name'] 		= rtype+ "_virtual_device"
+					
+					motionInfo['triggerId']  = dId
+				motionInfo['type'] 		= rtype
+		return 	motionInfo
+
+	
 	def checkGroupedMotionEventSetupAll(self, calledFrom=""):
 		for hubNumber in self.ipAddresses:
 			self.checkGroupedMotionEventSetup(hubNumber, calledFrom=calledFrom)
 		return 
+
 		
+	########################################
 	def checkGroupedMotionEventSetup(self, hubNumber, calledFrom=""):
 		try:	
 			if hubNumber not in self.allV2Data: return
 			#indigo.server.log(f"hubNumber:{hubNumber}, checkMotionAreaEventSetup:{calledFrom}")
 			addIndigoDevice = list()
-			if "grouped_motion" in self.allV2Data[hubNumber]['services']:
+			services = self.allV2Data[hubNumber]['services']
+			if "grouped_motion" in services:
 			
-				for owner in self.allV2Data[hubNumber]['services']['grouped_motion']:
-						motionInfo = self.allV2Data[hubNumber]['services']['grouped_motion'][owner]
-						motionInfo['name']  = ""
-						motionInfo['triggerId']  = ""
-						rtype = ""
-						if "owner" in motionInfo and "rtype" in motionInfo['owner'] and "rid" in motionInfo['owner']:
-							test = motionInfo['owner']['rtype'] 
-							if test != "bridge_home" or not self.ignoreBridgeHome:
-								rtype = test
-								dId = motionInfo['owner']['rid'] 
-								if dId in self.allV2Data[hubNumber]['services'][rtype]:
-									convArea = self.allV2Data[hubNumber]['services'][rtype][dId]
-									if "metadata" in convArea:
-										motionInfo['name'] 		= convArea['metadata']['name']
-									else:
-										motionInfo['name'] 		= rtype+ "_virtual_device"
-									
-									motionInfo['triggerId']  = dId
-								motionInfo['type'] 		= rtype
-								#self.indiLOG.log(30,"checkGroupedMotionEventSetup -- name of owner>>{}<< found, type:{}".format( motionInfo['name'] , rtype))
+				for maId in services['grouped_motion']:
+					motionInfo	= self. getGroupedMotionInfo( hubNumber, maId)
 
-						if rtype != "":
-							found = 0
-							for devId in self.deviceCopiesFromIndigo:
-								dev = self.deviceCopiesFromIndigo[devId]
-								props = dev.pluginProps
-								anyChange = False
-								if dev.deviceTypeId == "hueGroupedMotion":
-									if dev.states['ownerId'] == owner:
-										#self.indiLOG.log(30,"checkGroupedMotionEventSetup -- {}, ownerId:{}  found ".format(dev.name, owner))
-										found = devId
-										motionInfo['indigoId'] =  devId
-										for state, hueState in [['enabled','enabled'],['type','type']]: # hue data bug: "enabled" always gives True
-											if state in dev.states and hueState in motionInfo:
-												if dev.states[state] != motionInfo[hueState]:						
-													dev.updateStateOnServer(state, motionInfo[hueState] )
-													anyChange = True
-			
-										on = True if motionInfo['motion']['motion_report']['motion'] else False
-										if dev.states['onOffState'] != on:
-											dev.updateStateOnServer('onOffState', on, uiValue="on" if on else "off")
-											anyChange = True
-											
+					if motionInfo['type'] is not None:
+						found = 0
+						for devId in self.deviceCopiesFromIndigo:
+							dev = self.deviceCopiesFromIndigo[devId]
+							props = dev.pluginProps
+							if dev.deviceTypeId == "hueGroupedMotion":
+								if dev.states['ownerId'] == maId:
+									temp = list()
+									#self.indiLOG.log(30,"checkGroupedMotionEventSetup -- {}, ownerId:{}  found ".format(dev.name, maId))
+									found = devId
+									motionInfo['indigoId'] =  devId
+									for state, hueState in [['enabled','enabled'], ['type','type'], ['nameOnBridge','name']]: # hue data bug: "enabled" always gives True
+										if state in dev.states and hueState in motionInfo:
+											if dev.states[state] != motionInfo[hueState]:						
+												temp.append({'key':state,'value': motionInfo[hueState]})
+									on = True if motionInfo['motion']['motion_report']['motion'] else False
+									if dev.states['onOffState'] != on:
+										temp.append({'key':'onOffState','value': on, 'uiValue':"on" if on else "off"})
+										
+									if temp != list():
+										dev.updateStatesOnServer(temp)
 										if on: 				sensorIcon = indigo.kStateImageSel.MotionSensorTripped
 										else:				sensorIcon = indigo.kStateImageSel.MotionSensor
 										dev.updateStateImageOnServer(sensorIcon)
-										if anyChange:
-											self.deviceCopiesFromIndigo[dev.id] = self.getIndigoDevice(dev.id, calledFrom="checkGroupedMotionEventSetup, update")
+										self.deviceCopiesFromIndigo[dev.id] = self.getIndigoDevice(dev.id, calledFrom="checkGroupedMotionEventSetup, update")
 
-										break
-							if found == 0:
-								#self.indiLOG.log(30,"checkGroupedMotionEventSetup -- owner:{} not found in indigo".format(owner))
-								addIndigoDevice.append(owner)
-							
+									break
+						if found == 0:
+							#self.indiLOG.log(30,"checkGroupedMotionEventSetup -- maId:{} not found in indigo".format(maId))
+							addIndigoDevice.append(maId)
+						
 			if self.addNewMotionAreas  and len(addIndigoDevice) > 0:
-				#self.indiLOG.log(30," -- addIndigoDevice:{}".format(addIndigoDevice))
-				for owner in addIndigoDevice:
-						motionInfo = self.allV2Data[hubNumber]['services']['grouped_motion'][owner]
-						useName = motionInfo['name'].replace(" ","_")
-						name = f"Hue_Grouped_Motion_{hubNumber}_{useName}"
-						if name in indigo.devices:
-							self.indiLOG.log(30,"Grouped_Motion-- name already exists, can not create: {}, for ownerid:{}".format(name, owner))
-						else:
-							address = self.ipAddresses[hubNumber]
-							props = dict()
-							props['hubNumber'] = hubNumber
-							props['logChanges'] = self.pluginPrefs.get('logDefaultForNewDevices', "off") == "on"
-							#indigo.server.log(f"motionInfo:{motionInfo}")
-							try:
-								dev = indigo.device.create(
-									protocol		= indigo.kProtocol.Plugin,
-									address			= address,
-									name			= name,
-									description		= "created by bridge scan",
-									pluginId		= self.pluginId,
-									deviceTypeId	= "hueGroupedMotion",
-									folder			= self.hueFolderID,
-									props			= props
-									)
-								motionInfo['indigoId'] =  devId
-								dev.updateStateOnServer('created', datetime.datetime.now().strftime(u"%Y-%m-%d %H:%M:%S") )
-								dev.updateStateOnServer('ownerId', owner )
-								#dev.updateStateOnServer('triggerId', motionInfo['triggerId' ])
-								dev.updateStateOnServer('enabled', motionInfo['enabled'] )
-								dev.updateStateOnServer('nameOnBridge', motionInfo['name'])
-								dev.updateStateOnServer('eventNumber', 0)
-								on = True if motionInfo['motion']['motion_report']['motion'] else False
-								dev.updateStateOnServer('onOffState', on, uiValue="on" if on else "off") 
-								if on: 				sensorIcon = indigo.kStateImageSel.MotionSensorTripped
-								else:				sensorIcon = indigo.kStateImageSel.MotionSensor
-								dev.updateStateImageOnServer(sensorIcon)
-								self.deviceCopiesFromIndigo[dev.id] = self.getIndigoDevice(dev.id, calledFrom="checkGroupedMotionEventSetup, create")
-							except Exception:
-								self.logger.error("", exc_info=True)
+				for maId in addIndigoDevice:
+					motionInfo = services['grouped_motion'][maId]
+					if motionInfo['name'] is None: continue
+					useName = motionInfo['name'].replace(" ","_")
+					name = f"Hue_Grouped_Motion_{hubNumber}_{useName}"
+					if name in indigo.devices:
+						self.indiLOG.log(30,"Grouped_Motion-- name already exists, can not create: {}, for ownerid:{}".format(name, maId))
+						continue
+
+					address = self.ipAddresses[hubNumber]
+					props = dict()
+					props['hubNumber'] = hubNumber
+					props['logChanges'] = self.pluginPrefs.get('logDefaultForNewDevices', "off") == "on"
+					#indigo.server.log(f"motionInfo:{motionInfo}")
+					try:
+						dev = indigo.device.create(
+							protocol		= indigo.kProtocol.Plugin,
+							address			= address,
+							name			= name,
+							description		= "created by bridge scan",
+							pluginId		= self.pluginId,
+							deviceTypeId	= "hueGroupedMotion",
+							folder			= self.hueFolderID,
+							props			= props
+							)
+						motionInfo['indigoId'] =  devId
+						temp = []
+						temp.append({'key':'created','value': datetime.datetime.now().strftime(u"%Y-%m-%d %H:%M:%S")})
+						temp.append({'key':'ownerId','value': maId})
+						temp.append({'key':'enabled','value': motionInfo['enabled'] })
+						temp.append({'key':'nameOnBridge','value': motionInfo['name']})
+						temp.append({'key':'eventNumber','value': 0})
+						on = True if motionInfo['motion']['motion_report']['motion'] else False
+						temp.append({'key':'onOffState','value': on, 'uiValue':"on" if on else "off"}) 
+						dev.updateStatesOnServer(temp)
+						if on: 				sensorIcon = indigo.kStateImageSel.MotionSensorTripped
+						else:				sensorIcon = indigo.kStateImageSel.MotionSensor
+						dev.updateStateImageOnServer(sensorIcon)
+						dev.updateStateImageOnServer(sensorIcon)
+						self.deviceCopiesFromIndigo[dev.id] = self.getIndigoDevice(dev.id, calledFrom="checkGroupedMotionEventSetup, create")
+						self.indiLOG.log(30,'Grouped_Motion-- created new device: "{}"'.format(name))
+					except Exception:
+						self.logger.error("", exc_info=True)
 		except Exception:
 			self.logger.error("", exc_info=True)
 		return
@@ -7761,7 +7535,7 @@ all clip :
 				
 
 		except Exception:
-			self.indiLOG.log(30,"Unable to obtain the configuration from the Hue bridge.{}".format(hubNumber), exc_info=True)
+			self.indiLOG.log(30,"Unable to obtain the configuration from the Hue bridge.", exc_info=True)
 
 
 	# Update Groups List
@@ -7878,7 +7652,7 @@ all clip :
 				try:
 						device = indigo.devices[int(deviceId)]
 				except:
-						self.indiLOG.log(20,f" line: 8524  deviceId:{deviceId},  {self.deviceList[deviceId]} ")
+						#self.indiLOG.log(20,f" line: 8524  deviceId:{deviceId},  {self.deviceList[deviceId]} ")
 						del self.deviceList[deviceId]
 						continue
 				pluginProps = device.pluginProps
@@ -8482,7 +8256,7 @@ all clip :
 				try:
 						device = indigo.devices[int(deviceId)]
 				except:
-						self.indiLOG.log(20,f" line: 9128  deviceId:{deviceId},  {self.deviceList[deviceId]} ")
+						#self.indiLOG.log(20,f" line: 9128  deviceId:{deviceId},  {self.deviceList[deviceId]} ")
 						del self.deviceList[deviceId]
 						continue
 				pluginProps = device.pluginProps
@@ -8699,7 +8473,6 @@ all clip :
 				try:
 						device = indigo.devices[int(deviceId)]
 				except:
-						self.indiLOG.log(20,f" line: 9336  deviceId:{deviceId},  {self.deviceList[deviceId]} ")
 						del self.deviceList[deviceId]
 						continue
 
@@ -12405,7 +12178,7 @@ all clip :
 					try:
 						device = indigo.devices[int(deviceId)]
 					except:
-						self.indiLOG.log(20,f" line: 13038  deviceId:{deviceId},  {self.deviceList[deviceId]} ")
+						#self.indiLOG.log(20,f" line: 13038  deviceId:{deviceId},  {self.deviceList[deviceId]} ")
 						continue
 						
 					if device.deviceTypeId in kSensorTypeList:
@@ -13021,7 +12794,7 @@ all clip :
 
 									if indigoId is not None:
 										vType = "convenience_area_motion"
-										indigoDevice = indigo.devices[indigoId]
+										indigoDevice = self.deviceCopiesFromIndigo[indigoId]
 										stateUpdateList = self.fillIndigoStatesWithApi2_motion_area(	servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, 0, evType, serviceId, indigoIdFromChild, stateUpdateList)
 
 							elif servicetype == "motion_area_configuration":
@@ -13034,7 +12807,7 @@ all clip :
 										indigoId = services['motion_area_configuration'][ownerId].get('indigoId',None)
 										if indigoId is not None:
 											vType = "motion_area_configuration"
-											indigoDevice = indigo.devices[indigoId]
+											indigoDevice = self.deviceCopiesFromIndigo[indigoId]
 											stateUpdateList = self.fillIndigoStatesWithApi2_motion_area(	servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, 0, evType, serviceId, indigoIdFromChild, stateUpdateList)
 
 
@@ -13048,7 +12821,7 @@ all clip :
 											if ownerId == triggerId:
 												indigoId = services['grouped_motion'][grouped_motion_id ]['indigoId']
 												vType = "grouped_motion"
-												indigoDevice = indigo.devices[indigoId]
+												indigoDevice = self.deviceCopiesFromIndigo[indigoId]
 												stateUpdateList = self.fillIndigoStatesWithApi2_motion_area(	servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, 0, evType, serviceId, indigoIdFromChild, stateUpdateList)
 
 	
@@ -13109,6 +12882,9 @@ all clip :
 	
 							elif servicetype == "light_level":
 								self.fillIndigoStatesWithApi2_light_level_Events( 								servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList)
+	
+							elif servicetype == "grouped_light_level":
+								self.fillIndigoStatesWithApi2_grouped_light_level_Events( 						servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList)
 			
 							elif servicetype == "motion":
 								stateUpdateList = self.fillIndigoStatesWithApi2_motion_Events(					servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList)
@@ -13279,32 +13055,6 @@ all clip :
 			self.logger.error("", exc_info=True)
 		return stateUpdateList
 		
-	######################	
-	def fillIndigoStatesWithApi2_ggrouped_light_level_Events(self, servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList):
-		"""
-	{'id': '728084f3-1030-4c8e-ad10-4c2a4a491885', '
-	light': {'light_level_report': {'changed': '2026-01-24T20:18:28.174Z', 'light_level': 0}}, 
-	'owner': {'rid': 'bc8855fd-55b3-479d-a99d-2fe7342d9884', 'rtype': 'room'}, '
-	type': 'grouped_light_level'}
-		"""
-		try:
-			#if self.decideMyLog("EventApi"): self.indiLOG.log(20,"into:{:20},  indigoId:{} eventDict:{}".format(servicetype, indigoId, eventDict))
-			if "type" not in eventDict: 			return stateUpdateList
-			if eventDict['type'] != servicetype:	return stateUpdateList
-			stateUpdateList, bulb, dType = self.doLightUpdate(hubNumber, indigoDevice, eventDict, stateUpdateList)
-
-				
-			if "light" in eventDict:
-				brightness = eventDict['light'].get("light_level",0.0)
-				stateUpdateList = self.checkIfUpdateState(indigoDevice, 'brightnessLevel', int(brightness), stateUpdateList=stateUpdateList)
-
-
-		except Exception:
-			self.logger.error("", exc_info=True)
-		return stateUpdateList
-
-
-
 
 
 	######################	
@@ -13585,25 +13335,57 @@ all clip :
 		return stateUpdateList
 
 
+	######################	
+	def fillIndigoStatesWithApi2_grouped_light_level_Events(self, servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList):
+		"""
+	{'id': '728084f3-1030-4c8e-ad10-4c2a4a491885', '
+	light': {'light_level_report': {'changed': '2026-01-24T20:18:28.174Z', 'light_level': 0}}, 
+	'owner': {'rid': 'bc8855fd-55b3-479d-a99d-2fe7342d9884', 'rtype': 'room'}, '
+	type': 'grouped_light_level'}
+		"""
+		try:
+			if not self.pluginPrefs.get("useApi2ForLightEvents", False): 	return stateUpdateList
+			#if self.decideMyLog("EventApi"): self.indiLOG.log(10,"into:{:20}, eventDict:{}".format("light_level", eventDict))
+			if "type" not in eventDict: 									return stateUpdateList
+			if eventDict['type'] != servicetype:							return stateUpdateList
+			stateUpdateList = self.fillLight_levels(servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList)
+
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return stateUpdateList
+
 
 	######################	
 	def fillIndigoStatesWithApi2_light_level_Events(self, servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList):
-		#{'id': 'bfdd4fd6-835d-4d1d-b89d-c1f76dfa4444', 'id_v1': '/sensors/128', 
-		#'light': {'light_level': 0, 'light_level_report': {'changed': '2025-11-10T18:06:26.508Z', 'light_level': 0}, 'light_level_valid': True}, 
-		# 'owner': {'rid': '65b07c3f-8f50-4ea9-b035-e809ef87b325', 'rtype': 'device'}, 'type': 'light_level'}
+		"""
+		{'id': 'bfdd4fd6-835d-4d1d-b89d-c1f76dfa4444', 'id_v1': '/sensors/128', 
+		'light': {'light_level': 0, 'light_level_report': {'changed': '2025-11-10T18:06:26.508Z', 'light_level': 0}, 'light_level_valid': True}, 
+		 'owner': {'rid': '65b07c3f-8f50-4ea9-b035-e809ef87b325', 'rtype': 'device'}, 'type': 'light_level'}
+		"""
 
 		try:
 			if not self.pluginPrefs.get("useApi2ForLightEvents", False): return stateUpdateList
-			dataTag = "light"
 			#if self.decideMyLog("EventApi"): self.indiLOG.log(10,"into:{:20}, eventDict:{}".format("light_level", eventDict))
-			if "type" not in eventDict: 			return stateUpdateList
-			if eventDict['type'] != servicetype:	return stateUpdateList
-			if dataTag not in eventDict: 			return stateUpdateList
-	
+			if "type" not in eventDict: 									return stateUpdateList
+			if eventDict['type'] != servicetype:							return stateUpdateList
+			stateUpdateList = self.fillLight_levels(servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList)
+		except Exception:
+			self.logger.error("", exc_info=True)
+		return stateUpdateList
+
+
+	######################	
+	def fillLight_levels(self, servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId, indigoIdFromChild, stateUpdateList):
+		try:
+
+			if 'light' not in eventDict: 									return stateUpdateList
+			if 'light_level_report' not in eventDict['light'] :			return stateUpdateList
+			if 'light' not in eventDict['light']['light_level_report']:	return stateUpdateList
+				
 			darkThreshold = 65534
 			thresholdOffset = 7000
 			
-			luminanceRaw = eventDict[dataTag].get("light_level")
+			luminanceRaw = eeventDict['light']['light_level_report']["light_level"]
 			try:
 				luminance = round(pow(10.0, (luminanceRaw - 1.0) / 10000.0),1)
 				darkThreshold = pow(10.0, (darkThreshold - 1.0) / 10000.0)
@@ -13613,7 +13395,8 @@ all clip :
 					# luminanceRaw might not be a number.  Rather than throw a Python
 					# error in the Indigo log, let's just ignore the error and set
 					# the lux value and the thresholds to 0 for now.
-					pass
+					return stateUpdateList
+					
 			darkThreshold = 10
 			thresholdOffset = 0.0
 
@@ -13646,12 +13429,11 @@ all clip :
 				sensorIcon = indigo.kStateImageSel.LightSensor
 
 			stateUpdateList = self.checkIfUpdateState(indigoDevice, 'dark', 			dark, 			stateUpdateList=stateUpdateList )
-			#stateUpdateList = self.checkIfUpdateState(indigoDevice, 'darkThreshold',	darkThreshold,	stateUpdateList=stateUpdateList )
 			stateUpdateList = self.checkIfUpdateState(indigoDevice, 'daylight', 		daylight, 		stateUpdateList=stateUpdateList )
+
 			stateUpdateList = self.checkIfUpdateState(indigoDevice, 'luminance', 		round(luminance,1), stateUpdateList=stateUpdateList, decimalPlaces=sensorPrecision )
 			stateUpdateList = self.checkIfUpdateState(indigoDevice, 'luminanceRaw',		luminanceRaw,	stateUpdateList=stateUpdateList, decimalPlaces=sensorPrecision )
 			stateUpdateList = self.checkIfUpdateState(indigoDevice, 'sensorValue', 		sensorValue,  	stateUpdateList=stateUpdateList, decimalPlaces=sensorPrecision,	uiValue=sensorUiValue, uiImage=sensorIcon, )
-			#if self.decideMyLog("EventApi"): self.indiLOG.log(10,"into:{:20}: stateUpdateList:{}".format(servicetype, stateUpdateList))
 
 		except Exception:
 			self.logger.error("", exc_info=True)

@@ -1,5 +1,14 @@
 
 ========================================
+2022.24.70 @ 2026-01-27
+1. removed a debug statements
+2. reversed a json.loads statement. apparently older python versions a fickle with single quote signes: json.loads("{'a':1}") errors - not in the current indigo version though
+3. fixed a bug: deleting a device and auto re-creating it caused an error. - it kept the old info in temporary dicts. 
+
+
+
+
+========================================
 2022.24.68 @ 2026-01-25
 1. removed some api v2 debug statements
 
