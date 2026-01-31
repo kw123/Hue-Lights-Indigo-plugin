@@ -1,0 +1,316 @@
+self.allV2Raw[hubNumber] structure
+	  data[
+	  {},
+	  {},
+	  ...
+	  {}
+	    ]
+	 each {} describes one object 
+	 
+	 	all have a 
+	 		field "type"
+	 	some have 
+	 		metadata for names 
+	 		owner
+	 		"id"
+	 		
+	 		
+clip {  "id": "a3752057-d413-4ac5-807a-8d22439678e3",
+
+        "resources": [
+# supported
+          "grouped_light",
+          "grouped_motion",
+          "room",
+          "zone",
+          "button",
+          "device",
+          "light",
+          "light_level",
+          "motion",
+          "relative_rotary",
+          "temperature",
+          "motion_area_configuration",
+          "convenience_area_motion",
+
+          "grouped_light_level",
+          "contact",
+          "scene",
+
+
+## tbd
+          "device_power",
+          "device_software_update",
+          "service_group",
+
+ # not used , no plans
+          "entertainment",
+          "tamper",
+          "zigbee_device_discovery",
+          "bell_button",
+          "security_area_motion",
+          "clip",
+          "entertainment_configuration"
+          "matter",
+          "matter_fabric",
+          "bridge_home",
+          "bridge",
+          "zigbee_connectivity",
+          "zgp_connectivity",
+          "camera_motion",
+           "speaker",
+           "behavior_script",
+          "behavior_instance",
+          "geofence_client",
+          "geolocation",
+          "smart_scene",
+      ],
+        "type": "clip"
+        }
+
+
+ devices::::::::::::        these have typ = device
+      {
+        "id": "1c8310aa-34fe-40f4-9057-85e50cb4657b",
+        "id_v1": "/lights/79",   
+        "product_data": {    "model_id": "1746330P7", "manufacturer_name": "Signify Netherlands B.V.",  "product_name": "Hue Appear outdoor wall",
+         			 "product_archetype": "wall_lantern",  "certified": true,  "software_version": "1.122.8", "hardware_platform_type": "100b-11f"   },
+        "metadata": {  "name": "Stairs 1",    "archetype": "wall_lantern"    },
+        "identify": {},
+        "services": [  
+          {"rid": "07f26949-aba9-4b78-bc8e-1f564af87877", "rtype": "zigbee_connectivity" },
+          {"rid": "003216ce-ec1f-4152-8baa-b3d09ccf27ee", "rtype": "light" },  point to id, type light with propties of the light (color dim ,..)
+          {"rid": "29128816-c577-47e6-a76c-1a21ba16c689" "rtype": "entertainment"       },
+          {"rid": "ed90259e-c765-4faf-99d0-bc40cff99423", "rtype": "motion_area_candidate"         },
+          {"rid": "495674da-08f3-461c-8963-c8f082d99ebe","rtype": "device_software_update"        }
+        ],
+ ==>     "type": "device"
+      },
+        {
+        "id": "7b6d6487-ae43-4b25-9a0e-6539e7822675",
+        "id_v1": "/sensors/202",
+        "product_data": {"model_id": "RDM002","manufacturer_name": "Signify Netherlands B.V.","product_name": "Hue tap dial switch", "product_archetype": "unknown_archetype", "certified": true, "software_version": "2.77.39","hardware_platform_type": "100b-121 },
+        "metadata": {"name": "Family rotary 5","archetype": "unknown_archetype"},
+        "services": [
+          {"rid": "6b55e5e4-2f57-42cc-af6e-91ec424480f2","rtype":"zigbee_connectivity"          },
+          {"rid": "49793126-6497-43be-b9d9-49023cb4b511","rtype":"relative_rotary"          },
+          {"rid": "d1ecf451-0c84-4037-8ca1-1d12250519d8","rtype":"device_power"          },
+          {"rid": "4f96f19d-e0bf-4fcf-b314-9219dff02e1e","rtype":"button"          },  points to id type button
+          {"rid": "ca7c89dc-e5c8-44d7-b49b-23d441189c83","rtype":"button"          },
+          {"rid": "0133b2e5-c8a3-4433-ada7-657b3fb35c6a","rtype":"button"          },
+          {"rid": "0b9eb5d7-7bec-4c05-a7eb-4577bf40e1e1","rtype":"button"          },
+          {"rid": "aec97290-a318-4bfe-b6d6-b7f7ca732377","rtype":"device_software_update"          }
+        ],
+==>      "type": "device"
+      },
+       {
+        "id": "ff086367-246d-47b1-bb59-e6a8a2150a41",
+        "id_v1": "/sensors/213",
+        "product_data": { "model_id": "SML003","manufacturer_name": "Signify Netherlands B.V.","product_name": "Hue motion sensor","product_archetype": "unknown_archetype","certified": true,"software_version": "2.77.35","hardware_platform_type": "100b-11b"        },
+        "metadata": {"name": "Family 1 ","archetype": "unknown_archetype"        },
+        "identify": {},
+        "usertest": {"status": "set","usertest": false        },
+        "services": [
+          {"rid": "364f6f71-3e5d-4044-95d3-51ce3f9829a4","rtype": "zigbee_connectivity"          },
+          {"rid": "25079e4f-3159-4318-856d-ce5c2f0e7feb","rtype": "motion"          },  points to id type motion
+          {"rid": "1d528de1-0fab-4de1-bbde-f12312bf763a","rtype": "device_power"          },
+          {"rid": "79812996-45bd-4640-b5b9-077af7c120f4","rtype": "light_level"          },
+          {"rid": "78965d34-f55b-43f9-a6a3-591058e48e97","rtype": "temperature"          },
+          {"rid": "203b828e-a606-4d4a-b448-88f155325089","rtype": "device_software_update"          }
+        ],
+ ==>      "type": "device"
+      },
+
+       {
+        "id": "0133b2e5-c8a3-4433-ada7-657b3fb35c6a",
+        "id_v1": "/sensors/203",
+        "owner": {"rid": "7b6d6487-ae43-4b25-9a0e-6539e7822675", "rtype": "device"        },
+        "metadata": { "control_id": 3        },
+        "button": {"last_event": "short_release",
+          "button_report": {  "updated": "2026-01-25T11:31:22.597Z","event": "short_release"          },
+          "repeat_interval": 800,
+          "event_values": [ "initial_press","repeat", "short_release", "long_release", "long_press"          ]
+        },
+===>        "type": "button"
+      },
+ 
+     
+ groups :::::    room   zone
+ 
+       {
+        "id": "0b608acc-efa3-44ad-b16f-0c6c2c861a26",
+        "id_v1": "/groups/9",
+        "children": [{ "rid": "07dc27de-197d-4385-babe-23b594644b62", "rtype": "device"          }        ],
+        "services": [ { "rid": "7f066238-6e9d-4594-b30d-3c911386ed38", "rtype": "grouped_light"          }        ],
+        "metadata": {"name": "Bathroom guest 1 VL","archetype": "bathroom" },
+==>     "type": "room"
+      },
+
+ 
+  
+        "id": "ad1e0ab1-92c4-4ff3-98bb-b91511363a02",
+        "id_v1": "/groups/92",
+        "children": [ { "rid": "f9b8b921-6de6-4d64-b970-6f7201c18e83","rtype": "light"  }        ],
+        "services": [{"rid": "283c368d-7ae4-4970-a7df-a433580fa0ca","rtype": "grouped_light"      }        ],
+        "metadata": {   "name": "Mb rechts Zone",  "archetype": "bedroom"
+        },
+ ==>   "type": "zone"
+      },
+
+
+   :::::    grouped_light
+     {
+        "id": "a56085da-cb8d-4e2b-b527-f086d12ba6d4",
+        "id_v1": "/groups/103",
+        "owner": {          "rid": "2a8cf485-4e9a-4ec1-89fa-e6044a3b6c4e",          "rtype": "zone"        },
+        "on": {"on": false       },
+        "dimming": {"brightness": 0.0        },
+        "dimming_delta": {},
+        "color_temperature": {},
+        "color_temperature_delta": {},
+        "alert": {"action_values": [           "breathe"          ]        },
+        "signaling": {"signal_values": [            "no_signal",            "on_off"          ]        },
+        "dynamics": {},
+        "type": "grouped_light"
+      },
+  
+   
+    :::::    light_level
+        {
+        "id": "79812996-45bd-4640-b5b9-077af7c120f4",
+        "id_v1": "/sensors/214",
+        "owner": { "rid": "ff086367-246d-47b1-bb59-e6a8a2150a41",          "rtype": "device"        },
+        "enabled": true,
+        "light": {"light_level": 3064,   "light_level_valid": true,   "light_level_report": {  "changed": "2026-01-26T15:56:30.189Z",   "light_level": 3064    }     },
+        "type": "light_level"
+      },
+
+   
+  groups :::::    grouped_light_level
+       {
+        "id": "cd8f7d4a-ed09-4f7f-80b8-6cb9a0dc565b",
+        "owner": {          "rid": "e326fe9a-cadd-4a22-b2a7-d7f17ceec175",          "rtype": "room"        },
+        "enabled": true,
+        "light": {          "light_level_report": {            "changed": "2026-01-26T15:52:09.524Z",            "light_level": 0          }        },
+        "type": "grouped_light_level"
+      },
+  
+  groups :::::    grouped_motion
+		{
+        "id": "5a7ca9c5-9e02-4320-aff2-1e1c063000e0",        
+        "owner": {          "rid": "e326fe9a-cadd-4a22-b2a7-d7f17ceec175",          "rtype": "room"     // service_group // bridge_home   },
+        "enabled": true,
+        "motion": {          "motion_report": {            "changed": "2026-01-26T15:47:10.034Z",            "motion": false                  },
+        "type": "grouped_motion"
+      },
+ 
+      
+services:::    
+
+  groups :::::    service_group    this connects light group and motiuon sensor group 
+      {
+        "id": "ddf88d2b-68ba-4fef-91c2-d6c8028a1b4c",
+        "children": [
+          {"rid": "25079e4f-3159-4318-856d-ce5c2f0e7feb","rtype": "motion"          },
+          {"rid": "79812996-45bd-4640-b5b9-077af7c120f4","rtype": "light_level"          },
+          {"rid": "a8862622-b959-4557-89e5-6084fe497b0e","rtype": "motion"          },
+          {"rid": "32bef1e8-eadf-4f8b-8f52-2065761a80d4","rtype": "light_level"          }
+        ],
+        "services": [
+          {"rid": "e77c8c64-3c45-41eb-9ae7-c2970e311118","rtype": "grouped_motion"},
+          {"rid": "e3a0a2fc-f89b-4f9a-8029-65116badfe01","rtype": "grouped_light_level"          }
+        ],
+        "metadata": {          "name": "Family Sensors"        },
+        "type": "service_group"
+      },
+
+
+      {
+        "id": "ce511cbd-48f6-45b8-993e-90a9611d9c7a",
+        "id_v1": "/sensors/222",
+        "owner": {"rid": "1f98e34f-cb16-4f99-a469-6dcaf2e5f172",          "rtype": "device"        },
+        "enabled": true,
+        "motion": {"motion": false, "motion_valid": true, "motion_report": { "changed": "2026-01-25T13:20:55.799Z", "motion": false          }
+        },
+        "sensitivity": {  "status": "set",  "sensitivity": 2, "sensitivity_max": 4        },
+ ==>       "type": "motion"
+      },
+ 
+      {
+        "id": "1ddadbb2-b265-4b57-9549-e450ee2d867e",
+        "name": "MotionAware kitchen",
+        "group": { "rid": "2d1a60e4-7a1b-49d6-8db3-49bf4b69641e","rtype": "room"        },
+        "participants": [
+          {"resource": {"rid": "261c45d8-ecae-4ff3-b51c-7d785335486a",  "rtype": "motion_area_candidate"            },
+            "status": { "health": "healthy"            }
+          },
+        ],
+        "services": [
+          { "rid": "ceb353c5-e030-4d71-a593-d9ae29320e42","rtype": "convenience_area_motion"          },
+          { "rid": "23ac586f-c41f-4449-bd1b-5303f9f65388","rtype": "security_area_motion"          }
+        ],
+        "health": "healthy",
+        "enabled": true,
+ ===>       "type": "motion_area_configuration"
+      },
+         {
+        "id": "3f0c7874-cf76-4285-96fa-3b916972bb79",
+        "owner": {"rid": "78d40e26-7080-4bab-b39a-1628a6f7c455","rtype": "motion_area_configuration"        },  points back to "motion_area_configuration"
+        "enabled": true,
+        "motion": { "motion": false,"motion_valid": true,"motion_report": {"changed": "2026-01-25T13:41:25.487Z","motion": false}
+        },
+        "sensitivity": {"sensitivity": 2,"sensitivity_max": 4 },
+ ==>    "type": "convenience_area_motion"
+      },
+
+
+
+
+
+
+==== other stuff
+ 
+ 	    {"id": "015c575e-6a8a-4571-9c77-cfb57a9c2ce5",
+    ==>  "type": "behavior_instance",
+        "script_id": "67d9395b-4403-42cc-b5f0-740b699d67c6",
+        "enabled": true,    "state": {  "source_type": "device",    "model_id": "FOHSWITCH"   },
+        "configuration": {}
+        "status": "running",
+        "last_error": "",
+        "metadata": {  "name": "Family FOH 2"     }
+        "id": "3d23183f-baf2-4367-8aa2-dd92dd63cc9e",
+        "id_v1": "/sensors/152", 
+        "owner": { "rid": "90cfe19e-0b21-4b51-bab7-34285b0a4dbd",  "rtype": "device" },
+        "metadata": { "control_id": 1  },
+        "button": {"last_event": "short_release", "button_report": {   "updated": "2026-01-24T18:28:54.666Z",  "event": "short_release"  },
+         		"repeat_interval": 800,  "event_values": [  "initial_press", "repeat",  "short_release",  "long_release",  "long_press"  ]
+        },
+
+     
+       {
+        "id": "d187d104-9aed-440e-954e-a346c2aa4e59",
+        "id_v1": "/sensors/151",
+        "owner": { "rid": "90cfe19e-0b21-4b51-bab7-34285b0a4dbd","rtype": "device" },
+        "power_state": { "battery_state": "normal","battery_level": 100      },
+ ==>    "type": "device_power"
+      },
+
+    {
+    	"f6dd62cb-6928-4be6-97a1-b4bd0b0ab140": {
+          "owner": {"rid": "f6ef42fc-06f4-4289-9a16-3f9bc2e984d5","rtype": "device"       },
+          "id_v1": "/lights/66",
+          "status": "connected",
+          "mac_address": "00:17:88:01:0b:26:e3:e7",
+  ==>     "type": "zigbee_connectivity"
+        },
+      
+		{
+        "id": "4ace9514-8aec-472e-940e-6f50a822d497",
+        "owner": {"rid": "5e347ca5-5b52-4547-a23e-d6f492b63ef4", "rtype": "device"     },
+        "state": "no_update",
+        "problems": [],
+ ==>    "type": "device_software_update"
+      },
+
+
+
