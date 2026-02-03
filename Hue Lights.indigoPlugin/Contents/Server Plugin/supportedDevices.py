@@ -354,7 +354,7 @@ kTemperatureSensorDeviceIDs = 'SML'
 # Compatible switches/dimmers
 #						ZGPSWITCH should not be here
 ## kSwitchDeviceIDs = ['ZGPSWITCH', 					'SWT001', 'RWL020', 'RWL021', 'RWL022', 'ROM001', 'RDM001', 'RDM002', 'FOHSWITCH', 'PTM215Z','LXN-3S27LX1.0']
-kSwitchDeviceIDs = ['SWT001', 'RWL020', 'RWL021', 'RWL022', 'ROM001', 'RDM001', 'RDM002', 'RDM005', 'FOHSWITCH', 'PTM215Z','LXN-3S27LX1.0']
+kSwitchDeviceIDs = ['SWT001', 'RWL020', 'RWL021', 'RWL022', 'ROM001', 'RDM001', 'RDM002', 'RDM005', 'FOHSWITCH', 'PTM215Z','LXN-3S27LX1.0','SOC001']
 
 
 ### Other Constants ###
@@ -363,14 +363,18 @@ kSwitchDeviceIDs = ['SWT001', 'RWL020', 'RWL021', 'RWL022', 'ROM001', 'RDM001', 
 kLightDeviceTypeIDs = ['hueBulb', 'hueAmbiance', 'hueLightStrips', 'hueLivingColorsBloom', 'hueLivingWhites', 'hueOnOffDevice']
 # All Group Device Type IDs.
 kGroupDeviceTypeIDs = ['hueGroup']
+
+# All Contact Type IDs.
+kContactSensorTypeIDs =  ['hueContactSensor']
 # All Motion Sensor Type IDs.
 kMotionSensorTypeIDs = ['hueMotionSensor']
 # All Temperature Sensor Type IDs.
 kTemperatureSensorTypeIDs = ['hueMotionTemperatureSensor']
 # All Light Sensor Type IDs.
 kLightSensorTypeIDs = ['hueMotionLightSensor']
+
 # All Switch Type IDs.
-kSwitchTypeWithButtonsIDs = ['hueDimmerSwitch', 'hueRotaryWallSwitches','hueWallSwitchModule', 'hueSmartButton','hueTapSwitch','runLessWireSwitch']
+kSwitchTypeWithButtonsIDs = ['hueDimmerSwitch', 'hueRotaryWallSwitches','hueWallSwitchModule', 'hueSmartButton','hueTapSwitch','runLessWireSwitch','hueContactSensor']
 kSwitchTypeRotaryIDs =  ['hueRotaryWallRing']
 kSwitchTypeIDs = kSwitchTypeWithButtonsIDs + kSwitchTypeRotaryIDs
 # possible hub numbers
@@ -387,6 +391,15 @@ khubNumbersAvailable = ["0","1","2","3","4"] # one more than max available, just
 # buttons are diffently coded for hueTapSwitch, runLessWireSwitch, they are explicitely listed, not deducted by //1000 etc 
 # see dict below 
 keventButtonSettings = {
+	'hueContactSensor':{
+		'stateNames':			['','contact'],					# this is for dev states, starts with 1 index is button
+		'buttontexts':			['','open',		], 				# this is for logfile, index is button #
+		'stateSuffix':			[	'open'],				# this is for dev states eg button1On, index is event type
+		'textSuffix':			['open'],	
+		'findbuttonNumbers':	{}, 											
+		'findEventType':		{},  											
+		'eventTypesEnabled':	{}
+		},
 	'hueDimmerSwitch':{
 		'stateNames':			['','button1',	'button2',			'button3',					'button4'],					# this is for dev states, starts with 1 index is button
 		'buttontexts':			['','on',		'dim Up',			'dim Down',					'Hue/off'], 				# this is for logfile, index is button #
@@ -454,7 +467,8 @@ kmapSensorTypeToIndigoDevType = {
 								"ZLLLightLevel":			["hueMotionLightSensor"],  			
 								"ZLLSwitch":				["hueDimmerSwitch", "hueSmartButton", "hueWallSwitchModule","hueRotaryWallSwitches"], 				
 								"ZLLRelativeRotary":		["hueRotaryWallRing"], 				
-								"ZGPSwitch":				["hueTapSwitch", "runLessWireSwitch"] 				
+								"ZGPSwitch":				["hueTapSwitch", "runLessWireSwitch"] ,				
+								"SOC001":					["hueContactSensor"] 				
 							}
 
 kmapSensordevTypeToModelId = {
@@ -467,6 +481,7 @@ kmapSensordevTypeToModelId = {
 								"hueTapSwitch": 			['ZGPSWITCH', 'SWT001'],
 								"hueRotaryWallRing": 		['RDM002'],
 								"hueRotaryWallSwitches": 	['RDM002'],
+								"hueContactSensor": 		['SOC001'],
 								"runLessWireSwitch": 		['FOHSWITCH', 'PTM215Z']
 							}
 
@@ -480,6 +495,7 @@ kmapIndigoDevTypeToSensorType = {
 								"hueWallSwitchModule":			"ZLLSwitch",
 								"hueRotaryWallRing":			"ZLLRelativeRotary",
 								"hueRotaryWallSwitches":		"ZLLSwitch",
+								"hueContactSensor":				"SOC001",
 								"runLessWireSwitch":			"ZGPSwitch"
 							}
 
@@ -494,6 +510,7 @@ ksupportsOnState = 			{
 								"hueWallSwitchModule": 			True,
 								"hueRotaryWallRing": 			True,
 								"hueRotaryWallSwitches": 		True,
+								"hueContactSensor": 			True,
 								"runLessWireSwitch":			True
 							}
 
@@ -508,6 +525,7 @@ ksupportsSensorValue = 			{
 								"hueWallSwitchModule": 			False,
 								"hueRotaryWallRing": 			False,
 								"hueRotaryWallSwitches": 		False,
+								"hueContactSensor": 			False,
 								"runLessWireSwitch":			False
 							}
 
@@ -520,6 +538,7 @@ kSupportsStatusRequest = 			{
 								"hueTapSwitch": 				False,
 								"hueWallSwitchModule": 			False,
 								"hueRotaryWallRing": 			False,
+								"hueContactSensor": 			False,
 								"runLessWireSwitch":			False,
 								"hueBulb": 						False,
 								"hueAmbiance":					False,
@@ -541,6 +560,7 @@ kAllowOnStateChange = 			{
 								"hueWallSwitchModule": 			False,
 								"hueRotaryWallRing": 			False,
 								"hueRotaryWallSwitches": 		False,
+								"hueContactSensor": 			False,
 								"runLessWireSwitch":			False,
 								"hueBulb": 						True,
 								"hueAmbiance":					True,
@@ -561,6 +581,7 @@ ksupportsBatteryLevel = 	{
 								"hueWallSwitchModule": 			True,
 								"hueRotaryWallRing": 			True,
 								"hueRotaryWallSwitches": 		True,
+								"hueContactSensor": 			False,
 								"runLessWireSwitch":			False
 							}
 

@@ -415,6 +415,43 @@ You can set option to rename all devices on bridge to their indigo device name</
 		</ConfigUI>
 	</MenuItem>
 
+	<MenuItem id="ignoreDevice">
+		<Name>Un-ignore Hue Devices for auto creation...</Name>
+		<ConfigUI>
+		
+			<Field id="infoLabel" type="label">
+				<Label>Select an existing indigo device to be ignored in the future
+			if the indigo device is deleted it will not be re-created</Label>
+			</Field>
+			
+			<Field id="indigoId" type="menu">
+				<Label>indigo device to be ignored in the future:</Label>
+				<List class="self" method="getallDevicesxlist" dynamicReload="true"/>
+			</Field>
+			
+			<Field id="ignore" type="button">
+				<Label>Click to</Label>
+				<Title>ignore device </Title>
+				<CallbackMethod>ignoreDeviceConfirm</CallbackMethod>
+			</Field>
+
+			<Field id="infoLabel2" type="label">
+				<Label>Select an ignored Hue to be accepted again</Label>
+			</Field>
+			
+			<Field id="hueId" type="menu">
+				<Label>Hue device to be UN-ignored = it will be recreated automatically in indigo:</Label>
+				<List class="self" method="getallIgrnoredDevicesxlist" dynamicReload="false"/>
+			</Field>
+			
+			<Field id="unignore" type="button">
+				<Label>Click to</Label>
+				<Title>UN-ignore device </Title>
+				<CallbackMethod>unignoreDeviceConfirm</CallbackMethod>
+			</Field>
+			
+		</ConfigUI>
+	</MenuItem>
 	<MenuItem id="deleteDevices">
 		<Name>Delete Devices on Bridge...</Name>
 		<ConfigUI>
@@ -727,20 +764,4 @@ you also must enter the ip and the hub number
 	</MenuItem>
 
 
-	<MenuItem id="sep5" />
-	<MenuItem id="toggleDebug">
-		<Name>Toggle debug...</Name>
-		<ConfigUI>
-			<Field id="doSetdebug" type="button">
-				<Label>Click to</Label>
-				<Title>toggle debug (all areas)</Title>
-				<CallbackMethod>setDebugAreas</CallbackMethod>
-			</Field>
-			<Field id="infoLabel" type="label">
-				<Label>In most cases, leave it on for just a few seconds and check the 
-/Library/... .../Indigo x.y/Logs/com.nath...HueLights/plugin.log file
-!! There will be a LOT of lines written to the logfile !!</Label>
-			</Field>
-		</ConfigUI>
-	</MenuItem>
 </MenuItems>

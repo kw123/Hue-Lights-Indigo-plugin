@@ -171,6 +171,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>serviceIds</TriggerLabel>
 				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 	<!-- Ambiance Device -->
@@ -307,6 +317,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>serviceIds</TriggerLabel>
 				<ControlPageLabel>serviceIds</ControlPageLabel>
+			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -480,6 +500,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>serviceIds</TriggerLabel>
 				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- LivingColors Bloom Device -->
@@ -647,6 +677,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>serviceIds</TriggerLabel>
 				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- LivingWhites Device -->
@@ -774,6 +814,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>serviceIds</TriggerLabel>
 				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- On/Off Only Device -->
@@ -864,6 +914,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>serviceIds</TriggerLabel>
 				<ControlPageLabel>serviceIds</ControlPageLabel>
+			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1044,6 +1104,124 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>serviceIds</TriggerLabel>
 				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+	
+	<!-- SENSOR DEVICES -->
+	<!-- Hue Secure Contact -->
+	<Device type="sensor" id="hueContactSensor">
+		<Name>Hue Contact Sensor </Name>
+		<ConfigUI>
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+			
+			<Field id="hubNumber" type="menu"
+				tooltip="Select the Gateway / Bridge this device is associated with">
+				<Label>Hue Bridge number:</Label>
+				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select GW Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
+			</Field>
+			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
+
+			<Field id="sensorId" type="menu"
+				tooltip="Select a Hue Motion Sensor.">
+				<Label>Hue Sensor:</Label>
+				<List class="self" method="sensorListGenerator" filter="hueMotionSensor"  dynamicReload="true"/>
+			</Field>
+			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+				<Label>log events and changes to indigolog</Label>
+			</Field>
+			<Field id="serialNumber" type="textfield"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+				<Label>Serial Number on sensor:</Label>
+			</Field>
+		</ConfigUI>
+		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="lastBatteryReplaced">
+				<ValueType>String</ValueType>
+				<TriggerLabel>lastBatteryReplaced</TriggerLabel>
+				<ControlPageLabel>lastBatteryReplaced</ControlPageLabel>
+			</State>
+			<State id="open">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>open</TriggerLabel>
+				<ControlPageLabel>open</ControlPageLabel>
+			</State>
+			<State id="tamper">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>tamper</TriggerLabel>
+				<ControlPageLabel>tamper</ControlPageLabel>
+			</State>
+			<State id="online">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Online</TriggerLabel>
+				<ControlPageLabel>Online</ControlPageLabel>
+			</State>
+			<State id="lastUpdated">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="manufacturerName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="modelId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="serviceIds">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceIds</TriggerLabel>
+				<ControlPageLabel>serviceIds</ControlPageLabel>
+			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
+			<State id="eventNumber">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>eventNumber</TriggerLabel>
+				<ControlPageLabel>eventNumber</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 
@@ -1158,6 +1336,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>serviceIds</TriggerLabel>
 				<ControlPageLabel>serviceIds</ControlPageLabel>
+			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
 			<State id="eventNumber">
 				<ValueType>Number</ValueType>
@@ -1293,6 +1481,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>serviceIds</TriggerLabel>
 				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 	
@@ -1427,6 +1625,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>serviceIds</TriggerLabel>
 				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     
@@ -1538,6 +1746,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>serviceIds</TriggerLabel>
 				<ControlPageLabel>serviceIds</ControlPageLabel>
+			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1716,6 +1934,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>serviceIds</TriggerLabel>
 				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 
@@ -1832,6 +2060,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>serviceIds</TriggerLabel>
 				<ControlPageLabel>serviceIds</ControlPageLabel>
+			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1969,6 +2207,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>serviceIds</TriggerLabel>
 				<ControlPageLabel>serviceIds</ControlPageLabel>
+			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -2194,6 +2442,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>serviceIds</TriggerLabel>
 				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 
@@ -2373,6 +2631,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>serviceIds</TriggerLabel>
 				<ControlPageLabel>serviceIds</ControlPageLabel>
 			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 
@@ -2477,6 +2745,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>serviceIds</TriggerLabel>
 				<ControlPageLabel>serviceIds</ControlPageLabel>
+			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -2638,6 +2916,11 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 				<TriggerLabel>ownerId</TriggerLabel>
 				<ControlPageLabel>ownerId</ControlPageLabel>
 			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
 
 		</States>
 	</Device>
@@ -2695,6 +2978,11 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
 				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
 			<State id="type">
 				<ValueType>String</ValueType>

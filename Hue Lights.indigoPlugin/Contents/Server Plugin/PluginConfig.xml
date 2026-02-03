@@ -348,12 +348,12 @@ if you have a bridge pro and use api v2 you can use a less frequent value
 	<Field    id="debugInit"          			type="checkbox"         > <Label> Debug...                   ... (1)  Init:</Label>  </Field>
 	<Field    id="debugLoop"          			type="checkbox"         > <Label>     ... (2)  Loop:</Label>  </Field>
 	<Field    id="debugEditSetup"          		type="checkbox"         > <Label>     ... (3)  Edit indigo devs config etc:</Label>  </Field>
-	<Field    id="debugReadFromBridge"          type="checkbox"         > <Label>     ... (4)  Read From Bridge:</Label>  </Field>
+	<Field    id="debugReadFromBridge"          type="checkbox"         > <Label>     ... (4)  Read From Bridge, write to plugin.log file:</Label>  </Field>
 	<Field    id="debugSendCommandsToBridge"    type="checkbox"         > <Label>     ... (5)  Send Commands To Bridge:</Label>  </Field>
 	<Field    id="debugUpdateIndigoDevices"     type="checkbox"         > <Label>     ... (6)  Update Indigo Devices:</Label>  </Field>
 	<Field    id="debugFindHueBridge"           type="checkbox"         > <Label>     ... (7)  find Hue bridges:</Label>  </Field>
 	<Field    id="debugEventApi"        		type="checkbox"         > <Label>     ... (8)  event api v2:</Label>  </Field>
-	<Field    id="debugWriteData"        		type="checkbox"         > <Label>     ... (9)  write data read to prefs dir:</Label>  </Field>
+	<Field    id="debugWriteData"        		type="checkbox"         > <Label>     ... (9)  write data read from bridge to prefs dir:</Label>  </Field>
 	<Field    id="debugSpecial"       			type="checkbox"         > <Label>     ... (10)  special debug (only for development):</Label>  </Field>
 	<Field    id="debugall"            			type="checkbox"         > <Label>     ... (99) all of the above .. everything:</Label>  </Field>
 

@@ -1,7 +1,13 @@
 
 ========================================
+2022.25.70 @ 2026-02-03
+1. added menu to ignore/ disable hue device creation in indigo. Normally the plugin will auto create a missing device in indigo.
+  This option will prevent this for selected hue devices (light, sensor, groups)
+
+
+========================================
 2022.24.70 @ 2026-01-27
-1. removed a debug statements
+1. removed a debug statement
 2. reversed a json.loads statement. apparently older python versions a fickle with single quote signes: json.loads("{'a':1}") errors - not in the current indigo version though
 3. fixed a bug: deleting a device and auto re-creating it caused an error. - it kept the old info in temporary dicts. 
 
