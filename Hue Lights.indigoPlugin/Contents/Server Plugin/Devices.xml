@@ -7,54 +7,116 @@
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-	
-			<Field id="deviceAction" type="menu" defaultValue="False" hidden="false"
-				tooltip="use this to replace eg a broken hue light. (a: normal edit ) (b: link this device to a new Hue device) (c: copy other indigo device to this device, incl link to its hue device, after save: delete the other device.)"> 
-				<Label>Edit / Replace a device </Label>
+			
+			<Field id="defaultBrightness" type="menu" defaultValue="50">
+				<Label>Default Brightness(%):</Label>
 				<List>
-					<Option value="EditExisting">edit existing device, normal option</Option>
-					<Option value="Replace_with_new_Hue_device">replace / add device, select new Hue device</Option>
-					<Option value="Replace_with_other_Indigo_device">replace device, copy other Indigo device to this device</Option>
+					<Option value="1">1</Option>
+					<Option value="2">2</Option>
+					<Option value="3">3</Option>
+					<Option value="4">4</Option>
+					<Option value="5">5</Option>
+					<Option value="7">7</Option>
+					<Option value="10">10</Option>
+					<Option value="15">15</Option>
+					<Option value="20">20</Option>
+					<Option value="25">25</Option>
+					<Option value="30">30</Option>
+					<Option value="35">35</Option>
+					<Option value="40">40</Option>
+					<Option value="45">45</Option>
+					<Option value="50">50</Option>
+					<Option value="55">55</Option>
+					<Option value="60">60</Option>
+					<Option value="65">65</Option>
+					<Option value="70">70</Option>
+					<Option value="75">75</Option>
+					<Option value="80">80</Option>
+					<Option value="85">85</Option>
+					<Option value="90">90</Option>
+					<Option value="95">95</Option>
+					<Option value="100">100</Option>
 				</List>
 			</Field>
-
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
-
-
-			<Field id="bulbId" type="menu"
-				tooltip="Select a light to control. This menu only shows lights that support both full color and color temperature (a.k.a. Ambiance) features, except for the LightStrips.">
-				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator" filter="Extended color light" dynamicReload="true"/> 
-			</Field>
-			<Field id="defaultBrightness" type="textfield"
-				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
-				<Label>Default Brightness:</Label>
-			</Field>
+			
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an ON command is sent to this light.  If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.
-</Label>
+Optionally set a default brightness level used whenever an ON command is sent to this light.  
+If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>			
 			</Field>
-			<Field id="rate" type="textfield"
-				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the light should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
-				<Label>Ramp Rate:</Label>
+
+			<Field id="rate" type="menu" defaultValue="0.5">
+				<Label>Ramp Rate(secs):</Label>
+				<List>
+					<Option value="0.1">0.1</Option>
+					<Option value="0.2">0.2</Option>
+					<Option value="0.3">0.3</Option>
+					<Option value="0.4">0.4</Option>
+					<Option value="0.5">0.5</Option>
+					<Option value="0.6">0.6</Option>
+					<Option value="0.7">0.7</Option>
+					<Option value="0.8">0.8</Option>
+					<Option value="0.9">0.9</Option>
+					<Option value="1">1</Option>
+					<Option value="1.1">1.1</Option>
+					<Option value="1.2">1.2</Option>
+					<Option value="1.3">1.3</Option>
+					<Option value="1.4">1.4</Option>
+					<Option value="1.5">1.5</Option>
+					<Option value="1.6">1.6</Option>
+					<Option value="1.7">1.7</Option>
+					<Option value="1.8">1.8</Option>
+					<Option value="1.9">1.9</Option>
+					<Option value="2.0">2</Option>
+					<Option value="2.1">2.1</Option>
+					<Option value="2.2">2.2</Option>
+					<Option value="2.3">2.3</Option>
+					<Option value="2.4">2.4</Option>
+					<Option value="2.5">2.5</Option>
+					<Option value="2.6">2.6</Option>
+					<Option value="2.7">2.7</Option>
+					<Option value="2.8">2.8</Option>
+					<Option value="2.9">2.9</Option>
+					<Option value="3.0">3</Option>
+					<Option value="3.1">3.1</Option>
+					<Option value="3.2">3.2</Option>
+					<Option value="3.3">3.3</Option>
+					<Option value="3.4">3.4</Option>
+					<Option value="3.5">3.5</Option>
+					<Option value="3.6">3.6</Option>
+					<Option value="3.7">3.7</Option>
+					<Option value="3.8">3.8</Option>
+					<Option value="3.9">3.9</Option>
+					<Option value="4.0">4</Option>
+					<Option value="4.5">4.5</Option>
+					<Option value="5.0">5</Option>
+					<Option value="6.0">6</Option>
+					<Option value="7.0">7</Option>
+					<Option value="8.0">8</Option>
+					<Option value="9.0">9</Option>
+					<Option value="10.0">10</Option>
+					<Option value="15.0">15</Option>
+					<Option value="20.0">20</Option>
+					<Option value="30.0">30</Option>
+					<Option value="40.0">40</Option>
+					<Option value="50.0">50</Option>
+					<Option value="60.0">60</Option>
+					<Option value="80.0">80</Option>
+					<Option value="100.0">100</Option>
+					<Option value="200.0">200</Option>
+					<Option value="300.0">300</Option>
+					<Option value="400.0">400</Option>
+					<Option value="540.0">540</Option>
+				</List>
 			</Field>
+			
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
+			
 			<Field id="noOnRampRate" type="checkbox" defaultValue="false"
 				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times.">
 				<Label>Disable ON Ramp Rate</Label>
@@ -166,11 +228,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="serviceIds">
-				<ValueType>String</ValueType>
-				<TriggerLabel>serviceIds</TriggerLabel>
-				<ControlPageLabel>serviceIds</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -180,6 +237,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -191,52 +253,116 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
 		
-			<Field id="deviceAction" type="menu" defaultValue="False" hidden="false"
-				tooltip="use this to replace eg a broken hue light. (a: normal edit ) (b: link this device to a new Hue device) (c: copy other indigo device to this device, incl link to its hue device, after save: delete the other device.)"> 
-				<Label>Edit / Replace a device </Label>
+			<Field id="defaultBrightness" type="menu" defaultValue="50">
+				<Label>Default Brightness(%):</Label>
 				<List>
-					<Option value="EditExisting">edit existing device, normal option</Option>
-					<Option value="Replace_with_new_Hue_device">replace / add device, select new Hue device</Option>
-					<Option value="Replace_with_other_Indigo_device">replace device, copy other Indigo device to this device</Option>
+					<Option value="1">1</Option>
+					<Option value="2">2</Option>
+					<Option value="3">3</Option>
+					<Option value="4">4</Option>
+					<Option value="5">5</Option>
+					<Option value="7">7</Option>
+					<Option value="10">10</Option>
+					<Option value="15">15</Option>
+					<Option value="20">20</Option>
+					<Option value="25">25</Option>
+					<Option value="30">30</Option>
+					<Option value="35">35</Option>
+					<Option value="40">40</Option>
+					<Option value="45">45</Option>
+					<Option value="50">50</Option>
+					<Option value="55">55</Option>
+					<Option value="60">60</Option>
+					<Option value="65">65</Option>
+					<Option value="70">70</Option>
+					<Option value="75">75</Option>
+					<Option value="80">80</Option>
+					<Option value="85">85</Option>
+					<Option value="90">90</Option>
+					<Option value="95">95</Option>
+					<Option value="100">100</Option>
 				</List>
 			</Field>
-
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
-
-			<Field id="bulbId" type="menu"
-				tooltip="Select a light to control. This menu only shows color temperature (a.k.a. Ambiance) lights. Lights that also support full color will appear in the Hue Color/Ambiance device list.">
-				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator"  filter="Color temperature light" dynamicReload="true"/> 
-			</Field>
-			<Field id="defaultBrightness" type="textfield"
-				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
-				<Label>Default Brightness:</Label>
-			</Field>
+			
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an ON command is sent to this light. If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.
-				</Label>
+Optionally set a default brightness level used whenever an ON command is sent to this light.  
+If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>			
 			</Field>
-			<Field id="rate" type="textfield"
-				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the light should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
-				<Label>Ramp Rate:</Label>
+
+			<Field id="rate" type="menu" defaultValue="0.5">
+				<Label>Ramp Rate(secs):</Label>
+				<List>
+					<Option value="0.1">0.1</Option>
+					<Option value="0.2">0.2</Option>
+					<Option value="0.3">0.3</Option>
+					<Option value="0.4">0.4</Option>
+					<Option value="0.5">0.5</Option>
+					<Option value="0.6">0.6</Option>
+					<Option value="0.7">0.7</Option>
+					<Option value="0.8">0.8</Option>
+					<Option value="0.9">0.9</Option>
+					<Option value="1">1</Option>
+					<Option value="1.1">1.1</Option>
+					<Option value="1.2">1.2</Option>
+					<Option value="1.3">1.3</Option>
+					<Option value="1.4">1.4</Option>
+					<Option value="1.5">1.5</Option>
+					<Option value="1.6">1.6</Option>
+					<Option value="1.7">1.7</Option>
+					<Option value="1.8">1.8</Option>
+					<Option value="1.9">1.9</Option>
+					<Option value="2.0">2</Option>
+					<Option value="2.1">2.1</Option>
+					<Option value="2.2">2.2</Option>
+					<Option value="2.3">2.3</Option>
+					<Option value="2.4">2.4</Option>
+					<Option value="2.5">2.5</Option>
+					<Option value="2.6">2.6</Option>
+					<Option value="2.7">2.7</Option>
+					<Option value="2.8">2.8</Option>
+					<Option value="2.9">2.9</Option>
+					<Option value="3.0">3</Option>
+					<Option value="3.1">3.1</Option>
+					<Option value="3.2">3.2</Option>
+					<Option value="3.3">3.3</Option>
+					<Option value="3.4">3.4</Option>
+					<Option value="3.5">3.5</Option>
+					<Option value="3.6">3.6</Option>
+					<Option value="3.7">3.7</Option>
+					<Option value="3.8">3.8</Option>
+					<Option value="3.9">3.9</Option>
+					<Option value="4.0">4</Option>
+					<Option value="4.5">4.5</Option>
+					<Option value="5.0">5</Option>
+					<Option value="6.0">6</Option>
+					<Option value="7.0">7</Option>
+					<Option value="8.0">8</Option>
+					<Option value="9.0">9</Option>
+					<Option value="10.0">10</Option>
+					<Option value="15.0">15</Option>
+					<Option value="20.0">20</Option>
+					<Option value="30.0">30</Option>
+					<Option value="40.0">40</Option>
+					<Option value="50.0">50</Option>
+					<Option value="60.0">60</Option>
+					<Option value="80.0">80</Option>
+					<Option value="100.0">100</Option>
+					<Option value="200.0">200</Option>
+					<Option value="300.0">300</Option>
+					<Option value="400.0">400</Option>
+					<Option value="540.0">540</Option>
+				</List>
 			</Field>
+			
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
+
+
 			<Field id="noOnRampRate" type="checkbox" defaultValue="false"
 				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times.">
 				<Label>Disable ON Ramp Rate</Label>
@@ -257,6 +383,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
+		
 		<States>
 			<State id="created">
 				<ValueType>String</ValueType>
@@ -313,11 +440,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="serviceIds">
-				<ValueType>String</ValueType>
-				<TriggerLabel>serviceIds</TriggerLabel>
-				<ControlPageLabel>serviceIds</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -327,6 +449,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -337,53 +464,116 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-	
-			<Field id="deviceAction" type="menu" defaultValue="False" hidden="false"
-				tooltip="use this to replace eg a broken hue light. (a: normal edit ) (b: link this device to a new Hue device) (c: copy other indigo device to this device, incl link to its hue device, after save: delete the other device.)"> 
-				<Label>Edit / Replace a device </Label>
+			
+			<Field id="defaultBrightness" type="menu" defaultValue="50">
+				<Label>Default Brightness(%):</Label>
 				<List>
-					<Option value="EditExisting">edit existing device, normal option</Option>
-					<Option value="Replace_with_new_Hue_device">replace / add device, select new Hue device</Option>
-					<Option value="Replace_with_other_Indigo_device">replace device, copy other Indigo device to this device</Option>
+					<Option value="1">1</Option>
+					<Option value="2">2</Option>
+					<Option value="3">3</Option>
+					<Option value="4">4</Option>
+					<Option value="5">5</Option>
+					<Option value="7">7</Option>
+					<Option value="10">10</Option>
+					<Option value="15">15</Option>
+					<Option value="20">20</Option>
+					<Option value="25">25</Option>
+					<Option value="30">30</Option>
+					<Option value="35">35</Option>
+					<Option value="40">40</Option>
+					<Option value="45">45</Option>
+					<Option value="50">50</Option>
+					<Option value="55">55</Option>
+					<Option value="60">60</Option>
+					<Option value="65">65</Option>
+					<Option value="70">70</Option>
+					<Option value="75">75</Option>
+					<Option value="80">80</Option>
+					<Option value="85">85</Option>
+					<Option value="90">90</Option>
+					<Option value="95">95</Option>
+					<Option value="100">100</Option>
 				</List>
 			</Field>
-
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
-
-			<Field id="bulbId" type="menu"
-				tooltip="Select a light to control. This menu only shows light strips.">
-				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator" filter="Color temperature light" dynamicReload="true"/> 
-			</Field>
-			<Field id="defaultBrightness" type="textfield"
-				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
-				<Label>Default Brightness:</Label>
-			</Field>
+			
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an ON command is sent to this device.  If no value is entered, when an ON command is sent, the device will return to the brightness it was at before being turned off.
-</Label>
+Optionally set a default brightness level used whenever an ON command is sent to this light.  
+If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>			
 			</Field>
-			<Field id="rate" type="textfield"
-				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the light should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
-				<Label>Ramp Rate:</Label>
+
+			<Field id="rate" type="menu" defaultValue="0.5">
+				<Label>Ramp Rate(secs):</Label>
+				<List>
+					<Option value="0.1">0.1</Option>
+					<Option value="0.2">0.2</Option>
+					<Option value="0.3">0.3</Option>
+					<Option value="0.4">0.4</Option>
+					<Option value="0.5">0.5</Option>
+					<Option value="0.6">0.6</Option>
+					<Option value="0.7">0.7</Option>
+					<Option value="0.8">0.8</Option>
+					<Option value="0.9">0.9</Option>
+					<Option value="1">1</Option>
+					<Option value="1.1">1.1</Option>
+					<Option value="1.2">1.2</Option>
+					<Option value="1.3">1.3</Option>
+					<Option value="1.4">1.4</Option>
+					<Option value="1.5">1.5</Option>
+					<Option value="1.6">1.6</Option>
+					<Option value="1.7">1.7</Option>
+					<Option value="1.8">1.8</Option>
+					<Option value="1.9">1.9</Option>
+					<Option value="2.0">2</Option>
+					<Option value="2.1">2.1</Option>
+					<Option value="2.2">2.2</Option>
+					<Option value="2.3">2.3</Option>
+					<Option value="2.4">2.4</Option>
+					<Option value="2.5">2.5</Option>
+					<Option value="2.6">2.6</Option>
+					<Option value="2.7">2.7</Option>
+					<Option value="2.8">2.8</Option>
+					<Option value="2.9">2.9</Option>
+					<Option value="3.0">3</Option>
+					<Option value="3.1">3.1</Option>
+					<Option value="3.2">3.2</Option>
+					<Option value="3.3">3.3</Option>
+					<Option value="3.4">3.4</Option>
+					<Option value="3.5">3.5</Option>
+					<Option value="3.6">3.6</Option>
+					<Option value="3.7">3.7</Option>
+					<Option value="3.8">3.8</Option>
+					<Option value="3.9">3.9</Option>
+					<Option value="4.0">4</Option>
+					<Option value="4.5">4.5</Option>
+					<Option value="5.0">5</Option>
+					<Option value="6.0">6</Option>
+					<Option value="7.0">7</Option>
+					<Option value="8.0">8</Option>
+					<Option value="9.0">9</Option>
+					<Option value="10.0">10</Option>
+					<Option value="15.0">15</Option>
+					<Option value="20.0">20</Option>
+					<Option value="30.0">30</Option>
+					<Option value="40.0">40</Option>
+					<Option value="50.0">50</Option>
+					<Option value="60.0">60</Option>
+					<Option value="80.0">80</Option>
+					<Option value="100.0">100</Option>
+					<Option value="200.0">200</Option>
+					<Option value="300.0">300</Option>
+					<Option value="400.0">400</Option>
+					<Option value="540.0">540</Option>
+				</List>
 			</Field>
+			
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
+
 			<Field id="noOnRampRate" type="checkbox" defaultValue="false"
 				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times.">
 				<Label>Disable ON Ramp Rate</Label>
@@ -495,11 +685,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="serviceIds">
-				<ValueType>String</ValueType>
-				<TriggerLabel>serviceIds</TriggerLabel>
-				<ControlPageLabel>serviceIds</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -510,6 +695,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- LivingColors Bloom Device -->
@@ -519,53 +709,117 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-	
-			<Field id="deviceAction" type="menu" defaultValue="False" hidden="false"
-				tooltip="use this to replace eg a broken hue light. (a: normal edit ) (b: link this device to a new Hue device) (c: copy other indigo device to this device, incl link to its hue device, after save: delete the other device.)"> 
-				<Label>Edit / Replace a device </Label>
+
+			
+			<Field id="defaultBrightness" type="menu" defaultValue="50">
+				<Label>Default Brightness(%):</Label>
 				<List>
-					<Option value="EditExisting">edit existing device, normal option</Option>
-					<Option value="Replace_with_new_Hue_device">replace / add device, select new Hue device</Option>
-					<Option value="Replace_with_other_Indigo_device">replace device, copy other Indigo device to this device</Option>
+					<Option value="1">1</Option>
+					<Option value="2">2</Option>
+					<Option value="3">3</Option>
+					<Option value="4">4</Option>
+					<Option value="5">5</Option>
+					<Option value="7">7</Option>
+					<Option value="10">10</Option>
+					<Option value="15">15</Option>
+					<Option value="20">20</Option>
+					<Option value="25">25</Option>
+					<Option value="30">30</Option>
+					<Option value="35">35</Option>
+					<Option value="40">40</Option>
+					<Option value="45">45</Option>
+					<Option value="50">50</Option>
+					<Option value="55">55</Option>
+					<Option value="60">60</Option>
+					<Option value="65">65</Option>
+					<Option value="70">70</Option>
+					<Option value="75">75</Option>
+					<Option value="80">80</Option>
+					<Option value="85">85</Option>
+					<Option value="90">90</Option>
+					<Option value="95">95</Option>
+					<Option value="100">100</Option>
 				</List>
 			</Field>
-
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
-
-			<Field id="bulbId" type="menu"
-				tooltip="Select a light to control. This menu shows color lights such as the Bloom, StoryLight and other color lights. It does not include LightStrips or color temperature lights.">
-				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator" filter="Color temperature light" dynamicReload="true"/> 
-			</Field>
-			<Field id="defaultBrightness" type="textfield"
-				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
-				<Label>Default Brightness:</Label>
-			</Field>
+			
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an ON command is sent to this device.  If no value is entered, when an ON command is sent, the device will return to the brightness it was at before being turned off.
-</Label>
+Optionally set a default brightness level used whenever an ON command is sent to this light.  
+If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>			
 			</Field>
-			<Field id="rate" type="textfield"
-				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the light should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
-				<Label>Ramp Rate:</Label>
+
+			<Field id="rate" type="menu" defaultValue="0.5">
+				<Label>Ramp Rate(secs):</Label>
+				<List>
+					<Option value="0.1">0.1</Option>
+					<Option value="0.2">0.2</Option>
+					<Option value="0.3">0.3</Option>
+					<Option value="0.4">0.4</Option>
+					<Option value="0.5">0.5</Option>
+					<Option value="0.6">0.6</Option>
+					<Option value="0.7">0.7</Option>
+					<Option value="0.8">0.8</Option>
+					<Option value="0.9">0.9</Option>
+					<Option value="1">1</Option>
+					<Option value="1.1">1.1</Option>
+					<Option value="1.2">1.2</Option>
+					<Option value="1.3">1.3</Option>
+					<Option value="1.4">1.4</Option>
+					<Option value="1.5">1.5</Option>
+					<Option value="1.6">1.6</Option>
+					<Option value="1.7">1.7</Option>
+					<Option value="1.8">1.8</Option>
+					<Option value="1.9">1.9</Option>
+					<Option value="2.0">2</Option>
+					<Option value="2.1">2.1</Option>
+					<Option value="2.2">2.2</Option>
+					<Option value="2.3">2.3</Option>
+					<Option value="2.4">2.4</Option>
+					<Option value="2.5">2.5</Option>
+					<Option value="2.6">2.6</Option>
+					<Option value="2.7">2.7</Option>
+					<Option value="2.8">2.8</Option>
+					<Option value="2.9">2.9</Option>
+					<Option value="3.0">3</Option>
+					<Option value="3.1">3.1</Option>
+					<Option value="3.2">3.2</Option>
+					<Option value="3.3">3.3</Option>
+					<Option value="3.4">3.4</Option>
+					<Option value="3.5">3.5</Option>
+					<Option value="3.6">3.6</Option>
+					<Option value="3.7">3.7</Option>
+					<Option value="3.8">3.8</Option>
+					<Option value="3.9">3.9</Option>
+					<Option value="4.0">4</Option>
+					<Option value="4.5">4.5</Option>
+					<Option value="5.0">5</Option>
+					<Option value="6.0">6</Option>
+					<Option value="7.0">7</Option>
+					<Option value="8.0">8</Option>
+					<Option value="9.0">9</Option>
+					<Option value="10.0">10</Option>
+					<Option value="15.0">15</Option>
+					<Option value="20.0">20</Option>
+					<Option value="30.0">30</Option>
+					<Option value="40.0">40</Option>
+					<Option value="50.0">50</Option>
+					<Option value="60.0">60</Option>
+					<Option value="80.0">80</Option>
+					<Option value="100.0">100</Option>
+					<Option value="200.0">200</Option>
+					<Option value="300.0">300</Option>
+					<Option value="400.0">400</Option>
+					<Option value="540.0">540</Option>
+				</List>
 			</Field>
+			
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
+
 			<Field id="noOnRampRate" type="checkbox" defaultValue="false"
 				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times.">
 				<Label>Disable ON Ramp Rate</Label>
@@ -672,11 +926,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="serviceIds">
-				<ValueType>String</ValueType>
-				<TriggerLabel>serviceIds</TriggerLabel>
-				<ControlPageLabel>serviceIds</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -687,6 +936,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- LivingWhites Device -->
@@ -696,53 +950,118 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-	
-			<Field id="deviceAction" type="menu" defaultValue="False" hidden="false"
-				tooltip="use this to replace eg a broken hue light. (a: normal edit ) (b: link this device to a new Hue device) (c: copy other indigo device to this device, incl link to its hue device, after save: delete the other device.)"> 
-				<Label>Edit / Replace a device </Label>
+
+			
+			<Field id="defaultBrightness" type="menu" defaultValue="50">
+				<Label>Default Brightness(%):</Label>
 				<List>
-					<Option value="EditExisting">edit existing device, normal option</Option>
-					<Option value="Replace_with_new_Hue_device">replace / add device, select new Hue device</Option>
-					<Option value="Replace_with_other_Indigo_device">replace device, copy other Indigo device to this device</Option>
+					<Option value="1">1</Option>
+					<Option value="2">2</Option>
+					<Option value="3">3</Option>
+					<Option value="4">4</Option>
+					<Option value="5">5</Option>
+					<Option value="7">7</Option>
+					<Option value="10">10</Option>
+					<Option value="15">15</Option>
+					<Option value="20">20</Option>
+					<Option value="25">25</Option>
+					<Option value="30">30</Option>
+					<Option value="35">35</Option>
+					<Option value="40">40</Option>
+					<Option value="45">45</Option>
+					<Option value="50">50</Option>
+					<Option value="55">55</Option>
+					<Option value="60">60</Option>
+					<Option value="65">65</Option>
+					<Option value="70">70</Option>
+					<Option value="75">75</Option>
+					<Option value="80">80</Option>
+					<Option value="85">85</Option>
+					<Option value="90">90</Option>
+					<Option value="95">95</Option>
+					<Option value="100">100</Option>
 				</List>
 			</Field>
-
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
-
-			<Field id="bulbId" type="menu"
-				tooltip="Select a light to control. This menu shows basic dimming lights that don't support any color changes.">
-				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator" filter="Dimmable light" dynamicReload="true" />
-			</Field>
-			<Field id="defaultBrightness" type="textfield"
-				tooltip="Optionally set a default brightness level used whenever an On command is sent to this light. If no value is entered, when an On command is sent, the light will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
-				<Label>Default Brightness:</Label>
-			</Field>
+			
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an ON command is sent to this device.  If no value is entered, when an ON command is sent, the bulb will return to the brightness it was at before being turned off.
-</Label>
+Optionally set a default brightness level used whenever an ON command is sent to this light.  
+If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>			
 			</Field>
-			<Field id="rate" type="textfield"
-				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the light should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
-				<Label>Ramp Rate:</Label>
+
+			<Field id="rate" type="menu" defaultValue="0.5">
+				<Label>Ramp Rate(secs):</Label>
+				<List>
+					<Option value="0.1">0.1</Option>
+					<Option value="0.2">0.2</Option>
+					<Option value="0.3">0.3</Option>
+					<Option value="0.4">0.4</Option>
+					<Option value="0.5">0.5</Option>
+					<Option value="0.6">0.6</Option>
+					<Option value="0.7">0.7</Option>
+					<Option value="0.8">0.8</Option>
+					<Option value="0.9">0.9</Option>
+					<Option value="1">1</Option>
+					<Option value="1.1">1.1</Option>
+					<Option value="1.2">1.2</Option>
+					<Option value="1.3">1.3</Option>
+					<Option value="1.4">1.4</Option>
+					<Option value="1.5">1.5</Option>
+					<Option value="1.6">1.6</Option>
+					<Option value="1.7">1.7</Option>
+					<Option value="1.8">1.8</Option>
+					<Option value="1.9">1.9</Option>
+					<Option value="2.0">2</Option>
+					<Option value="2.1">2.1</Option>
+					<Option value="2.2">2.2</Option>
+					<Option value="2.3">2.3</Option>
+					<Option value="2.4">2.4</Option>
+					<Option value="2.5">2.5</Option>
+					<Option value="2.6">2.6</Option>
+					<Option value="2.7">2.7</Option>
+					<Option value="2.8">2.8</Option>
+					<Option value="2.9">2.9</Option>
+					<Option value="3.0">3</Option>
+					<Option value="3.1">3.1</Option>
+					<Option value="3.2">3.2</Option>
+					<Option value="3.3">3.3</Option>
+					<Option value="3.4">3.4</Option>
+					<Option value="3.5">3.5</Option>
+					<Option value="3.6">3.6</Option>
+					<Option value="3.7">3.7</Option>
+					<Option value="3.8">3.8</Option>
+					<Option value="3.9">3.9</Option>
+					<Option value="4.0">4</Option>
+					<Option value="4.5">4.5</Option>
+					<Option value="5.0">5</Option>
+					<Option value="6.0">6</Option>
+					<Option value="7.0">7</Option>
+					<Option value="8.0">8</Option>
+					<Option value="9.0">9</Option>
+					<Option value="10.0">10</Option>
+					<Option value="15.0">15</Option>
+					<Option value="20.0">20</Option>
+					<Option value="30.0">30</Option>
+					<Option value="40.0">40</Option>
+					<Option value="50.0">50</Option>
+					<Option value="60.0">60</Option>
+					<Option value="80.0">80</Option>
+					<Option value="100.0">100</Option>
+					<Option value="200.0">200</Option>
+					<Option value="300.0">300</Option>
+					<Option value="400.0">400</Option>
+					<Option value="540.0">540</Option>
+				</List>
 			</Field>
+			
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
+
+
 			<Field id="noOnRampRate" type="checkbox" defaultValue="false"
 				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times.">
 				<Label>Disable ON Ramp Rate</Label>
@@ -809,11 +1128,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="serviceIds">
-				<ValueType>String</ValueType>
-				<TriggerLabel>serviceIds</TriggerLabel>
-				<ControlPageLabel>serviceIds</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -824,6 +1138,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- On/Off Only Device -->
@@ -832,34 +1151,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
-			</Field>
-	
-			<Field id="deviceAction" type="menu" defaultValue="False" hidden="false"
-				tooltip="use this to replace eg a broken hue light. (a: normal edit ) (b: link this device to a new Hue device) (c: copy other indigo device to this device, incl link to its hue device, after save: delete the other device.)"> 
-				<Label>Edit / Replace a device </Label>
-				<List>
-					<Option value="EditExisting">edit existing device, normal option</Option>
-					<Option value="Replace_with_new_Hue_device">replace / add device, select new Hue device</Option>
-					<Option value="Replace_with_other_Indigo_device">replace device, copy other Indigo device to this device</Option>
-				</List>
-			</Field>
-
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
-
-			<Field id="bulbId" type="menu"
-				tooltip="Select an on/off device to control. This menu shows basic on/off devices that don't support any color changes or dimming capabilities.">
-				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator" filter="On/Off" dynamicReload="true"/>
 			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
@@ -910,11 +1201,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="serviceIds">
-				<ValueType>String</ValueType>
-				<TriggerLabel>serviceIds</TriggerLabel>
-				<ControlPageLabel>serviceIds</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -925,6 +1211,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- Hue Group Device -->
@@ -934,59 +1225,117 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-			
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
 
-			<Field id="groupId" type="menu"
-				tooltip="Select a Hue Group to control. This menu contains all the groups saved in the Hue hub. Groups can contain any combination of Hue supported lights.">
-				<Label>Hue Group:</Label>
-				<List class="self" method="groupListGenerator" filter ="" dynamicReload="true"/>
-				<CallbackMethod>groupsListItemSelected</CallbackMethod>
+			
+			<Field id="defaultBrightness" type="menu" defaultValue="50">
+				<Label>Default Brightness(%):</Label>
+				<List>
+					<Option value="1">1</Option>
+					<Option value="2">2</Option>
+					<Option value="3">3</Option>
+					<Option value="4">4</Option>
+					<Option value="5">5</Option>
+					<Option value="7">7</Option>
+					<Option value="10">10</Option>
+					<Option value="15">15</Option>
+					<Option value="20">20</Option>
+					<Option value="25">25</Option>
+					<Option value="30">30</Option>
+					<Option value="35">35</Option>
+					<Option value="40">40</Option>
+					<Option value="45">45</Option>
+					<Option value="50">50</Option>
+					<Option value="55">55</Option>
+					<Option value="60">60</Option>
+					<Option value="65">65</Option>
+					<Option value="70">70</Option>
+					<Option value="75">75</Option>
+					<Option value="80">80</Option>
+					<Option value="85">85</Option>
+					<Option value="90">90</Option>
+					<Option value="95">95</Option>
+					<Option value="100">100</Option>
+				</List>
 			</Field>
-			<Field id="groupLights" type="list" defaultValue="" readonly="true" enabledBindingId="groupLightsDisabler"
-				tooltip="This list shows which lights are affected by the Hue Group selected above. These can only be edited using a 3rd party app such as the Hue app for iOS or Android.">
-				<Label>Lights Affected:</Label>
-				<List class="self" method="groupLightsListGenerator" dynamicReload="true"></List>
-			</Field>
-			<Field id="groupLightsLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>This list shows which lights are affected by the Hue Group selectioned above. These can only be edited using a 3rd party app such as the Hue app for iOS or Android.
-</Label>
-			</Field>
-			<Field id="groupLightsDisabler" type="checkbox" defaultValue="false" hidden="true">
-				<!-- This hidden, static value field is necessary in order to disable the Lights list
-				 field above because using the "readonly" property appears to have no effect with
-				 Indigo 7.0.2 and earlier. -->
-				<Label></Label>
-			</Field>
-			<Field id="defaultBrightness" type="textfield"
-				tooltip="Optionally set a default brightness level used whenever an On command is sent to this group. If no value is entered, when an On command is sent, the group will return to the brightness it was at before being turned off. Range is 1 to 100 percent.">
-				<Label>Default Brightness:</Label>
-			</Field>
+			
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an ON command is sent to this group.  If no value is entered, when an ON command is sent, the group will return to the brightness it was last set to.
-</Label>
+Optionally set a default brightness level used whenever an ON command is sent to this light.  
+If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>			
 			</Field>
-			<Field id="rate" type="textfield"
-				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the group should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
-				<Label>Ramp Rate:</Label>
+
+			<Field id="rate" type="menu" defaultValue="0.5">
+				<Label>Ramp Rate(secs):</Label>
+				<List>
+					<Option value="0.1">0.1</Option>
+					<Option value="0.2">0.2</Option>
+					<Option value="0.3">0.3</Option>
+					<Option value="0.4">0.4</Option>
+					<Option value="0.5">0.5</Option>
+					<Option value="0.6">0.6</Option>
+					<Option value="0.7">0.7</Option>
+					<Option value="0.8">0.8</Option>
+					<Option value="0.9">0.9</Option>
+					<Option value="1">1</Option>
+					<Option value="1.1">1.1</Option>
+					<Option value="1.2">1.2</Option>
+					<Option value="1.3">1.3</Option>
+					<Option value="1.4">1.4</Option>
+					<Option value="1.5">1.5</Option>
+					<Option value="1.6">1.6</Option>
+					<Option value="1.7">1.7</Option>
+					<Option value="1.8">1.8</Option>
+					<Option value="1.9">1.9</Option>
+					<Option value="2.0">2</Option>
+					<Option value="2.1">2.1</Option>
+					<Option value="2.2">2.2</Option>
+					<Option value="2.3">2.3</Option>
+					<Option value="2.4">2.4</Option>
+					<Option value="2.5">2.5</Option>
+					<Option value="2.6">2.6</Option>
+					<Option value="2.7">2.7</Option>
+					<Option value="2.8">2.8</Option>
+					<Option value="2.9">2.9</Option>
+					<Option value="3.0">3</Option>
+					<Option value="3.1">3.1</Option>
+					<Option value="3.2">3.2</Option>
+					<Option value="3.3">3.3</Option>
+					<Option value="3.4">3.4</Option>
+					<Option value="3.5">3.5</Option>
+					<Option value="3.6">3.6</Option>
+					<Option value="3.7">3.7</Option>
+					<Option value="3.8">3.8</Option>
+					<Option value="3.9">3.9</Option>
+					<Option value="4.0">4</Option>
+					<Option value="4.5">4.5</Option>
+					<Option value="5.0">5</Option>
+					<Option value="6.0">6</Option>
+					<Option value="7.0">7</Option>
+					<Option value="8.0">8</Option>
+					<Option value="9.0">9</Option>
+					<Option value="10.0">10</Option>
+					<Option value="15.0">15</Option>
+					<Option value="20.0">20</Option>
+					<Option value="30.0">30</Option>
+					<Option value="40.0">40</Option>
+					<Option value="50.0">50</Option>
+					<Option value="60.0">60</Option>
+					<Option value="80.0">80</Option>
+					<Option value="100.0">100</Option>
+					<Option value="200.0">200</Option>
+					<Option value="300.0">300</Option>
+					<Option value="400.0">400</Option>
+					<Option value="540.0">540</Option>
+				</List>
 			</Field>
+			
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
+
 			<Field id="noOnRampRate" type="checkbox" defaultValue="false"
 				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times.">
 				<Label>Disable ON Ramp Rate</Label>
@@ -1099,11 +1448,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="serviceIds">
-				<ValueType>String</ValueType>
-				<TriggerLabel>serviceIds</TriggerLabel>
-				<ControlPageLabel>serviceIds</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -1113,6 +1457,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1124,24 +1473,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
-			</Field>
-			
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
-
-			<Field id="sensorId" type="menu"
-				tooltip="Select a Hue Motion Sensor.">
-				<Label>Hue Sensor:</Label>
-				<List class="self" method="sensorListGenerator" filter="hueMotionSensor"  dynamicReload="true"/>
 			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
@@ -1162,10 +1493,10 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>lastBatteryReplaced</TriggerLabel>
 				<ControlPageLabel>lastBatteryReplaced</ControlPageLabel>
 			</State>
-			<State id="open">
-				<ValueType>Boolean</ValueType>
-				<TriggerLabel>open</TriggerLabel>
-				<ControlPageLabel>open</ControlPageLabel>
+			<State id="contact">
+				<ValueType>string</ValueType>
+				<TriggerLabel>contact</TriggerLabel>
+				<ControlPageLabel>contact</ControlPageLabel>
 			</State>
 			<State id="tamper">
 				<ValueType>Boolean</ValueType>
@@ -1176,6 +1507,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>Boolean</ValueType>
 				<TriggerLabel>Online</TriggerLabel>
 				<ControlPageLabel>Online</ControlPageLabel>
+			</State>
+			<State id="enabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>enabled</TriggerLabel>
+				<ControlPageLabel>enabled</ControlPageLabel>
 			</State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
@@ -1197,16 +1533,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="type">
-				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
-			</State>
-			<State id="serviceIds">
-				<ValueType>String</ValueType>
-				<TriggerLabel>serviceIds</TriggerLabel>
-				<ControlPageLabel>serviceIds</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -1216,6 +1542,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
 			</State>
 			<State id="eventNumber">
 				<ValueType>Number</ValueType>
@@ -1236,23 +1567,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
 			
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
-
-			<Field id="sensorId" type="menu"
-				tooltip="Select a Hue Motion Sensor.">
-				<Label>Hue Sensor:</Label>
-				<List class="self" method="sensorListGenerator" filter="hueMotionSensor"  dynamicReload="true"/>
-			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
@@ -1332,11 +1646,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="serviceIds">
-				<ValueType>String</ValueType>
-				<TriggerLabel>serviceIds</TriggerLabel>
-				<ControlPageLabel>serviceIds</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -1346,6 +1655,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
 			</State>
 			<State id="eventNumber">
 				<ValueType>Number</ValueType>
@@ -1361,24 +1675,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
-			</Field>
-			
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
-
-			<Field id="sensorId" type="menu"
-				tooltip="Select a Hue Temerature Sensor.">
-				<Label>Hue Sensor:</Label>
-				<List class="self" method="sensorListGenerator" filter="hueMotionTemperatureSensor"  dynamicReload="true"/>
 			</Field>
 			<Field id="temperatureScale" type="menu" defaultValue="c"
 				tooltip="Select a temperature scale to display in Indigo.">
@@ -1476,11 +1772,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="serviceIds">
-				<ValueType>String</ValueType>
-				<TriggerLabel>serviceIds</TriggerLabel>
-				<ControlPageLabel>serviceIds</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -1490,6 +1781,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
+			</State>
+			<State id="eventNumber">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>eventNumber</TriggerLabel>
+				<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1504,23 +1805,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			
 			<Field id="AllowOnStateChange" 		type="checkbox" defaultValue="false" hidden="false" ><Label>Allow OnStateChange:</Label></Field>
 			<Field id="SupportsOnState" 		type="checkbox" defaultValue="true"  hidden="false" ><Label>Supports OnState:</Label></Field>
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
-
-			<Field id="sensorId" type="menu"
-				tooltip="Select a Hue light Sensor.">
-				<Label>Hue Sensor:</Label>
-				<List class="self" method="sensorListGenerator" filter="hueMotionLightSensor"  dynamicReload="true"/>
-			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
@@ -1560,6 +1844,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>LED Enabled</TriggerLabel>
 				<ControlPageLabel>LED Enabled</ControlPageLabel>
 			</State>
+			<State id="lastUpdated">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Updated on Hub</TriggerLabel>
+				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
+			</State>
 			<State id="dark">
 				<ValueType>Boolean</ValueType>
 				<TriggerLabel>Low Light</TriggerLabel>
@@ -1569,11 +1858,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>Boolean</ValueType>
 				<TriggerLabel>Daylight</TriggerLabel>
 				<ControlPageLabel>Daylight</ControlPageLabel>
-			</State>
-			<State id="lastUpdated">
-				<ValueType>String</ValueType>
-				<TriggerLabel>Last Updated on Hub</TriggerLabel>
-				<ControlPageLabel>Last Updated on Hub</ControlPageLabel>
 			</State>
 			<State id="luminance">
 				<ValueType>Number</ValueType>
@@ -1620,11 +1904,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="serviceIds">
-				<ValueType>String</ValueType>
-				<TriggerLabel>serviceIds</TriggerLabel>
-				<ControlPageLabel>serviceIds</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -1635,6 +1914,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
+			</State>
+			<State id="eventNumber">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>eventNumber</TriggerLabel>
+				<ControlPageLabel>eventNumber</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     
@@ -1644,24 +1933,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
-			</Field>
-			
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
-
-			<Field id="sensorId" type="menu"
-				tooltip="Select a Hue Tap Switch.">
-				<Label>Hue Tap Switch:</Label>
-				<List class="self" method="sensorListGenerator" filter="hueTapSwitch"  dynamicReload="true"/>
 			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
@@ -1742,11 +2013,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="serviceIds">
-				<ValueType>String</ValueType>
-				<TriggerLabel>serviceIds</TriggerLabel>
-				<ControlPageLabel>serviceIds</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -1756,6 +2022,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
+			</State>
+			<State id="eventNumber">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>eventNumber</TriggerLabel>
+				<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1768,23 +2044,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
 			
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
-
-			<Field id="sensorId" type="menu"
-				tooltip="Select a Hue Dimmer Switch.">
-				<Label>Hue Dimmer Switch:</Label>
-				<List class="self" method="sensorListGenerator" filter="hueDimmerSwitch"  dynamicReload="true"/>
-			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
@@ -1929,11 +2188,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="serviceIds">
-				<ValueType>String</ValueType>
-				<TriggerLabel>serviceIds</TriggerLabel>
-				<ControlPageLabel>serviceIds</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -1943,6 +2197,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
+			</State>
+			<State id="eventNumber">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>eventNumber</TriggerLabel>
+				<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1955,24 +2219,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
 			
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
-
-			<Field id="sensorId" type="menu"
-				tooltip="Select a Hue Smart Button.">
-				<Label>Hue Smart Button:</Label>
-				<List class="self" method="sensorListGenerator" filter="hueSmartButton"  dynamicReload="true"/>
-			</Field>
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+		<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<Field id="serialNumber" type="textfield"
@@ -2056,11 +2303,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="serviceIds">
-				<ValueType>String</ValueType>
-				<TriggerLabel>serviceIds</TriggerLabel>
-				<ControlPageLabel>serviceIds</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -2070,6 +2312,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
+			</State>
+			<State id="eventNumber">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>eventNumber</TriggerLabel>
+				<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -2081,24 +2333,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-			
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
 
-			<Field id="sensorId" type="menu"
-				tooltip="Select a Hue Wall Switch Module.">
-				<Label>Hue Wall Switch Module:</Label>
-				<List class="self" method="sensorListGenerator" filter="hueWallSwitchModule"  dynamicReload="true"/>
-			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
@@ -2203,11 +2438,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="serviceIds">
-				<ValueType>String</ValueType>
-				<TriggerLabel>serviceIds</TriggerLabel>
-				<ControlPageLabel>serviceIds</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -2217,6 +2447,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
+			</State>
+			<State id="eventNumber">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>eventNumber</TriggerLabel>
+				<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -2229,23 +2469,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
 				
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
-
-			<Field id="sensorId" type="menu"
-				tooltip="Select a Run Less Wire or Niko Switch.">
-				<Label>Run Less Wire or Niko Switch:</Label>
-				<List class="self" method="sensorListGenerator" filter="runLessWireSwitch"  dynamicReload="true"/>
-			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
@@ -2437,11 +2660,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="serviceIds">
-				<ValueType>String</ValueType>
-				<TriggerLabel>serviceIds</TriggerLabel>
-				<ControlPageLabel>serviceIds</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -2452,6 +2670,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
+			</State>
+			<State id="eventNumber">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>eventNumber</TriggerLabel>
+				<ControlPageLabel>eventNumber</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 
@@ -2461,24 +2689,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
-			</Field>
-				
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
-
-			<Field id="sensorId" type="menu"
-				tooltip="Select a otary Wall Switch .">
-				<Label>otary Wall Switch :</Label>
-				<List class="self" method="sensorListGenerator" filter="hueRotaryWallSwitches"  dynamicReload="true"/>
 			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
@@ -2626,11 +2836,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="serviceIds">
-				<ValueType>String</ValueType>
-				<TriggerLabel>serviceIds</TriggerLabel>
-				<ControlPageLabel>serviceIds</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -2640,6 +2845,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
+			</State>
+			<State id="eventNumber">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>eventNumber</TriggerLabel>
+				<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -2651,24 +2866,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
-			</Field>
-				
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
-
-			<Field id="sensorId" type="menu"
-				tooltip="Select a Rotary Wall Switch rotate part">
-				<Label>Rotary Wall Switch rotate part:</Label>
-				<List class="self" method="sensorListGenerator" filter="hueRotaryWallRing"  dynamicReload="true"/>
 			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
@@ -2741,11 +2938,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="serviceIds">
-				<ValueType>String</ValueType>
-				<TriggerLabel>serviceIds</TriggerLabel>
-				<ControlPageLabel>serviceIds</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -2756,10 +2948,18 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
+			</State>
+			<State id="eventNumber">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>eventNumber</TriggerLabel>
+				<ControlPageLabel>eventNumber</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
-
-
 
 
 
@@ -2804,7 +3004,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</Field>
 			<Field id="rate" type="textfield"
 				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the Hue Device selected above should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
-				<Label>Ramp Rate:</Label>
+				<Label>Ramp Rate(secs):</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>(0 - 540 seconds)
@@ -2842,24 +3042,6 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
-			</Field>
-			
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
-
-			<Field id="sensorId" type="menu"
-				tooltip="Select a Hue Motion Sensor.">
-				<Label>Hue Sensor:</Label>
-				<List class="self" method="sensorListGenerator" filter="hueMotionArea"  dynamicReload="true"/>
 			</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
@@ -2906,11 +3088,6 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="eventNumber">
-				<ValueType>Number</ValueType>
-				<TriggerLabel>eventNumber</TriggerLabel>
-				<ControlPageLabel>eventNumber</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -2921,7 +3098,16 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
-
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
+			</State>
+			<State id="eventNumber">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>eventNumber</TriggerLabel>
+				<ControlPageLabel>eventNumber</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 
@@ -2932,18 +3118,6 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-			
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
-			</Field>
-			<Field id="confirmGWNumber" type="button">
-				<Label>click to</Label>
-				<Title>select GW Number</Title>
-				<CallbackMethod>confirmGWNumber</CallbackMethod>
-			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
 			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
 				<Label>log events and changes to indigolog</Label>
 			</Field>
@@ -2969,25 +3143,60 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="eventNumber">
-				<ValueType>Number</ValueType>
-				<TriggerLabel>eventNumber</TriggerLabel>
-				<ControlPageLabel>eventNumber</ControlPageLabel>
-			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
 				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="dark">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Low Light</TriggerLabel>
+				<ControlPageLabel>Low Light</ControlPageLabel>
+			</State>
+			<State id="daylight">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Daylight</TriggerLabel>
+				<ControlPageLabel>Daylight</ControlPageLabel>
+			</State>
+			<State id="luminance">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Luminance (lux)</TriggerLabel>
+				<ControlPageLabel>Luminance (lux)</ControlPageLabel>
+			</State>
+			<State id="luminanceRaw">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Luminance (raw value)</TriggerLabel>
+				<ControlPageLabel>Luminance (raw value)</ControlPageLabel>
+			</State>
+			<State id="darkThresLongPress">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Dark Threshold (lux)</TriggerLabel>
+				<ControlPageLabel>Dark Threshold (lux)</ControlPageLabel>
+			</State>
+			<State id="thresholdOffset">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Dark Threshold Offset (lux)</TriggerLabel>
+				<ControlPageLabel>Dark Threshold Offset (lxu)</ControlPageLabel>
 			</State>
 			<State id="id_v1">
 				<ValueType>String</ValueType>
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
+			</State>
 			<State id="type">
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="eventNumber">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>eventNumber</TriggerLabel>
+				<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
 
 		</States>

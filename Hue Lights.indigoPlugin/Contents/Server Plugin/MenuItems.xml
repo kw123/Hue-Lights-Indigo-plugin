@@ -68,8 +68,42 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 		</ConfigUI>
 	</MenuItem>
 	<MenuItem id="sep2" />
+	
+		
+	<MenuItem id="activateScene">
+		<Name>Activate Hue Scene</Name>
+		<ConfigUI>
+			<Field id="instructions1" type="label" fontSize="small">
+				<Label>Hue Scenes are stored on the Hue Bridge and can be activated (for pro bridge only).</Label>
+			</Field>
+			
+			<Field id="hubNumber" type="menu">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="gwListGenerator" filter="active" dynamicReload="false"> </List>
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select Bridge Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
+			</Field>
+			
+			<Field id="sceneId" type="menu">
+				<Label>select Scene:</Label>
+				<List class="self" method="sceneListGenerator" dynamicReload="false"> </List>
+			</Field>
+			<Field id="doCreate" type="button">
+				<Label>Click to</Label>
+				<Title>execute action</Title>
+				<CallbackMethod>activateScene</CallbackMethod>
+			</Field>
+
+		</ConfigUI>
+	</MenuItem>
+
+
+	
 	<MenuItem id="recallScene">
-		<Name>Recall Hue Scene...</Name>
+		<Name>Recall Hue Scene... deprecated</Name>
 		<CallbackMethod>recallScene</CallbackMethod>
 		<ConfigUI>
 			<Field id="instructions1" type="label" fontSize="small">
@@ -166,7 +200,7 @@ to list new devices found, then use menu "Add New Hue Devices in Indigo" to add 
 	</MenuItem>
 
 	<MenuItem id="createNewLightDevicesFromGWDict">
-		<Name>Add New Devices on Hue Bridge to Indigo...</Name>
+		<Name>Add New Devices from Hue Bridge to Indigo...</Name>
 		<ConfigUI>
 			<Field id="infoLabel" type="label" fontSize="small" fontColor="darkgray">
 				<Label>Use this to add ALL hue lights/sensors/groups that do not have a corresponding indigo device
@@ -180,13 +214,10 @@ eg Hue_light_0_30_Stairs</Label>
 				tooltip="If left empty it will be:  Hue New Devices ">
 				<Label>Folder Name where new devices get created:</Label>
 			</Field>
-			<Field id="createLights"  type="checkbox" default ="true"> <Label>create Light devices:</Label> 	</Field>
-			<Field id="createSensors" type="checkbox" default ="true"> <Label>create Sensor devices:</Label> 	</Field>
-			<Field id="createGroups"  type="checkbox" default ="true"> <Label>create Group devices:</Label> 	</Field>
 			<Field id="doCreate" type="button">
 				<Label>Click to</Label>
 				<Title>Create folder and devices</Title>
-				<CallbackMethod>autocreateNewDevices</CallbackMethod>
+				<CallbackMethod>forceNewDevices</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
@@ -634,6 +665,7 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 					<Option value="sensorsDict">sensors all info</Option>
 					<Option value="groups">groups</Option>
 					<Option value="scenes">scenes</Option>
+					<Option value="v2scenes">scenes api v2</Option>
 					<Option value="rules">rules</Option>
 					<Option value="schedules">schedules</Option>
 					<Option value="resourcelinks">resource links</Option>
@@ -651,6 +683,9 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 					<Option value="NoHudevice">Indigo devices w no Hue device</Option>
 					<Option value="NoIndigoDevice">Hue devices w no Indigo device</Option>
 					<Option value="pluginPrefs">plugin preferences</Option>
+					<Option value="bytesSend">bytes send /received to/from bridge</Option>
+					<Option value="bytesSendWithReset">reset bytes send /received to/from bridge</Option>
+					<Option value="indigoIdToOwnerId">print indigo devices and their mapped resource ids (development)</Option>
 
 				</List>
 			</Field>
@@ -706,7 +741,7 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 
 			<Field id="doPrint" type="button"
 					visibleBindingId="whatToPrint" 
-					visibleBindingValue="lights,lightsDict,mappingOfNames,sensors,sensorsDict,scenes,groups,rules,resourcelinks,schedules,shortBridgeInfo,config,configJson,configDict,specificLights,specificSensors,specificGroups,specificScenes,specificRules,specificSchedules,specificResourcelinks,NoHudevice,NoIndigoDevice,pluginPrefs" >
+					visibleBindingValue="indigoIdToOwnerId,bytesSend,bytesSendWithReset,lights,lightsDict,mappingOfNames,sensors,sensorsDict,scenes,v2scenes,groups,rules,resourcelinks,schedules,shortBridgeInfo,config,configJson,configDict,specificLights,specificSensors,specificGroups,specificScenes,specificRules,specificSchedules,specificResourcelinks,NoHudevice,NoIndigoDevice,pluginPrefs" >
 				<Label>Click to</Label>
 				<Title>Print</Title>
 				<CallbackMethod>printHueData</CallbackMethod>

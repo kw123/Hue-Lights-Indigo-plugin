@@ -58,7 +58,7 @@ Make sure you set that up correctly.
 		<Option value="add">add or re-pair a new bridge</Option>
 		<Option value="modIP">change the ip number</Option>
 		<Option value="delete">delete an existing bridge</Option>
-		<Option value="keep">don't change any.thing</Option>
+		<Option value="keep">don't change anything</Option>
 	  </List>
     </Field>
 
@@ -268,21 +268,30 @@ Shown after successful pairing process</Label>
     </Field>
 
 
-
+<!--  timeScaleFactor is devided by 10 in plugin, as floats do not work well in prefs; eg 5 becomes  0.5 -->
 	<Field id="timeScaleFactor" type="menu" default="10"
-		tooltip="scale factor for light, sensors, groups: set higher if you have cpu load issues, lower if you like faster response time, default: sensors every 1 sec, lights,groups every 5 secs, other = every 3..5 minutes fixed  ">
-		<Label>How often the Hue Bridge should be read:</Label>
+		tooltip="scale factor for light, sensors, groups: set higher if you have cpu load issues, lower if you like faster response time, default: sensors every 1 sec, lights,groups every 5 secs, other = every 3..5 minutes fixed  use the largest for api v2 bridges ">
+		<Label>How often the Hue Bridge should be read (http apv1 calls):</Label>
 	  <List>
-		<Option value="100">lights every 50 secs, sensors 20secs, likley too slow </Option>
-		<Option value="40">lights every 20 secs, sensors 8 secs, likley too slow</Option>
+		<Option value="40">lights every 20 secs, sensors 8 secs, very slow response to changes</Option>
 		<Option value="20">lights every 10 secs, sensors 4 secs</Option>
 		<Option value="15">lights every 7.5 secs, sensors 3 secs</Option>
 		<Option value="10">lights = every 5 secs, sensors 2 secs(default)</Option>
 		<Option value="5">lights = every 2.5 secs, sensors 1 sec</Option>
-		<Option value="2">lights = every 1 secs, sensors every .4 secs</Option>
-		<Option value="1">lights = every 0.5 secs, sensors every .2 secs, likely too fast for several reasons</Option>
+		<Option value="2">lights = every 1 secs, sensors every .5 secs</Option>
 	 </List>
  	</Field>
+
+	<Field id="timeScaleFactorAPIV2" type="menu" default="500"
+			tooltip="these api v1 calls to a hue pro bridge are essentially only needed when new devcies or at start, so set to longest time possible if not problems  ">>
+		<Label>reduction factor apiv1 http calls in apiv2 type bridges:</Label>
+	  <List>
+		<Option value="500">500</Option>
+		<Option value="50">50</Option>
+		<Option value="10">10</Option>
+	 </List>
+ 	</Field>
+
 	<Field id="timeScaleFactorLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 		<Label>In the plugin loop device are polled from the bridge(s) every
 sensors: 2 secs,
@@ -344,7 +353,7 @@ if you have a bridge pro and use api v2 you can use a less frequent value
 
 
 	<Field id="setdebug" type="label" fontColor="orange" >	<Label>Set debug areas ...</Label></Field>
-	<Field    id="showLoginTest"                 type="checkbox"        > <Label> show logging test at startup:</Label>  </Field>
+	<Field    id="showLoginTest"                type="checkbox"        > <Label> show logging test at startup:</Label>  </Field>
 	<Field    id="debugInit"          			type="checkbox"         > <Label> Debug...                   ... (1)  Init:</Label>  </Field>
 	<Field    id="debugLoop"          			type="checkbox"         > <Label>     ... (2)  Loop:</Label>  </Field>
 	<Field    id="debugEditSetup"          		type="checkbox"         > <Label>     ... (3)  Edit indigo devs config etc:</Label>  </Field>
@@ -354,7 +363,9 @@ if you have a bridge pro and use api v2 you can use a less frequent value
 	<Field    id="debugFindHueBridge"           type="checkbox"         > <Label>     ... (7)  find Hue bridges:</Label>  </Field>
 	<Field    id="debugEventApi"        		type="checkbox"         > <Label>     ... (8)  event api v2:</Label>  </Field>
 	<Field    id="debugWriteData"        		type="checkbox"         > <Label>     ... (9)  write data read from bridge to prefs dir:</Label>  </Field>
-	<Field    id="debugSpecial"       			type="checkbox"         > <Label>     ... (10)  special debug (only for development):</Label>  </Field>
+	<Field    id="debugPrintStats"       		type="checkbox"         > <Label>     ... (10)  print network stats once a day:</Label>  </Field>
+	<Field    id="debugSpecial"       			type="checkbox"         > <Label>     ... (11)  special debug (only for development):</Label>  </Field>
+	<Field    id="debugStarting"       			type="checkbox"         > <Label>     ... (12)  special debug ( starting for debug):</Label>  </Field>
 	<Field    id="debugall"            			type="checkbox"         > <Label>     ... (99) all of the above .. everything:</Label>  </Field>
 
 	<Field id="sepbr3" type="separator"/>

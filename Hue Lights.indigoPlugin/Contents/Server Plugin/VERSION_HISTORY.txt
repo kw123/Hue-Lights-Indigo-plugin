@@ -1,3 +1,22 @@
+========================================
+2022.27.70 @ 2026-02-12
+1. added stats for # of packages send / received
+2. cleanup frequency for different http requests. It is now per type and per bridge
+   pro bridge as compared to old bridge type has about 1/5 the packages (incl events) and ~ 1/3 # of bytes.
+   with 2 bridges, one old and one pro  and ~ 80 physical devices the average load on a MAC M1 is  -0.5-6% averaging ~ 2.5% 
+   and response time to devices changes on the pro bridge is < 0.5 seconds
+3. added support for security contact. only works with pro bridge
+   looks like phillips is not adding api v1 support for newer models
+   api v1 does not send any info for that device on old bridge as well as new bridge
+4. removed unnecessary items from device edit.
+   it is now very simple. 
+5. added a print option to show the network traffic used (menu "print hue config .."" at bottom)
+   
+   
+working on reducing api v1 http calls to a minimum. that should reduce traffic by another 30%
+   
+
+
 
 ========================================
 2022.25.70 @ 2026-02-03

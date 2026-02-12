@@ -527,9 +527,38 @@ That should disable any action coming from that device.</Label>
 			</Field>
 		</ConfigUI>
 	</Action>
+	
+	
+	<Action id="activateScene">
+		<Name>Activate Hue Scene</Name>
+		<CallbackMethod>activateSceneAction</CallbackMethod>
+		<ConfigUI>
+			<Field id="instructions1" type="label" fontSize="small">
+				<Label>Hue Scenes are stored on the Hue Bridge and can be activated (for pro bridge only).</Label>
+			</Field>
+			
+			<Field id="hubNumber" type="menu">
+				<Label>Hue Bridge Number:</Label>
+				<List class="self" method="gwListGenerator" filter="active" dynamicReload="false"> </List>
+			</Field>
+			<Field id="confirmGWNumber" type="button">
+				<Label>click to</Label>
+				<Title>select Bridge Number</Title>
+				<CallbackMethod>confirmGWNumber</CallbackMethod>
+			</Field>
+			
+			<Field id="sceneId" type="menu">
+				<Label>select Scene:</Label>
+				<List class="self" method="sceneListGenerator" dynamicReload="false"> </List>
+			</Field>
+
+
+		</ConfigUI>
+	</Action>
+
 
 	<Action id="recallScene">
-		<Name>Recall Hue Scene</Name>
+		<Name>Recall Hue Scene deprecated</Name>
 		<CallbackMethod>recallScene</CallbackMethod>
 		<ConfigUI>
 			<Field id="instructions1" type="label" fontSize="small">
@@ -556,7 +585,7 @@ That should disable any action coming from that device.</Label>
 				<List class="self" method="scenesListGenerator" dynamicReload="true"></List>
 				<CallbackMethod>scenesListItemSelected</CallbackMethod>
 			</Field>
-			<Field id="scemeLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+			<Field id="sceneLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
 				<Label>Some Scenes may have the same name because of how the Hue app creates them on the Bridge. Use the Lights Affected list below to distinguish between Scenes with the same name.
 				</Label>
 			</Field>
@@ -585,7 +614,6 @@ That should disable any action coming from that device.</Label>
 				<Label></Label>
 			</Field>
 			<Field id="description" type="textfield" hidden="true">
-				<Label/>
 			</Field>
 		</ConfigUI>
 	</Action>
