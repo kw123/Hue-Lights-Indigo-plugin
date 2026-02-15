@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <Devices>
     <!-- Extended Color Device -->
-	<Device type="dimmer" id="hueBulb">
+	<Device type="dimmer" id="hueBulb" allowUserCreation="false">
 		<Name>Hue Color/Ambiance and compatible</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -213,11 +213,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="uniqueId">
-				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
-			</State>
 			<State id="modelId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
@@ -243,10 +238,15 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>bridge</TriggerLabel>
 				<ControlPageLabel>bridge</ControlPageLabel>
 			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 	<!-- Ambiance Device -->
-	<Device type="dimmer" id="hueAmbiance">
+	<Device type="dimmer" id="hueAmbiance" allowUserCreation="false">
 		<Name>Ambiance Lights (color temperature)</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -425,11 +425,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="uniqueId">
-				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
-			</State>
 			<State id="modelId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
@@ -455,10 +450,15 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>bridge</TriggerLabel>
 				<ControlPageLabel>bridge</ControlPageLabel>
 			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- LightStrips Device -->
-	<Device type="dimmer" id="hueLightStrips">
+	<Device type="dimmer" id="hueLightStrips" allowUserCreation="false">
 		<Name>Light Strips</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -670,11 +670,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="uniqueId">
-				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
-			</State>
 			<State id="modelId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
@@ -700,10 +695,15 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>bridge</TriggerLabel>
 				<ControlPageLabel>bridge</ControlPageLabel>
 			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- LivingColors Bloom Device -->
-	<Device type="dimmer" id="hueLivingColorsBloom">
+	<Device type="dimmer" id="hueLivingColorsBloom" allowUserCreation="false">
 		<Name>Color Lights (Aura, Bloom, StoryLight, LivingColors, etc.)</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -911,11 +911,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="uniqueId">
-				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
-			</State>
 			<State id="modelId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
@@ -941,10 +936,15 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>bridge</TriggerLabel>
 				<ControlPageLabel>bridge</ControlPageLabel>
 			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- LivingWhites Device -->
-	<Device type="dimmer" id="hueLivingWhites">
+	<Device type="dimmer" id="hueLivingWhites" allowUserCreation="false">
 		<Name>LivingWhites (Hue Lux, generic dimmable device, etc.)</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -1113,11 +1113,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="uniqueId">
-				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
-			</State>
 			<State id="modelId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
@@ -1143,10 +1138,15 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>bridge</TriggerLabel>
 				<ControlPageLabel>bridge</ControlPageLabel>
 			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- On/Off Only Device -->
-	<Device type="relay" id="hueOnOffDevice">
+	<Device type="relay" id="hueOnOffDevice" allowUserCreation="false">
 		<Name>On/Off Device (Hue Smart Plug, etc.)</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -1186,11 +1186,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="uniqueId">
-				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
-			</State>
 			<State id="modelId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
@@ -1216,10 +1211,15 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>bridge</TriggerLabel>
 				<ControlPageLabel>bridge</ControlPageLabel>
 			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     <!-- Hue Group Device -->
-	<Device type="dimmer" id="hueGroup">
+	<Device type="dimmer" id="hueGroup" allowUserCreation="false">
 		<Name>Hue Group</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -1463,12 +1463,17 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>bridge</TriggerLabel>
 				<ControlPageLabel>bridge</ControlPageLabel>
 			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 	
 	<!-- SENSOR DEVICES -->
 	<!-- Hue Secure Contact -->
-	<Device type="sensor" id="hueContactSensor">
+	<Device type="sensor" id="hueContactSensor" allowUserCreation="false">
 		<Name>Hue Contact Sensor </Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -1553,6 +1558,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>eventNumber</TriggerLabel>
 				<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 
@@ -1560,7 +1570,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<!-- SENSOR DEVICES -->
 	<!-- Hue Motion Sensor (multi-sensor) -->
 	<!--   MOTION   -->
-	<Device type="sensor" id="hueMotionSensor">
+	<Device type="sensor" id="hueMotionSensor" allowUserCreation="false">
 		<Name>Hue Motion Sensor (Motion)</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -1666,11 +1676,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>eventNumber</TriggerLabel>
 				<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 	
 	<!--   TEMPERATURE   -->
-	<Device type="sensor" id="hueMotionTemperatureSensor">
+	<Device type="sensor" id="hueMotionTemperatureSensor" allowUserCreation="false">
 		<Name>Hue Temperature Sensor</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -1757,11 +1772,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="uniqueId">
-				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
-			</State>
 			<State id="modelId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
@@ -1792,11 +1802,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>eventNumber</TriggerLabel>
 				<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 	
 	<!--   LUMINANCE   -->
-	<Device type="sensor" id="hueMotionLightSensor">
+	<Device type="sensor" id="hueMotionLightSensor" allowUserCreation="false">
 		<Name>Hue Light Sensor</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -1889,11 +1904,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="uniqueId">
-				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
-			</State>
 			<State id="modelId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
@@ -1924,11 +1934,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>eventNumber</TriggerLabel>
 				<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
     
 	<!-- Hue Tap Switch -->
-	<Device type="sensor" id="hueTapSwitch">
+	<Device type="sensor" id="hueTapSwitch" allowUserCreation="false">
 		<Name>Hue Tap Switch</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -1998,11 +2013,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="uniqueId">
-				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
-			</State>
 			<State id="modelId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
@@ -2033,11 +2043,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>eventNumber</TriggerLabel>
 				<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 
 	<!-- Hue Dimmer Switch -->
-	<Device type="sensor" id="hueDimmerSwitch">
+	<Device type="sensor" id="hueDimmerSwitch" allowUserCreation="false">
 		<Name>Hue Dimmer Switch</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -2173,11 +2188,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="uniqueId">
-				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
-			</State>
 			<State id="modelId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
@@ -2208,11 +2218,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>eventNumber</TriggerLabel>
 				<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 
 	<!-- Hue Smart Button -->
-	<Device type="sensor" id="hueSmartButton">
+	<Device type="sensor" id="hueSmartButton" allowUserCreation="false">
 		<Name>Hue Smart Button</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -2288,11 +2303,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="uniqueId">
-				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
-			</State>
 			<State id="modelId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
@@ -2323,11 +2333,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>eventNumber</TriggerLabel>
 				<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 
 	<!-- Hue Wall Switch Module -->
-	<Device type="sensor" id="hueWallSwitchModule">
+	<Device type="sensor" id="hueWallSwitchModule" allowUserCreation="false">
 		<Name>Hue Wall Switch Module</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -2423,11 +2438,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="uniqueId">
-				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
-			</State>
 			<State id="modelId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
@@ -2458,11 +2468,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>eventNumber</TriggerLabel>
 				<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 
 	<!-- Run Less Wire or Niko Switch -->
-	<Device type="sensor" id="runLessWireSwitch">
+	<Device type="sensor" id="runLessWireSwitch" allowUserCreation="false">
 		<Name>Run Less Wire, Niko Switch, FriendsOfHue</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -2645,11 +2660,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="uniqueId">
-				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
-			</State>
 			<State id="modelId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
@@ -2680,11 +2690,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>eventNumber</TriggerLabel>
 				<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 
 	<!-- Run Less Wire or Niko Switch -->
-	<Device type="sensor" id="hueRotaryWallSwitches">
+	<Device type="sensor" id="hueRotaryWallSwitches" allowUserCreation="false">
 		<Name>Rotary Wall Switch Switches part</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -2821,11 +2836,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
-			<State id="uniqueId">
-				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
-			</State>
 			<State id="modelId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
@@ -2856,12 +2866,17 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>eventNumber</TriggerLabel>
 				<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 
 
 	<!-- hue Rotary Wall Switch-->
-	<Device type="sensor" id="hueRotaryWallRing">
+	<Device type="sensor" id="hueRotaryWallRing" allowUserCreation="false">
 		<Name>Rotary Wall Switch rotate part</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -2905,8 +2920,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
             <State id="rotaryEventID">
                 <ValueType>String</ValueType>
-                <TriggerLabel>Last Rotary Event Type</TriggerLabel>
-                <ControlPageLabel>Last Rotary Event Type</ControlPageLabel>
+                <TriggerLabel>Last Rotary Event ID</TriggerLabel>
+                <ControlPageLabel>Last Rotary Event ID</ControlPageLabel>
             </State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
@@ -2919,11 +2934,6 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
 			<State id="manufacturerName">
-				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
-			</State>
-			<State id="uniqueId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
@@ -2957,6 +2967,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>Number</ValueType>
 				<TriggerLabel>eventNumber</TriggerLabel>
 				<ControlPageLabel>eventNumber</ControlPageLabel>
+			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -3031,13 +3046,19 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
 			</State>
+			<State id="id_v1">
+				<ValueType>String</ValueType>
+				<TriggerLabel>id_v1</TriggerLabel>
+				<ControlPageLabel>id_v1</ControlPageLabel>
+			</State>
+
 		</States>
 	</Device>
 
 
 
 	<!--   MOTION   convienience event sensor bridge pro api2 only-->
-	<Device type="sensor" id="hueMotionArea">
+	<Device type="sensor" id="hueMotionArea" allowUserCreation="false">
 		<Name>Hue Motion area</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -3108,11 +3129,16 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 				<TriggerLabel>eventNumber</TriggerLabel>
 				<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 
 	<!--   MOTION   convienience event sensor bridge pro api2 only-->
-	<Device type="sensor" id="hueGroupedMotion">
+	<Device type="sensor" id="hueGroupedMotion" allowUserCreation="false">
 		<Name>Hue Grouped Motion</Name>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
@@ -3198,7 +3224,11 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 				<TriggerLabel>eventNumber</TriggerLabel>
 				<ControlPageLabel>eventNumber</ControlPageLabel>
 			</State>
-
+			<State id="uniqueId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
 

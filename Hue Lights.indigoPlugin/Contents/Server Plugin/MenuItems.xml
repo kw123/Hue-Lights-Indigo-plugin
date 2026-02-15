@@ -204,7 +204,6 @@ to list new devices found, then use menu "Add New Hue Devices in Indigo" to add 
 		<ConfigUI>
 			<Field id="infoLabel" type="label" fontSize="small" fontColor="darkgray">
 				<Label>Use this to add ALL hue lights/sensors/groups that do not have a corresponding indigo device
-This might take a while if you have a lot of Hue devices, that do not have a corresponding indigo device
 It is a good idea to restart the plugin afterwards to get all states etc created properly
 Check the logfile for new devices created
 The names will be Hue_type_bridge#_id_nameOnBridge
@@ -228,15 +227,16 @@ eg Hue_light_0_30_Stairs</Label>
 		<ConfigUI>
 
 			<Field id="instructions1" type="label">
-				<Label>If you have moved a light/sensor to a new bridge you can use this menue item.
+				<Label>If you have moved lights/sensors to a new bridge  or migrated the bridge to a new pro bridge you can use this menue item.
 It will keep the old indigo device (ID) and replace it with the properties of the new hue dev on the new bridge
 Then it will delete the new indigo device, as the old device will have all the properties of the new device
 This way you can keep names, triggers, actions, scripts, indigo ids etc
 SEQUENCE:
-1. delete device on old bridge with the Hue app (not in indigo)
-2. create new Hue device on new Hue bridge (with the Hue app or through migrating from old version bridge to pro version.
+1. if you just move a device: delete device on old bridge with the Hue app (not in indigo)
+1a. if you migrate a bridge to the pro bridge, follow the migration steps and the switch off the old bridge
+2. create new Hue device on new Hue bridge (with the Hue app or through migrating from old version bridge to pro version).
    Indigo will auto create the new device w new bridge number. 
-   you will have one orphan(old)indigo device and one new indigo device
+   you will have one orphan (old) indigo device and one new indigo device
 3. use this menu (old = device in indigo you want to keep)
 - select bridge of old device
 - select bridge of new device
@@ -457,7 +457,7 @@ You can set option to rename all devices on bridge to their indigo device name</
 			
 			<Field id="indigoId" type="menu">
 				<Label>indigo device to be ignored in the future:</Label>
-				<List class="self" method="getallDevicesxlist" dynamicReload="true"/>
+				<List class="self" method="getalldevicesxlist" dynamicReload="true"/>
 			</Field>
 			
 			<Field id="ignore" type="button">
@@ -470,9 +470,9 @@ You can set option to rename all devices on bridge to their indigo device name</
 				<Label>Select an ignored Hue to be accepted again</Label>
 			</Field>
 			
-			<Field id="hueId" type="menu">
+			<Field id="ignoreHubTypeNumber" type="menu">
 				<Label>Hue device to be UN-ignored = it will be recreated automatically in indigo:</Label>
-				<List class="self" method="getallIgrnoredDevicesxlist" dynamicReload="false"/>
+				<List class="self" method="getallIgnoredDevicesxlist" dynamicReload="false"/>
 			</Field>
 			
 			<Field id="unignore" type="button">
