@@ -1,4 +1,11 @@
 ========================================
+2022.28.75 @ 2026-02-24
+1.  added support for pro bridge for scene recall (active a scene on the bridge)
+2. several smaller performance improvements
+3. cleaned up code.
+4. reconfigured RGB to XY color schema for pro bridges.
+
+========================================
 2022.27.75 @ 2026-02-15
 1. bug fixes for new device triggers, move devices to new bridge, security contact device
 

@@ -275,7 +275,6 @@
 
 ### LIGHTS ###
 ##############
-
 # kHueBulbDeviceIDs is not used anymore only hue type is used (kHueBulbDeviceIDType) 
 # Compatible Hue bulb devices (Color and Color Temperature) == 'Extended color light'
 kHueBulbDeviceIDs = ['LCT001', 'LCT002', 'LCT003', 'LCT007', 'LCT010', 'LCT011', 'LCT012', 'LCT014', 'LCT015',  'LCT016', 'LCT024', '440400982841', 'LCS001', '1746230V7', 'LCF001', 'LCF002', 'LCF003', 'LCG002', 'LCA001', 'LCA002', 'LCA003', 'LCB001', 'LCG001', 'LCW002','LCW004', 'LLM001', 'HBL001', 'HBL002', 'HBL003', 'HEL001', 'HEL002', 'HIL001', 'HIL002', 'FLS-PP3', 'GL-B-001Z', 'GL-B-007Z', 'GL-D-004Z', 'GL-FL-005P', 'GL-FL-005TZS', 'GL-S-007Z', 'Classic A60 RGBW', 'Gardenpole Mini RGBW OSRAM', 'PAR 16 50 RGBW - LIGHTIFY', 'RB 185 C', 'RB 250 C', 'AE 280 C', 'PAR16 RGBW Z3', 'LCF005', '1741430P7', '1746230P7', '1746630P7', '1746630V7', '1746730V7', '1746330P7', '4080148P9', '4080248P9', '4080248U9', '4090331P9_01', '4090331P9_02', '1742930P7', '1743530P7', '5045131P7', '5062148P7', 'ZB-CL01', 'TS0505B', 'LCA004', 'LCA005', 'LCA007', '5063130P7', '5063230P7']
@@ -301,6 +300,7 @@ kLivingWhitesDeviceIDType = 'Dimmable light'
 # Compatible on/off devices. (On/Off only.  Not dimmable), "On/Off plug-in unit" just use "On/Off"
 kOnOffOnlyDeviceIDs = ['LOM001', 'LOM003', 'LOM004', 'LOM005', 'SP 120', 'SP 220', 'SP 224', 'Plug 01', 'TS011F', 'TZ3000', 'TRADFRI control outlet', 'LXN-3S27LX1.0', 'SA-003-Zigbee']
 kOnOffOnlyDeviceIDType = 'On/Off'  # plug-in unit'
+
 
 # All compatible light devices
 kCompatibleDeviceIDs = kHueBulbDeviceIDs + kAmbianceDeviceIDs + kLivingColorsDeviceIDs + kLightStripsDeviceIDs + kLivingWhitesDeviceIDs + kOnOffOnlyDeviceIDs
@@ -341,7 +341,7 @@ kmapIndigodevTypeToIndigofulldevType = {
 ### SENSORS ###
 ###############
 # added switch: "LXN-3S27LX1.0" ==  "Nue Zigbee Switch EP01 3A Smart Home DE LXN3S27LX1.0 Escritorio" 
-# Supported Sensor Types
+# Supported Sensor Types - not used in apiv2 
 kSupportedSensorTypes = ['ZLLPresence', 'ZLLTemperature', 'ZLLLightLevel', 'ZGPSwitch', 'ZLLSwitch', 'ZLLRelativeRotary']
 #
 # Specific Sensor Models...
@@ -354,7 +354,7 @@ kTemperatureSensorDeviceIDs = 'SML'
 # Compatible switches/dimmers
 #						ZGPSWITCH should not be here
 ## kSwitchDeviceIDs = ['ZGPSWITCH', 					'SWT001', 'RWL020', 'RWL021', 'RWL022', 'ROM001', 'RDM001', 'RDM002', 'FOHSWITCH', 'PTM215Z','LXN-3S27LX1.0']
-kSwitchDeviceIDs = ['SWT001', 'RWL020', 'RWL021', 'RWL022', 'ROM001', 'RDM001', 'RDM002', 'RDM005', 'FOHSWITCH', 'PTM215Z','LXN-3S27LX1.0','SOC001']
+kSwitchDeviceIDs = ['SWT001', 'RWL020', 'RWL021', 'RWL022', 'ROM001', 'RDM001', 'RDM002','RDM003', 'RDM005', 'FOHSWITCH', 'PTM215Z','LXN-3S27LX1.0','SOC001']
 
 
 ### Other Constants ###
@@ -460,6 +460,11 @@ keventButtonSettings = {
 
 kSensorTypeList = kSwitchTypeIDs + kMotionSensorTypeIDs + kTemperatureSensorTypeIDs + kLightSensorTypeIDs
 
+ksensorsWithNoidV1 =[
+					"hueContactSensor"
+					]
+
+
 kmapSensorTypeToIndigoDevType = {	
 #								Hue_Type					indigo dev types					indigo dev type text											LEDs 
 								"ZLLPresence":				["hueMotionSensor"],  
@@ -472,17 +477,75 @@ kmapSensorTypeToIndigoDevType = {
 							}
 
 kmapSensordevTypeToModelId = {
-								"hueMotionSensor": 			['SML003'],
-								"hueMotionTemperatureSensor": ['SML003'],
-								"hueMotionLightSensor": 	['SML003'],
+								"hueMotionSensor": 			['SML003','SML002','SML001'],
+								"hueMotionTemperatureSensor": ['SML003','SML002','SML001'],
+								"hueMotionLightSensor": 	['SML003','SML002','SML001'],
 								"hueDimmerSwitch": 			['RWL020', 'RWL021', 'RWL022'],
-								"hueSmartButton": 			['ROM001', 'RDM005'],
+								"hueSmartButton": 			['ROM001', 'RDM005', 'RDM003'],
 								"hueWallSwitchModule": 		['RDM001'],
 								"hueTapSwitch": 			['ZGPSWITCH', 'SWT001'],
 								"hueRotaryWallRing": 		['RDM002'],
 								"hueRotaryWallSwitches": 	['RDM002'],
 								"hueContactSensor": 		['SOC001'],
 								"runLessWireSwitch": 		['FOHSWITCH', 'PTM215Z']
+							}
+
+kmapdevTypeToServiceType = {
+								"hueMotionSensor": 			'motion',
+								"hueMotionTemperatureSensor": 'temperature',
+								"hueMotionLightSensor": 	'light_level',
+								"hueDimmerSwitch": 			'button',
+								"hueSmartButton": 			'button',
+								"hueWallSwitchModule": 		'button',
+								"hueTapSwitch": 			'button',
+								"hueRotaryWallRing": 		'rotary',
+								"hueRotaryWallSwitches": 	'button',
+								"hueContactSensor": 		'contact',
+								"runLessWireSwitch": 		'button',
+								"hueGroupedMotion":			'grouped_motion',
+								"hueMotionArea":			'convenience_area_motion',
+								"hueBulb":					'light',
+								"hueAmbiance":				'light',
+								"hueLightStrips":			'light',
+								"hueLivingWhites":			'light',
+								"hueLivingColorsBloom":		'light',
+								"hueOnOffDevice":			'light',
+								"hueGroup":					'grouped_light'
+							}
+
+kmasterChild = {
+								'motion': ["temperature", "light_level"],
+								'relative_rotary': ["button"]
+							}
+kmodelWithChild = {			
+								'SML003': ["temperature", "light_level"],
+								'hueRotaryWallRing': ["button"]
+							}
+kdevTypeIdWithChild = {			
+								'hueMotionSensor': ["temperature", "light_level"],
+								'hueRotaryWallSwitches': ["button"]
+							}
+							
+kchildToIndigoDeviceType = {
+							"button":"hueRotaryWallSwitches",
+							"temperature":"hueMotionTemperatureSensor",
+							"light_level":"hueMotionLightSensor"
+							}
+kmodelIdToIndigodevTypes = {
+								'SML003': ["hueMotionSensor", "hueMotionTemperatureSensor", "hueMotionLightSensor"],
+								'RWL020': ["hueDimmerSwitch"],
+								'RWL021': ["hueDimmerSwitch"],
+								'RWL022': ["hueDimmerSwitch"],
+								'ROM001': ["hueSmartButton"],
+								'RDM005': ["hueSmartButton"],
+								'ROM001': ["hueSmartButton"],
+								'ZGPSWITCH': ["hueTapSwitch"],
+								'SWT001': ["hueTapSwitch"],
+								'RDM002': ["hueRotaryWallRing", "hueRotaryWallSwitches"],
+								'RDM001': ["hueRotaryWallRing", "hueRotaryWallSwitches"],
+								'SOC001': ["hueContactSensor"],
+								'FOHSWITCH': ["runLessWireSwitch"],
+								'PTM215Z': ["runLessWireSwitch"]
 							}
 
 kmapIndigoDevTypeToSensorType = {	

@@ -7,6 +7,17 @@
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
+	
+			<Field id="gamut" type="menu" defaultValue="a"
+				tooltip="see developers.meethue.com/develop/hue-api/supported-devices for supported values">
+				<Label>pick Gamut for this lamp:</Label>
+				<List>
+					<Option value="A">A</Option>
+					<Option value="B">B</Option>
+					<Option value="C">C</Option>
+				</List>
+			</Field>
+
 			
 			<Field id="defaultBrightness" type="menu" defaultValue="50">
 				<Label>Default Brightness(%):</Label>
@@ -223,6 +234,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -240,8 +256,13 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 			<State id="uniqueId">
 				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
+				<TriggerLabel>uniqueId</TriggerLabel>
+				<ControlPageLabel>uniqueId</ControlPageLabel>
+			</State>
+			<State id="productName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>productName</TriggerLabel>
+				<ControlPageLabel>productName</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -435,6 +456,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -452,8 +478,13 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 			<State id="uniqueId">
 				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
+				<TriggerLabel>uniqueId</TriggerLabel>
+				<ControlPageLabel>uniqueId</ControlPageLabel>
+			</State>
+			<State id="productName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>productName</TriggerLabel>
+				<ControlPageLabel>productName</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -463,6 +494,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+
+				<Field id="gamut" type="menu" defaultValue="a"
+				tooltip="see developers.meethue.com/develop/hue-api/supported-devices for supported values">
+				<Label>pick Gamut for this lamp:</Label>
+				<List>
+					<Option value="A">A</Option>
+					<Option value="B">B</Option>
+					<Option value="C">C</Option>
+				</List>
 			</Field>
 			
 			<Field id="defaultBrightness" type="menu" defaultValue="50">
@@ -680,6 +721,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -697,8 +743,13 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 			<State id="uniqueId">
 				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
+				<TriggerLabel>uniqueId</TriggerLabel>
+				<ControlPageLabel>uniqueId</ControlPageLabel>
+			</State>
+			<State id="productName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>productName</TriggerLabel>
+				<ControlPageLabel>productName</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -708,6 +759,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+
+			<Field id="gamut" type="menu" defaultValue="a"
+				tooltip="see developers.meethue.com/develop/hue-api/supported-devices for supported values">
+				<Label>pick Gamut for this lamp:</Label>
+				<List>
+					<Option value="A">A</Option>
+					<Option value="B">B</Option>
+					<Option value="C">C</Option>
+				</List>
 			</Field>
 
 			
@@ -921,6 +982,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -938,8 +1004,13 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 			<State id="uniqueId">
 				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
+				<TriggerLabel>uniqueId</TriggerLabel>
+				<ControlPageLabel>uniqueId</ControlPageLabel>
+			</State>
+			<State id="productName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>productName</TriggerLabel>
+				<ControlPageLabel>productName</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1123,6 +1194,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -1140,8 +1216,13 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 			<State id="uniqueId">
 				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
+				<TriggerLabel>uniqueId</TriggerLabel>
+				<ControlPageLabel>uniqueId</ControlPageLabel>
+			</State>
+			<State id="productName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>productName</TriggerLabel>
+				<ControlPageLabel>productName</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1196,6 +1277,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -1213,8 +1299,13 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 			<State id="uniqueId">
 				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
+				<TriggerLabel>uniqueId</TriggerLabel>
+				<ControlPageLabel>uniqueId</ControlPageLabel>
+			</State>
+			<State id="productName">
+				<ValueType>String</ValueType>
+				<TriggerLabel>productName</TriggerLabel>
+				<ControlPageLabel>productName</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1226,6 +1317,15 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
 
+			<Field id="gamut" type="menu" defaultValue="a"
+				tooltip="see developers.meethue.com/develop/hue-api/supported-devices for supported values">
+				<Label>pick Gamut for this lamp:</Label>
+				<List>
+					<Option value="A">A</Option>
+					<Option value="B">B</Option>
+					<Option value="C">C</Option>
+				</List>
+			</Field>
 			
 			<Field id="defaultBrightness" type="menu" defaultValue="50">
 				<Label>Default Brightness(%):</Label>
@@ -1448,6 +1548,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -1462,11 +1567,6 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>bridge</TriggerLabel>
 				<ControlPageLabel>bridge</ControlPageLabel>
-			</State>
-			<State id="uniqueId">
-				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1548,6 +1648,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="bridge">
 				<ValueType>String</ValueType>
 				<TriggerLabel>bridge</TriggerLabel>
@@ -1560,8 +1670,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 			<State id="uniqueId">
 				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
+				<TriggerLabel>uniqueId</TriggerLabel>
+				<ControlPageLabel>uniqueId</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1656,6 +1766,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -1678,8 +1793,8 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 			<State id="uniqueId">
 				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
+				<TriggerLabel>uniqueId</TriggerLabel>
+				<ControlPageLabel>uniqueId</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1782,6 +1897,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -1804,8 +1924,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 			<State id="uniqueId">
 				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
+				<TriggerLabel>uniqueId</TriggerLabel>
+				<ControlPageLabel>uniqueId</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -1914,6 +2034,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -1936,8 +2061,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 			<State id="uniqueId">
 				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
+				<TriggerLabel>uniqueId</TriggerLabel>
+				<ControlPageLabel>uniqueId</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -2023,6 +2148,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -2045,8 +2175,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 			<State id="uniqueId">
 				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
+				<TriggerLabel>uniqueId</TriggerLabel>
+				<ControlPageLabel>uniqueId</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -2198,6 +2328,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -2220,8 +2355,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 			<State id="uniqueId">
 				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
+				<TriggerLabel>uniqueId</TriggerLabel>
+				<ControlPageLabel>uniqueId</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -2313,6 +2448,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -2335,8 +2475,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 			<State id="uniqueId">
 				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
+				<TriggerLabel>uniqueId</TriggerLabel>
+				<ControlPageLabel>uniqueId</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -2448,6 +2588,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -2470,8 +2615,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 			<State id="uniqueId">
 				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
+				<TriggerLabel>uniqueId</TriggerLabel>
+				<ControlPageLabel>uniqueId</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -2670,6 +2815,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -2692,8 +2842,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 			<State id="uniqueId">
 				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
+				<TriggerLabel>uniqueId</TriggerLabel>
+				<ControlPageLabel>uniqueId</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -2846,6 +2996,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -2868,8 +3023,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 			<State id="uniqueId">
 				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
+				<TriggerLabel>uniqueId</TriggerLabel>
+				<ControlPageLabel>uniqueId</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -2948,6 +3103,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="ownerId">
 				<ValueType>String</ValueType>
 				<TriggerLabel>ownerId</TriggerLabel>
@@ -2970,8 +3130,8 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 			<State id="uniqueId">
 				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
+				<TriggerLabel>uniqueId</TriggerLabel>
+				<ControlPageLabel>uniqueId</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -3119,6 +3279,16 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
+			<State id="type">
+				<ValueType>String</ValueType>
+				<TriggerLabel>type</TriggerLabel>
+				<ControlPageLabel>type</ControlPageLabel>
+			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="bridge">
 				<ValueType>String</ValueType>
 				<TriggerLabel>bridge</TriggerLabel>
@@ -3131,8 +3301,8 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 			</State>
 			<State id="uniqueId">
 				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
+				<TriggerLabel>uniqueId</TriggerLabel>
+				<ControlPageLabel>uniqueId</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
@@ -3219,6 +3389,11 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 				<TriggerLabel>type</TriggerLabel>
 				<ControlPageLabel>type</ControlPageLabel>
 			</State>
+			<State id="serviceType">
+				<ValueType>String</ValueType>
+				<TriggerLabel>serviceType</TriggerLabel>
+				<ControlPageLabel>serviceType</ControlPageLabel>
+			</State>
 			<State id="eventNumber">
 				<ValueType>Number</ValueType>
 				<TriggerLabel>eventNumber</TriggerLabel>
@@ -3226,8 +3401,8 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 			</State>
 			<State id="uniqueId">
 				<ValueType>String</ValueType>
-				<TriggerLabel>type</TriggerLabel>
-				<ControlPageLabel>type</ControlPageLabel>
+				<TriggerLabel>uniqueId</TriggerLabel>
+				<ControlPageLabel>uniqueId</ControlPageLabel>
 			</State>
 		</States>
 	</Device>

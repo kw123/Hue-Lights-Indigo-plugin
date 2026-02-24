@@ -267,7 +267,6 @@ Shown after successful pairing process</Label>
 		<Label>Directory for new indigo devices</Label>
     </Field>
 
-
 <!--  timeScaleFactor is devided by 10 in plugin, as floats do not work well in prefs; eg 5 becomes  0.5 -->
 	<Field id="timeScaleFactor" type="menu" default="10"
 		tooltip="scale factor for light, sensors, groups: set higher if you have cpu load issues, lower if you like faster response time, default: sensors every 1 sec, lights,groups every 5 secs, other = every 3..5 minutes fixed  use the largest for api v2 bridges ">
