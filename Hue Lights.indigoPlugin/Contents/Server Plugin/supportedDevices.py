@@ -374,7 +374,7 @@ kTemperatureSensorTypeIDs = ['hueMotionTemperatureSensor']
 kLightSensorTypeIDs = ['hueMotionLightSensor']
 
 # All Switch Type IDs.
-kSwitchTypeWithButtonsIDs = ['hueDimmerSwitch', 'hueRotaryWallSwitches','hueWallSwitchModule', 'hueSmartButton','hueTapSwitch','runLessWireSwitch','hueContactSensor']
+kSwitchTypeWithButtonsIDs = ['hueDimmerSwitch', 'hueRotaryWallSwitches','hueWallSwitchModule', 'hueSmartButton','hueTapSwitch','runLessWireSwitch','hueContactSensor','FOHSWITCH']
 kSwitchTypeRotaryIDs =  ['hueRotaryWallRing']
 kSwitchTypeIDs = kSwitchTypeWithButtonsIDs + kSwitchTypeRotaryIDs
 # possible hub numbers

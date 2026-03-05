@@ -70,11 +70,44 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 	<MenuItem id="sep2" />
 	
 		
-	<MenuItem id="activateScene">
-		<Name>Activate Hue Scene (not for pro Bridge)...</Name>
+	<MenuItem id="setSensitivityV2">
+		<Name>Set Sensitivity of Sensor (pro Bridge)...</Name>
 		<ConfigUI>
 			<Field id="instructions1" type="label" fontSize="small">
-				<Label>Hue Scenes are stored on the Hue Bridge and can be activated (for pro bridge only).</Label>
+				<Label>Hue Sensors hav the option to set senbsitivity</Label>
+			</Field>
+			
+			<Field id="sensorId" type="menu">
+				<Label>select Motion Sensor:</Label>
+				<List class="self" method="sensorListGenerator" filter="hueMotionSensor,hueMotionArea"  dynamicReload="false"/>
+			</Field>
+			
+			<Field id="sensitivity" type="menu" defaultValue="2">
+				<Label>sensitivity:</Label>
+				<List>
+					<Option value="0">0, very Low </Option>
+					<Option value="1">1, low </Option>
+					<Option value="2">2, normal</Option>
+					<Option value="3">3, high</Option>
+					<Option value="4">4, very high</Option>
+				</List>
+			</Field>
+
+			<Field id="doSet" type="button">
+				<Label>Click to</Label>
+				<Title>Set</Title>
+				<CallbackMethod>setSensitivityV2</CallbackMethod>
+			</Field>
+
+		</ConfigUI>
+	</MenuItem>
+
+		
+	<MenuItem id="activateScene">
+		<Name>Activate Hue Scene (not pro Bridge)...</Name>
+		<ConfigUI>
+			<Field id="instructions1" type="label" fontSize="small">
+				<Label>Hue Scenes are stored on the Hue Bridge and can be activated.</Label>
 			</Field>
 			
 			<Field id="hubNumber" type="menu">
@@ -102,7 +135,7 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 
 
 	<MenuItem id="recallSceneV2">
-		<Name>Recall scene on a bridge, (pro bridge only)...</Name>
+		<Name>Recall scene on a bridge, (pro bridge)...</Name>
 		<ConfigUI>
 			<Field id="instructions1" type="label">
 				<Label>the plugin reads all scenes from the bridge and here you can  select one and send activation (recall) of that scene to the bridge</Label>
@@ -116,6 +149,7 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 			<Field id="brightness" type="menu" defaultValue="50">
 				<Label>Bightness(%):</Label>
 				<List>
+					<Option value="-1">use default</Option>
 					<Option value="1">1</Option>
 					<Option value="2">2</Option>
 					<Option value="3">3</Option>
@@ -147,6 +181,7 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 			<Field id="duration" type="menu" defaultValue="500">
 				<Label>Ramp Rate(secs):</Label>
 				<List>
+					<Option value="-1">use default</Option>
 					<Option value="100">0.1</Option>
 					<Option value="200">0.2</Option>
 					<Option value="300">0.3</Option>
@@ -217,10 +252,122 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 
 		</ConfigUI>
 	</MenuItem>
+	
+	<MenuItem id="blinkV2menu" >
+		<Name>Send blink (pro Bridge)...</Name>
+		<ConfigUI>
+			<Field id="devId" type="menu" defaultValue=""
+				tooltip="">
+				<Label>device to blink:</Label>
+				<List class="self" method="bulbAndGroupDeviceListGenerator" dynamicReload="true" ></List>
+			</Field>
+
+			<Field id="blinkType" type="menu" defaultValue="breathe"	tooltip="">
+				<Label>what kind of action:</Label>
+				<List>
+					<Option value="breathe">breath 15 times (alert)</Option>
+					<Option value="signal">blink</Option>
+				</List>
+			</Field>
+
+			<Field id="duration" type="menu" defaultValue="2000"	visibleBindingId="blinkType"  visibleBindingValue="signal">
+				<Label>duration(secs):</Label>
+				<List>
+					<Option value="1000">1 </Option>
+					<Option value="2000">2 </Option>
+					<Option value="3000">3 </Option>
+					<Option value="4000">4 </Option>
+					<Option value="5000">5 </Option>
+					<Option value="6000">6 </Option>
+					<Option value="7000">7 </Option>
+					<Option value="8000">8 </Option>
+					<Option value="9000">9 </Option>
+					<Option value="10000">10 </Option>
+					<Option value="15000">15 </Option>
+					<Option value="20000">20 </Option>
+					<Option value="25000">25 </Option>
+					<Option value="30000">30 </Option>
+				</List>
+			</Field>
+
+			<Field id="signal" type="menu" defaultValue="on_off"	visibleBindingId="blinkType"  visibleBindingValue="signal">
+				<Label>signal type:</Label>
+				<List>
+					<Option value="on_off">on off </Option>
+					<Option value="no_signal">off </Option>
+				</List>
+			</Field>
+
+			<Field id="exeAction" type="button">
+				<Label>Click to</Label>
+				<Title>send alert</Title>
+				<CallbackMethod>blinkV2</CallbackMethod>
+			</Field>
+		</ConfigUI>
+
+	</MenuItem>
+
+	<MenuItem id="effectV2">
+		<Name>Effect (pro bridge)</Name>
+		<ConfigUI>
+
+			<Field id="destinationType" type="menu" defaultValue="light">
+				<Label>destination type::</Label>
+			<List>
+					<Option value="scene">scene</Option>
+					<Option value="light">light</Option>
+				</List>
+			</Field>
+
+			<Field id="devId" type="menu" defaultValue="" visibleBindingId="destinationType" visibleBindingValue="light">
+				<Label>light device to send the command to:</Label>
+				<List class="self" method="lightsListGenerator" filter="oneLight" dynamicReload="false" ></List>
+			</Field>
+			
+			<Field id="sceneId" type="menu" defaultValue="" visibleBindingId="destinationType" visibleBindingValue="scene">
+				<Label>scene to send the command to:</Label>
+				<List class="self" method="generateSceneListV2" dynamicReload="false" ></List>
+			</Field>
+		
+			<Field type="menu" id="effect" defaultValue="none"
+				tooltip="Select a preset effect. Effect presets are usually built into the light device itself. These presets are not the same as Hue Lights presets.">
+				<Label>Presets:</Label>
+				<List>
+					<Option value="no_effect">None = off</Option>
+					<Option value="prism">prism</Option>
+					<Option value="opal">opal</Option>
+					<Option value="glisten">glisten</Option>
+					<Option value="sparkle">sparkle</Option>
+					<Option value="fire">fire</Option>
+					<Option value="candle">candle</Option>
+					<Option value="underwater">underwater</Option>
+					<Option value="cosmos">cosmos</Option>
+					<Option value="sunbeam">sunbeam</Option>
+					<Option value="enchant">enchant</Option>
+				</List>
+			</Field>
+			<Field id="labelEffect" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+				<Label>Select a Hue effect.</Label>
+			</Field>
+
+
+			<Field id="exeAction" type="button">
+				<Label>Click to</Label>
+				<Title>send effect</Title>
+				<CallbackMethod>effectV2</CallbackMethod>
+			</Field>
+			
+			
+			<Field id="debug" type="checkbox" defaultValue="false"  >
+				<Label>debug:</Label>
+			</Field>
+
+		</ConfigUI>
+	</MenuItem>
 
 	
 	<MenuItem id="recallScene">
-		<Name>Recall Hue Scene (not for pro Bridge)...</Name>
+		<Name>Recall Hue Scene (not pro Bridge)...</Name>
 		<CallbackMethod>recallScene</CallbackMethod>
 		<ConfigUI>
 			<Field id="instructions1" type="label" fontSize="small">

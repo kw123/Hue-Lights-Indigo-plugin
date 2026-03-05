@@ -1,6 +1,26 @@
 ========================================
+2022.29.76 @ 2026-03-04
+1. added option to use default for brightness and ramp rate for recall action
+2. fixed several rgb / dimmer functions
+3. added enable disable for devices for pro bridge
+4. added scenes for pro bridge
+5. added config option to set prefixes for devices names types switch/sensor/light/group eg Hue_light_br#_id#_nameOnBridge (replace light with lampe)
+6. added different prefix for switches and sensors (was all sensor)
+7. combined many sql updates for a device into a single call 
+8. reduced CPU usage, with > 80 lights, 15+ sensors 40+ switches on pro bridge: 0.1% .. 2% cpu on MAC-M1 (state updates depending on sensor, switch, light event frequency, no update: 0.1% CPU)
+   on my previous setup with 4 old bridges it was 5%-15% and response time to sensor events was 2-3 secs, now < 0.5 secs.
+
+One issue is still pending: the pro bridge does not supply rgb (xy) color updates for groups (zones, rooms), only brightness level
+    either wait until it is supported or do a v1 api call to get the rgb level if brightness level has changed for a group.  The participating lights are handled properly
+    I guess the issue is that with different bulb types ( mix of dimm only, color temp level, true rgb) it is not clear what the rgb value for the group actually is
+
+========================================
+2022.28.76 @ 2026-02-25
+1. added option to use default for brightness and ramp rate for recall action
+
+========================================
 2022.28.75 @ 2026-02-24
-1.  added support for pro bridge for scene recall (active a scene on the bridge)
+1. added support for pro bridge for scene recall (active a scene on the bridge)
 2. several smaller performance improvements
 3. cleaned up code.
 4. reconfigured RGB to XY color schema for pro bridges.

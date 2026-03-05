@@ -287,7 +287,7 @@ Shown after successful pairing process</Label>
 	  <List>
 		<Option value="500">500</Option>
 		<Option value="50">50</Option>
-		<Option value="10">10</Option>
+		<Option value="10">10 only for testing</Option>
 	 </List>
  	</Field>
 
@@ -300,6 +300,29 @@ others: fixed at 3-5 minutes
 if you have a bridge pro and use api v2 you can use a less frequent value 
  </Label>
 	</Field>
+
+
+
+
+	<Field id="sensorPrefix" type="textfield"  defaultValue="sensor" >
+		<Label>Tag for sensor Names:(Hue_THIS_br#_id_NameOnBridge)</Label>
+	</Field>
+
+
+	<Field id="switchPrefix" type="textfield"  defaultValue="switch" >
+		<Label>Use for prefix for switches:(Hue_THIS_br#_id_NameOnBridge)</Label>
+	</Field>
+
+
+	<Field id="lightPrefix" type="textfield"  defaultValue="light" >
+		<Label>Use for prefix for lights:(Hue_THIS_br#_id_NameOnBridge)</Label>
+	</Field>
+
+
+	<Field id="lgroupPrefix" type="textfield"  defaultValue="group" >
+		<Label>Use for prefix for groups:(Hue_THIS_br#_id_NameOnBridge)</Label>
+	</Field>
+
 
 
 	<Field id="maxPresetCount" type="textfield"
