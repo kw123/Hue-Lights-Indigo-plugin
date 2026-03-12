@@ -1,5 +1,5 @@
 ========================================
-2022.29.76 @ 2026-03-11
+2022.29.77 @ 2026-03-12
 1. added option to use default for brightness and ramp rate for recall action
 2. fixed several rgb / dimmer functions
 3. added enable disable for devices for pro bridge
@@ -17,7 +17,7 @@
     work around: Added a http api v1 "get" for all data for the hue group, WHEN a brightness level change event is received. That should cover most situations.
 12. fixed indigo device icon. if a device is turned off, but brightness level is not 0 the icon stayed "ON". Now it reflecting state is off/on 
 
-
+ 
 ========================================
 2022.28.76 @ 2026-02-25
 1. added option to use default for brightness and ramp rate for recall action
