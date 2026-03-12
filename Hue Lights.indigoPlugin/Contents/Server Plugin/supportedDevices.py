@@ -343,6 +343,11 @@ kmapIndigodevTypeToIndigofulldevType = {
 # added switch: "LXN-3S27LX1.0" ==  "Nue Zigbee Switch EP01 3A Smart Home DE LXN3S27LX1.0 Escritorio" 
 # Supported Sensor Types - not used in apiv2 
 kSupportedSensorTypes = ['ZLLPresence', 'ZLLTemperature', 'ZLLLightLevel', 'ZGPSwitch', 'ZLLSwitch', 'ZLLRelativeRotary']
+kmotionTypes = ['ZLLPresence']
+krotaryTypes = ['ZLLRelativeRotary']
+kbuttonTypes = ['ZLLSwitch']
+kFOH = ['ZGPSwitch']
+
 #
 # Specific Sensor Models...
 # Compatible motion sensors

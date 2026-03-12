@@ -1,8 +1,226 @@
 <?xml version="1.0"?>
 <Devices>
     <!-- Extended Color Device -->
+	<Device type="sensor" id="HueBridge" allowUserCreation="false">
+		<Name>Hue Bridge</Name>
+		<Field id="SupportsSensorValue" type="checkbox" defaultValue="false" hidden="true"></Field>
+		<Field id="SupportsOnState" type="checkbox" defaultValue="true" hidden="true"></Field>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+		<ConfigUI>
+			<Field id="labeltop" type="label"  fontColor="orange">
+				<Label>This device canot be edited . Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
+			</Field>
+			</ConfigUI>
+		<States>
+			<State id="created">
+				<ValueType>String</ValueType>
+				<TriggerLabel>created</TriggerLabel>
+				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="paired">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>paired</TriggerLabel>
+				<ControlPageLabel>paired</ControlPageLabel>
+			</State>
+			<State id="numberOf_switches_FriendsOfHue">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_switches_FriendsOfHue</TriggerLabel>
+				<ControlPageLabel>numberOf_switches_FriendsOfHue</ControlPageLabel>
+			</State>
+			<State id="numberOf_switches_dimmer">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_switches_dimmer</TriggerLabel>
+				<ControlPageLabel>numberOf_switches_dimmer</ControlPageLabel>
+			</State>
+			<State id="numberOf_switches_SmartButton">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_switches_SmartButton</TriggerLabel>
+				<ControlPageLabel>numberOf_switches_SmartButton</ControlPageLabel>
+			</State>
+			<State id="numberOf_switches_TapDial">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_switches_TapDial</TriggerLabel>
+				<ControlPageLabel>numberOf_switches_TapDial</ControlPageLabel>
+			</State>
+			<State id="numberOf_switches_totalButtons">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_switches_totalButtons</TriggerLabel>
+				<ControlPageLabel>numberOf_switches_totalButtons</ControlPageLabel>
+			</State>
+			<State id="numberOf_switches_wall">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_switches_wall</TriggerLabel>
+				<ControlPageLabel>numberOf_switches_wall</ControlPageLabel>
+			</State>
+			<State id="numberOf_switches_other">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_switches_other</TriggerLabel>
+				<ControlPageLabel>numberOf_switches_other</ControlPageLabel>
+			</State>
+			<State id="numberOf_switches">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_switches</TriggerLabel>
+				<ControlPageLabel>numberOf_switches</ControlPageLabel>
+			</State>
+			<State id="numberOf_sensor_motion">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_sensor_motion</TriggerLabel>
+				<ControlPageLabel>numberOf_sensor_motion</ControlPageLabel>
+			</State>
+			<State id="numberOf_sensor_contact">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_sensor_contact</TriggerLabel>
+				<ControlPageLabel>numberOf_sensor_contact</ControlPageLabel>
+			</State>
+			<State id="numberOf_rooms">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_rooms</TriggerLabel>
+				<ControlPageLabel>numberOf_rooms</ControlPageLabel>
+			</State>
+			<State id="numberOf_zones">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_rooms</TriggerLabel>
+				<ControlPageLabel>numberOf_rooms</ControlPageLabel>
+			</State>
+			<State id="numberOf_users">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_users</TriggerLabel>
+				<ControlPageLabel>numberOf_users</ControlPageLabel>
+			</State>
+			<State id="numberOf_rules">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_rules</TriggerLabel>
+				<ControlPageLabel>numberOf_rules</ControlPageLabel>
+			</State>
+			<State id="numberOf_schedules">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_schedules</TriggerLabel>
+				<ControlPageLabel>numberOf_schedules</ControlPageLabel>
+			</State>
+			<State id="numberOf_sensor_areaMotion">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_sensor_areaMotion</TriggerLabel>
+				<ControlPageLabel>numberOf_sensor_areaMotion</ControlPageLabel>
+			</State>
+			<State id="numberOf_sensor_groupedMotion">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_sensor_groupedMotion</TriggerLabel>
+				<ControlPageLabel>numberOf_sensor_groupedMotion</ControlPageLabel>
+			</State>
+			<State id="numberOf_securityAreaMotion">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_securityAreaMotion</TriggerLabel>
+				<ControlPageLabel>numberOf_securityAreaMotion</ControlPageLabel>
+			</State>
+			<State id="numberOf_groupedMotions">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_groupedMotions</TriggerLabel>
+				<ControlPageLabel>numberOf_groupedMotions</ControlPageLabel>
+			</State>
+			<State id="numberOf_smartScenes">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_smartScenes</TriggerLabel>
+				<ControlPageLabel>numberOf_smartScenes</ControlPageLabel>
+			</State>
+			<State id="numberOf_lights">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOfLights</TriggerLabel>
+				<ControlPageLabel>numberOfLights</ControlPageLabel>
+			</State>
+			<State id="numberOf_lights_other">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_lights_other</TriggerLabel>
+				<ControlPageLabel>numberOf_lights_other</ControlPageLabel>
+			</State>
+			<State id="numberOf_lights_dimmable">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_lights_dimmable</TriggerLabel>
+				<ControlPageLabel>numberOf_lights_dimmable</ControlPageLabel>
+			</State>
+			<State id="numberOf_lights_color">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_lights_color</TriggerLabel>
+				<ControlPageLabel>numberOf_lights_color</ControlPageLabel>
+			</State>
+			<State id="numberOf_lights_extendedColor">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_lights_extendedColor</TriggerLabel>
+				<ControlPageLabel>numberOf_lights_extendedColor</ControlPageLabel>
+			</State>
+			<State id="numberOf_lights_colorTemperature">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_lights_colorTemperature</TriggerLabel>
+				<ControlPageLabel>numberOf_lights_colorTemperature</ControlPageLabel>
+			</State>
+			<State id="numberOf_lights_onOff">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_lights_onOff</TriggerLabel>
+				<ControlPageLabel>numberOf_lights_onOff</ControlPageLabel>
+			</State>
+			<State id="numberOf_softwareUpdates">
+				<ValueType>number</ValueType>
+				<TriggerLabel>numberOf_softwareUpdates</TriggerLabel>
+				<ControlPageLabel>numberOf_softwareUpdates</ControlPageLabel>
+			</State>
+			<State id="softwareVersion">
+				<ValueType>String</ValueType>
+				<TriggerLabel>softwareVersion</TriggerLabel>
+				<ControlPageLabel>softwareVersion</ControlPageLabel>
+			</State>
+			<State id="apiVersion">
+				<ValueType>String</ValueType>
+				<TriggerLabel>apiVersion</TriggerLabel>
+				<ControlPageLabel>apiVersion</ControlPageLabel>
+			</State>
+			<State id="zigbeeChannel">
+				<ValueType>String</ValueType>
+				<TriggerLabel>zigbeeChannel</TriggerLabel>
+				<ControlPageLabel>zigbeeChannel</ControlPageLabel>
+			</State>
+			<State id="ownerId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ownerId</TriggerLabel>
+				<ControlPageLabel>ownerId</ControlPageLabel>
+			</State>
+			<State id="ipAddress">
+				<ValueType>String</ValueType>
+				<TriggerLabel>ipAddress</TriggerLabel>
+				<ControlPageLabel>ipAddress</ControlPageLabel>
+			</State>			
+			<State id="nameOnBridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>nameOnBridge</TriggerLabel>
+				<ControlPageLabel>nameOnBridge</ControlPageLabel>
+			</State>
+			<State id="mac">
+				<ValueType>String</ValueType>
+				<TriggerLabel>mac</TriggerLabel>
+				<ControlPageLabel>mac</ControlPageLabel>
+			</State>
+			<State id="hostId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>hostId</TriggerLabel>
+				<ControlPageLabel>hostId</ControlPageLabel>
+			</State>
+			<State id="enabled">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>enabled</TriggerLabel>
+				<ControlPageLabel>enabled</ControlPageLabel>
+			</State>
+			<State id="bridge">
+				<ValueType>String</ValueType>
+				<TriggerLabel>bridge</TriggerLabel>
+				<ControlPageLabel>bridge</ControlPageLabel>
+			</State>
+		</States>
+	</Device>
+
+
+
+    <!-- Extended Color Device -->
 	<Device type="dimmer" id="hueBulb" allowUserCreation="false">
 		<Name>Hue Color/Ambiance and compatible</Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -154,6 +372,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
 			</State>
+			<State id="softwareUpdate">
+				<ValueType>String</ValueType>
+				<TriggerLabel>softwareUpdate</TriggerLabel>
+				<ControlPageLabel>softwareUpdate</ControlPageLabel>
+			</State>
 			<State id="hue">
 				<ValueType>Number</ValueType>
 				<TriggerLabel>Hue (°)</TriggerLabel>
@@ -269,6 +492,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<!-- Ambiance Device -->
 	<Device type="dimmer" id="hueAmbiance" allowUserCreation="false">
 		<Name>Ambiance Lights (color temperature)</Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -411,6 +635,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
 			</State>
+			<State id="softwareUpdate">
+				<ValueType>String</ValueType>
+				<TriggerLabel>softwareUpdate</TriggerLabel>
+				<ControlPageLabel>softwareUpdate</ControlPageLabel>
+			</State>
 			<State id="colorTemp">
 				<ValueType>Number</ValueType>
 				<TriggerLabel>Color Temperature (K)</TriggerLabel>
@@ -491,6 +720,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
     <!-- LightStrips Device -->
 	<Device type="dimmer" id="hueLightStrips" allowUserCreation="false">
 		<Name>Light Strips</Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -641,6 +871,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
 			</State>
+			<State id="softwareUpdate">
+				<ValueType>String</ValueType>
+				<TriggerLabel>softwareUpdate</TriggerLabel>
+				<ControlPageLabel>softwareUpdate</ControlPageLabel>
+			</State>
 			<State id="hue">
 				<ValueType>Number</ValueType>
 				<TriggerLabel>Hue (°)</TriggerLabel>
@@ -756,6 +991,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
     <!-- LivingColors Bloom Device -->
 	<Device type="dimmer" id="hueLivingColorsBloom" allowUserCreation="false">
 		<Name>Color Lights (Aura, Bloom, StoryLight, LivingColors, etc.)</Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -907,6 +1143,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
 			</State>
+			<State id="softwareUpdate">
+				<ValueType>String</ValueType>
+				<TriggerLabel>softwareUpdate</TriggerLabel>
+				<ControlPageLabel>softwareUpdate</ControlPageLabel>
+			</State>
 			<State id="hue">
 				<ValueType>Number</ValueType>
 				<TriggerLabel>Hue (°)</TriggerLabel>
@@ -1017,6 +1258,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
     <!-- LivingWhites Device -->
 	<Device type="dimmer" id="hueLivingWhites" allowUserCreation="false">
 		<Name>LivingWhites (Hue Lux, generic dimmable device, etc.)</Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -1159,6 +1401,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
 			</State>
+			<State id="softwareUpdate">
+				<ValueType>String</ValueType>
+				<TriggerLabel>softwareUpdate</TriggerLabel>
+				<ControlPageLabel>softwareUpdate</ControlPageLabel>
+			</State>
 			<State id="alertMode">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Alert Mode</TriggerLabel>
@@ -1247,6 +1494,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
 			</State>
+			<State id="softwareUpdate">
+				<ValueType>String</ValueType>
+				<TriggerLabel>softwareUpdate</TriggerLabel>
+				<ControlPageLabel>softwareUpdate</ControlPageLabel>
+			</State>
 			<State id="alertMode">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Alert Mode</TriggerLabel>
@@ -1312,6 +1564,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
     <!-- Hue Group Device -->
 	<Device type="dimmer" id="hueGroup" allowUserCreation="false">
 		<Name>Hue Group</Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -1575,6 +1828,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<!-- Hue Secure Contact -->
 	<Device type="sensor" id="hueContactSensor" allowUserCreation="false">
 		<Name>Hue Contact Sensor </Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -1592,6 +1846,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="softwareUpdate">
+				<ValueType>String</ValueType>
+				<TriggerLabel>softwareUpdate</TriggerLabel>
+				<ControlPageLabel>softwareUpdate</ControlPageLabel>
 			</State>
 			<State id="lastBatteryReplaced">
 				<ValueType>String</ValueType>
@@ -1682,6 +1941,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<!--   MOTION   -->
 	<Device type="sensor" id="hueMotionSensor" allowUserCreation="false">
 		<Name>Hue Motion Sensor (Motion)</Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -1700,6 +1960,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="softwareUpdate">
+				<ValueType>String</ValueType>
+				<TriggerLabel>softwareUpdate</TriggerLabel>
+				<ControlPageLabel>softwareUpdate</ControlPageLabel>
 			</State>
 			<State id="lastBatteryReplaced">
 				<ValueType>String</ValueType>
@@ -1802,6 +2067,7 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 	<!--   TEMPERATURE   -->
 	<Device type="sensor" id="hueMotionTemperatureSensor" allowUserCreation="false">
 		<Name>Hue Temperature Sensor</Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -1933,6 +2199,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<!--   LUMINANCE   -->
 	<Device type="sensor" id="hueMotionLightSensor" allowUserCreation="false">
 		<Name>Hue Light Sensor</Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -2070,6 +2337,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<!-- Hue Tap Switch -->
 	<Device type="sensor" id="hueTapSwitch" allowUserCreation="false">
 		<Name>Hue Tap Switch</Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -2087,6 +2355,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="softwareUpdate">
+				<ValueType>String</ValueType>
+				<TriggerLabel>softwareUpdate</TriggerLabel>
+				<ControlPageLabel>softwareUpdate</ControlPageLabel>
 			</State>
  			<State id="lastBatteryReplaced">
 				<ValueType>String</ValueType>
@@ -2184,6 +2457,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<!-- Hue Dimmer Switch -->
 	<Device type="sensor" id="hueDimmerSwitch" allowUserCreation="false">
 		<Name>Hue Dimmer Switch</Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -2202,6 +2476,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="softwareUpdate">
+				<ValueType>String</ValueType>
+				<TriggerLabel>softwareUpdate</TriggerLabel>
+				<ControlPageLabel>softwareUpdate</ControlPageLabel>
 			</State>
 			<State id="lastBatteryReplaced">
 				<ValueType>String</ValueType>
@@ -2364,6 +2643,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<!-- Hue Smart Button -->
 	<Device type="sensor" id="hueSmartButton" allowUserCreation="false">
 		<Name>Hue Smart Button</Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -2382,6 +2662,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="softwareUpdate">
+				<ValueType>String</ValueType>
+				<TriggerLabel>softwareUpdate</TriggerLabel>
+				<ControlPageLabel>softwareUpdate</ControlPageLabel>
 			</State>
 			<State id="lastBatteryReplaced">
 				<ValueType>String</ValueType>
@@ -2484,6 +2769,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<!-- Hue Wall Switch Module -->
 	<Device type="sensor" id="hueWallSwitchModule" allowUserCreation="false">
 		<Name>Hue Wall Switch Module</Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -2502,6 +2788,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="softwareUpdate">
+				<ValueType>String</ValueType>
+				<TriggerLabel>softwareUpdate</TriggerLabel>
+				<ControlPageLabel>softwareUpdate</ControlPageLabel>
 			</State>
  			<State id="lastBatteryReplaced">
 				<ValueType>String</ValueType>
@@ -2624,6 +2915,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<!-- Run Less Wire or Niko Switch -->
 	<Device type="sensor" id="runLessWireSwitch" allowUserCreation="false">
 		<Name>Run Less Wire, Niko Switch, FriendsOfHue</Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -2644,6 +2936,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="softwareUpdate">
+				<ValueType>String</ValueType>
+				<TriggerLabel>softwareUpdate</TriggerLabel>
+				<ControlPageLabel>softwareUpdate</ControlPageLabel>
 			</State>
  			<State id="lastBatteryReplaced">
 				<ValueType>String</ValueType>
@@ -2851,6 +3148,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<!-- Run Less Wire or Niko Switch -->
 	<Device type="sensor" id="hueRotaryWallSwitches" allowUserCreation="false">
 		<Name>Rotary Wall Switch Switches part</Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -2870,6 +3168,11 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<ValueType>String</ValueType>
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
+			</State>
+			<State id="softwareUpdate">
+				<ValueType>String</ValueType>
+				<TriggerLabel>softwareUpdate</TriggerLabel>
+				<ControlPageLabel>softwareUpdate</ControlPageLabel>
 			</State>
  			<State id="lastBatteryReplaced">
 				<ValueType>String</ValueType>
@@ -3033,6 +3336,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 	<!-- hue Rotary Wall Switch-->
 	<Device type="sensor" id="hueRotaryWallRing" allowUserCreation="false">
 		<Name>Rotary Wall Switch rotate part</Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -3142,6 +3446,7 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
     <!-- Hue Device Attribute Controller (Virtual Dimmer Device) -->
 	<Device type="dimmer" id="hueAttributeController">
 		<Name>Hue Device Attribute Controller</Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 
 			<Field id="hubNumber" type="menu"
@@ -3220,6 +3525,7 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 	<!--   MOTION   convienience event sensor bridge pro api2 only-->
 	<Device type="sensor" id="hueMotionArea" allowUserCreation="false">
 		<Name>Hue Motion area</Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
@@ -3310,6 +3616,7 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 	<!--   MOTION   convienience event sensor bridge pro api2 only-->
 	<Device type="sensor" id="hueGroupedMotion" allowUserCreation="false">
 		<Name>Hue Grouped Motion</Name>
+		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
 		<ConfigUI>
 			<Field id="labeltop" type="label"  fontColor="orange">
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>

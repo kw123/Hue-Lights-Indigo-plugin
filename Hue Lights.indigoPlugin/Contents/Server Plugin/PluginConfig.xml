@@ -4,6 +4,7 @@
 	<Field id="showGWAction" 			type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showPair"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showGwAdd"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
+	<Field id="showGwDisable"	 		type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showGwClick"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showGwClickConfirm"		type="checkbox" defaultValue="false" hidden="true">    </Field>
 	<Field id="showGwModIP"		 		type="checkbox" defaultValue="false" hidden="true">    </Field>
@@ -58,11 +59,43 @@ Make sure you set that up correctly.
 		<Option value="add">add or re-pair a new bridge</Option>
 		<Option value="modIP">change the ip number</Option>
 		<Option value="delete">delete an existing bridge</Option>
+		<Option value="disable">enable/disable bridge</Option>
 		<Option value="keep">don't change anything</Option>
 	  </List>
     </Field>
 
-<!-- api      -->
+<!-- enable / disable    -->
+	<Field id="labelDis" type="label" visibleBindingId="showGwDisable" visibleBindingValue="true" >
+		<Label>
+== enable /disable a bridge: Select bridge, select enable/disable:
+</Label>
+	</Field>
+
+	<Field id="modDisList" type="menu" defaultValue="0"
+		visibleBindingId="showGwDisable" visibleBindingValue="true"
+		tooltip="">
+		<Label>Select a Hue Bridge to modify:</Label>
+			<List class="self" method="gwListGenerator" filter="notEmpty" dynamicReload="true" />
+ 	</Field>
+
+	<Field id="enableDisable" visibleBindingId="showGwDisable" visibleBindingValue="true" type="menu" >
+		<Label>select enable/ disable for this bridge:</Label>
+		<List>
+			<Option value="1">enable</Option>
+			<Option value="0">disable</Option>
+		</List>
+	</Field>
+
+	<Field id="confirmDisable"
+			type="button" 
+			visibleBindingId="showGwDisable" visibleBindingValue="true"
+			tooltip="">
+		<Label>click to enable/disable</Label>
+		<Title>CONFIRM</Title>
+		<CallbackMethod>confirmDisable</CallbackMethod>
+    </Field>
+
+<!-- mod api v     -->
 	<Field id="labelAPI" type="label" visibleBindingId="showApiMod" visibleBindingValue="true" >
 		<Label>
 == Modify API version of a bridge: Select bridge, select API version, click on CONFIRM:
@@ -93,10 +126,9 @@ Make sure you set that up correctly.
 		<CallbackMethod>confirmAPIMod</CallbackMethod>
     </Field>
 
-<!-- delete GW     -->
 
 
-<!-- modify      -->
+<!-- modify  ip     -->
 	<Field id="labelModify" type="label" visibleBindingId="showGwModIP" visibleBindingValue="true" >
 		<Label>
 == Modify IP# of a bridge: Select bridge, enter new IP#, click on CONFIRM:
@@ -259,7 +291,7 @@ Shown after successful pairing process</Label>
 		tooltip="with this option checked the plugin will create a new indigo device as soon as a new light/sensor/group is created on a hue bridge.
    With the option OFF you can manually create new devices (add indigo device ...)
    Or you can use the menu item 'Add New Devices on Hue Bridge to Indigo' That will add all new devices that are on the hue bridge(s) in indigo">
-		<Label>Auto create new Hue devices in Indigo></Label>
+		<Label>Auto create new Hue devices in Indigo</Label>
     </Field>
 
 
@@ -281,6 +313,7 @@ Shown after successful pairing process</Label>
 	 </List>
  	</Field>
 
+<!-- fixed to 100 = 200 secs min, 400 secs max 
 	<Field id="timeScaleFactorAPIV2" type="menu" default="500"
 			tooltip="these api v1 calls to a hue pro bridge are essentially only needed when new devcies or at start, so set to longest time possible if not problems  ">>
 		<Label>reduction factor apiv1 http calls in apiv2 type bridges:</Label>
@@ -291,16 +324,15 @@ Shown after successful pairing process</Label>
 	 </List>
  	</Field>
 
+-->
 	<Field id="timeScaleFactorLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-		<Label>In the plugin loop device are polled from the bridge(s) every
+		<Label>For bridge V2 (not Pro) in the plugin loop device are polled from the bridge(s) every
 sensors: 2 secs,
 lights and groups: 5 secs
 with this scale factor you can make that more frequent or less frequent
 others: fixed at 3-5 minutes
-if you have a bridge pro and use api v2 you can use a less frequent value 
  </Label>
 	</Field>
-
 
 
 

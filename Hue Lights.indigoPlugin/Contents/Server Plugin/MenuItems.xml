@@ -2,7 +2,7 @@
 <MenuItems>
 	<MenuItem id="menu1">
 		<Name>Reload Hue Bridge Config</Name>
-		<CallbackMethod>updateAllHueLists</CallbackMethod>
+		<CallbackMethod>updateAllHueListsForce</CallbackMethod>
 	</MenuItem>
 	<MenuItem id="sep1" />
 	<MenuItem id="savePreset">

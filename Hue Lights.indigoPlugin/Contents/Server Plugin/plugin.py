@@ -81,7 +81,7 @@ kDefaultPluginPrefs = {
 				'selecthubNumber':						'0',
 				'ipvisible':							False,
 				'timeScaleFactor':						'10',
-				'timeScaleFactorAPIV2'					'500'
+				'timeScaleFactorAPIV2'					'119'
 				'sendDeviceUpdatesTo':					'20',
 				'autoCreatedNewDevices':				True,
 				'rgbmaxIndigo':							'100',
@@ -148,15 +148,24 @@ class Plugin(indigo.PluginBase):
 		self.brighteningList 			= list()	    # list of device IDs being brightened
 		self.dimmingList 				= list()			# list of device IDs being dimmed
 		### one for each bridge read from bridge
-		self.paired 					= {'0':False}		# if paired with Hue bridge or not
+		self.paired 					= copy.copy({'0':False,'1':False,'2':False,'3':False,'4':False})	# if paired with Hue bridge or not
 		self.notPairedMsg 				= {'0':0}
 
 		self.ipAddresses 				= {'0':dict()}	    # Hue bridge IP addresses
 		defHubVersions 					= {'0':kPossibleHubVersions[0],'1':kPossibleHubVersions[0],'2':kPossibleHubVersions[0],'3':kPossibleHubVersions[0],'4':kPossibleHubVersions[0]}
 		defAPIVersions 					= {'0':kPossibleAPIVersions[0],'1':kPossibleAPIVersions[0],'2':kPossibleAPIVersions[0],'3':kPossibleAPIVersions[0],'4':kPossibleAPIVersions[0]}
+		defEnabled 						= {'0':True,'1':True,'2':True,'3':True,'4':True}
+
 		self.hubVersion 				= json.loads(pluginPrefs.get('hubVersion', json.dumps(defHubVersions)))
+		if "1" not in self.hubVersion: self.hubVersion = copy.copy(defHubVersions)
+
 		self.apiVersion					= json.loads(pluginPrefs.get('apiVersion', json.dumps(defAPIVersions)))
-		self.scenesV2					= {}
+		if "1" not in self.apiVersion: self.apiVersion = copy.copy(defAPIVersions)
+		
+		self.hubIsEnabled				= json.loads(pluginPrefs.get('hubIsEnabled', json.dumps(defEnabled)))
+		if "1" not in self.hubIsEnabled: self.hubIsEnabled = copy.copy(defEnabled)
+
+		self.scenesV2					= dict()
 		self.httpS 						= {'1':'http','2':'https'}
 		self.listenThread 				= dict()
 		self.deviceUpdate 				= dict()
@@ -192,9 +201,11 @@ class Plugin(indigo.PluginBase):
 		self.HTTPGet					= {"sensors":0,"lights":0,"groups":0,"all":0,"v2":0}
 		self.lastTimeHTTPGet			= {str(xx) : copy.copy(self.HTTPGet) for xx in range(kHueBridges) }
 
-		self.lastTimeFor				= {"BrightenDim":0,		"checkMissing":0, 	"error":0,		"stateUpdate":0, 	"autoCreate":0 , "getHueConfig":0, "cleanUpIndigoTables":0}
-		self.deltaRefresh				= {"sensors":1.1, 	"lights":5.1, 	"groups":5.15, 	"all":200.1, "v2":500,  "BrightenDim":0.1,	"checkMissing":600,	"error":300.1,	"stateUpdate":5.03,	"autoCreate":100., "getHueConfig": 20, "cleanUpIndigoTables":20}
+		self.lastTimeFor				= {"BrightenDim":0,		"checkMissing":0, 	"error":0,		"stateUpdate":0, 	"autoCreate":0 , "getHueConfig":0, "cleanUpIndigoTables":0, "checkIfBridgeUpdates":0}
+		self.deltaRefresh				= {"sensors":1.1, 	"lights":5.1, 	"groups":5.15, 	"all":200.1, "v2":500,  "BrightenDim":0.1,	"checkMissing":600,	"error":300.1,	"stateUpdate":5.03,	"autoCreate":100., "getHueConfig": 20, "cleanUpIndigoTables":20, "checkIfBridgeUpdates":30}
 		self.bytesSend					= dict()
+
+
 
 		self.hubNumberSelectedOld		= ''
 		self.hubNumberSelectedNew		= ''
@@ -394,9 +405,12 @@ class Plugin(indigo.PluginBase):
 				temp = float(temp)
 				temp *= 10.
 				self.pluginPrefs['timeScaleFactor'] = str(int(temp))
+				
 		self.timeScaleFactor = float(temp)/10.
-		try: self.timeScaleFactorAPIV2 = float(self.pluginPrefs.get('timeScaleFactorAPIV2',"500"))
-		except: self.timeScaleFactorAPIV2 = 500.
+		if False:
+			try: self.timeScaleFactorAPIV2 = float(self.pluginPrefs.get('timeScaleFactorAPIV2',"500"))
+			except: self.timeScaleFactorAPIV2 = 119.
+		self.timeScaleFactorAPIV2 = 119.
 
 		self.addNewMotionAreas 			= True
 		self.ignoreBridgeHome			= True
@@ -428,19 +442,20 @@ class Plugin(indigo.PluginBase):
 		if self.decideMyLog("Init"): self.indiLOG.log(10,"Starting device: {}".format(device.name))
 		try:
 			# Clear any device error states first.
-			device.setErrorStateOnServer("")
+			device.setErrorStateOnServer(None)
 
 			# Rebuild the device if needed (fixes missing states and properties).
 			self.rebuildDevice(device)
 
 			# Update the device lists and the device states and props.
 
-			pluginProps = device.pluginProps
-			hubNumber = pluginProps.get('hubNumber','0')
 			hueDeviceId = device.states.get('ownerId',None)
-			if "bridge" in device.states:
-				if device.states.get('bridge',"") != hubNumber:
-					device.updateStateOnServer('bridge', hubNumber)
+			pluginProps = device.pluginProps
+			if "hubNumber" in pluginProps:
+				hubNumber = pluginProps.get('hubNumber','0')
+				if "bridge" in device.states:
+					if device.states.get('bridge',"") != hubNumber:
+						device.updateStateOnServer('bridge', hubNumber)
 
 
 			if device.deviceTypeId == "hueAttributeController":
@@ -536,6 +551,7 @@ class Plugin(indigo.PluginBase):
 		self.printHueData({"whatToPrint":"NoIndigoDevice", "sortBy":""},"OnlySupportedDevices")
 		for hubNumber in range(5):
 			self.startEventListenersThreads(str(hubNumber))
+			
 		self.startdelayedActionThreads()
 		self.handleFolder()
 		self.indiLOG.log(20,"... initialized")
@@ -560,7 +576,6 @@ class Plugin(indigo.PluginBase):
 				lastSleep = time.time()
 
 				self.sleep(sleepTime)
-
 
 				self.updateAllHueLists(autocreate=False) # check if we need to get all data
 
@@ -884,6 +899,7 @@ class Plugin(indigo.PluginBase):
 
 		if valuesDict.get('createLights',False):
 			for hubNumber in self.allV1Data:
+				if not self.hubIsEnabled[hubNumber]: continue
 				if self.apiVersion[hubNumber] == "2": continue
 				if "lights" not in self.allV1Data[hubNumber]: continue
 				theDict = self.allV1Data[hubNumber]['lights']
@@ -893,15 +909,17 @@ class Plugin(indigo.PluginBase):
 
 					if hubNumber in self.ignoreMovedDevice and 'lights' in self.ignoreMovedDevice[hubNumber] and theID in self.ignoreMovedDevice[hubNumber]['lights']: continue
 
+					hueDevice = theDict[theID]
+
 					for typId in kmapHueTypeToIndigoDevType:
 						ll = len(typId)
-						if theDict[theID]['type'][0:ll].find(typId) == 0:
+						if hueDevice['type'][0:ll].find(typId) == 0:
 							deviceTypeId = kmapHueTypeToIndigoDevType[typId][0]
 							break
 
 					if deviceTypeId  == "":
 						if  mode != "background":
-							self.indiLOG.log(10,"autocreateNewDevicesV1 light  Bridge:{:>2s}; id:{:>3s}, type:{:25s}      not supported".format(hubNumber, theID, theDict[theID]['type']))
+							self.indiLOG.log(10,"autocreateNewDevicesV1 light  Bridge:{:>2s}; id:{:>3s}, type:{:25s}      not supported".format(hubNumber, theID, hueDevice['type']))
 						continue
 
 					found = False
@@ -911,11 +929,11 @@ class Plugin(indigo.PluginBase):
 						if str(theID) == str(dev.pluginProps.get('bulbId', "xx")) and  hubNumber == str(dev.pluginProps.get('hubNumber', "xx")):
 							found = True
 							if  mode != "background":
-								self.indiLOG.log(10,"autocreateNewDevicesV1 light  Bridge:{:>2s}; id:{:>3s}, type:{:25s}      already exists".format(hubNumber, theID, theDict[theID]['type']))
+								self.indiLOG.log(10,"autocreateNewDevicesV1 light  Bridge:{:>2s}; id:{:>3s}, type:{:25s}      already exists".format(hubNumber, theID, hueDevice['type']))
 							break
 
 					if not found:
-						theName = hueDevice['metadata']['name']
+						theName = hueDevice['name']
 						name = "Hue_{}_{}_{}_{}".format(self.pluginPrefs.get('lightPrefix',kDefaultPluginPrefs['lightPrefix']), hubNumber, theID, theName)
 						if name in indigo.devices:
 							self.indiLOG.log(10,"autocreateNewDevicesV1 light  {} from Bridge:{:>2s} already exixts, can not be re-created".format(name, hubNumber ))
@@ -924,8 +942,8 @@ class Plugin(indigo.PluginBase):
 						props = dict()
 						props['hubNumber'] = hubNumber
 						props['bulbId'] = theID
-						props['type'] = theDict[theID]['type']
-						props['modelId'] = theDict[theID]['modelid']
+						props['type'] = hueDevice['type']
+						props['modelId'] = hueDevice['modelid']
 						props['defaultBrightness'] = "50"
 						props['gamut'] = "C"
 						props['rate'] = "0.5"
@@ -947,26 +965,27 @@ class Plugin(indigo.PluginBase):
 							self.deviceCopiesFromIndigo[dev.id] = self.getIndigoDevice(dev.id, calledFrom="autocreateNewDevicesV1, createLights")
 							props = dev.pluginProps
 							newProps = self.validateDeviceConfigAutoCreate(props, deviceTypeId, dev.id)
-							dev.updateStateOnServer('uniqueId', theDict[theID].get('uniqueid','-'))
-							dev.updateStateOnServer('type', theDict[theID].get('type',""))
+							dev.updateStateOnServer('uniqueId', hueDevice.get('uniqueid','-'))
+							dev.updateStateOnServer('type', hueDevice.get('type',""))
 							dev.updateStateOnServer('bridge', hubNumber)
-							dev.updateStateOnServer('modelId', theDict[theID]['modelid'])
+							dev.updateStateOnServer('modelId', hueDevice['modelid'])
 							dev.updateStateOnServer('id_v1','/lights/'+theID)
-							dev.updateStateOnServer('nameOnBridge',theDict[theID]['name'])
+							dev.updateStateOnServer('nameOnBridge',hueDevice['name'])
 							dev.replacePluginPropsOnServer(newProps[1])
-							self.indiLOG.log(30,"autocreateNewDevicesV1 light  Bridge:{:>2s}; hue-id:{:>3s}, hue-type:{:25s}, mapped to indigo-deviceTypeId:{:27} create {:40s} (details in plugin.log)".format( hubNumber, theID, theDict[theID]['type'], deviceTypeId, name))
+							self.indiLOG.log(30,"autocreateNewDevicesV1 light  Bridge:{:>2s}; hue-id:{:>3s}, hue-type:{:25s}, mapped to indigo-deviceTypeId:{:27} create {:40s} (details in plugin.log)".format( hubNumber, theID, hueDevice['type'], deviceTypeId, name))
 							self.indiLOG.log(10,"props:{}".format( props))
 							self.deviceCopiesFromIndigo[dev.id] = self.getIndigoDevice(dev.id, calledFrom="autocreateNewDevicesV1, createLights")
 							self.createdLights +=1
 						except Exception:
 							self.indiLOG.log(40,"", exc_info=True)
-							self.logger.error("name:{}, deviceTypeId:{}, dict:{}".format(name, deviceTypeId, theDict[theID]))
+							self.logger.error("name:{}, deviceTypeId:{}, dict:{}".format(name, deviceTypeId, hueDevice) )
 							oldDev = self.deviceCopiesFromIndigo[name]
 							self.logger.error("existing deviceTypeId:{}, props:{}".format(oldDev.deviceTypeId, str(oldDev.pluginProps)))
 
 
 		if valuesDict.get('createSensors',False):
 			for hubNumber in self.allV1Data:
+				if not self.hubIsEnabled[hubNumber]: continue
 				if self.apiVersion[hubNumber] == "2": continue
 				if "sensors" not in self.allV1Data[hubNumber]: continue
 				theDict = self.allV1Data[hubNumber]['sensors']
@@ -975,10 +994,11 @@ class Plugin(indigo.PluginBase):
 					if hubNumber in self.ignoreMovedDevice and 'sensors' in self.ignoreMovedDevice[hubNumber] and theID in self.ignoreMovedDevice[hubNumber]['sensors']: 
 						devExists = True
 						continue
+					hueDevice = theDict[theID]
 
-					theType = theDict[theID]['type'] # eg ZLLRelativeRotary, ZLLSwitch, ..
-					modelid = theDict[theID]['modelid']
-					productname = theDict[theID].get('productname',"").lower().strip("hue").strip().split()
+					theType = hueDevice['type'] # eg ZLLRelativeRotary, ZLLSwitch, ..
+					modelid = hueDevice['modelid']
+					productname = hueDevice.get('productname',"").lower().strip("hue").strip().split()
 
 					devExists = None
 					for devId in self.deviceCopiesFromIndigo:
@@ -1041,7 +1061,7 @@ class Plugin(indigo.PluginBase):
 					props['hubNumber'] = hubNumber
 					props['sensorId'] = theID
 					props['modelId'] = modelid
-					props['type'] = theDict[theID]['type']
+					props['type'] = hueDevice['type']
 					props['logChanges'] = self.pluginPrefs.get('logDefaultForNewDevices', "off") == "on"
 
 					try:
@@ -1057,12 +1077,12 @@ class Plugin(indigo.PluginBase):
 							)
 						self.deviceCopiesFromIndigo[dev.id] = self.getIndigoDevice(dev.id, calledFrom="autocreateNewDevicesV1, createLights")
 						props = dev.pluginProps
-						dev.updateStateOnServer('uniqueId', theDict[theID].get('uniqueid','-'))
-						dev.updateStateOnServer('type', theDict[theID].get('type',""))
+						dev.updateStateOnServer('uniqueId', hueDevice.get('uniqueid','-'))
+						dev.updateStateOnServer('type', hueDevice.get('type',""))
 						dev.updateStateOnServer('bridge', hubNumber)
 						dev.updateStateOnServer('modelId', modelid)
 						dev.updateStateOnServer('id_v1','/sensors/'+theID)
-						dev.updateStateOnServer('nameOnBridge',theDict[theID]['name'])
+						dev.updateStateOnServer('nameOnBridge',hueDevice['name'])
 						newProps = self.validateDeviceConfigAutoCreate(props, deviceTypeId, dev.id)
 						dev.replacePluginPropsOnServer(newProps[1])
 						self.indiLOG.log(30,"autocreateNewDevicesV1 sensor Bridge:{:>2s}; hue-id:{:>3s}, hue-type:{:25s}/{}, mapped to indigo-deviceTypeId:{:27} create {:40s} (details in plugin.log)".format( hubNumber, theID, theType, modelid, deviceTypeId, name))
@@ -1071,13 +1091,14 @@ class Plugin(indigo.PluginBase):
 						self.createdSensors +=1
 					except Exception:
 						self.indiLOG.log(40,"", exc_info=True)
-						self.logger.error("name:{}, deviceTypeId:{}, dict:{}".format(name, deviceTypeId, theDict[theID]))
+						self.logger.error("name:{}, deviceTypeId:{}, dict:{}".format(name, deviceTypeId, hueDevice))
 						oldDev = self.deviceCopiesFromIndigo[name]
 						self.logger.error("existing deviceTypeId:{}, props:{}".format(oldDev.deviceTypeId, str(oldDev.pluginProps)))
 
 		if valuesDict.get('createGroups',False):
 			deviceTypeId = "hueGroup"
 			for hubNumber in self.allV1Data:
+				if not self.hubIsEnabled[hubNumber]: continue
 				if self.apiVersion[hubNumber] == "2": continue
 				if "groups" not in self.allV1Data[hubNumber]: continue
 				theDict = self.allV1Data[hubNumber]['groups']
@@ -1085,17 +1106,18 @@ class Plugin(indigo.PluginBase):
 					if hubNumber+"/group/"+theID in self.ignoreDevices: continue
 					if hubNumber in self.ignoreMovedDevice and 'groups' in self.ignoreMovedDevice[hubNumber] and theID in self.ignoreMovedDevice[hubNumber]['groups']: continue
 					found = False
+					hueDevice = theDict[theID]
 					for devId in self.deviceCopiesFromIndigo:
 						dev = self.deviceCopiesFromIndigo[devId]
 						if dev.deviceTypeId != deviceTypeId: continue
 						if str(theID) == str(dev.pluginProps.get('groupId', "xx")) and  hubNumber == str(dev.states.get('bridge', "xx")):
 							found = True
 							if  mode != "background":
-								self.indiLOG.log(10,"autocreateNewDevicesV1 group  Bridge:{:>2s}; id:{:>3s}; type:{:25s}      already exists".format(hubNumber, theID, theDict[theID]['type']))
+								self.indiLOG.log(10,"autocreateNewDevicesV1 group  Bridge:{:>2s}; id:{:>3s}; type:{:25s}      already exists".format(hubNumber, theID, hueDevice['type']))
 							break
 
 					if not found:
-						name = "Hue_group_{}_{}_{}".format(hubNumber, theID, theDict[theID]['name'])
+						name = "Hue_group_{}_{}_{}".format(hubNumber, theID, hueDevice['name'])
 						if name in indigo.devices:
 							self.indiLOG.log(10,"autocreateNewDevicesV1 group  {} from Bridge:{:>2s} already exixts, can not be re-created".format(name, hubNumber ))
 							continue
@@ -1104,7 +1126,7 @@ class Plugin(indigo.PluginBase):
 						props = dict()
 						props['hubNumber'] = hubNumber
 						props['groupId'] = theID
-						props['type'] = theDict[theID]['type']
+						props['type'] = hueDevice['type']
 						props['rate'] = "1"
 						props['gamut'] = "C"
 						props['noOnRampRate'] = False
@@ -1125,20 +1147,19 @@ class Plugin(indigo.PluginBase):
 								)
 							self.deviceCopiesFromIndigo[dev.id] = self.getIndigoDevice(dev.id, calledFrom="autocreateNewDevicesV1, createLights")
 							props = dev.pluginProps
-							dev.updateStateOnServer('uniqueId', theDict[theID].get('uniqueid','-'))
-							dev.updateStateOnServer('type', theDict[theID].get('type',""))
+							dev.updateStateOnServer('type', hueDevice.get('type',""))
 							dev.updateStateOnServer('id_v1','/groups/'+theID)
 							dev.updateStateOnServer('bridge', hubNumber)
-							dev.updateStateOnServer('nameOnBridge',theDict[theID]['name'])
+							dev.updateStateOnServer('nameOnBridge',hueDevice['name'])
 							newProps = self.validateDeviceConfigAutoCreate(props, deviceTypeId, dev.id)
 							dev.replacePluginPropsOnServer(newProps[1])
-							self.indiLOG.log(30,"autocreateNewDevicesV1 group  Bridge:{:>2s}; hue-id:{:>3s}, hue-type:{:25s}, mapped to indigo-deviceTypeId:{:27} create {:40s} (details in plugin.log)".format( hubNumber, theID, theDict[theID]['type'], deviceTypeId, name))
+							self.indiLOG.log(30,"autocreateNewDevicesV1 group  Bridge:{:>2s}; hue-id:{:>3s}, hue-type:{:25s}, mapped to indigo-deviceTypeId:{:27} create {:40s} (details in plugin.log)".format( hubNumber, theID, hueDevice['type'], deviceTypeId, name))
 							self.indiLOG.log(10,"props:{}".format(props))
 							self.deviceCopiesFromIndigo[dev.id] = self.getIndigoDevice(dev.id, calledFrom="autocreateNewDevicesV1, createGroups")
 							self.createdGroups +=1
 						except Exception:
 							self.indiLOG.log(40,"", exc_info=True)
-							self.logger.error("name:{}, deviceTypeId:{}, dict:{}".format(name, deviceTypeId, theDict[theID]))
+							self.logger.error("name:{}, deviceTypeId:{}, dict:{}".format(name, deviceTypeId, hueDevice))
 							oldDev = self.deviceCopiesFromIndigo[name]
 							self.logger.error("existing deviceTypeId:{}, props:{}".format(oldDev.deviceTypeId, str(oldDev.pluginProps)))
 
@@ -2984,6 +3005,7 @@ class Plugin(indigo.PluginBase):
 			valuesDict['showGwMod'] 				= False
 			valuesDict['showApiMod'] 				= False
 			valuesDict['showGwDel'] 				= False
+			valuesDict['showGwDisable'] 			= False
 			valuesDict['pairMsg'] 					= ""
 			valuesDict['gwModNewIp'] 				= ""
 			#valuesDict['maxPresetCount'] 			= self.pluginPrefs.get('maxPresetCount', "30")
@@ -3022,7 +3044,8 @@ class Plugin(indigo.PluginBase):
 			valuesDict['showGWAction']					= False
 			valuesDict['showGwAdd']						= False
 			valuesDict['showGwClick']					= False
-			valuesDict['showGwClickConfirm']			= False
+			valuesDict['showGwClick']					= False
+			valuesDict['showGwDisable']					= False
 			valuesDict['showApiMod']					= False
 			valuesDict['showGwModIP']					= False
 			valuesDict['showGwDel']						= False
@@ -3051,6 +3074,10 @@ class Plugin(indigo.PluginBase):
 
 				elif valuesDict['gwAction'] == "api":
 					valuesDict['showApiMod']				= True
+
+
+				elif valuesDict['gwAction'] == "disable":
+					valuesDict['showGwDisable']				= True
 
 
 		except Exception:
@@ -3190,6 +3217,47 @@ class Plugin(indigo.PluginBase):
 
 
 	########################################
+	def confirmDisable(self, valuesDict):
+
+		isError = False
+		errorsDict = indigo.Dict()
+		errorsDict['showAlertText'] = ""
+		try:
+			#self.indiLOG.log(10,"confirmGWMod valuesDict:{}".format(valuesDict))
+			if valuesDict['modDisList'] not in khubNumbersAvailable:
+				errorsDict['showAlertText'] = "bridge# not selected"
+				return valuesDict, errorsDict
+
+			hubNumber = valuesDict['modDisList']
+
+			if not hubNumber in self.ipAddresses:
+				errorsDict['showAlertText'] = "bridge does not have ip number"
+				valuesDict['gwAction'] = "keep"
+				return valuesDict, errorsDict
+
+			test = valuesDict['enableDisable'] == "1"
+
+			if self.hubIsEnabled[hubNumber] != test:
+				self.hubIsEnabled[hubNumber] = test
+				self.pluginPrefs['hubIsEnabled'] = json.dumps(self.hubIsEnabled[hubNumber])
+				if test:
+					self.updateAllHueListsForce()
+					self.startEventListenersThreads(hubNumber)
+					
+				else:
+					if hubNumber in self.listenThread:
+						self.listenThread[hubNumber]['status'] = "stop"
+			
+			errorsDict['showAlertText'] = "bridge is enabled:{}  <Save> at exit".format(self.hubIsEnabled[hubNumber])
+			valuesDict['gwAction'] = "disable"
+
+			return valuesDict, errorsDict
+		except Exception:
+				self.indiLOG.log(30,"", exc_info=True)
+		errorsDict['showAlertText'] = "check logfile for error message"
+		return valuesDict, errorsDict
+
+	########################################
 	def confirmAPIMod(self, valuesDict):
 
 		isError = False
@@ -3224,6 +3292,7 @@ class Plugin(indigo.PluginBase):
 		valuesDict['gwDelResponse'] = "check logfile"
 		errorsDict['showAlertText'] = "check logfile for error message"
 		return valuesDict, errorsDict
+
 
 
 	# modify existing gateway
@@ -3395,12 +3464,19 @@ class Plugin(indigo.PluginBase):
 
 			# Quick and dirty check to see if this is a Philips Hue bridge.
 			try:
-				makeJ = json.loads(r.content)
-				self.resetBridgeBusy(hubNumber, "", 0)
-			except: makeJ = dict()
+				makeJ =(r.content).decode("utf-8")
+				makeJ = json.loads(makeJ)
+				self.resetBridgeBusy(self.hubNumberSelected, "", 0)
+			except Exception:
+				self.indiLOG.log(40,"", exc_info=True)
+				try:
+					makeJ = json.loads(r.content)
+					self.resetBridgeBusy(self.hubNumberSelected, "", 0)
+				except:
+					makeJ = dict()
 			if "modelid" not in makeJ:
 				# If "Philips hue bridge" doesn't exist in the response, it's not a Hue bridge.
-				self.indiLOG.log(20,"No \"modelId\":  string found in response. This isn't a Hue bridge. (initial test /nouser/config )")
+				self.indiLOG.log(20,"No \"modelId\":  string found in response. This isn't a Hue bridge. (initial test /nouser/config ):\n{}".format(r.content))
 				if not autoSearch: errorsDict['showAlertText'] = "hue response string not found, not Hue Bridge"
 				return valuesDict, errorsDict
 			else:
@@ -3508,7 +3584,7 @@ class Plugin(indigo.PluginBase):
 					self.tryAutoCreatePairTimeWindow = 0
 					self.tryAutoCreatePairValuesDict = dict()
 					self.pairedBridgeExec = "success"
-					self.lastTimeHTTPGet[hubNumber]['all'] = time.time() - 1000
+					self.lastTimeHTTPGet[self.hubNumberSelected]['all'] = time.time() - 1000
 					return valuesDict, errorsDict
 			else:
 				# The Hue bridge is acting weird.  There should have been only 1 response.
@@ -3555,8 +3631,9 @@ class Plugin(indigo.PluginBase):
 
 		try: 	self.timeScaleFactor = float(valuesDict['timeScaleFactor'])/10.
 		except: self.timeScaleFactor = 1.
-		try: 	self.timeScaleFactorAPIV2 = float(valuesDict['timeScaleFactorAPIV2'])
-		except: self.timeSctimeScaleFactorAPIV2aleFactor = 500.
+		if False:
+			try: 	self.timeScaleFactorAPIV2 = float(valuesDict['timeScaleFactorAPIV2'])
+			except: self.timeScaleFactorAPIV2 = 119.
 
 		self.searchForStringinFindHueBridge = valuesDict['searchForStringinFindHueBridge']
 
@@ -3616,8 +3693,9 @@ class Plugin(indigo.PluginBase):
 
 			try: 	self.timeScaleFactor		= float(valuesDict['timeScaleFactor'])/10.
 			except:	self.timeScaleFactor		= 1.0  # in case its is not a number
-			try:	self.timeScaleFactorAPIV2	= float(valuesDict['timeScaleFactorAPIV2'])
-			except:	self.timeScaleFactorAPIV2	= 500.
+			if False:
+				try:	self.timeScaleFactorAPIV2	= float(valuesDict['timeScaleFactorAPIV2'])
+				except:	self.timeScaleFactorAPIV2	= 119.
 
 			if valuesDict.get('rgbmax', '100') == "100":
 				self.rgbIndigoMax 			= 1.
@@ -3628,6 +3706,7 @@ class Plugin(indigo.PluginBase):
 			self.pluginPrefs['hostIds'] 		= json.dumps(self.hostIds)
 			self.pluginPrefs['hubVersion'] 		= json.dumps(self.hubVersion)
 			self.pluginPrefs['apiVersion'] 		= json.dumps(self.apiVersion)
+			self.pluginPrefs['hubIsEnabled'] 		= json.dumps(self.hubIsEnabled)
 
 			# If the number of Preset Memories was changed, add or remove Presets as needed.
 			self.maxPresetCount = int(valuesDict.get('maxPresetCount', "30"))
@@ -5462,12 +5541,16 @@ class Plugin(indigo.PluginBase):
 								if uiImage is not None:
 									device.updateStateImageOnServer(uiImage)
 								self.deviceCopiesFromIndigo[device.id] = self.getIndigoDevice(device.id, calledFrom="loopDelayedAction")
+								
 					if "command" in action:
 						self.indiLOG.log(20,"loopDelayedAction executing: {}  ".format(action))
 						try: exec(action['command'])
 						except Exception:
 							self.indiLOG.log(30,"", exc_info=True)
-
+							
+					if "getGroupV1Data" in action:
+						self.getGroupStatus(action['getGroupV1Data'])
+						
 					if "deleteCommands" in action:
 						self.indiLOG.log(20,"loopDelayedAction deleting current actions  ")
 						deleteActions = True
@@ -5526,9 +5609,8 @@ class Plugin(indigo.PluginBase):
 			self.indiLOG.log(10,"Starting menuDelete{} with {}.".format(devType, valuesDict))
 			deviceId  = int(valuesDict.get(tag, ""))
 
-			device = self.deviceCopiesFromIndigo(deviceId)
-			deviceId = int(devid)
-			ID = device.states.get('id_v1',"").split('/')[1]
+			device = self.deviceCopiesFromIndigo[deviceId]
+			ID = device.states.get('id_v1',"").split('/')[-1]
 			
 
 			hubNumber, ipAddress, hostId, paired = self.getIdsFromDevice(device)
@@ -5564,7 +5646,7 @@ class Plugin(indigo.PluginBase):
 				return valuesDict
 
 			else:
-				requestData = {  }
+				requestData = dict()
 					
 				return self.prephpptCallV2(hubNumber, device, requestData, commandType='delete' )
 
@@ -5950,6 +6032,7 @@ class Plugin(indigo.PluginBase):
 				
 		if self.apiVersion[self.hubNumberSelected] == "2":
 			for hubNumber in hubList:
+				if not self.hubIsEnabled[hubNumber]: continue
 				services = self.allV2Data[hubNumber]['services']
 				devices = self.allV2Data[hubNumber]['devices']
 				if "scene" not in services: continue
@@ -6400,6 +6483,7 @@ class Plugin(indigo.PluginBase):
 		groupId = valuesDict.get('groupId', "")
 
 		for hubNumber in self.allV1Data:
+			if not self.hubIsEnabled[hubNumber]: continue
 			if "scenes" not in self.allV1Data[hubNumber]: continue
 			if sceneId == "":
 				# The sceneId is blank. This only happens when the action/menu dialog is
@@ -6570,6 +6654,7 @@ class Plugin(indigo.PluginBase):
 		useFilter = filter.replace(",","")
 		for devId in self.deviceCopiesFromIndigo:
 			device = self.deviceCopiesFromIndigo[devId]
+			if "id_v1"  not in device.states: continue
 			if device.states["id_v1"].find("light") == -1: continue
 			lightDetails = {'type':device.states.get('type'),'name':device.name}
 			lightId = devId
@@ -6828,7 +6913,7 @@ class Plugin(indigo.PluginBase):
 
 			self.ignoreMovedDevice[self.hubNumberSelectedOld][devtypeName][theIdOld] = time.time()
 			devOld = indigo.devices[theIdOld]
-			indigo.device.delete(devNew)
+			indigo.device.delete(devNew.id)
 			self.deviceCopiesFromIndigo[devOld.id] = self.getIndigoDevice(devOld.id, calledFrom="executeMoveToNewBridge")
 
 			for serviceId in self.serviceidToIndigoId:
@@ -7026,38 +7111,39 @@ class Plugin(indigo.PluginBase):
 	def rebuildDevice(self, device, vd=None):
 		if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"Starting rebuildDevice.")
 
-		if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"Checking if the {} device needs to be rebuilt.".format(device.name))
-		if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"Device details before rebuild check:\n{}".format(device))
 		anyChange = False
 		props = device.pluginProps
-		hubNumber = props.get('hubNumber', "0")
-		if hubNumber == "-1":
-			if vd is not None:
-				hubNumber = vd.get('hubNumber', "-1")
-				if hubNumber == "-1":
-					self.indiLOG.log(20,"Device {} is new has no props yet, skipping rebuildDevice".format(device.name))
-					return # this is at creation point, props not filled yet
-				else:
-					props = copy.deepcopy(vd)
-
-		if hubNumber not in self.ipAddresses or not self.isvalidIP(self.ipAddresses[hubNumber]):
-			self.doErrorLog("bridge number {} not registered in ip-addresses {}, please try to re-pair bridge in config  device causing this:{}".format(hubNumber, self.ipAddresses, device.name), level=30)
-			return
-
-		newProps = self.validateRGBWhiteOnOffetc(props, deviceTypeId=device.deviceTypeId, devId=device.id, devName=device.name)
-
-		if newProps != device.pluginProps:
-			if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"Device properties have changed. New properties:\n{}".format(newProps))
-			if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"Replacing properties on server.")
-			device.replacePluginPropsOnServer(newProps)
-			anyChange = True
-
-		if "created" not in device.states or len(device.states['created']) < 20:
-			device.updateStateOnServer('created', datetime.datetime.now().strftime(u"%Y-%m-%d %H:%M:%S") )
-
-		if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"Telling server to reload state list and display state.")
-		device.stateListOrDisplayStateIdChanged(
-		)
+		if "hubNumber" in props: 
+			if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"Checking if the {} device needs to be rebuilt.".format(device.name))
+			if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"Device details before rebuild check:\n{}".format(device))
+			hubNumber = props.get('hubNumber', "0")
+			if hubNumber == "-1":
+				if vd is not None:
+					hubNumber = vd.get('hubNumber', "-1")
+					if hubNumber == "-1":
+						self.indiLOG.log(20,"Device {} is new has no props yet, skipping rebuildDevice".format(device.name))
+						return # this is at creation point, props not filled yet
+					else:
+						props = copy.deepcopy(vd)
+	
+			if hubNumber not in self.ipAddresses or not self.isvalidIP(self.ipAddresses[hubNumber]):
+				self.doErrorLog("bridge number {} not registered in ip-addresses {}, please try to re-pair bridge in config  device causing this:{}".format(hubNumber, self.ipAddresses, device.name), level=30)
+				return
+	
+			newProps = self.validateRGBWhiteOnOffetc(props, deviceTypeId=device.deviceTypeId, devId=device.id, devName=device.name)
+	
+			if newProps != device.pluginProps:
+				if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"Device properties have changed. New properties:\n{}".format(newProps))
+				if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"Replacing properties on server.")
+				device.replacePluginPropsOnServer(newProps)
+				anyChange = True
+	
+			if "created" not in device.states or len(device.states['created']) < 20:
+				device.updateStateOnServer('created', datetime.datetime.now().strftime(u"%Y-%m-%d %H:%M:%S") )
+	
+			if self.decideMyLog("UpdateIndigoDevices"): self.indiLOG.log(10,"Telling server to reload state list and display state.")
+			
+		device.stateListOrDisplayStateIdChanged()
 		if anyChange:
 			self.deviceCopiesFromIndigo[device.id] = self.getIndigoDevice(device.id, calledFrom="rebuildDevice")
 
@@ -7088,6 +7174,336 @@ class Plugin(indigo.PluginBase):
 		if time.time() - self.lastTimeFor['cleanUpIndigoTables'] < self.deltaRefresh['cleanUpIndigoTables']: return
 		self.lastTimeFor['cleanUpIndigoTables'] = time.time()
 		self.cleanUpIndigoTables()
+
+
+	########################################
+	def checkIfBridgeUpdates(self):
+		if time.time() - self.lastTimeFor['checkIfBridgeUpdates'] < self.deltaRefresh['checkIfBridgeUpdates']: return
+		self.lastTimeFor['checkIfBridgeUpdates'] = time.time()
+		
+		try:
+			bridgeFound = dict()
+			for deviceId in self.deviceCopiesFromIndigo:
+				device = self.deviceCopiesFromIndigo[deviceId]
+				if device.deviceTypeId != "HueBridge": continue
+				hubNumber = str(device.states['bridge'])
+				if hubNumber not in self.ipAddresses: continue
+				bridgeFound[hubNumber] = deviceId
+				if self.isvalidIP(self.ipAddresses[hubNumber]):
+					stateUpdateList = list()
+	
+			for hubNumber in self.ipAddresses:
+				if not self.isvalidIP(self.ipAddresses[hubNumber]): continue
+				if not self.hubIsEnabled[hubNumber]: continue
+				if hubNumber in bridgeFound: continue
+				name = "Hue_Bridge_"+hubNumber+"_"+self.ipAddresses[hubNumber]
+				try: 
+					indigo.devices[name]
+					continue
+				except: pass
+				props = dict()
+				props['SupportsSensorValue'] = False
+				props['SupportsOnState'] = True
+				props['SupportsStatusRequest'] = False
+				try:
+					dev = indigo.device.create(
+						protocol		= indigo.kProtocol.Plugin,
+						address			= "",
+						name			= name,
+						description		= "created by bridge scan",
+						pluginId		= self.pluginId,
+						deviceTypeId	= "HueBridge",
+						folder			= self.hueFolderID,
+						props			= props
+						)
+					dev.updateStateOnServer("bridge", hubNumber)
+					dev.updateStateOnServer("created", datetime.datetime.now().strftime(u"%Y-%m-%d %H:%M:%S"))
+					dev = indigo.devices[dev.id]
+					self.deviceCopiesFromIndigo[dev.id] = self.getIndigoDevice(dev.id, calledFrom="checkIfBridgeUpdates")
+					bridgeFound[hubNumber] = dev.id
+					self.indiLOG.log(20,"bridge #: {}  device created: {}.".format( hubNumber, dev.name))
+				except Exception:
+					self.indiLOG.log(40,"", exc_info=True)
+					
+			#self.indiLOG.log(30," bridgeFound:{}".format( bridgeFound))
+					
+			for hubNumber in bridgeFound:
+					devId =  bridgeFound[hubNumber]
+					device = self.deviceCopiesFromIndigo[devId]
+					#self.indiLOG.log(30,"n:{}, devName:{}".format(hubNumber, device.name))
+					
+					stateUpdateList		= []
+					stateUpdateList 	= self.checkIfUpdateState(device, 'enabled', 					self.hubIsEnabled[hubNumber], 			stateUpdateList=stateUpdateList )
+
+					if not self.hubIsEnabled[hubNumber]: 
+						self.updateDeviceState(device, stateUpdateList, calledFrom="checkIfBridgeUpdates")
+						device.setErrorStateOnServer("disabled")
+						continue
+
+					if hubNumber not in self.ipAddresses: 
+						indigo.devices.delete(device.id)
+						del self.deviceCopiesFromIndigo[device.id]
+						continue
+
+
+					stateUpdateList 	= self.checkIfUpdateState(device, 'bridgeType', 				self.hubVersion[hubNumber], 			stateUpdateList=stateUpdateList )
+					stateUpdateList 	= self.checkIfUpdateState(device, 'ipAddress', 					self.ipAddresses[hubNumber], 			stateUpdateList=stateUpdateList )
+					stateUpdateList 	= self.checkIfUpdateState(device, 'paired', 					self.paired[hubNumber], 				stateUpdateList=stateUpdateList )
+					online = self.testPing(self.ipAddresses[hubNumber]) == 0
+					if not online:	
+							device.setErrorStateOnServer("disconnected")
+							stateUpdateList 	= self.checkIfUpdateState(device, 'onOffState', 				online, uiValue="offline",			stateUpdateList=stateUpdateList )
+					else:			
+							stateUpdateList 	= self.checkIfUpdateState(device, 'onOffState', 				online, uiValue="online",			stateUpdateList=stateUpdateList )
+							device.setErrorStateOnServer(None)
+
+					allDataV1 = self.allV1Data.get(hubNumber,dict())
+					allDataV2 = self.allV2Data.get(hubNumber,dict())
+					if self.apiVersion[hubNumber] == "2" and "services" in allDataV2:
+						allDevices = allDataV2['devices']
+						services = allDataV2['services']
+						if "bridge" not in services: continue
+						
+						for dd in  services['bridge']:
+							bridgeOwnerId = services['bridge'][dd]['owner']['rid']
+							break
+
+						bridgeDevice = allDevices[bridgeOwnerId]
+						product_data = bridgeDevice['product_data']
+						
+						metadata = bridgeDevice['metadata']
+						zigbeeid = bridgeDevice['services']['zigbee_connectivity'][0]
+						zigbeeInfo = services['zigbee_connectivity'][zigbeeid]
+						if "channel" not in zigbeeInfo: continue
+
+						Hue_dimmer_switch 		= 0
+						Hue_smart_button 		= 0
+						Hue_tap_dial_switch 	= 0
+						Works_with_Hue_Switch 	= 0
+						Hue_wall_switch			= 0
+						Hue_secure_contact		= 0
+						sensorOther				= 0
+						Hue_motion_sensor 		= 0
+						buttonDevs 				= 0
+						swupdates 				= 0
+						Extended = 0
+						Dimmable = 0
+						ColorL = 0
+						ColorT = 0
+						onOff = 0
+						otherL = 0 
+
+						for nn in services['button']:
+							button = services['button'][nn]
+							if button.get('buttonNumber',0) == 1:
+								buttonDevs += 1	
+
+						for nn in services['device_software_update']:
+							upd = services['device_software_update'][nn]
+							if upd.get('state',"") != "no_update":
+								swupdates += 1	
+
+						for uuid in allDevices:
+							dev = allDevices[uuid]
+							if "product_data" not in dev: continue
+							product_data = dev['product_data']
+							if "product_name" not in product_data: continue
+							
+							if "light" in dev['services']: 
+								tt = product_data.get('HueDeviceType','other').lower()
+								if   tt == "extended color light": 		Extended += 1
+								elif tt == "dimmable light": 			Dimmable += 1
+								elif tt == "color temperature light": 	ColorT += 1
+								elif tt == "color light": 				ColorL += 1
+								elif tt.find("on/off") > -1:			onOff += 1
+								else:						 			
+																		otherL += 1
+																		self.indiLOG.log(20,"V2 other light type: {}, product_data:{}".format(tt, product_data))
+
+							else:
+								tt = product_data['product_name'].lower()
+								if   tt == "hue dimmer switch": 		Hue_dimmer_switch += 1
+								elif tt == "hue smart button": 			Hue_smart_button += 1
+								elif tt == "hue tap dial switch": 		Hue_tap_dial_switch += 1
+								elif tt == "works with hue switch": 	Works_with_Hue_Switch += 1
+								elif tt == "hue wall switch module": 	Hue_wall_switch += 1
+								elif tt == "hue secure contact sensor": pass
+								elif tt.find("bridge") > -1: 			pass
+								elif tt == "hue motion sensor": 		Hue_motion_sensor += 1
+								else : 															
+																		sensorOther += 1
+																		self.indiLOG.log(20,"V2 other sensor type: {}".format(product_data['product_name']))
+
+						
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_extendedColor',		Extended, 								stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_dimmable',			Dimmable, 								stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_colorTemperature',	ColorT, 								stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_color',				ColorL, 								stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_onOff',				onOff, 									stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_other',				otherL, 								stateUpdateList=stateUpdateList )
+
+						stateUpdateList 	= self.checkIfUpdateState(device, 'hostId', 					self.hostIds[hubNumber],						stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'apiVersion', 				self.apiVersion[hubNumber],						stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'ownerId', 					bridgeOwnerId, 									stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'bridgeVersion', 				product_data['product_archetype'],				stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'softwareVersion', 			product_data['software_version'],				stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'nameOnBridge', 				metadata['name'],					 			stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'mac', 						zigbeeInfo['mac_address'],	 					stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'zigbeeChannel', 				zigbeeInfo['channel']['value'].split("_")[1],	stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_softwareUpdates', 		swupdates, 									stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_dimmer',		Hue_dimmer_switch, 							stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_wall',			Hue_wall_switch, 							stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_SmartButton',	Hue_smart_button, 							stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_TapDial',		Hue_tap_dial_switch,						stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_FriendsOfHue',	Works_with_Hue_Switch, 						stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches', 				buttonDevs, 								stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_other', 		sensorOther, 								stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_totalButtons',	len(services['button']),					stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_sensor_motion',			Hue_motion_sensor, 							stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_behaviorScripts',	len(services['behavior_script']), 				stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_securityAreaMotion', len(services['security_area_motion']), 		stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_groupedMotions',	len(services['grouped_motion']), 				stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights', 			len(services['light']), 						stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_rooms', 			len(services['room']), 							stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_zones', 			len(services['zone']), 							stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_scenes', 			len(services['scene']), 						stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_sensor_groupedMotion',	len(services['grouped_motion']),			stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_sensor_areaMotion',	len(services['motion_area_configuration']),		stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_sensor_contact',	len(services['contact']),						stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_smartScenes', 		len(services['smart_scene']), 					stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'hostId', 					self.hostIds[hubNumber],						stateUpdateList=stateUpdateList )
+
+					if "config" in allDataV1:
+						
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_resourcelinks', 	len(allDataV1['resourcelinks']), 				stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_rules', 			len(allDataV1['rules']), 						stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_users', 			len(allDataV1['users']), 						stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_schedules', 		len(allDataV1['schedules']), 					stateUpdateList=stateUpdateList )
+
+						if self.apiVersion[hubNumber] == "1":		# for apiv2 we have that abouve
+
+							Extended = 0
+							Dimmable = 0
+							ColorL = 0
+							ColorT = 0
+							onOff = 0
+							otherL = 0 
+							lights =  allDataV1['lights']
+							for uuid in lights:
+								dev = lights[uuid]
+								if "type" not in dev: continue
+								tt = dev['type'].lower()
+								if   tt == "extended color light": 		Extended += 1
+								elif tt == "dimmable light": 			Dimmable += 1
+								elif tt == "color temperature light": 	ColorT += 1
+								elif tt == "color light": 				ColorL += 1
+								elif tt.find("on/off") > -1:			onOff += 1
+								else:						 			
+																		otherL += 1
+																		self.indiLOG.log(20,"other light type: {}".format(tt))
+								
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_extendedColor',		Extended, 							stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_dimmable',			Dimmable, 							stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_colorTemperature',	ColorT, 							stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_color',				ColorL, 							stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_onOff',				onOff, 								stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_other',				otherL, 								stateUpdateList=stateUpdateList )
+
+
+							sensors =  allDataV1['sensors']
+							bridgeDevice =  allDataV1['config']
+							buttonDevs 				= 0
+							sensorN 				= 0
+							rooms 					= 0
+							zones 					= 0
+							swupdates 				= 0
+							Hue_dimmer_switch		= 0
+							Hue_smart_button 		= 0
+							Hue_tap_dial_switch 	= 0
+							Works_with_Hue_Switch 	= 0
+							Hue_wall_switch			= 0
+							Hue_motion_sensor 		= 0
+							sensorOther				= 0
+							
+							for uuid in sensors:
+								dev = sensors[uuid]
+								if "productname" not in dev: continue
+								dType = dev['type'].lower()
+								if dType.find('rotary') == -1:
+									productname = dev['productname'].lower()
+									if   productname == "hue dimmer switch": 		Hue_dimmer_switch += 1
+									elif productname == "hue smart button": 		Hue_smart_button += 1
+									elif productname == "hue tap dial switch": 		Hue_tap_dial_switch += 1
+									elif productname == "works with hue switch": 	Works_with_Hue_Switch += 1
+									elif productname == "hue motion sensor": 		Hue_motion_sensor += 1
+									elif productname == "hue wall switch module": 	Hue_wall_switch += 1
+									elif productname == "hue temperature sensor": 	pass
+									elif productname == "hue ambient light sensor":	pass
+									else : 															
+																					sensorOther += 1
+																					self.indiLOG.log(20,"v1 other sensor type: {}".format(productname))
+								
+								if dType in kbuttonTypes:						buttonDevs += 1
+								if "swupdate" in dev:
+									if dev['swupdate'].get('state') != "noupdates":swupdates +=1
+								
+							for uuid in allDataV1['lights']:
+								sens = allDataV1['lights'][uuid]
+								if "swupdate" in sens:
+									if sens['swupdate'].get('state') != "noupdates":swupdates +=1
+								
+							for uuid in allDataV1['groups']:
+								sens = allDataV1['groups'][uuid]
+								if sens['type'] == "Room": rooms += 1
+								if sens['type'] == "Zone": zones += 1
+
+							stateUpdateList 	= self.checkIfUpdateState(device, 'hostId', 					self.hostIds[hubNumber],					stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'apiVersion', 				bridgeDevice['apiversion'],					stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'ownerId', 					bridgeDevice['bridgeid'], 					stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'bridgeVersion', 				"2",										stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'softwareVersion', 			bridgeDevice['swversion'],					stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'nameOnBridge', 				bridgeDevice['name'],						stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'mac', 						bridgeDevice['mac'], 						stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'zigbeeChannel', 				str(bridgeDevice['zigbeechannel']), 		stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights', 			len(allDataV1['lights']), 					stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_scenes', 			len(allDataV1['scenes']), 					stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_softwareUpdates', 	swupdates, 									stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches', 			buttonDevs, 								stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_dimmer',		Hue_dimmer_switch, 						stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_SmartButton',	Hue_smart_button, 						stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_TapDial',		Hue_tap_dial_switch, 					stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_FriendsOfHue',	Works_with_Hue_Switch, 					stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_wall',			Hue_wall_switch, 							stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_other', 		sensorOther, 								stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_sensor_motion',			Hue_motion_sensor, 						stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_rooms', 			rooms, 										stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_zones', 			zones, 										stateUpdateList=stateUpdateList )
+
+					
+						
+					self.updateDeviceState(device, stateUpdateList, calledFrom="checkIfBridgeUpdates")
+
+		except Exception:
+			self.indiLOG.log(40,"", exc_info=True)
+
+		return 
+
+
+	########################################
+	def testPing(self, ipN):
+		try:
+			ss = time.time()
+			ret = subprocess.call("/sbin/ping  -c 1 -W 40 -o " + ipN, shell=True) # send max 2 packets, wait 40 msec   if one gets back stop
+
+			if int(ret) ==0:  return 0
+			self.sleep(0.1)
+			ret = subprocess.call("/sbin/ping  -c 1 -W 400 -o " + ipN, shell=True)
+
+			if int(ret) ==0:  return 0
+			return 1
+		except Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return 1
 
 
 	# check for non existing devices on Hue bridge
@@ -7240,8 +7656,8 @@ class Plugin(indigo.PluginBase):
 
 		# Call the method to update the Indigo device with the Hue group data.
 		self.allV1Data[hubNumber]['groups'][groupId] = bulb
-		self.parseOneHueGroupDataV1(group, device)
 		'''
+		self.parseOneHueGroupDataV1(group, device)
 		return
 
 
@@ -7305,7 +7721,7 @@ class Plugin(indigo.PluginBase):
 				if dTypeV1 == "sensors":
 					if device.deviceTypeId == "hueMotionSensor":
 							dType = "motion"
-							ownerId = self.getOwnerIdforServiceInDevice(hubNumber, device, dType,doPrint=True)
+							ownerId = self.getOwnerIdforServiceInDevice(hubNumber, device, dType, doPrint=True)
 					elif device.deviceTypeId == "hueMotionTemperatureSensor":
 							dType = "temperature"
 							ownerId = device.states["ownerId"]
@@ -7316,7 +7732,7 @@ class Plugin(indigo.PluginBase):
 						if doPrint0: self.indiLOG.log(20,"prephpptCallV2.  devicetype not found")
 
 			if dType == "" and str(dTypeV1) == "lights" and ownerIdStates in  self.allV2Data[hubNumber]['devices'] and "light" in  self.allV2Data[hubNumber]['devices'][ownerIdStates]['services']:
-				ownerId = self.allV2Data[hubNumber]['devices'][ownerIdStates]['services']['light']
+				ownerId = self.allV2Data[hubNumber]['devices'][ownerIdStates]['services']['light'][0]
 				dType = 'light'
 					
 
@@ -7609,10 +8025,9 @@ class Plugin(indigo.PluginBase):
 		for hubNumber in self.ipAddresses:
 			if not self.isvalidIP(self.ipAddresses[hubNumber]): continue
 			if self.apiVersion.get(hubNumber,None) != "2": continue
-			dt = time.time() - self.lastTimeHTTPGet[hubNumber]['v2']
-			limit = min(460, max(30., self.deltaRefresh['v2'] ))
-			if not force:
-				if  dt < limit: continue
+			if not self.hubIsEnabled[hubNumber]: continue
+
+			if not force and not self.getDT(hubNumber, "v2"): continue
 
 			if self.decideMyLog("Starting"): self.indiLOG.log(30,"Starting fillAllDataV2 hubNumber:{} dt:{:.1f} limit:{:.1f}  type: {}".format(hubNumber, dt, limit, "v2" ))
 			self.lastTimeHTTPGet[hubNumber]['v2'] = time.time()
@@ -7659,12 +8074,15 @@ class Plugin(indigo.PluginBase):
 						newV2['devices'][hueDeviceId]['indigoId'] 		= 0
 
 						if "services" in bridgeObject:
+							newV2['devices'][hueDeviceId]['services-raw'] = copy.copy(bridgeObject['services'])
 							for service in bridgeObject['services']:
 								if "rtype" in service:
 									rtype = service['rtype']
 									rid = service['rid']
-									newV2['devices'][hueDeviceId]['services'][rtype] = rid
-						newV2['devices'][hueDeviceId]['services']['device'] = hueDeviceId
+									if rtype not in newV2['devices'][hueDeviceId]['services']:
+										newV2['devices'][hueDeviceId]['services'][rtype] = list()
+									newV2['devices'][hueDeviceId]['services'][rtype].append(rid)
+						newV2['devices'][hueDeviceId]['services']['device'] = [hueDeviceId]
 
 						modelId = newV2['devices'][hueDeviceId]['product_data'].get('model_id', '')
 						indigoId = None
@@ -7687,9 +8105,9 @@ class Plugin(indigo.PluginBase):
 													dev.updateStateOnServer("id_v1", id_v1)
 												self.deviceCopiesFromIndigo[devId] = dev
 												if doPrint: self.indiLOG.log(30," updating hueDeviceId: 2 {}: indigoId:{} ; name:{}, ownerid:{}".format( hueDeviceId, indigoId, dev.name,dev.states['ownerId']) )
-												for service in newV2['devices'][hueDeviceId]['services']:
+												for rtype in newV2['devices'][hueDeviceId]['services']:
 													if not( modelId in kmodelWithChild and service in kmodelWithChild[modelId]):  # g is set by other method
-														serviceId = newV2['devices'][hueDeviceId]['services'][service]
+														serviceId = newV2['devices'][hueDeviceId]['services'][rtype][0]
 														self.serviceidToIndigoId[hubNumber][serviceId] = devId
 														if doPrint: self.indiLOG.log(30," updating hueDeviceId: 3 {}: service:{} ; serviceId:{}, devId:{}".format( hueDeviceId, service, serviceId, devId) )
 												"""
@@ -7744,7 +8162,7 @@ class Plugin(indigo.PluginBase):
 					for yy in ['group', 'services']:
 						if yy in newV2['services'][servicetype][serviceId]:
 							temp = copy.copy(newV2['services'][servicetype][serviceId][yy])
-							newV2['services'][servicetype][serviceId][yy] = {}
+							newV2['services'][servicetype][serviceId][yy] = dict()
 							for xx in temp:
 								newV2['services'][servicetype][serviceId][yy][xx['rtype']] = xx['rid']
 
@@ -8009,7 +8427,7 @@ class Plugin(indigo.PluginBase):
 			strc = str(command).split("//")[1]
 			pos = strc.find("/")
 			strc = strc[pos:]
-			if hubNumber not in self.bytesSend: self.bytesSend[hubNumber] = {}
+			if hubNumber not in self.bytesSend: self.bytesSend[hubNumber] = dict()
 			if strc not in self.bytesSend[hubNumber]: self.bytesSend[hubNumber][strc] = [0,0,0,0,0,0,0,0]
 			self.bytesSend[hubNumber][strc][1] += len(strc)
 			self.bytesSend[hubNumber][strc][0] += 1
@@ -8069,7 +8487,7 @@ class Plugin(indigo.PluginBase):
 			strc = strc.split("//")[1]
 			pos = strc.find("/")
 			strc = strc[pos:]
-			if hubNumber not in self.bytesSend: self.bytesSend[hubNumber] = {}
+			if hubNumber not in self.bytesSend: self.bytesSend[hubNumber] = dict()
 			if strc not in self.bytesSend[hubNumber]: self.bytesSend[hubNumber][strc] = [0,0,0,0,0,0,0,0]
 			self.bytesSend[hubNumber][strc][3] += nchar
 			self.bytesSend[hubNumber][strc][2] += 1
@@ -8118,6 +8536,7 @@ class Plugin(indigo.PluginBase):
 					del self.deviceList[deviceId]
 
 		for hubNumber in self.serviceidToIndigoId:
+			if not self.hubIsEnabled[hubNumber]: continue
 			delDev = list()
 			for uuid in self.serviceidToIndigoId[hubNumber]:
 				indigoId = self.serviceidToIndigoId[hubNumber][uuid]
@@ -8131,11 +8550,13 @@ class Plugin(indigo.PluginBase):
 
 	########################################
 	def getDT(self, hubNumber, dType):
-		if self.apiVersion[hubNumber] == "2": factor = self.timeScaleFactorAPIV2
-		else: factor = self.timeScaleFactor
-		dt = time.time() - self.lastTimeHTTPGet[hubNumber][dType]
-		limit = min(475, max(0.5, self.deltaRefresh[dType] *factor))
-		if dt  < limit: return False
+		if not self.hubIsEnabled[hubNumber]: return False
+		if self.apiVersion[hubNumber] == "2": 
+			limit = self.timeScaleFactorAPIV2
+		else: 
+			limit = min(499, max(0.5, self.deltaRefresh[dType] * self.timeScaleFactor))
+			
+		if time.time() - self.lastTimeHTTPGet[hubNumber][dType]  < limit: return False
 
 		return True
 
@@ -8149,6 +8570,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def makeV2DevicesAll(self, calledFrom=""):
 		for hubNumber in self.ipAddresses:
+			if not self.hubIsEnabled[hubNumber]: continue
 			if self.isvalidIP(self.ipAddresses[hubNumber]):
 				if self.apiVersion[hubNumber] == "2":
 					self.makeV2Devices(hubNumber, calledFrom="makeV2DevicesAll")
@@ -8209,7 +8631,7 @@ class Plugin(indigo.PluginBase):
 		# do motion area event setups
 
 	########################################
-	def checkIfCreateNewGroupsV2(self, hubNumber, hueDevice, ownerId , theType):
+	def checkIfCreateNewGroupsV2(self, hubNumber, hueDeviceService, ownerId , theType):
 		"""		
      "room": {
         "0b608acc-efa3-44ad-b16f-0c6c2c861a26": {
@@ -8232,13 +8654,13 @@ class Plugin(indigo.PluginBase):
 
 		"""
 		try:
-			idv1 =  str(hueDevice.get('id_v1',''))
+			idv1 =  str(hueDeviceService.get('id_v1',''))
 			doPrint =  True # ownerId == "xxx0b608acc-efa3-44ad-b16f-0c6c2c861a26"
 			doPrint = idv1 =='xx/groups/107'
 			theID = idv1.split('/')[-1]
 			if hubNumber+"/group/"+theID in self.ignoreDevices: return 
 			stateUpdateList = list()
-			indigoId = hueDevice.get('indigoId',0)
+			indigoId = hueDeviceService.get('indigoId',0)
 			device = self.deviceCopiesFromIndigo.get(indigoId)
 			newDevice = device is None
 			updateprops = False
@@ -8247,7 +8669,7 @@ class Plugin(indigo.PluginBase):
 			devices = self.allV2Data[hubNumber]['devices']
 			lights = self.allV2Data[hubNumber]['services']['light']
 				
-			children = hueDevice.get('children',list())
+			children = hueDeviceService.get('children',list())
 			childListLights = ""
 			childListSensors = ""
 			for child in children:
@@ -8267,7 +8689,7 @@ class Plugin(indigo.PluginBase):
 						if idv.find('light') > -1:
 							childListLights += idv.split('/')[-1]+","
 							
-			services = hueDevice.get('services',list())
+			services = hueDeviceService.get('services',list())
 			serviceList = []
 			for service in services:
 				if doPrint: self.indiLOG.log(20,f"checkIfCreateNewGroupsV2: testing  service:{service}")
@@ -8278,11 +8700,11 @@ class Plugin(indigo.PluginBase):
 			if doPrint: self.indiLOG.log(20,f"checkIfCreateNewGroupsV2: {hubNumber}, idv1:{idv1}, childListLights:{childListLights}, serviceList:{serviceList}")
 
 				
-			nameOnBridge = hueDevice['metadata']['name']
+			nameOnBridge = hueDeviceService['metadata']['name']
 			if newDevice:
 				if doPrint: self.indiLOG.log(20,f"checkIfCreateNewGroupsV2: {hubNumber},  new Device ")
 				deviceTypeId = "hueGroup"
-				if doPrint: self.indiLOG.log(20,"checkIfCreateNewGroupsV2   Bridge:{:>2s}; id:{:>3s}, hueDevice:{:25s}  ".format(hubNumber, theID, str(hueDevice)[0:50]))
+				if doPrint: self.indiLOG.log(20,"checkIfCreateNewGroupsV2   Bridge:{:>2s}; id:{:>3s}, hueDeviceService:{:25s}  ".format(hubNumber, theID, str(hueDeviceService)[0:50]))
 				name = "Hue_{}_{}_{}_{}".format(self.pluginPrefs.get('groupPrefix',kDefaultPluginPrefs['groupPrefix']), hubNumber, theID, nameOnBridge)
 				devidOfExistingDevice =  self.checkifDeviceExists( name, stateToCheck="id_v1", stateValue="/groups/"+theID)
 				if devidOfExistingDevice > 0:
@@ -8308,14 +8730,14 @@ class Plugin(indigo.PluginBase):
 							props			= props
 							)
 						self.createdGroups +=1
-						self.indiLOG.log(20,"checkIfCreateNewGroupsV2   created new device :{}, new service:{}".format(name, hueDevice))
+						self.indiLOG.log(20,"checkIfCreateNewGroupsV2   created new device :{}, new service:{}".format(name, hueDeviceService))
 						self.saveFiles(force=True)
 					except Exception:
 						self.indiLOG.log(40,"", exc_info=True)
-						self.logger.error("name:{}, deviceTypeId:{}, dict:{}".format(nameOnBridges, deviceTypeId, hueDevice))
+						self.logger.error("name:{}, deviceTypeId:{}, dict:{}".format(nameOnBridges, deviceTypeId, hueDeviceService))
 
 
-			hueDevice['indigoId'] = device.id
+			hueDeviceService['indigoId'] = device.id
 			serviceType = kmapdevTypeToServiceType.get(device.deviceTypeId,'light')
 			stateUpdateList = self.checkIfUpdateState(device, 'serviceType', 		serviceType,	 	stateUpdateList=stateUpdateList)
 			stateUpdateList = self.checkIfUpdateState(device, 'lightIds', 			childListLights, 	stateUpdateList=stateUpdateList)
@@ -8342,7 +8764,7 @@ class Plugin(indigo.PluginBase):
 
 
 	########################################
-	def checkifcreateNewLightV2(self, hubNumber, hueDevice, ownerId ):
+	def checkifcreateNewLightV2(self, hubNumber, hueDeviceService, ownerId ):
 		"""	in service / light		
 			for color devices:   "color": {"xy":{"x":0.4105,"y":0.4589},"gamut":{"red":{"x":0.6915,"y":0.3083},"green":{"x":0.17,"y":0.7},"blue":{"x":0.1532,"y":0.0475}},"gamut_type":"C"}
             for color temp devs  "color_temperature": {"mirek": 443,"mirek_valid": true,"mirek_schema": {  "mirek_minimum": 153,  "mirek_maximum": 500} },
@@ -8351,23 +8773,24 @@ class Plugin(indigo.PluginBase):
 
 		"""
 		try:
-			idv1 = str(hueDevice.get("id_v1", "None"))
+			idv1 = str(hueDeviceService.get("id_v1", "None"))
 			theID = idv1.split('/')[-1]
 			if hubNumber+"/light/"+theID in self.ignoreDevices: return 
 			stateUpdateList = list()
-			indigoId = hueDevice.get('indigoId',0)
+			indigoId = hueDeviceService.get('indigoId',0)
 			device = self.deviceCopiesFromIndigo.get(indigoId)
 			newDevice = device is None
 			updateprops = False
 			doPrint =  idv1 == "xx/lights/63"
-			lightServiceId = hueDevice['services']['light']
+			lightServiceId = hueDeviceService['services']['light'][0]
 			if doPrint: self.indiLOG.log(20,f"checkifcreateNewLightV2: {hubNumber}, indigoId:{indigoId}, newDevice:{newDevice}, lightServiceId:{lightServiceId}, ownerId:{ownerId}")
 			services = self.allV2Data[hubNumber]['services']
 			service = services['light']
 			if lightServiceId not in service: return 	
-			lightService = self.allV2Data[hubNumber]['services']['light'][lightServiceId]
+			lightService = services['light'][lightServiceId]
 			# get device type, what is supported 
 			dType = 0
+			HueDeviceType = ""
 			if "on" in lightService: 				dType += 1
 			if "dimming" in lightService: 			dType += 2
 			if "color_temperature" in lightService: dType += 4
@@ -8380,11 +8803,12 @@ class Plugin(indigo.PluginBase):
 			if dType > 7:
 				gamut = lightService['color'].get('gamut_type','C')
 			else:gamut = ""
-			if doPrint: self.indiLOG.log(20,f"checkLightV2: idv1: {idv1},  ")
+			if doPrint: self.indiLOG.log(20,f"checkLightV2: idv1: {idv1}, {HueDeviceType} {hueDeviceService}")
 
 
-			nameOnBridge = hueDevice['metadata']['name']
-			productData = hueDevice['product_data']
+			nameOnBridge = hueDeviceService['metadata']['name']
+			productData = hueDeviceService['product_data']
+			productData['HueDeviceType'] = HueDeviceType
 			manufacturerName = productData.get('manufacturer_name','')
 			productName = productData.get('product_name','')
 			modelid = productData.get('model_id','')
@@ -8405,9 +8829,9 @@ class Plugin(indigo.PluginBase):
 						break
 
 				if deviceTypeId == "":
-					self.indiLOG.log(20,"checkifcreateNewLightV2 light  Bridge:{:>2s}; id:{:>3s}, hueDevice:{:25s}      not supported".format(hubNumber, theID,  str(hueDevice)[0:50]))
+					self.indiLOG.log(20,"checkifcreateNewLightV2 light  Bridge:{:>2s}; id:{:>3s}, hueDeviceService:{:25s}      not supported".format(hubNumber, theID,  str(hueDeviceService)[0:50]))
 				else:
-					self.indiLOG.log(20,"checkifcreateNewLightV2 light  Bridge:{:>2s}; id:{:>3s}, hueDevice:{:25s}  ".format(hubNumber, theID, str(hueDevice)[0:50]))
+					self.indiLOG.log(20,"checkifcreateNewLightV2 light  Bridge:{:>2s}; id:{:>3s}, hueDeviceService:{:25s}  ".format(hubNumber, theID, str(hueDeviceService)[0:50]))
 					name = "Hue_{}_{}_{}_{}".format(self.pluginPrefs.get('lightPrefix',kDefaultPluginPrefs['lightPrefix']), hubNumber, theID, nameOnBridge)
 					devidOfExistingDevice =  self.checkifDeviceExists( name, stateToCheck="id_v1", stateValue="/lights/"+theID)
 					if devidOfExistingDevice > 0:
@@ -8442,16 +8866,17 @@ class Plugin(indigo.PluginBase):
 							props = device.pluginProps
 							self.serviceidToIndigoId[hubNumber][lightServiceId] = device.id
 							lightService['indigoId'] = device.id
-							hueDevice['indigoId'] = device.id
+							hueDeviceService['indigoId'] = device.id
 							self.createdLights +=1
+							self.indiLOG.log(20,"checkifcreateNewLightV2 light  Bridge:{:>2s}; id:{:>3s}, name:{:25s}  ".format(hubNumber, theID, name))
 						except Exception:
 							self.indiLOG.log(40,"", exc_info=True)
-							self.logger.error("name:{}, deviceTypeId:{}, dict:{}".format(nameOnBridges, deviceTypeId, hueDevice))
+							self.logger.error("name:{}, deviceTypeId:{}, dict:{}".format(nameOnBridges, deviceTypeId, hueDeviceService))
 
 			uniqueId = ""
 			online = False
-			for service in hueDevice['services']:
-				serviceId = hueDevice['services'][service]
+			for service in hueDeviceService['services']:
+				serviceId = hueDeviceService['services'][service][0]
 				if service in services:
 					if serviceId in services[service]:
 						services[service][serviceId]['indigoId'] = device.id
@@ -8465,6 +8890,11 @@ class Plugin(indigo.PluginBase):
 			if gamut != "" and props.get('gamut','') != gamut:
 				props['gamut'] = gamut
 				device.replacePluginPropsOnServer(props)
+				
+			swUpdateID = hueDeviceService['services'].get('device_software_update',[""])[0]
+			if swUpdateID in services['device_software_update']:
+				upd = services['device_software_update'][swUpdateID].get('state',"no_update")
+				stateUpdateList = self.checkIfUpdateState(device, 'softwareUpdate', 		upd,	 	stateUpdateList=stateUpdateList)
 				
 			serviceType = kmapdevTypeToServiceType.get(device.deviceTypeId,'light')
 			stateUpdateList = self.checkIfUpdateState(device, 'serviceType', 		serviceType,	 	stateUpdateList=stateUpdateList)
@@ -8481,7 +8911,7 @@ class Plugin(indigo.PluginBase):
 			stateUpdateList = self.doLightUpdate( hubNumber, device, lightService, stateUpdateList, 	doPrint=doPrint)
 			
 			if stateUpdateList != list():
-				self.updateDeviceState(device, stateUpdateList, calledFrom="digestV2Event")
+				self.updateDeviceState(device, stateUpdateList, calledFrom="checkifcreateNewLightV2")
 				
 			if updateprops or stateUpdateList != list():
 				self.deviceCopiesFromIndigo[device.id] = self.getIndigoDevice(device.id, calledFrom="checkifcreateNewLightV2")
@@ -8553,7 +8983,7 @@ class Plugin(indigo.PluginBase):
 			theID = idv1.split('/')[-1]
 			if hubNumber+"/sensor/"+theID in self.ignoreDevices: return 
 			services = self.allV2Data[hubNumber]['services']
-			doPrint =  idv1 == "xx/sensors/244"
+			doPrint =  idv1 == "/xxsensors/244"
 			if idv1 is None: 
 				self.indiLOG.log(20,f"checkifcreateNewSensorV2: 2 idv1: {idv1},   rejected")
 				return 
@@ -8571,7 +9001,8 @@ class Plugin(indigo.PluginBase):
 					break
 			if children != list():
 				for child in children:
-					rid = hueDevice0['services'][child]
+					rid = hueDevice0['services'][child][0]
+					if doPrint: self.indiLOG.log(20,f"checkifcreateNewSensorV2: 2, rid:{rid}")
 					indigoDeviceTypeId = kchildToIndigoDeviceType[child]
 					childInfo = services[child][rid]
 					workList.append([indigoDeviceTypeId, childInfo, rid, child])
@@ -8599,7 +9030,7 @@ class Plugin(indigo.PluginBase):
 				idv1 			= str(hueDevice.get("id_v1", None))
 				newDevice 		= device is None
 				if ii == 0:
-					devP = hueDevice0["services"].get('device_power',"")
+					devP = hueDevice0["services"].get('device_power',[""])[0]
 					if devP !="":
 						power_state = services['device_power'][devP].get('power_state',dict())
 						if  "battery_level" in power_state: 
@@ -8647,7 +9078,6 @@ class Plugin(indigo.PluginBase):
 									stateUpdateList = self.checkIfUpdateState(device, 'id_v1', 				idv1, 				stateUpdateList=stateUpdateList)
 									stateUpdateList = self.checkIfUpdateState(device, 'nameOnBridge', 		nameOnBridge, 		stateUpdateList=stateUpdateList)
 									stateUpdateList = self.checkIfUpdateState(device, 'bridge', 			hubNumber, 			stateUpdateList=stateUpdateList)
-									stateUpdateList = self.checkIfUpdateState(device, 'productName', 		productName, 		stateUpdateList=stateUpdateList)
 								except Exception:
 									self.indiLOG.log(40,"", exc_info=True)
 									self.logger.error("name:{}, deviceTypeId:{}, dict:{}".format(nameOnBridge, deviceTypeId, hueDevice))
@@ -8657,7 +9087,7 @@ class Plugin(indigo.PluginBase):
 				if ii == 0:
 					hueDevice0['indigoId']= device.id
 					for service in hueDevice['services']:
-						serviceId = hueDevice['services'][service]
+						serviceId = hueDevice['services'][service][0]
 						if service in services:
 							if service in kchildToIndigoDeviceType: continue
 							if serviceId in services[service]:
@@ -8677,6 +9107,12 @@ class Plugin(indigo.PluginBase):
 				stateUpdateList = self.checkIfUpdateState(device, 'online', 			online, 			stateUpdateList=stateUpdateList)
 				stateUpdateList = self.checkIfUpdateState(device, 'ownerId', 			ownerId, 			stateUpdateList=stateUpdateList)
 				stateUpdateList = self.checkIfUpdateState(device, 'uniqueId', 			uniqueId, 			stateUpdateList=stateUpdateList)
+
+				swUpdateID = hueDevice0['services'].get('device_software_update',[""])[0]
+				if swUpdateID in services['device_software_update']:
+					upd = services['device_software_update'][swUpdateID].get('state',"no_update")
+					stateUpdateList = self.checkIfUpdateState(device, 'softwareUpdate', 		upd,	 	stateUpdateList=stateUpdateList)
+
 				
 				if stateUpdateList != list():
 					self.updateDeviceState(device, stateUpdateList, calledFrom="digestV2Event")
@@ -8717,6 +9153,7 @@ class Plugin(indigo.PluginBase):
 	def checkMotionAreaEventSetupAll(self, calledFrom=""):
 
 		for hubNumber in self.ipAddresses:
+			if not self.hubIsEnabled[hubNumber]: continue
 			self.checkMotionAreaEventSetup(hubNumber, calledFrom=calledFrom)
 		return
 
@@ -8855,6 +9292,7 @@ class Plugin(indigo.PluginBase):
 	def checkGroupedMotionEventSetupAll(self, calledFrom=""):
 
 		for hubNumber in self.ipAddresses:
+			if not self.hubIsEnabled[hubNumber]: continue
 			self.checkGroupedMotionEventSetup(hubNumber, calledFrom=calledFrom)
 		return
 
@@ -9004,6 +9442,7 @@ class Plugin(indigo.PluginBase):
 		#return
 
 		for hubNumber in self.ipAddresses:
+			if not self.hubIsEnabled[hubNumber]: continue
 			self.checkContactSensorSetup(hubNumber, calledFrom=calledFrom)
 		return
 
@@ -9086,16 +9525,16 @@ class Plugin(indigo.PluginBase):
 				nameOnBridge 			= self.getSubItem(hueDev.get("metadata",dict()), "name")
 				manufacturerName 		= self.getSubItem(hueDev.get("product_data",dict()), "manufacturer_name")
 				#																					 this is the pointer in devs is a list, take firs element
-				contact_report 			= self.getServiceDictItem( hubNumber, "contact", 				hueDev['services']['contact'] ,					"contact_report")
+				contact_report 			= self.getServiceDictItem( hubNumber, "contact", 				hueDev['services']['contact'][0],					"contact_report")
 				#self.indiLOG.log(20,"checkContactSensorSetup:  getSubItem  contact_report")
 				contact = self.getSubItem(contact_report, "state")
 				on = contact == "contact"
-				online	 				= self.getServiceDictItem( hubNumber, "zigbee_connectivity", 	hueDev['services']['zigbee_connectivity'], 		"status")
-				enabled 				= self.getServiceDictItem( hubNumber, "contact", 				hueDev['services']['contact'], 					"enabled")
-				device_software_update	= self.getServiceDictItem( hubNumber, "device_software_update", hueDev['services']['device_software_update'], 	"state")
-				power_state 			= self.getServiceDictItem( hubNumber, "device_power", 			hueDev['services']['device_power'], 			"power_state")
+				online	 				= self.getServiceDictItem( hubNumber, "zigbee_connectivity", 	hueDev['services']['zigbee_connectivity'][0], 		"status")
+				enabled 				= self.getServiceDictItem( hubNumber, "contact", 				hueDev['services']['contact'][0], 					"enabled")
+				device_software_update	= self.getServiceDictItem( hubNumber, "device_software_update", hueDev['services']['device_software_update'][0], 	"state")
+				power_state 			= self.getServiceDictItem( hubNumber, "device_power", 			hueDev['services']['device_power'][0], 				"power_state")
 				battery_level = self.getSubItem(power_state, "battery_level")
-				tamper_reports 			= self.getServiceDictItem( hubNumber, "tamper", 				hueDev['services']['tamper'], 					"tamper_reports")
+				tamper_reports 			= self.getServiceDictItem( hubNumber, "tamper", 				hueDev['services']['tamper'][0], 					"tamper_reports")
 				if len(tamper_reports) == 0:
 					tamper = False
 				else:
@@ -9140,7 +9579,7 @@ class Plugin(indigo.PluginBase):
 							stateUpdateList = self.checkIfUpdateState(device, 'lastBatteryReplaced',dt , 				stateUpdateList=stateUpdateList)
 							stateUpdateList = self.checkIfUpdateState(device, 'lastUpdated',		dt,					stateUpdateList=stateUpdateList)
 							stateUpdateList = self.checkIfUpdateState(device, 'eventNumber',		0,					stateUpdateList=stateUpdateList)
-							stateUpdateList = self.checkIfUpdateState(device, 'id_v1',			"None",				stateUpdateList=stateUpdateList)
+							stateUpdateList = self.checkIfUpdateState(device, 'id_v1',				"None",				stateUpdateList=stateUpdateList)
 							stateUpdateList = self.checkIfUpdateState(device, 'uniqueId',			"None in V2",		stateUpdateList=stateUpdateList)
 							stateUpdateList = self.checkIfUpdateState(device, 'type',				"contact",			stateUpdateList=stateUpdateList)
 							stateUpdateList = self.checkIfUpdateState(device, 'ownerId',			ownerId,			stateUpdateList=stateUpdateList)
@@ -9153,11 +9592,11 @@ class Plugin(indigo.PluginBase):
 							self.logger.error("name:{}, ".format(name))
 							self.logger.error("existing deviceTypeId:{}, props:{}".format(device.deviceTypeId, str(device.pluginProps)))
 				serviceType = kmapdevTypeToServiceType.get(device.deviceTypeId,'light')
-				stateUpdateList = self.checkIfUpdateState(device, 'serviceType', 			serviceType,					stateUpdateList=stateUpdateList)
+				stateUpdateList = self.checkIfUpdateState(device, 'serviceType', 		serviceType,		stateUpdateList=stateUpdateList)
 				stateUpdateList = self.checkIfUpdateState(device, 'nameOnBridge',		nameOnBridge,		stateUpdateList=stateUpdateList)
 				stateUpdateList = self.checkIfUpdateState(device, 'contact',			contact,			stateUpdateList=stateUpdateList)
-				stateUpdateList = self.checkIfUpdateState(device, 'onOffState',		on,					stateUpdateList=stateUpdateList, uiValue= "closed" if on else "open" )
-				stateUpdateList = self.checkIfUpdateState(device, 'tamper',			tamper,				stateUpdateList=stateUpdateList)
+				stateUpdateList = self.checkIfUpdateState(device, 'onOffState',			on,					stateUpdateList=stateUpdateList, uiValue= "closed" if on else "open" )
+				stateUpdateList = self.checkIfUpdateState(device, 'tamper',				tamper,				stateUpdateList=stateUpdateList)
 				#stateUpdateList = self.checkIfUpdateState(device, 'online',			online,				stateUpdateList=stateUpdateList)
 				stateUpdateList = self.checkIfUpdateState(device, 'enabled',			enabled,			stateUpdateList=stateUpdateList)
 				self.updateDeviceState(device, stateUpdateList, calledFrom="checkContactSensorSetup",log=False)
@@ -9189,6 +9628,7 @@ class Plugin(indigo.PluginBase):
 		self.getALLIndigoDevices() # get copy of all hue devices ( v1 only)
 
 		for hubNumber in self.ipAddresses:
+			if not self.hubIsEnabled[hubNumber]: continue
 			#
 			ipAddress, hostId, errorCode = self.getadresses(hubNumber)
 			if errorCode > 0:
@@ -9275,6 +9715,8 @@ class Plugin(indigo.PluginBase):
 			self.autocreateNewDevicesV1(valuesDict,"background")
 			self.fillAllDataV2()  # read all v2 data from bridge
 
+			self.checkIfBridgeUpdates()
+			
 			#self.saveFiles(force=True)
 			# only check in xx secs again:
 			self.doAutoCreateNow = time.time() + 100
@@ -9329,6 +9771,7 @@ class Plugin(indigo.PluginBase):
 		newStuff = False
 		try:
 			for hubNumber in self.ipAddresses:
+				if not self.hubIsEnabled[hubNumber]: continue
 
 				if not force and  not self.getDT(hubNumber, theType): continue
 				if self.apiVersion.get(hubNumber,"1") == "2": continue
@@ -9364,7 +9807,7 @@ class Plugin(indigo.PluginBase):
 						self.allV1Data[hubNumber][theType] = responseData
 
 						# See if there are more devices now than there were last time we checked.
-						if len(self.allV1Data[hubNumber][theType]) > lastCount[hubNumber] and lastCount[hubNumber] is not 0:
+						if len(self.allV1Data[hubNumber][theType]) > lastCount[hubNumber] and lastCount[hubNumber] != 0:
 							if self.pluginPrefs.get('autoCreatedNewDevices', False):
 								self.doAutoCreateNow = time.time() + 20
 						# Make sure the plugin knows it's actually paired now.
@@ -9421,6 +9864,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			if self.decideMyLog("UpdateIndigoDevices"):
 				for hubNumber in self.allV1Data:
+					if not self.hubIsEnabled[hubNumber]: continue
 					if "lights" not in self.allV1Data[hubNumber]: continue
 					self.indiLOG.log(10,"parseAllHueLightsData: on Bridge#:{} There are {} lights on the Hue bridge.".format(hubNumber, len(self.allV1Data[hubNumber]['lights'] )))
 
@@ -9509,7 +9953,7 @@ class Plugin(indigo.PluginBase):
 					return
 					#self.indiLOG.log(20, " dev :{} not online , icon:{}".format(devName, icon))
 				else:
-					device.setErrorStateOnServer("")
+					device.setErrorStateOnServer(None)
 				onState 			= bulb['state'].get('on', False)
 				if device.onState != onState:
 					if logChanges: self.indiLOG.log(sendLog, "Updated:  {:42s}  to {}".format(device.name, "on" if onState else "off"))
@@ -9527,7 +9971,7 @@ class Plugin(indigo.PluginBase):
 				brightness			= 0
 				onState 			=  False
 
-			brightnessLevel 		= int(round(brightness / self.rgbmaxAPi1 ))
+			brightnessLevel 		= int(round(brightness / self.rgbmaxAPi1 *100.))
 			if brightnessLevel == 0 and brightness > 0:
 				brightnessLevel = 1
 
@@ -9617,7 +10061,7 @@ class Plugin(indigo.PluginBase):
 				colorGreen 	= int(rgb.rgb_g*self.rgbIndigoMax / self.rgbmaxAPi1 + 0.5)
 				colorBlue 	= int(rgb.rgb_b*self.rgbIndigoMax / self.rgbmaxAPi1 + 0.5)
 				# Convert saturation from 0-255 scale to 0-100 scale.
-				saturation = int(round(saturation * 100.0 / 255.0,1))
+				saturation = int(round(saturation * 100.0 / 255.0))
 				# Convert hue from 0-65535 scale to 0-360 scale.
 
 				# do a check for hue
@@ -10325,7 +10769,7 @@ class Plugin(indigo.PluginBase):
 				enabledOnHub 	= sensor['config'].get('on', True)
 				online 			= str(sensor['config'].get('reachable', "notSupported")) # if found it is 'True' or 'False', otherwise set to 'notSupported'
 				if online == "notSupported" and enabledOnHub:
-					device.setErrorStateOnServer("")
+					device.setErrorStateOnServer(None)
 				else:
 					if online not in ['True','notSupported']:
 						if device.states['online']:
@@ -10338,7 +10782,7 @@ class Plugin(indigo.PluginBase):
 						device.setErrorStateOnServer("disabled")
 						return
 					else:
-						device.setErrorStateOnServer("")
+						device.setErrorStateOnServer(None)
 				stateUpdateList = self.checkIfUpdateState(device, 'online', 		True, stateUpdateList=stateUpdateList )
 				stateUpdateList = self.checkIfUpdateState(device, 'ledEnabled', 	sensor['config'].get('ledindication', False), stateUpdateList=stateUpdateList )
 				stateUpdateList = self.checkIfUpdateState(device, 'testMode', 		sensor['config'].get('usertest', False), stateUpdateList=stateUpdateList )
@@ -10917,7 +11361,7 @@ class Plugin(indigo.PluginBase):
 						self.updateDeviceState(device, 'onOffState', False, uiValue='off')
 					
 					
-			else:  # apiv2 
+			else:  # apiupdateAllHueListsV2() 
 				if theType == "hueOnOffDevice":						rampRate = 0
 				if onState:
 					if device.pluginProps.get('noOnRampRate', False): rampRate = 0
@@ -11101,7 +11545,6 @@ class Plugin(indigo.PluginBase):
 			else: 										sendLog = self.sendDeviceUpdatesTo
 
 			sendLog = 20
-			logChanges = True
 
 			# Make sure the device is capable of rendering color.
 			if not device.pluginProps.get('SupportsRGB', False):
@@ -11144,13 +11587,13 @@ class Plugin(indigo.PluginBase):
 							# The Hue bridge doesn't accept the colormode parameter, so don't send it if we're dealing with a group.
 							requestData = json.dumps({"bri": brightness, "hue": hue, "sat": saturation, "on": True})
 						else:
-							requestData = json.dumps({"bri": brightness, "colormode": 'hs', "hue": hue, "sat": saturation, "on": True})
+							requestData = json.dumps({"bri": brightness,  "hue": hue, "sat": saturation, "on": True})
 					else:
 						if theType == "hueGroup":
 							# The Hue bridge doesn't accept the colormode parameter, so don't send it if we're dealing with a group.
 							requestData = json.dumps({"bri": brightness, "hue": hue, "sat": saturation, "transitiontime": int(rampRate), "on": True})
 						else:
-							requestData = json.dumps({"bri": brightness, "colormode": 'hs', "hue": hue, "sat": saturation, "transitiontime": int(rampRate), "on": True})
+							requestData = json.dumps({"bri": brightness,  "hue": hue, "sat": saturation, "transitiontime": int(rampRate), "on": True})
 				else:
 					# If the current brightness is below 6%, set the ramp rate to 0.
 					if currentBrightness < 6:
@@ -11165,13 +11608,13 @@ class Plugin(indigo.PluginBase):
 							# The Hue bridge doesn't accept the colormode parameter, so don't send it if we're dealing with a group.
 							requestData = json.dumps({"bri": 0, "hue": 0, "sat": 0, "on": False})
 						else:
-							requestData = json.dumps({"bri": 0, "colormode": 'hs', "hue": 0, "sat": 0, "on": False})
+							requestData = json.dumps({"bri": 0,  "hue": 0, "sat": 0, "on": False})
 					else:
 						if theType== "hueGroup":
 							# The Hue bridge doesn't accept the colormode parameter, so don't send it if we're dealing with a group.
 							requestData = json.dumps({"bri": 0, "hue": 0, "sat": 0, "transitiontime": int(rampRate), "on": False})
 						else:
-							requestData = json.dumps({"bri": 0, "colormode": 'hs', "hue": 0, "sat": 0, "transitiontime": int(rampRate), "on": False})
+							requestData = json.dumps({"bri": 0,  "hue": 0, "sat": 0, "transitiontime": int(rampRate), "on": False})
 
 				# Create the HTTP command and send it to the bridge.
 				# Create the command based on whether this is a light or group device.
@@ -11196,7 +11639,7 @@ class Plugin(indigo.PluginBase):
 				# Update on Indigo
 				if brightness > 0:
 					# Convert brightness to a percentage.
-					brightness = int(round(brightness / self.rgbmaxAPi1 ))
+					brightness = int(round(brightness / self.rgbmaxAPi1*100 ))
 					# Log the change (if enabled).
 					if showLog:
 						# Exclude mention of ramp rate if none was used.
@@ -11262,7 +11705,7 @@ class Plugin(indigo.PluginBase):
 			if 	devOD == "None": return None
 			if 	devOD not in shortc: return None
 			if 	service not in shortc[devOD]['services']: return None
-			return shortc[devOD]['services'][service]
+			return shortc[devOD]['services'][service][0]
 		except Exception:
 			self.indiLOG.log(40,"", exc_info=True)
 		return None
@@ -11319,13 +11762,13 @@ class Plugin(indigo.PluginBase):
 						# The Hue bridge doesn't accept the colormode parameter, so don't send it if we're dealing with a group.
 						requestData = json.dumps({"bri":brightness, "hue":hue, "sat":saturation, "on":True})
 					else:
-						requestData = json.dumps({"bri":brightness, "colormode": 'hs', "hue":hue, "sat":saturation, "on":True})
+						requestData = json.dumps({"bri":brightness,  "hue":hue, "sat":saturation, "on":True})
 				else:
 					if theType == "hueGroup":
 						# The Hue bridge doesn't accept the colormode parameter, so don't send it if we're dealing with a group.
 						requestData = json.dumps({"bri":brightness, "hue":hue, "sat":saturation, "on":True, "transitiontime":rampRate})
 					else:
-						requestData = json.dumps({"bri":brightness, "colormode": 'hs', "hue":hue, "sat":saturation, "on":True, "transitiontime":rampRate})
+						requestData = json.dumps({"bri":brightness,  "hue":hue, "sat":saturation, "on":True, "transitiontime":rampRate})
 			else:
 				# Exclude transition times if needed.
 				if device.pluginProps.get('noOnRampRate', False):
@@ -11333,13 +11776,13 @@ class Plugin(indigo.PluginBase):
 						# The Hue bridge doesn't accept the colormode parameter, so don't send it if we're dealing with a group.
 						requestData = json.dumps({"bri":brightness, "hue":hue, "sat":saturation, "on":False})
 					else:
-						requestData = json.dumps({"bri":brightness, "colormode": 'hs', "hue":hue, "sat":saturation, "on":False})
+						requestData = json.dumps({"bri":brightness,  "hue":hue, "sat":saturation, "on":False})
 				else:
 					if theType== "hueGroup":
 						# The Hue bridge doesn't accept the colormode parameter, so don't send it if we're dealing with a group.
 						requestData = json.dumps({"bri":brightness, "hue":hue, "sat":saturation, "on":False, "transitiontime":rampRate})
 					else:
-						requestData = json.dumps({"bri":brightness, "colormode": 'hs', "hue":hue, "sat":saturation, "on":False, "transitiontime":rampRate})
+						requestData = json.dumps({"bri":brightness,  "hue":hue, "sat":saturation, "on":False, "transitiontime":rampRate})
 			# Create the command based on whether this is a light or group device.
 			if theType == "hueGroup":
 				command = self.httpS[self.hubVersion[hubNumber]]+"://{}/api/{}/groups/{}/action".format(ipAddress, self.hostIds[hubNumber], theId)
@@ -11452,19 +11895,19 @@ class Plugin(indigo.PluginBase):
 						# The Hue bridge doesn't accept the colormode parameter, so don't send it if we're dealing with a group.
 						requestData = json.dumps({"bri":brightness, "xy":[colorX, colorY], "on":True})
 					else:
-						requestData = json.dumps({"bri":brightness, "colormode": 'xy', "xy":[colorX, colorY], "on":True})
+						requestData = json.dumps({"bri":brightness,  "xy":[colorX, colorY], "on":True})
 				else:
 					if theType == "hueGroup":
 						# The Hue bridge doesn't accept the colormode parameter, so don't send it if we're dealing with a group.
 						requestData = json.dumps({"bri":brightness, "xy":[colorX, colorY], "on":True, "transitiontime":rampRate})
 					else:
-						requestData = json.dumps({"bri":brightness, "colormode": 'xy', "xy":[colorX, colorY], "on":True, "transitiontime":rampRate})
+						requestData = json.dumps({"bri":brightness, "xy":[colorX, colorY], "on":True, "transitiontime":rampRate})
 			else:
 				if theType == "hueGroup":
 					# The Hue bridge doesn't accept the colormode parameter, so don't send it if we're dealing with a group.
 					requestData = json.dumps({"bri":brightness, "xy":[colorX, colorY], "on":False, "transitiontime":rampRate})
 				else:
-					requestData = json.dumps({"bri":brightness, "colormode": 'xy', "xy":[colorX, colorY], "on":False, "transitiontime":rampRate})
+					requestData = json.dumps({"bri":brightness, "xy":[colorX, colorY], "on":False, "transitiontime":rampRate})
 
 			# Create the command based on whether this is a light or group device.
 			if theType == "hueGroup":
@@ -11582,25 +12025,25 @@ class Plugin(indigo.PluginBase):
 							# The Hue bridge doesn't accept the colormode parameter, so don't send it if we're dealing with a group.
 							requestData = json.dumps({"bri": brightness, "ct": temperature, "on": True})
 						else:
-							requestData = json.dumps({"bri": brightness, "colormode": 'ct', "ct": temperature, "on": True})
+							requestData = json.dumps({"bri": brightness, "ct": temperature, "on": True})
 					else:
 						if theType == "hueGroup":
 							# The Hue bridge doesn't accept the colormode parameter, so don't send it if we're dealing with a group.
 							requestData = json.dumps({"bri": brightness, "ct": temperature, "on": True, "transitiontime": int(rampRate)})
 						else:
-							requestData = json.dumps({"bri": brightness, "colormode": 'ct', "ct": temperature, "on": True, "transitiontime": int(rampRate)})
+							requestData = json.dumps({"bri": brightness, "ct": temperature, "on": True, "transitiontime": int(rampRate)})
 				else:
 					# Exclude transition time if needed.
 					if device.pluginProps.get('noOnRampRate', False):
 						if theType == "hueGroup":
 							requestData = json.dumps({"bri": brightness, "ct": temperature, "on": False})
 						else:
-							requestData = json.dumps({"bri": brightness, "colormode": 'ct', "ct": temperature, "on": False})
+							requestData = json.dumps({"bri": brightness, "ct": temperature, "on": False})
 					else:
 						if theType == "hueGroup":
 							requestData = json.dumps({"bri": brightness, "ct": temperature, "on": False, "transitiontime": int(rampRate)})
 						else:
-							requestData = json.dumps({"bri": brightness, "colormode": 'ct', "ct": temperature, "on": False, "transitiontime": int(rampRate)})
+							requestData = json.dumps({"bri": brightness, "ct": temperature, "on": False, "transitiontime": int(rampRate)})
 	
 				# Create the command based on whether this is a light or group device.
 				if theType == "hueGroup":
@@ -11868,6 +12311,16 @@ class Plugin(indigo.PluginBase):
 
 	# Update Light, Group, Scene and Sensor Lists
 	########################################
+	def updateAllHueListsForce(self, autocreate=True):
+		self.lastTimeFor['getHueConfig'] = 0
+		for hubNumber in self.ipAddresses:
+			if not self.hubIsEnabled[hubNumber]: continue
+			for xx in self.lastTimeHTTPGet[hubNumber]:
+				self.lastTimeHTTPGet[hubNumber][xx] = 0
+		self.updateAllHueLists()
+		
+	# Update Light, Group, Scene and Sensor Lists
+	########################################
 	def updateAllHueLists(self, autocreate=True):
 		# This function is generally only used as a callback method for the
 		#    Plugins -> Hue Lights -> Reload Hue bridge Config menu item, but can
@@ -11882,8 +12335,9 @@ class Plugin(indigo.PluginBase):
 				self.hostIds = {"0": self.hostId}
 
 			for hubNumber in  self.hostIds:
+				if not self.hubIsEnabled[hubNumber]: continue
 				hueUsername = self.hostIds[hubNumber]
-				if hueUsername is None :
+				if hueUsername is None:
 					self.indiLOG.log(30,"Plugin does not seem to be paired with the Hue bridge:{}".format(hubNumber))
 
 			# Get the entire Hue bridge configuration and report the results.
@@ -11898,6 +12352,7 @@ class Plugin(indigo.PluginBase):
 
 			try:
 				for hubNumber in copy.copy(tempIP):
+					if not self.hubIsEnabled[hubNumber]: continue
 					if hubNumber not in khubNumbersAvailable: continue
 					if tempIP[hubNumber] is None:
 						self.doErrorLog("No IP address set for the Hue bridge. You can get this information from the My Settings page at http://www.meethue.com.".format(tempIP))
@@ -11916,6 +12371,7 @@ class Plugin(indigo.PluginBase):
 
 
 			for hubNumber in copy.copy(self.hostIds):
+				if not self.hubIsEnabled[hubNumber]: continue
 				if hubNumber not in self.ipAddresses:
 					del self.hostIds[hubNumber]
 					self.pluginPrefs['hostIds'] = json.dumps(self.hostIds)
@@ -13574,6 +14030,7 @@ class Plugin(indigo.PluginBase):
 
 					hubNumbers = list()
 					for hubNumber in self.ipAddresses:
+						if not self.hubIsEnabled[hubNumber]: continue
 						if hubNumber in self.allV1Data:
 							hubNumbers.append(hubNumber)
 							if "config" in self.allV1Data[hubNumber]:
@@ -13591,6 +14048,7 @@ class Plugin(indigo.PluginBase):
 							if not first:
 								self.indiLOG.log(30,"!!!! \nfindHueBridges: new bridge found:{}\n!!!!".format(self.bridgesAvailable[bridgeId]))
 								for hubNumber in self.ipAddresses:
+									if not self.hubIsEnabled[hubNumber]: continue
 									self.lastTimeHTTPGet[hubNumber]['all'] = time.time() + 30
 
 					bridgesAvailableOld = copy.deepcopy(self.bridgesAvailable)
@@ -13692,6 +14150,7 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def printHueData(self, valuesDict, menuItem):
 
+		#self.indiLOG.log(30,"{}".format(valuesDict))
 		try:
 			indigoList = dict()
 			sortBy = valuesDict['sortBy']
@@ -13700,7 +14159,7 @@ class Plugin(indigo.PluginBase):
 			if deltaTime > 1:
 				if valuesDict['whatToPrint'].find("bytesSend") > -1:
 					out = "\n"
-					out +="\n ========================================================================================================================="
+					out +="\n ==================================================================================================================================="
 					out +="\n===== Number of packes and bytes send and received  in {:5.1f} minutes =========".format(deltaTime)
 					for hubNumber in self.bytesSend:
 						bs = self.bytesSend[hubNumber]
@@ -13708,35 +14167,35 @@ class Plugin(indigo.PluginBase):
 						totbytes = 0
 						totpktsr = 0
 						totbytesr = 0
-						out +="\nBridge #:{:1} cmd --------------------------------------------       #Pkt      bytes  avSize   rec #Pkt        bytes  aveSize".format(hubNumber)
+						out +="\nBridge #:{:1} cmd ------------------------------------------------------       #Pkt      bytes  avSize   rec #Pkt        bytes  aveSize".format(hubNumber)
 						for cmd in bs:
 							if cmd not in ['events']:
 								totpkts += bs[cmd][0]
 								totbytes += bs[cmd][1]
 								totpktsr += bs[cmd][2]
 								totbytesr += bs[cmd][3]
-								out +="\n{:60}  {:8} {:10} {:7.0f} {:10} {:12} {:8.0f}".format(cmd, bs[cmd][0], bs[cmd][1], bs[cmd][1]/max(1,bs[cmd][0]), bs[cmd][2], bs[cmd][3],  bs[cmd][3]/max(1,bs[cmd][2]) )
+								out +="\n{:70}  {:8} {:10} {:7.0f} {:10} {:12} {:8.0f}".format(cmd, bs[cmd][0], bs[cmd][1], bs[cmd][1]/max(1,bs[cmd][0]), bs[cmd][2], bs[cmd][3],  bs[cmd][3]/max(1,bs[cmd][2]) )
 
-						out +="\n {:60} ------------------------------------------------------------".format(" ")
-						out +="\n{:60}  {:8} {:10} {:7.0f} {:10} {:12} {:8.0f}".format("total", 				totpkts, 			totbytes, 			totbytes/max(1,totpkts),	totpktsr, 			totbytesr, 				totbytesr /max(1,totpktsr)  )
-						out +="\n{:60}  {:8.1f} {:10.1f} {:7} {:10.1f} {:12.0f} {:8}".format("   ... / minute", totpkts/deltaTime,	totbytes/deltaTime,	" ", 						totpktsr/deltaTime, totbytesr/deltaTime ,	" ")
+						out +="\n{:70} -------------------------------------------------------------".format(" ")
+						out +="\n{:70}  {:8} {:10} {:7.0f} {:10} {:12} {:8.0f}".format("total", 				totpkts, 			totbytes, 			totbytes/max(1,totpkts),	totpktsr, 			totbytesr, 				totbytesr /max(1,totpktsr)  )
+						out +="\n{:70}  {:8.1f} {:10.1f} {:7} {:10.1f} {:12.0f} {:8}".format("   ... / minute", totpkts/deltaTime,	totbytes/deltaTime,	" ", 						totpktsr/deltaTime, totbytesr/deltaTime ,	" ")
 						if "events" in bs:
 							out +="\n "
-							out +="\n{:88}  {:10} {:12} {:8.0f}".format(   "event ids . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ", bs['events'][0],  bs['events'][1], 	bs['events'][1]/max(1, bs['events'][0])  )
-							out +="\n{:88}  /{:9.1f} {:12.0f} {:8}".format("   ... / minute",		bs['events'][0]/deltaTime, bs['events'][1]/deltaTime ,  " ")
-							out +="\n{:88}  {:10} {:12} {:8.0f}".format(   "events data . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ", bs['events'][2],  bs['events'][3], 	bs['events'][3]/max(1, bs['events'][2])  )
-							out +="\n{:88}  /{:9.1f} {:12.0f} {:8}".format("   ... / minute",		bs['events'][2]/deltaTime, bs['events'][3]/deltaTime ,	" ")
-							out +="\n{:88}  {:10} {:12} {:8.0f}".format(   "events Update . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ", bs['events'][4],  bs['events'][5], 	bs['events'][5]/max(1, bs['events'][4])  )
-							out +="\n{:88}  /{:9.1f} {:12.0f} {:8}".format("   ... / minute",		bs['events'][4]/deltaTime, bs['events'][5]/deltaTime ,	" ")
-							out +="\n{:88}  {:10} {:12} {:8.0f}".format(   "events other . . . . . . . . . . . . . . . . . . . . . . . . . . .. . . . . . . . . . . ", bs['events'][6],  bs['events'][7], 	bs['events'][7]/max(1, bs['events'][6])  )
-							out +="\n{:88}  /{:9.1f} {:12.0f} {:8}".format("   ... / minute",		bs['events'][6]/deltaTime, bs['events'][7]/deltaTime ,	" ")
-						out +="\n ========================================================================================================================="
+							out +="\n{:98}  {:10} {:12} {:8.0f}".format(   "event ids . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ", bs['events'][0],  bs['events'][1], 	bs['events'][1]/max(1, bs['events'][0])  )
+							out +="\n{:98}  /{:9.1f} {:12.0f} {:8}".format("   ... / minute",		bs['events'][0]/deltaTime, bs['events'][1]/deltaTime ,  " ")
+							out +="\n{:98}  {:10} {:12} {:8.0f}".format(   "events data . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ", bs['events'][2],  bs['events'][3], 	bs['events'][3]/max(1, bs['events'][2])  )
+							out +="\n{:98}  /{:9.1f} {:12.0f} {:8}".format("   ... / minute",		bs['events'][2]/deltaTime, bs['events'][3]/deltaTime ,	" ")
+							out +="\n{:98}  {:10} {:12} {:8.0f}".format(   "events Update . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ", bs['events'][4],  bs['events'][5], 	bs['events'][5]/max(1, bs['events'][4])  )
+							out +="\n{:98}  /{:9.1f} {:12.0f} {:8}".format("   ... / minute",		bs['events'][4]/deltaTime, bs['events'][5]/deltaTime ,	" ")
+							out +="\n{:98}  {:10} {:12} {:8.0f}".format(   "events other . . . . . . . . . . . . . . . . . . . . . . . . . . .. . . . . . . . . . . ", bs['events'][6],  bs['events'][7], 	bs['events'][7]/max(1, bs['events'][6])  )
+							out +="\n{:98}  /{:9.1f} {:12.0f} {:8}".format("   ... / minute",		bs['events'][6]/deltaTime, bs['events'][7]/deltaTime ,	" ")
+						out +="\n ==================================================================================================================================="
 						out += "\n"
 					out += "\n"
 					self.indiLOG.log(20,out)
 					if valuesDict['whatToPrint'].find("Reset") > -1:
 						self.startTimeForbytesReceived = time.time()
-						self.bytesSend = {}
+						self.bytesSend = dict()
 
 
 			if valuesDict['whatToPrint'] == "indigoIdToOwnerId":
@@ -14583,9 +15042,10 @@ class Plugin(indigo.PluginBase):
 	######################
 	def startEventListenersThreads(self, hubNumber):
 		try:
-			if hubNumber not in self.apiVersion: return
-			if hubNumber not in self.hostIds: return
-			if self.apiVersion.get(hubNumber,"") != "2": return
+			if hubNumber not in self.apiVersion: 			return
+			if not self.hubIsEnabled[hubNumber]: 			return 
+			if hubNumber not in self.hostIds: 				return
+			if self.apiVersion.get(hubNumber,"") != "2": 	return
 
 			if hubNumber not in self.listenThread:
 				if self.decideMyLog("EventApi"): self.indiLOG.log(20,"execEventlogging hubNumber:{}".format(hubNumber) )
@@ -14604,17 +15064,18 @@ class Plugin(indigo.PluginBase):
 	######################
 	def listenToEvents(self, hubNumber):
 
+		if not self.hubIsEnabled[hubNumber]: return
 		tStart = time.time()
-		fileName = self.listenThread[hubNumber]['fileName']
 		nSeconds = 100.
 		debug = False
 		nextId = -1
 		nWrites = 0
 		firstEvent = 0
-		if hubNumber not in self.bytesSend: self.bytesSend[hubNumber] = {}
+		if hubNumber not in self.bytesSend: self.bytesSend[hubNumber] = dict()
 		if "events" not in self.bytesSend[hubNumber]: self.bytesSend[hubNumber]['events'] = [0,0,0,0,0,0,0,0]
 
 		try:
+			if not self.hubIsEnabled[hubNumber]: return False
 			if hubNumber not in self.hostIds:
 				self.hostIds[hubNumber] = ""
 				self.indiLOG.log(20,"Connecting to events from  hubNumber:{} not setup:  hostIds:{}".format(hubNumber, self.hostIds))
@@ -14624,7 +15085,7 @@ class Plugin(indigo.PluginBase):
 				"Accept": "text/event-stream"
 			}
 			EVENT_STREAM_URL = "https://{}/eventstream/clip/v2".format(self.ipAddresses[hubNumber])
-			self.indiLOG.log(20,"Connecting to Hue EventStream hubNumber:{} .. at {}, writing events to:{}, ".format(hubNumber, EVENT_STREAM_URL,  fileName))
+			self.indiLOG.log(20,"Connecting to Hue EventStream hubNumber:{} .. at {}, writing events to:{}, ".format(hubNumber, EVENT_STREAM_URL,  self.listenThread[hubNumber]['fileName']))
 
 			response = requests.get(
 				EVENT_STREAM_URL,
@@ -14637,7 +15098,9 @@ class Plugin(indigo.PluginBase):
 			#if time.time() - tStart > nSeconds: return
 			#self.indiLOG.log(20," running: {}, sec since start:{:9.1f}".format(hubNumber, time.time() - tStart))
 
-			if self.listenThread[hubNumber]['status'] != "run": return
+			if self.listenThread[hubNumber]['status'] != "run": 
+				del self.listenThread[hubNumber]
+				return
 
 			if response.status_code == 200:
 				self.indiLOG.log(20,"Successful Connected:  Listening for events on hub Number: {} at:{}".format(hubNumber, EVENT_STREAM_URL))
@@ -14647,12 +15110,18 @@ class Plugin(indigo.PluginBase):
 						self.indiLOG.log(20,"stopping event logging ")
 						return
 					if self.listenThread[hubNumber]['status'] != "run":
+						del self.listenThread[hubNumber]
 						self.indiLOG.log(20,"stopping event logging ")
 						return
+					if not self.hubIsEnabled[hubNumber]:  
+						del self.listenThread[hubNumber]
+						self.indiLOG.log(20,"stopping event logging , bridge is disabled")
+						return
+
 					if line:
 						#if self.decideMyLog("EventApi") and firstEvent == 0:  self.indiLOG.log(20,"Connected! Listening for events  in line for hub Number: {}".format(hubNumber))
 
-						if hubNumber not in self.bytesSend: self.bytesSend[hubNumber] = {}
+						if hubNumber not in self.bytesSend: self.bytesSend[hubNumber] = dict()
 						if "events" not in self.bytesSend[hubNumber]: self.bytesSend[hubNumber]['events'] = [0,0,0,0,0,0,0,0]
 						if line.startswith('id: '):
 							nextId = line.strip().split()[1]
@@ -14671,10 +15140,10 @@ class Plugin(indigo.PluginBase):
 								if self.decideMyLog("EventApi") and fileName != "":
 									nWrites += 1
 									if nWrites > 100: # store the last 100 events only
-										f = open(fileName,"w")
+										f = open(self.listenThread[hubNumber]['fileName'],"w")
 										nWrites = 0
 									else:
-										f = open(fileName,"a")
+										f = open(self.listenThread[hubNumber]['fileName'],"a")
 
 									f.write("{}\n".format(json.dumps(events, indent=2)))
 									f.close()
@@ -14697,6 +15166,7 @@ class Plugin(indigo.PluginBase):
 	######################
 	def digestV2Event(self, hubNumber, nextId, events):
 		try:
+			
 			services = self.allV2Data[hubNumber]['services']
 			self.deviceUpdate = dict()
 
@@ -15177,7 +15647,7 @@ no devId for:
 			if online :
 				if not indigoDevice.states['online']:
 					self.indiLOG.log(30,"Hue device {:40} is back online ".format(indigoDevice.name))
-				indigoDevice.setErrorStateOnServer("")
+				indigoDevice.setErrorStateOnServer(None)
 				
 			stateUpdateList = self.checkIfUpdateState(indigoDevice, 'online', 	online, 	stateUpdateList=stateUpdateList)
 		except Exception:
@@ -15588,14 +16058,9 @@ no devId for:
 			on = None
 			mirek = None
 			dType = 0
-			doprint0 =  doPrint or indigoDevice.id == 11111927241800
+			doprint0 =  doPrint or indigoDevice.id == 1111571343229
 			if doprint0: self.indiLOG.log(20,"doLightUpdate  indigoDevice:{}, eventDict:{}".format(indigoDevice.id, eventDict))
-			if "on" in eventDict:
-				on = eventDict['on'].get("on",None)
-				dType += 1
-				stateUpdateList = self.checkIfUpdateState(indigoDevice, 'onOffState', on,  uiValue= "on" if on else "off", stateUpdateList=stateUpdateList)
-				if doprint0: self.indiLOG.log(20,"doLightUpdate  indigoDevice:{}, on:{}  stateUpdateList:{}".format(indigoDevice.id, eventDict['on'], stateUpdateList))
-
+			if eventDict is None: return stateUpdateList
 			test = False
 			if "dimming" in eventDict:
 				brightness = eventDict['dimming'].get("brightness",0)
@@ -15615,6 +16080,15 @@ no devId for:
 							test = True
 			if not test:
 				brightness = indigoDevice.states.get("brightnessLevel", 0)
+				
+				
+			# for hue groups (zone and rooms) there is no color info in events for groups, 
+			# if any change in brightness asume also change in color
+			# so we have to use v1 api to get that, lauch after short delay apiv1 call to get group data 
+			if indigoDevice.deviceTypeId == "hueGroup" and int(brightness+0.5) != indigoDevice.states.get("brightnessLevel", 0) and "color_temperature" not in eventDict and  "color" not in eventDict:
+				self.delayedActionThread['actions'].put({"executionTime":time.time()+0.2 , "getGroupV1Data":indigoDevice.id})
+				return stateUpdateList
+					
 
 			if "color_temperature" in eventDict:
 				if "mirek" in eventDict['color_temperature']:
@@ -15659,6 +16133,13 @@ no devId for:
 					if doprint0: self.indiLOG.log(20,"doLightUpdate  indigoDevice:{}, color:{} brightness:{},  stateUpdateList:{}".format(indigoDevice.id, eventDict['color'], brightness, stateUpdateList))
 					if doprint0: self.indiLOG.log(20,"doLightUpdate  brightness:{}, cr:{},  colorRed:{}, colorGreen:{}, norm:{}".format(brightness, cr, colorRed, colorGreen, self.rgbIndigoMax / self.rgbmaxAPi2/2.55 ))
 
+			if "on" in eventDict:
+				on = eventDict['on'].get("on", False)
+				dType += 1
+				stateUpdateList = self.checkIfUpdateState(indigoDevice, 'onOffState', on,  uiValue= "on" if on else "off", stateUpdateList=stateUpdateList)
+				if doprint0: self.indiLOG.log(20,"doLightUpdate  indigoDevice:{}, on:{}  stateUpdateList:{}".format(indigoDevice.id, eventDict['on'], stateUpdateList))
+				if on:	indigoDevice.updateStateImageOnServer(indigo.kStateImageSel.DimmerOn)
+				else:	indigoDevice.updateStateImageOnServer(indigo.kStateImageSel.DimmerOff)
 
 		except Exception:
 			self.indiLOG.log(40,"", exc_info=True)

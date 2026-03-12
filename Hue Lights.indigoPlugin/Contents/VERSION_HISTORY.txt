@@ -1,18 +1,22 @@
 ========================================
-2022.29.76 @ 2026-03-04
+2022.29.76 @ 2026-03-11
 1. added option to use default for brightness and ramp rate for recall action
 2. fixed several rgb / dimmer functions
 3. added enable disable for devices for pro bridge
-4. added scenes for pro bridge
-5. added config option to set prefixes for devices names types switch/sensor/light/group eg Hue_light_br#_id#_nameOnBridge (replace light with lampe)
+4. added scenes support for pro bridge
+5. added config option to set prefixes for devices names types switch/sensor/light/group eg Hue_light_br#_id#_nameOnBridge (replace light with lampa)
 6. added different prefix for switches and sensors (was all sensor)
 7. combined many sql updates for a device into a single call 
 8. reduced CPU usage, with > 80 lights, 15+ sensors 40+ switches on pro bridge: 0.1% .. 2% cpu on MAC-M1 (state updates depending on sensor, switch, light event frequency, no update: 0.1% CPU)
    on my previous setup with 4 old bridges it was 5%-15% and response time to sensor events was 2-3 secs, now < 0.5 secs.
+9. added option in config to enabled / disable a bridge. this will only disable communication with the bridge. 
+   Useful if you have disconnected a bridge and would like to stop error messages
+10. added a device for each bridge. it will contain bridge values in the device states (30+) This device is not editable, the states are just for info. 
+11. The pro bridge does not supply rgb (xy) color update events for groups (zones, rooms), only brightness level.
+    the issue is likely that a mix of different lamp types makes it difficult to actually calculate the proper color values (rgb + dimm only + color temp lamp types )
+    work around: Added a http api v1 "get" for all data for the hue group, WHEN a brightness level change event is received. That should cover most situations.
+12. fixed indigo device icon. if a device is turned off, but brightness level is not 0 the icon stayed "ON". Now it reflecting state is off/on 
 
-One issue is still pending: the pro bridge does not supply rgb (xy) color updates for groups (zones, rooms), only brightness level
-    either wait until it is supported or do a v1 api call to get the rgb level if brightness level has changed for a group.  The participating lights are handled properly
-    I guess the issue is that with different bulb types ( mix of dimm only, color temp level, true rgb) it is not clear what the rgb value for the group actually is
 
 ========================================
 2022.28.76 @ 2026-02-25
