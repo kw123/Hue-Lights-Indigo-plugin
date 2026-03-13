@@ -8656,7 +8656,7 @@ class Plugin(indigo.PluginBase):
 		try:
 			idv1 =  str(hueDeviceService.get('id_v1',''))
 			#doPrint =  True # ownerId == "xxx0b608acc-efa3-44ad-b16f-0c6c2c861a26"
-			doPrint = idv1 =='/groups/99'
+			doPrint = idv1 =='xxx/groups/99'
 			theID = idv1.split('/')[-1]
 			if hubNumber+"/group/"+theID in self.ignoreDevices: return 
 			stateUpdateList = list()
