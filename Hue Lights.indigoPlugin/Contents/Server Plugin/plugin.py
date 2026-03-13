@@ -952,7 +952,7 @@ class Plugin(indigo.PluginBase):
 						props['logChanges'] = self.pluginPrefs.get('logDefaultForNewDevices', "off") == "on"
 						props = self.validateDeviceConfigAutoCreate(props, deviceTypeId, 0)[1]
 						try:
-							dev = indigo.device.create(
+							dev = indigo.device.create(		# light
 								protocol		= indigo.kProtocol.Plugin,
 								address			= address,
 								name			= name,
@@ -1065,7 +1065,7 @@ class Plugin(indigo.PluginBase):
 					props['logChanges'] = self.pluginPrefs.get('logDefaultForNewDevices', "off") == "on"
 
 					try:
-						dev = indigo.device.create(
+						dev = indigo.device.create(		# sensor
 							protocol		= indigo.kProtocol.Plugin,
 							address			= address,
 							name			= name,
@@ -1135,7 +1135,7 @@ class Plugin(indigo.PluginBase):
 						props['groupClass'] = ""
 						props['logChanges'] = self.pluginPrefs.get('logDefaultForNewDevices', "off") == "on"
 						try:
-							dev = indigo.device.create(
+							dev = indigo.device.create(		# group
 								protocol		= indigo.kProtocol.Plugin,
 								address			= address,
 								name			= name,
@@ -7206,7 +7206,7 @@ class Plugin(indigo.PluginBase):
 				props['SupportsOnState'] = True
 				props['SupportsStatusRequest'] = False
 				try:
-					dev = indigo.device.create(
+					dev = indigo.device.create(		# bridge
 						protocol		= indigo.kProtocol.Plugin,
 						address			= "",
 						name			= name,
@@ -8655,8 +8655,8 @@ class Plugin(indigo.PluginBase):
 		"""
 		try:
 			idv1 =  str(hueDeviceService.get('id_v1',''))
-			doPrint =  True # ownerId == "xxx0b608acc-efa3-44ad-b16f-0c6c2c861a26"
-			doPrint = idv1 =='xx/groups/107'
+			#doPrint =  True # ownerId == "xxx0b608acc-efa3-44ad-b16f-0c6c2c861a26"
+			doPrint = idv1 =='/groups/99'
 			theID = idv1.split('/')[-1]
 			if hubNumber+"/group/"+theID in self.ignoreDevices: return 
 			stateUpdateList = list()
@@ -8664,7 +8664,7 @@ class Plugin(indigo.PluginBase):
 			device = self.deviceCopiesFromIndigo.get(indigoId)
 			newDevice = device is None
 			updateprops = False
-			if not doPrint: return 
+			#if not doPrint: return 
 			if doPrint: self.indiLOG.log(20,f"checkIfCreateNewGroupsV2: {hubNumber}, indigoId:{indigoId}, newDevice:{newDevice},  ownerId:{ownerId}, theType:{theType}")
 			devices = self.allV2Data[hubNumber]['devices']
 			lights = self.allV2Data[hubNumber]['services']['light']
@@ -8702,7 +8702,7 @@ class Plugin(indigo.PluginBase):
 				
 			nameOnBridge = hueDeviceService['metadata']['name']
 			if newDevice:
-				if doPrint: self.indiLOG.log(20,f"checkIfCreateNewGroupsV2: {hubNumber},  new Device ")
+				if doPrint: self.indiLOG.log(20,f"checkIfCreateNewGroupsV2: {hubNumber},  >>>  new Device ")
 				deviceTypeId = "hueGroup"
 				if doPrint: self.indiLOG.log(20,"checkIfCreateNewGroupsV2   Bridge:{:>2s}; id:{:>3s}, hueDeviceService:{:25s}  ".format(hubNumber, theID, str(hueDeviceService)[0:50]))
 				name = "Hue_{}_{}_{}_{}".format(self.pluginPrefs.get('groupPrefix',kDefaultPluginPrefs['groupPrefix']), hubNumber, theID, nameOnBridge)
@@ -8719,7 +8719,7 @@ class Plugin(indigo.PluginBase):
 					props['groupId'] = theID
 					props['logChanges'] = self.pluginPrefs.get('logDefaultForNewDevices', "off") == "on"
 					try:
-						device = indigo.device.create(
+						device = indigo.device.create(		# group V2
 							protocol		= indigo.kProtocol.Plugin,
 							address			= address,
 							name			= name,
@@ -8853,7 +8853,7 @@ class Plugin(indigo.PluginBase):
 						props['noOffRampRate'] = False
 						props['logChanges'] = self.pluginPrefs.get('logDefaultForNewDevices', "off") == "on"
 						try:
-							device = indigo.device.create(
+							device = indigo.device.create(		# light V2
 								protocol		= indigo.kProtocol.Plugin,
 								address			= address,
 								name			= name,
@@ -9059,7 +9059,7 @@ class Plugin(indigo.PluginBase):
 								props['modelId'] = modelid
 								props['logChanges'] = self.pluginPrefs.get('logDefaultForNewDevices', "off") == "on"
 								try:
-									device = indigo.device.create(
+									device = indigo.device.create(		# sensor V2
 										protocol		= indigo.kProtocol.Plugin,
 										address			= address,
 										name			= name,
@@ -9221,7 +9221,7 @@ class Plugin(indigo.PluginBase):
 					props['hubNumber'] = hubNumber
 					props['logChanges'] = self.pluginPrefs.get('logDefaultForNewDevices', "off") == "on"
 					try:
-						device = indigo.device.create(
+						device = indigo.device.create(		# area_Motion V2
 							protocol		= indigo.kProtocol.Plugin,
 							address			= address,
 							name			= name,
@@ -9381,7 +9381,7 @@ class Plugin(indigo.PluginBase):
 						props['logChanges'] = self.pluginPrefs.get('logDefaultForNewDevices', "off") == "on"
 						#indigo.server.log(f"motionInfo:{motionInfo}")
 						try:
-							device = indigo.device.create(
+							device = indigo.device.create(		#Grouped_Motion V2
 								protocol		= indigo.kProtocol.Plugin,
 								address			= address,
 								name			= name,
@@ -9564,7 +9564,7 @@ class Plugin(indigo.PluginBase):
 						props['logChanges'] = False # self.pluginPrefs.get('logDefaultForNewDevices', "off") == "on"
 						#props = self.validateDeviceConfigUi(props, deviceTypeId, 0)[1]
 						try:
-							device = indigo.device.create(
+							device = indigo.device.create(		# hueContactSensor V2
 								protocol		= indigo.kProtocol.Plugin,
 								address			= address,
 								name			= name,
@@ -15176,13 +15176,17 @@ class Plugin(indigo.PluginBase):
 				sinceEpoch = dt.timestamp()
 				evType = hueEvent.get("type","empty")
 				evData = hueEvent.get("data",list())
-				#if self.decideMyLog("EventApi"): self.indiLOG.log(20,"digestV2Event evType {}  eventDict:{:},".format(evType,  evData))
+				if self.decideMyLog("EventApi"): self.indiLOG.log(20,"digestV2Event evType {}  eventDict:{:},".format(evType,  evData))
 
 				if evType == "update":
 					self.bytesSend[hubNumber]['events'][4] += 1
 					self.bytesSend[hubNumber]['events'][5] += len(str(evData))
 					stateUpdateList = list()
 					for eventDict in hueEvent['data']:
+						done = False
+						doPrint = False
+						if "xxxcontact_report" in eventDict: doPrint = True
+
 						event = None
 						found = False
 						id1 = ""
@@ -15193,7 +15197,7 @@ class Plugin(indigo.PluginBase):
 						if id_v1 == "/groups/0": #Do not hande bridge group
 							continue
 							
-						doPrint = id_v1 in ["x/groups/89", "xx/lights/63"]
+						#doPrint = id_v1 in ["x/groups/89", "xx/lights/63"]
 						try:	xx, vType, id1 = id_v1.split("/")
 						except: xx, vType, id1 = "","", None
 
@@ -15203,7 +15207,7 @@ class Plugin(indigo.PluginBase):
 							#if self.decideMyLog("EventApi"): self.indiLOG.log(20,"digestV2Event contact (0) eventDict:{:},".format( eventDict))
 							vType = "grouped_light_level"
 							
-						if doPrint: self.indiLOG.log(20,"digestV2Event {} servicetype:{},  evdict:{:},".format(str(id_v1), servicetype,  eventDict))
+						if doPrint: self.indiLOG.log(20,"digestV2Event id {} servicetype:{},  evdict:{:},".format(str(id_v1), servicetype,  eventDict))
 
 						# ignore some  types
 						owner = eventDict.get('owner', None)
@@ -15248,7 +15252,7 @@ no devId for:
 
 						indigoDevice = self.deviceCopiesFromIndigo[indigoId]
 
-						#if servicetype == "grouped_light_level": self.indiLOG.log(20,"digestV2Event accepted dev: {:12}  {:40}  --grouped_light_level--   {:},".format(indigoId, indigoDevice.name, eventDict))
+						if doPrint: self.indiLOG.log(20,"digestV2Event accepted dev: {:12}  {:40}  --  {:},".format(indigoId, indigoDevice.name, eventDict))
 
 
 						if servicetype in ['contact','tamper','convenience_area_motion','motion_area_configuration','grouped_motion']:
@@ -15257,27 +15261,29 @@ no devId for:
 								continue
 
 							if servicetype == "contact":
-								#if self.decideMyLog("EventApi"): self.indiLOG.log(20,"digestV2Event contact (0) indioId:{:}, eventDict:{:},".format(indigoId,  eventDict))
+								if doPrint or  self.decideMyLog("EventApi"): self.indiLOG.log(20,"digestV2Event contact (0) indioId:{:}, eventDict:{:},".format(indigoId,  eventDict))
 								if indigoDevice is not None:
 									stateUpdateList = self.fillIndigoStatesWithApi2_contact_Events( servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, "contact", 0, evType, serviceId,  stateUpdateList)
-								indigoId = None
+								done = True
 
-							if servicetype == "tamper":
+							elif servicetype == "tamper":
 								#if self.decideMyLog("EventApi"): self.indiLOG.log(20,"digestV2Event tamper (0) indioId:{:}, eventDict:{:},".format(indigoId,  eventDict))
 								if indigoDevice is not None:
 									stateUpdateList = self.fillIndigoStatesWithApi2_tamper_Events( servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, "contact", 0, evType, serviceId,  stateUpdateList)
-								indigoId = None
+								done = True
 
 							elif servicetype == "convenience_area_motion":
 								#if self.decideMyLog("EventApi"): self.indiLOG.log(20,"digestV2Eventc convenience_area_motion  (0) eventDict:{},".format( eventDict))
 								if indigoDevice is not None:
 									vType = "convenience_area_motion"
 									stateUpdateList = self.fillIndigoStatesWithApi2_motion_area(	servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, "convenience_area_motion", 0, evType, serviceId,  stateUpdateList)
+									done = True
 
 							elif servicetype == "motion_area_configuration":
 								#if self.decideMyLog("EventApi"): self.indiLOG.log(20,"digestV2Event motion_area_configuration (0) eventDict:{},".format( eventDict))
 								if indigoDevice is not None:
 									stateUpdateList = self.fillIndigoStatesWithApi2_motion_area(	servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, "motion_area_configuration", 0, evType, serviceId,  stateUpdateList)
+									done = True
 
 
 							elif servicetype == "grouped_motion":
@@ -15285,13 +15291,14 @@ no devId for:
 									if indigoId in self.deviceCopiesFromIndigo:
 										indigoDevice = self.deviceCopiesFromIndigo[indigoId]
 										stateUpdateList = self.fillIndigoStatesWithApi2_motion_area(	servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, "grouped_motion", 0, evType, serviceId,  stateUpdateList)
+										done = True
 
-						elif vType == "":
+						elif vType == "" and not done:
 							self.fillIndigoStatesWithApi2_other_Events0(	servicetype, hubNumber, eventDict,  serviceId)
 
 
 						#this is v1 stuff:#############################################
-						elif vType != "":
+						elif vType not in [""] and not done:
 							indigoId  = self.serviceidToIndigoId[hubNumber].get(serviceId, None)
 
 
@@ -15305,7 +15312,6 @@ no devId for:
 								if self.decideMyLog("EventApi"): self.indiLOG.log(10,"digestV2Event (6) REJECT indigoId:{} does not give valid device, digestV2Event:{}".format(  indigoId, eventDict), exc_info=True)
 								continue
 
-
 							if servicetype in _notAccptedEventTypes:
 								found = True
 								if self.decideMyLog("EventApi"): self.indiLOG.log(10,"digestV2Event (7) REJECT not accepted type; event from hub#:{}, evType:{}, id_v1:{},".format(hubNumber, servicetype, id_v1))
@@ -15317,57 +15323,74 @@ no devId for:
 
 							if servicetype == "device":
 								stateUpdateList = self.fillIndigoStatesWithApi2_device_Events(					servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId,  stateUpdateList)
+								done = True
 
 							elif servicetype == "light":
 								stateUpdateList = self.fillIndigoStatesWithApi2_light_Events(					servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId,  stateUpdateList, doPrint=doPrint)
+								done = True
 
 							elif servicetype == "light_level":
 								self.fillIndigoStatesWithApi2_light_level_Events( 								servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId,  stateUpdateList)
+								done = True
 
 							elif servicetype == "grouped_light_level":
 								self.fillIndigoStatesWithApi2_grouped_light_level_Events( 						servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId,  stateUpdateList)
+								done = True
 
 							elif servicetype == "motion":
 								stateUpdateList = self.fillIndigoStatesWithApi2_motion_Events(					servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId,  stateUpdateList)
+								done = True
 
 							elif servicetype == "temperature":
 								stateUpdateList = self.fillIndigoStatesWithApi2_temperature_Events(				servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId,  stateUpdateList)
+								done = True
 
 							elif servicetype == "button":
 								stateUpdateList = self.fillIndigoStatesWithApi2_button_Events(					servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId,  stateUpdateList)
+								done = True
 
 							elif servicetype == "relative_rotary":
 								stateUpdateList = self.fillIndigoStatesWithApi2_relative_rotary_Events(			servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId,  stateUpdateList)
+								done = True
 
 							elif servicetype == "grouped_light":
 								stateUpdateList = self.fillIndigoStatesWithApi2_grouped_light_Events(			servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId,  stateUpdateList)
+								done = True
 
 							elif servicetype == "sensor":
 								self.fillIndigoStatesWithApi2_Sensor_Events( 									servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId,  stateUpdateList)
+								done = True
 
 							elif servicetype == "bridge":
 								stateUpdateList = self.fillIndigoStatesWithApi2_bridge_Events(					servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId,  stateUpdateList)
+								done = True
 
 							elif servicetype == "device_software_update":
 								stateUpdateList = self.fillIndigoStatesWithApi2_device_software_update_Events(	servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId,  stateUpdateList)
+								done = True
 
 							elif servicetype == "zigbee_connectivity":
 								stateUpdateList = self.fillIndigoStatesWithApi2_zigbee_connectivity_Events(	servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId,  stateUpdateList, doPrint=doPrint)
+								done = True
 
 							elif servicetype == "zgp_connectivity":
 								stateUpdateList = self.fillIndigoStatesWithApi2_zgp_connectivity(	servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId,  stateUpdateList)
+								done = True
 
 							elif servicetype == "zigbee_device_discovery":
 								stateUpdateList = self.fillIndigoStatesWithApi2_zigbee_device_discovery_Events(servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId,  stateUpdateList)
+								done = True
 
 							elif servicetype == "device_power":
 								stateUpdateList = self.fillIndigoStatesWithApi2_device_power( 					servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId,  stateUpdateList)
+								done = True
 
 							else:
 								stateUpdateList = self.fillIndigoStatesWithApi2_other_Events(					servicetype, hubNumber, indigoDevice, eventDict, indigoId, nextId, vType, id1, evType, serviceId,  stateUpdateList)
+								done = True
 
 
-						if stateUpdateList != list():
+						if stateUpdateList != list() and done:
 							if indigoId not in self.deviceUpdate: self.deviceUpdate[indigoId] = list()
 							self.deviceUpdate[indigoId] += stateUpdateList
 							#self.updateDeviceState(indigoDevice, stateUpdateList, calledFrom="digestV2Event")
@@ -15390,8 +15413,13 @@ no devId for:
 						self.indiLOG.log(30,"digestV2Event  received >>{}<<  message  eventData:{}".format(evType,  evData))
 
 			if self.deviceUpdate != dict():
-				#self.indiLOG.log(20,"digestV2Event self.deviceUpdate:{}".format(self.deviceUpdate))
 				for devId in self.deviceUpdate:
+					if devId is None: 
+						self.indiLOG.log(20,"digestV2Event self.deviceUpdate:{}".format(self.deviceUpdate))
+						continue
+					if devId not in self.deviceCopiesFromIndigo:
+						device = indigo.devices[devId]
+						self.deviceCopiesFromIndigo[devId] = device
 					device = self.deviceCopiesFromIndigo[devId]
 					self.updateDeviceState(device, self.deviceUpdate[devId], calledFrom="digestV2Event")
 		except Exception:

@@ -1,4 +1,9 @@
 ========================================
+2022.29.78 @ 2026-03-13
+1. fixed bug for hue contact sensor update
+2. fixed bug not creating api v2 devices for groups - there was a debug statement not commented
+
+========================================
 2022.29.77 @ 2026-03-12
 1. added option to use default for brightness and ramp rate for recall action
 2. fixed several rgb / dimmer functions
