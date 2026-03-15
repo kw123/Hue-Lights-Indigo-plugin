@@ -1045,7 +1045,7 @@ class Plugin(indigo.PluginBase):
 
 					if 	deviceTypeId in kSwitchTypeIDs:	prefix = "switchPrefix"
 					else:								prefix = "sensorPrefix"
-					name = "Hue_{}_{}_{}_{}".format(self.pluginPrefs.get(prefix,kDefaultPluginPrefs[prefix]), hubNumber, theID, nameOnBridge)
+					name = "Hue_{}_{}_{}_{}".format(self.pluginPrefs.get(prefix,kDefaultPluginPrefs[prefix]), hubNumber, theID, hueDevice['name'])
 		
 					exists = False
 					for devId in self.deviceCopiesFromIndigo:
