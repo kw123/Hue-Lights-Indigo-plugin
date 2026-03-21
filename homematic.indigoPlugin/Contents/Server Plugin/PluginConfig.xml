@@ -1,0 +1,150 @@
+<?xml version="1.0"?>
+<PluginConfig>
+
+	<Field id="infoLabel1" 				type="label" fontColor="orange" > 
+		<Label>Homematic  plugin  Developed by Karl Wachs March 2024
+Requirements: raspberry matic CCU v3  with addon CCU-Jack
+The default settings should be fine.
+The only REQUIRED settings is the  IP NUMBER  of your raspberrymatic RPI.
+
+This plugin will read all CCU info at startup and once every 2 minutes (default)
+   and all values every 3 secs (default)
+It will then create and populate the corresponding indigo devices / states:
+   devices, rooms, groups, variables, sys-info, vendor info  etc. 
+
+It can READ all sensor data (T, H, P, Co2, Particultes, Wind, Rain,...) 
+   as well as any alarm data (Water, Smoke, Fire, ..) and 
+   relay / ouput states and dimmer values as well as button presses
+
+It can SET relays outputs on/off, and can set dimmer values etc
+
+For more details do menu / PRINT parameters and help to logfile 
+</Label>  
+	</Field>
+
+	<Field id="simpleSeparator22" 		type="separator"/>
+
+	<Field id="MSG"        	type="textfield"   > 
+		<Label> msg from plugin:</Label>  
+	</Field>
+
+	<Field id="ShowGeneral" 				type="checkbox"  fontColor="green"> 
+		<Label>Show General section........................................................:</Label>  
+	</Field>
+
+
+	<Field id="ipNumber"  					type="textfield"   visibleBindingId="ShowGeneral" visibleBindingValue="true"   > 
+		<Label>.. ipNumber of homematic server:</Label> 
+	</Field>
+
+	<Field id="folderNameDevices"       	type="textfield"   visibleBindingId="ShowGeneral" visibleBindingValue="true"  > 
+		<Label>Folder name for NEW devices:</Label>  
+	</Field>
+
+
+	<Field id="sep-Names" 			type="separator"/>
+
+	<Field id="ShowDevices" 					type="checkbox"  fontColor="green"> 
+		<Label>Show Devices section........................................................:</Label>  
+	</Field>
+
+	<Field id="ignoreNewDevices"    	type="checkbox"  visibleBindingId="ShowDevices" visibleBindingValue="true"   > 
+		<Label>Ignore NEW Devices:</Label>   
+	</Field>
+
+
+	<Field id="accept_HEATING"    type="checkbox"  visibleBindingId="ShowDevices" visibleBindingValue="true"   > 
+		<Label>Create HEATING collection devices:</Label>   
+	</Field>
+
+	<Field id="accept_SYSVAR"    type="checkbox"  visibleBindingId="ShowDevices" visibleBindingValue="true"   > 
+		<Label>Create ANY sys var devices:</Label>   
+	</Field>
+
+	<Field id="accept_WatchDog"    	type="checkbox"  visibleBindingId="ShowDevices" visibleBindingValue="true"   > 
+		<Label>Create Watchdog sys var devices:</Label>   
+	</Field>
+
+
+	<Field id="accept_DutyCycle"    	type="checkbox"  visibleBindingId="ShowDevices" visibleBindingValue="true"   > 
+		<Label>Create DutyCycle sys var devices:</Label>   
+	</Field>
+
+
+	<Field id="sep-Debug" 			type="separator"/>
+
+	<Field id="ShowDebug" 					type="checkbox"  fontColor="green"> 
+		<Label>Show DEBUG section........................................................:</Label>  
+	</Field>
+
+	<Field id="writeInfoToFile"    type="checkbox" visibleBindingId="ShowDebug" visibleBindingValue="true" > <Label> write info read from hub to files in pref directory:</Label> 	</Field>
+	<Field id="showLoginTest"      type="checkbox" visibleBindingId="ShowDebug" visibleBindingValue="true" > <Label> show logging test at startup:</Label>  						</Field>
+	<Field id="debugLogic"         type="checkbox" visibleBindingId="ShowDebug" visibleBindingValue="true" > <Label>... (1) Logic:</Label>											</Field>
+	<Field id="debugGetData"       type="checkbox" visibleBindingId="ShowDebug" visibleBindingValue="true" > <Label>... (3) get data, in plugin.log, http only:</Label>				</Field>
+	<Field id="debugDigest"        type="checkbox" visibleBindingId="ShowDebug" visibleBindingValue="true" > <Label>... (4) digest data received, in plugin.log:</Label>			</Field>
+	<Field id="debugActions"       type="checkbox" visibleBindingId="ShowDebug" visibleBindingValue="true" > <Label>... (5) actions:</Label>										</Field>
+	<Field id="debugConnect"       type="checkbox" visibleBindingId="ShowDebug" visibleBindingValue="true" > <Label>... (6) Connect to CCU-RPI:</Label>								</Field>
+	<Field id="debugUpdateStates"  type="checkbox" visibleBindingId="ShowDebug" visibleBindingValue="true" > <Label>... (7) update states  in plugin.log :</Label>					</Field>
+	<Field id="debugTime" 		   type="checkbox" visibleBindingId="ShowDebug" visibleBindingValue="true" > <Label>... (18) timing information:</Label>							</Field>
+	<Field id="debugSpecial"       type="checkbox" visibleBindingId="ShowDebug" visibleBindingValue="true" > <Label>... (19) Special debug for development:</Label>					</Field>
+	<Field id="debugAll"           type="checkbox" visibleBindingId="ShowDebug" visibleBindingValue="true" > <Label>... (20) all of the above = everything:</Label>					</Field>
+	<Field id="sep-ShowDebug" type="separator"  />
+
+
+
+
+	<Field id="infolabelExperts" type="label" fontColor="green"> <Label>=== EXPERTs only ...</Label>  </Field>
+	<Field id="ShowExpert" 					type="checkbox"  fontColor="green"> 
+		<Label>Show EXPERT section........................................................:</Label>  
+	</Field>
+
+
+	<Field id="requestTimeout"    	type="menu"  visibleBindingId="ShowExpert" visibleBindingValue="true"   > 
+		<Label>http request timeout:</Label>   
+		<List>
+			<Option value="5"  >5 secs</Option>
+			<Option value="10" >10 secs default</Option>
+			<Option value="15" >15 secs</Option>
+			<Option value="20" >20 secs</Option>
+		</List>
+	</Field>
+
+
+	<Field id="delayOffForButtons"    	type="menu"  visibleBindingId="ShowExpert" visibleBindingValue="true"   > 
+		<Label>Switch true to false for button states after:</Label>   
+		<List>
+			<Option value="2"  >2 secs default</Option>
+			<Option value="3"  >3 secs</Option>
+			<Option value="4"  >4 secs</Option>
+			<Option value="5"  >5 secs</Option>
+			<Option value="7"  >7 secs</Option>
+			<Option value="8"  >8 secs</Option>
+			<Option value="10" >10 secs</Option>
+		</List>
+	</Field>
+
+
+	<Field id="getValuesEvery"    	type="menu"  visibleBindingId="ShowExpert" visibleBindingValue="true"  tooltop="there are 3 schedules to get values 1. for button presses etc that is the value here, 2 intermediate changing values like wind (time*5) and 3. slowly changing values like temperature (time*20.) "  > 
+		<Label>Get VALUES from homematic every:</Label>   
+		<List>
+			<Option value="500"   >0.5 secs</Option>
+			<Option value="1000"  >1 secs default</Option>
+			<Option value="2000"  >2 secs</Option>
+			<Option value="3000"  >3 secs</Option>
+			<Option value="5000"  >5 secs</Option>
+		</List>
+	</Field>
+
+	<Field id="getCompleteUpdateEvery"    	type="menu"  visibleBindingId="ShowExpert" visibleBindingValue="true"   > 
+		<Label>Get COMPLETE info from homematic every:</Label>   
+		<List>
+			<Option value="60" >1 minutes </Option>
+			<Option value="90" >1.5 minutes</Option>
+			<Option value="120" >2 minutes default</Option>
+			<Option value="180" >3 minutes</Option>
+			<Option value="300" >5 minutes</Option>
+		</List>
+	</Field>
+
+
+</PluginConfig>

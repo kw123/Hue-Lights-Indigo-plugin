@@ -3,22 +3,22 @@
 <plist version="1.0">
 <dict>
 	<key>PluginVersion</key>
-	<string>2022.29.79</string>
+	<string>2022.10.9</string>
 	<key>ServerApiVersion</key>
 	<string>3.0</string>
 	<key>IwsApiVersion</key>
 	<string>1.0.0</string>
 	<key>CFBundleDisplayName</key>
-	<string>Hue Lights</string>
+	<string>homematic</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.nathansheldon.indigoplugin.HueLights</string>
+	<string>com.karlwachs.homematic</string>
 	<key>CFBundleVersion</key>
 	<string>1.0.0</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>http://www.nathansheldon.com/files/Hue-Lights-Plugin.php</string>
+			<string>http://forums.indigodomo.com/viewforum.php?f=164</string>
 		</dict>
 	</array>
 </dict>

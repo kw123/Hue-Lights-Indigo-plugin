@@ -1,0 +1,779 @@
+<?xml version="1.0"?>
+<MenuItems>
+
+
+	<MenuItem id="dummyActions"><Name>Action items ----------------------</Name></MenuItem>
+
+
+	<MenuItem id="boost">
+		<Name>Boost thermostat</Name>
+		<ConfigUI>
+			<Field id="lab00" type="label" fontColor="orange"> 
+				<Label>Send boost command to homematic  thermostat</Label>
+			</Field>
+
+			<Field     id="deviceId" type="menu" defaultValue="0">
+				<Label>select thermostate device:</Label>
+				<List class="self" filter="HMIP-HEATING,HMIP-ETRV,HMIP-WTH" method="filterDevices"  dynamicReload="no"/>
+			</Field>
+
+			<Field  id="onOff" type="menu" defaultValue="on">
+				<List>
+					<Option value="off">Off </Option>
+					<Option value="on">On </Option>
+				</List>
+				<Label>boost on / off:</Label>
+			</Field>
+
+
+			<Field  id="exec" type="button" >
+				<Title>Execute </Title>
+				<CallbackMethod>boostThermostat</CallbackMethod> 
+			</Field>
+		</ConfigUI>
+
+    </MenuItem>
+
+
+
+	<MenuItem id="unlock">
+		<Name>Unlock Door..</Name>
+		<ConfigUI>
+			<Field id="lab00" type="label" fontColor="orange"> 
+				<Label>Send command to homematic door lock</Label>
+			</Field>
+
+			<Field     id="deviceId" type="menu" defaultValue="0">
+				<Label>select door lock device:</Label>
+				<List class="self" filter="HMIP-DLD" method="filterDevices"  dynamicReload="no"/>
+			</Field>
+
+			<Field  id="value" type="menu" defaultValue="lock">
+				<List>
+					<Option value="unlock">unlock </Option>
+					<Option value="lock">lock </Option>
+				</List>
+				<Label>lock / unlock:</Label>
+			</Field>
+
+
+			<Field  id="exec" type="button" >
+				<Title>Execute </Title>
+				<CallbackMethod>doorLockUnLock</CallbackMethod> 
+			</Field>
+		</ConfigUI>
+
+    </MenuItem>
+
+	<MenuItem id="setVariable">
+		<Name>Set Variable on CCU ..</Name>
+		<ConfigUI>
+			<Field id="lab00" type="label" fontColor="orange"> 
+				<Label>Send string or bool or number to homematic variable on the CCU 
+1. select variable to be written to
+2. enter value:
+   for BOOL use t/f or 1/0
+   for STRING any string
+   for NUMBER any integer or float </Label>
+			</Field>
+
+			<Field     id="deviceId" type="menu" defaultValue="0">
+				<Label>select variable to be set:</Label>
+				<List class="self" filter="variable" method="filterVariables"  dynamicReload="no"/>
+			</Field>
+
+			<Field  id="text" type="textfield" defaultValue="">
+				<Label>value to be sent to variable:</Label>
+			</Field>
+
+			<Field  id="exec" type="button" >
+				<Title>Execute </Title>
+				<CallbackMethod>setVariable</CallbackMethod> 
+			</Field>
+		</ConfigUI>
+
+    </MenuItem>
+
+
+	<MenuItem id="alarmSiren">
+		<Name>Set Alarm Device on CCU ..</Name>
+		<ConfigUI>
+
+			<Field id="lab00" type="label" fontColor="orange"> 
+				<Label>command to alarm device on CCU</Label>
+			</Field>
+
+			<Field     id="alarmDevId" type="menu" defaultValue="0">
+				<Label>select alarm device:</Label>
+				<List class="self" filter="alarm" method="filterDevices"  dynamicReload="no"/>
+			</Field>
+
+
+			<Field     id="alarmVarId" type="menu" defaultValue="0">
+				<Label>select variable that sets the command on homematic:</Label>
+				<List class="self" filter="SYSVAR-STRING" method="filterDevices"  dynamicReload="no"/>
+			</Field>
+
+
+			<Field  id="DURATION" type="menu" defaultValue="3">
+				<List>
+					<Option value="1">1 secs</Option>
+					<Option value="3">3 secs</Option>
+					<Option value="5">5 secs</Option>
+					<Option value="7">7 secs</Option>
+					<Option value="10">10 secs</Option>
+					<Option value="15">15 secs</Option>
+					<Option value="20">20 secs</Option>
+					<Option value="30">30 secs</Option>
+					<Option value="45">45 secs</Option>
+					<Option value="60">1 minute </Option>
+					<Option value="120">2 minutes</Option>
+					<Option value="180">3 minutes</Option>
+					<Option value="240">4 minutes</Option>
+					<Option value="300">5 minutes</Option>
+					<Option value="360">6 minutes</Option>
+					<Option value="420">7 minutes</Option>
+					<Option value="480">8 minutes</Option>
+				</List>
+				<Label>length of alarm:</Label>
+			</Field>
+
+
+			<Field  id="OPTICAL_ALARM_SELECTION" type="menu" defaultValue="off">
+				<List>
+					<Option value="0">off </Option>
+					<Option value="1">blinking alternative, repeating </Option>
+					<Option value="2">blinking both, repeating </Option>
+					<Option value="3">double flashing, repeating </Option>
+					<Option value="4">flashing both, repeating </Option>
+					<Option value="5">confirmation Signal 0 </Option>
+					<Option value="6">confirmation Signal 1 </Option>
+					<Option value="6">confirmation Signal 2 </Option>
+				</List>
+				<Label>optical alarm:</Label>
+			</Field>
+
+			<Field  id="ACOUSTIC_ALARM_SELECTION" type="menu" defaultValue="off">
+				<List>
+					<Option value="0">off </Option>
+					<Option value="1">blinking alternative, repeating </Option>
+					<Option value="2">blinking both, repeating </Option>
+					<Option value="3">double flashing, repeating </Option>
+					<Option value="4">flashing both, repeating </Option>
+					<Option value="5">confirmation Signal 0 </Option>
+					<Option value="6">confirmation Signal 1 </Option>
+					<Option value="6">confirmation Signal 2 </Option>
+				</List>
+				<Label>acoustical alarm:</Label>
+			</Field>
+
+
+			<Field  id="exec" type="button" >
+				<Title>Execute </Title>
+				<CallbackMethod>alarmSIREN</CallbackMethod> 
+			</Field>
+		</ConfigUI>
+    </MenuItem>
+
+
+	<MenuItem id="setDisplayWRCD">
+		<Name>Set Display Device on CCU ..</Name>
+		<ConfigUI>
+
+			<Field     id="lab0" type="label" fontColor="orange">
+				<Label>Send up to 5 lines to a WRCD device, may include beeps
+  You can send up to 11-16 characters (w /wo icon) per line
+  To blank a line set it to one blank,
+  To not show a line make it empty, will keep old line 
+</Label>
+			</Field>
+
+
+
+			<Field     id="devId" type="menu" defaultValue="0">
+				<Label>select WRCD device:</Label>
+				<List class="self" filter="display" method="filterDevices"  dynamicReload="no"/>
+			</Field>
+
+
+	<Field id="lab1" type="label" fontColor="green"> <Label>line 1...</Label>  </Field>
+			<Field  id="DDS-1" type="textfield" defaultValue="abc">
+				<Label>text:</Label>
+			</Field>
+
+
+			<Field  id="DDBC-1" type="menu" defaultValue="WHITE">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>background color:</Label>
+			</Field>
+
+			<Field  id="DDTC-1" type="menu" defaultValue="BLACK">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>text color:</Label>
+			</Field>
+
+			<Field  id="DDA-1" type="menu" defaultValue="CENTER">
+				<List>
+					<Option value="CENTER">center</Option>
+					<Option value="RIGHT">right</Option>
+					<Option value="LEFT">left</Option>
+				</List>
+				<Label>align:</Label>
+			</Field>
+
+			<Field  id="DDI-1" type="menu" defaultValue="5">
+				<List>
+					<Option value="0">none</Option>
+					<Option value="1">Lamp Off</Option>
+					<Option value="2">Lamp On </Option>
+					<Option value="3">Lock open </Option>
+					<Option value="4">Lock close</Option>
+					<Option value="5">X </Option>
+					<Option value="6">Check</Option>
+					<Option value="7">Info</Option>
+					<Option value="8">Letter</Option>
+					<Option value="9">Wrench</Option>
+					<Option value="10">Sun</Option>
+					<Option value="11">Moon</Option>
+					<Option value="12">Wind</Option>
+					<Option value="13">Cloud</Option>
+					<Option value="14">Could Flash</Option>
+					<Option value="15">Clould slight rain</Option>
+					<Option value="16">Cloud moon</Option>
+					<Option value="17">Cloud rain</Option>
+					<Option value="18">Cloud snow</Option>
+					<Option value="19">Cloud sun</Option>
+					<Option value="20">Cloud sun rain</Option>
+					<Option value="21">Cloud snow flake</Option>
+					<Option value="22">Cloud rain drop</Option>
+					<Option value="23">Flame</Option>
+					<Option value="24">Window open</Option>
+					<Option value="25">Rollo</Option>
+					<Option value="26">Eco</Option>
+					<Option value="27">Difuse</Option>
+					<Option value="28">Protect </Option>
+					<Option value="29">Protect 2</Option>
+					<Option value="30">Notification</Option>
+					<Option value="31">Clock</Option>
+				</List>
+				<Label>icon:</Label>
+			</Field>
+
+	<Field id="lab21" type="label" fontColor="green"> <Label>line 2...</Label>  </Field>
+			<Field  id="DDS-2" type="textfield" defaultValue=" ">
+				<Label>text:</Label>
+			</Field>
+
+
+			<Field  id="DDBC-2" type="menu" defaultValue="WHITE">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>background color:</Label>
+			</Field>
+
+			<Field  id="DDTC-2" type="menu" defaultValue="BLACK">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>text color:</Label>
+			</Field>
+
+
+			<Field  id="DDA-2" type="menu" defaultValue="CENTER">
+				<List>
+					<Option value="CENTER">center</Option>
+					<Option value="RIGHT">right</Option>
+					<Option value="LEFT">left</Option>
+				</List>
+				<Label>align:</Label>
+			</Field>
+
+			<Field  id="DDI-2" type="menu" defaultValue="5">
+				<List>
+					<Option value="0">none</Option>
+					<Option value="1">Lamp Off</Option>
+					<Option value="2">Lamp On </Option>
+					<Option value="3">Lock open </Option>
+					<Option value="4">Lock close</Option>
+					<Option value="5">X </Option>
+					<Option value="6">Check</Option>
+					<Option value="7">Info</Option>
+					<Option value="8">Letter</Option>
+					<Option value="9">Wrench</Option>
+					<Option value="10">Sun</Option>
+					<Option value="11">Moon</Option>
+					<Option value="12">Wind</Option>
+					<Option value="13">Cloud</Option>
+					<Option value="14">Could Flash</Option>
+					<Option value="15">Clould slight rain</Option>
+					<Option value="16">Cloud moon</Option>
+					<Option value="17">Cloud rain</Option>
+					<Option value="18">Cloud snow</Option>
+					<Option value="19">Cloud sun</Option>
+					<Option value="20">Cloud sun rain</Option>
+					<Option value="21">Cloud snow flake</Option>
+					<Option value="22">Cloud rain drop</Option>
+					<Option value="23">Flame</Option>
+					<Option value="24">Window open</Option>
+					<Option value="25">Rollo</Option>
+					<Option value="26">Eco</Option>
+					<Option value="27">Difuse</Option>
+					<Option value="28">Protect </Option>
+					<Option value="29">Protect 2</Option>
+					<Option value="30">Notification</Option>
+					<Option value="31">Clock</Option>
+				</List>
+				<Label>icon:</Label>
+			</Field>
+
+	<Field id="lab3" type="label" fontColor="green"> <Label>line 3...</Label>  </Field>
+			<Field  id="DDS-3" type="textfield" defaultValue=" ">
+				<Label>text:</Label>
+			</Field>
+
+
+			<Field  id="DDBC-3" type="menu" defaultValue="WHITE">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>background color:</Label>
+			</Field>
+
+			<Field  id="DDTC-3" type="menu" defaultValue="BLACK">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>text color:</Label>
+			</Field>
+
+
+			<Field  id="DDA-3" type="menu" defaultValue="CENTER">
+				<List>
+					<Option value="CENTER">center</Option>
+					<Option value="RIGHT">right</Option>
+					<Option value="LEFT">left</Option>
+				</List>
+				<Label>align:</Label>
+			</Field>
+
+			<Field  id="DDI-3" type="menu" defaultValue="5">
+				<List>
+					<Option value="0">none</Option>
+					<Option value="1">Lamp Off</Option>
+					<Option value="2">Lamp On </Option>
+					<Option value="3">Lock open </Option>
+					<Option value="4">Lock close</Option>
+					<Option value="5">X </Option>
+					<Option value="6">Check</Option>
+					<Option value="7">Info</Option>
+					<Option value="8">Letter</Option>
+					<Option value="9">Wrench</Option>
+					<Option value="10">Sun</Option>
+					<Option value="11">Moon</Option>
+					<Option value="12">Wind</Option>
+					<Option value="13">Cloud</Option>
+					<Option value="14">Could Flash</Option>
+					<Option value="15">Clould slight rain</Option>
+					<Option value="16">Cloud moon</Option>
+					<Option value="17">Cloud rain</Option>
+					<Option value="18">Cloud snow</Option>
+					<Option value="19">Cloud sun</Option>
+					<Option value="20">Cloud sun rain</Option>
+					<Option value="21">Cloud snow flake</Option>
+					<Option value="22">Cloud rain drop</Option>
+					<Option value="23">Flame</Option>
+					<Option value="24">Window open</Option>
+					<Option value="25">Rollo</Option>
+					<Option value="26">Eco</Option>
+					<Option value="27">Difuse</Option>
+					<Option value="28">Protect </Option>
+					<Option value="29">Protect 2</Option>
+					<Option value="30">Notification</Option>
+					<Option value="31">Clock</Option>
+				</List>
+				<Label>icon:</Label>
+			</Field>
+
+
+	<Field id="lab4" type="label" fontColor="green"> <Label>line 4...</Label>  </Field>
+			<Field  id="DDS-4" type="textfield" defaultValue=" ">
+				<Label>text:</Label>
+			</Field>
+
+
+			<Field  id="DDBC-4" type="menu" defaultValue="WHITE">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>background color:</Label>
+			</Field>
+
+			<Field  id="DDTC-4" type="menu" defaultValue="BLACK">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>text color:</Label>
+			</Field>
+
+
+			<Field  id="DDA-4" type="menu" defaultValue="CENTER">
+				<List>
+					<Option value="CENTER">center</Option>
+					<Option value="RIGHT">right</Option>
+					<Option value="LEFT">left</Option>
+				</List>
+				<Label>align:</Label>
+			</Field>
+
+			<Field  id="DDI-4" type="menu" defaultValue="5">
+				<List>
+					<Option value="0">none</Option>
+					<Option value="1">Lamp Off</Option>
+					<Option value="2">Lamp On </Option>
+					<Option value="3">Lock open </Option>
+					<Option value="4">Lock close</Option>
+					<Option value="5">X </Option>
+					<Option value="6">Check</Option>
+					<Option value="7">Info</Option>
+					<Option value="8">Letter</Option>
+					<Option value="9">Wrench</Option>
+					<Option value="10">Sun</Option>
+					<Option value="11">Moon</Option>
+					<Option value="12">Wind</Option>
+					<Option value="13">Cloud</Option>
+					<Option value="14">Could Flash</Option>
+					<Option value="15">Clould slight rain</Option>
+					<Option value="16">Cloud moon</Option>
+					<Option value="17">Cloud rain</Option>
+					<Option value="18">Cloud snow</Option>
+					<Option value="19">Cloud sun</Option>
+					<Option value="20">Cloud sun rain</Option>
+					<Option value="21">Cloud snow flake</Option>
+					<Option value="22">Cloud rain drop</Option>
+					<Option value="23">Flame</Option>
+					<Option value="24">Window open</Option>
+					<Option value="25">Rollo</Option>
+					<Option value="26">Eco</Option>
+					<Option value="27">Difuse</Option>
+					<Option value="28">Protect </Option>
+					<Option value="29">Protect 2</Option>
+					<Option value="30">Notification</Option>
+					<Option value="31">Clock</Option>
+				</List>
+				<Label>icon:</Label>
+			</Field>
+
+
+	<Field id="lab5" type="label" fontColor="green"> <Label>line 5...</Label>  </Field>
+			<Field  id="DDS-5" type="textfield" defaultValue=" ">
+				<Label>text:</Label>
+			</Field>
+
+
+			<Field  id="DDBC-5" type="menu" defaultValue="WHITE">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>background color:</Label>
+			</Field>
+
+			<Field  id="DDTC-5" type="menu" defaultValue="BLACK">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>text color:</Label>
+			</Field>
+
+
+			<Field  id="DDA-5" type="menu" defaultValue="CENTER">
+				<List>
+					<Option value="CENTER">center</Option>
+					<Option value="RIGHT">right</Option>
+					<Option value="LEFT">left</Option>
+				</List>
+				<Label>align:</Label>
+			</Field>
+
+			<Field  id="DDI-5" type="menu" defaultValue="5">
+				<List>
+					<Option value="0">none</Option>
+					<Option value="1">Lamp Off</Option>
+					<Option value="2">Lamp On </Option>
+					<Option value="3">Lock open </Option>
+					<Option value="4">Lock close</Option>
+					<Option value="5">X </Option>
+					<Option value="6">Check</Option>
+					<Option value="7">Info</Option>
+					<Option value="8">Letter</Option>
+					<Option value="9">Wrench</Option>
+					<Option value="10">Sun</Option>
+					<Option value="11">Moon</Option>
+					<Option value="12">Wind</Option>
+					<Option value="13">Cloud</Option>
+					<Option value="14">Could Flash</Option>
+					<Option value="15">Clould slight rain</Option>
+					<Option value="16">Cloud moon</Option>
+					<Option value="17">Cloud rain</Option>
+					<Option value="18">Cloud snow</Option>
+					<Option value="19">Cloud sun</Option>
+					<Option value="20">Cloud sun rain</Option>
+					<Option value="21">Cloud snow flake</Option>
+					<Option value="22">Cloud rain drop</Option>
+					<Option value="23">Flame</Option>
+					<Option value="24">Window open</Option>
+					<Option value="25">Rollo</Option>
+					<Option value="26">Eco</Option>
+					<Option value="27">Difuse</Option>
+					<Option value="28">Protect </Option>
+					<Option value="29">Protect 2</Option>
+					<Option value="30">Notification</Option>
+					<Option value="31">Clock</Option>
+				</List>
+				<Label>icon:</Label>
+			</Field>
+
+	<Field id="labSound" type="label" fontColor="green"> <Label>Sound data...</Label>  </Field>
+
+			<Field  id="ANS" type="menu" defaultValue="5">
+				<List>
+					<Option value="-1">none</Option>
+					<Option value="0">battery empty s-s-s</Option>
+					<Option value="1">Alarm aus l-s</Option>
+					<Option value="2">Ext Alarm active l-s-s</Option>
+					<Option value="3">Int Alarm active l-s</Option>
+					<Option value="4">Ext Alarm delayed active s-s</Option>
+					<Option value="5">Int Alarm delayed active s</Option>
+					<Option value="6">Event m</Option>
+					<Option value="7">Error l</Option>
+			</List>
+				<Label>sound if :</Label>
+			</Field>
+
+			<Field  id="R" type="menu" defaultValue="1">
+				<List>
+					<Option value="1">1</Option>
+					<Option value="2">2</Option>
+					<Option value="3">3</Option>
+					<Option value="4">4</Option>
+					<Option value="5">5</Option>
+					<Option value="6">6</Option>
+					<Option value="7">7</Option>
+			</List>
+				<Label>repeat sounds:</Label>
+			</Field>
+			<Field  id="IN" type="menu" defaultValue="1">
+				<List>
+					<Option value="1">1</Option>
+					<Option value="2">2</Option>
+					<Option value="3">3</Option>
+					<Option value="4">4</Option>
+					<Option value="5">5</Option>
+					<Option value="6">6</Option>
+					<Option value="7">7</Option>
+			</List>
+				<Label>time gap between sounds:</Label>
+			</Field>
+
+
+
+	<Field id="labEXE" type="label" fontColor="green"> <Label>After all configured...</Label>  </Field>
+
+			<Field  id="exec" type="button" >
+				<Title>Execute </Title>
+				<CallbackMethod>sendStringToDisplay</CallbackMethod> 
+			</Field>
+		</ConfigUI>
+    </MenuItem>
+
+	<MenuItem id="setDevState">
+		<Name>Set a state of any Homematic Indigo device to ..</Name>
+		<ConfigUI>
+			<Field     id="MSG" type="textfield" defaultValue="">
+				<Label>MSG from plugin:</Label>
+			</Field>
+			<Field     id="devId" type="menu" defaultValue="0">
+				<Label>select device:</Label>
+				<List class="self" filter="all" method="filterHomematicAllDevicesReturnDevID"  dynamicReload="true" />
+			</Field>
+
+			<!-->  this is to refresh the menu items after device was selected-->
+			<Field  id="refreshCallbackMethod" type="textfield" defaultValue="dynamicCallbackSetdeviceID" hidden="true"></Field>
+	
+			<Field id="stateName" type="menu"> 
+				<Label>select state name to be overwritten</Label> 
+				<List class="self"  filter="" method="selectState"  dynamicReload="true" />
+			</Field>
+
+			<Field id="oldValue" type="textfield" readonly="true"> 
+				<Label>old value of state</Label> 
+			</Field>
+
+			<Field id="newValue" type="textfield"> 
+				<Label>new value for state</Label> 
+			</Field>
+
+
+			<Field id="newValueUi" type="textfield"> 
+				<Label>new value Ui for state, leave empty to ignore</Label> 
+			</Field>
+
+			<Field id="executeOverwrite" type="button"> 
+				<Label>overwrite now</Label> 
+				<Title>OVERWRITE</Title><CallbackMethod>executeOverwriteButtonState</CallbackMethod>
+			</Field>
+
+		</ConfigUI>
+	</MenuItem>
+
+	<MenuItem id="setDevProp">
+		<Name>Set a property of any Homematic Indigo device to ..</Name>
+		<ConfigUI>
+			<Field     id="MSG" type="textfield" defaultValue="">
+				<Label>MSG from plugin:</Label>
+			</Field>
+			<Field     id="devId" type="menu" defaultValue="0">
+				<Label>select device:</Label>
+				<List class="self" filter="all" method="filterHomematicAllDevicesReturnDevID"  dynamicReload="true" />
+			</Field>
+
+			<!-->  this is to refresh the menu items after device was selected-->
+			<Field  id="refreshCallbackMethod" type="textfield" defaultValue="dynamicCallbackSetdeviceID" hidden="true"></Field>
+	
+			<Field id="propertyName" type="menu"> 
+				<Label>select property name to be overwritten</Label> 
+				<List class="self"  filter="" method="selectProperty"  dynamicReload="true" />
+			</Field>
+
+			<Field id="oldValue" type="textfield" readonly="true"> 
+				<Label>old value of property</Label> 
+			</Field>
+
+			<Field id="newValue" type="textfield"> 
+				<Label>new value for property</Label> 
+			</Field>
+
+			<Field id="executeOverwrite" type="button"> 
+				<Label>overwrite now</Label> 
+				<Title>OVERWRITE</Title><CallbackMethod>executeOverwriteButtonProperty</CallbackMethod>
+			</Field>
+
+		</ConfigUI>
+	</MenuItem>
+
+
+
+	<MenuItem id="dummy1"><Name>Management items ---------------</Name></MenuItem>
+
+
+
+	<MenuItem id="refreshAllData">
+		<Name>Refresh all devices in Indigo..</Name>
+		<ConfigUI>
+			<Field id="printConfig" type="button"> 
+				<Label>get all data ie device info details from homematic server NOW </Label> 
+				<Title>EXECUTE</Title><CallbackMethod>getAllDataCallback</CallbackMethod>
+			</Field>
+		</ConfigUI>
+	</MenuItem>
+
+	<MenuItem id="relinkDevices">
+		<Name>Relink child orphans..</Name>
+		<ConfigUI>
+			<Field id="numberOfDevices" type="menu" defaultValue="5"> 
+				<Label>Maximum number of devices handled at a time</Label> 
+				<List>
+					<Option value="1">1</Option>
+					<Option value="2">2</Option>
+					<Option value="5">5</Option>
+					<Option value="10">10</Option>
+					<Option value="99">99</Option>
+			</List>
+			</Field>
+			<Field id="dorelink" type="button"> 
+				<Label>re link orphaned childred back to their parents</Label> 
+				<Title>EXECUTE</Title><CallbackMethod>setActiverelinkParentsToChildren</CallbackMethod>
+			</Field>
+			<Field     id="lab0" type="label" fontColor="orange">
+				<Label>It might take a few seconds to start and to finish execution.
+Please check logfile printout, you might need to rerun the process</Label>
+			</Field>
+		</ConfigUI>
+	</MenuItem>
+
+
+
+	<MenuItem id="ignoreHomaticDevice">
+		<Name>(un)Ignore specifc homematic devices in Indigo ..</Name>
+		<ConfigUI>
+
+			<Field     id="address" type="menu" defaultValue="0">
+				<Label>select homematic device:</Label>
+				<List class="self" method="filterHomematicAllDevices" dynamicReload="true"/>
+			</Field>
+
+			<Field  id="exec1" type="button" >
+				<Title>IGNORE </Title>
+				<CallbackMethod>ignoreDevicesButton</CallbackMethod> 
+			</Field>
+
+			<Field  id="exec2" type="button" >
+				<Title>USE </Title>
+				<CallbackMethod>useDevicesButton</CallbackMethod> 
+			</Field>
+
+
+			<Field  id="exec3" type="button" >
+				<Title>REMOVE from Internal Lists = reset </Title>
+				<CallbackMethod>removeFromListDevicesButton</CallbackMethod> 
+			</Field>
+
+
+
+		</ConfigUI>
+
+    </MenuItem>
+
+
+	<MenuItem id="printConfig">
+		<Name>PRINT parameters and help to logfile ..</Name>
+		<ConfigUI>
+
+			<Field id="printConfig" type="button"> 
+				<Label>PRINT Config parameters and host info to log </Label> 
+				<Title>PRINT </Title><CallbackMethod>printConfigMenu</CallbackMethod>
+			</Field>
+
+			<Field id="printDevices" type="button"> 
+				<Label>PRINT device list to log </Label> 
+				<Title>PRINT </Title><CallbackMethod>printDevices</CallbackMethod>
+			</Field>
+
+			<Field id="printDeviceProps" type="button"> 
+				<Label>PRINT device props to log </Label> 
+				<Title>PRINT </Title><CallbackMethod>printDevicePropsMenu</CallbackMethod>
+			</Field>
+			<Field id="printDeviceXML" type="button"> 
+				<Label>PRINT device XML file to log </Label> 
+				<Title>PRINT </Title><CallbackMethod>printDeviceXMLMenu</CallbackMethod>
+			</Field>
+
+
+		</ConfigUI>
+	</MenuItem>
+
+</MenuItems>

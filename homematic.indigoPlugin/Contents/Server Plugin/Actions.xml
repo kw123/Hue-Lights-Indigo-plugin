@@ -1,0 +1,564 @@
+<Actions>
+        
+	<Action id="boost">
+		<Name>Boost thermostat</Name>
+		<CallbackMethod>boostThermostatAction</CallbackMethod> 
+		<ConfigUI>
+			<Field     id="deviceId" type="menu" defaultValue="0">
+				<Label>select thermostat device:</Label>
+				<List class="self" filter="thermostat" method="filterDevices"  dynamicReload="no"/>
+			</Field>
+			<Field  id="onOff" type="menu" defaultValue="on">
+				<List>
+					<Option value="off">off </Option>
+					<Option value="on">On </Option>
+				</List>
+				<Label>boost on / off:</Label>
+			</Field>
+		</ConfigUI>
+	</Action>
+
+
+	<Action id="unlock">
+		<Name>Unlock CCU Door</Name>
+		<CallbackMethod>doorLockUnLockAction</CallbackMethod> 
+		<ConfigUI>
+
+			<Field     id="deviceId" type="menu" defaultValue="0">
+				<Label>select door lock device:</Label>
+				<List class="self" filter="doorLock" method="filterDevices"  dynamicReload="no"/>
+			</Field>
+
+			<Field  id="value" type="menu" defaultValue="lock">
+				<List>
+					<Option value="unlock">unlock </Option>
+					<Option value="lock">lock </Option>
+				</List>
+				<Label>lock / unlock:</Label>
+			</Field>
+		</ConfigUI>
+
+ 	</Action>
+
+
+	<Action id="setVariable">
+		<Name>Set Variable on CCU ..</Name>
+		<CallbackMethod>setVariableAction</CallbackMethod> 
+		<ConfigUI>
+			<Field id="lab00" type="label" fontColor="orange"> 
+				<Label>Send string or bool or number to homematic variable on the CCU 
+1. select variable to be written to
+2. enter value:
+   for BOOL use t/f or 1/0
+   for STRING any string
+   for NUMBER any integer or float </Label>
+			</Field>
+
+			<Field     id="deviceId" type="menu" defaultValue="0">
+				<Label>select variable to be set:</Label>
+				<List class="self" filter="variable" method="filterVariables"  dynamicReload="no"/>
+			</Field>
+
+			<Field  id="text" type="textfield" defaultValue="">
+				<Label>value to be sent to variable:</Label>
+			</Field>
+
+		</ConfigUI>
+
+    </Action>
+
+
+	<Action id="alarmSiren">
+		<Name>Set Alarm Device on CCU ..</Name>
+		<CallbackMethod>alarmSIRENaction</CallbackMethod> 
+		<ConfigUI>
+
+			<Field     id="alarmDevId" type="menu" defaultValue="0">
+				<Label>select alarm device:</Label>
+				<List class="self" filter="alarm" method="filterDevices"  dynamicReload="no"/>
+			</Field>
+
+
+			<Field     id="alarmVarId" type="menu" defaultValue="0">
+				<Label>select variable that sets the command on homematic:</Label>
+				<List class="self" filter="SYSVAR-STRING" method="filterDevices"  dynamicReload="no"/>
+			</Field>
+
+
+			<Field  id="DURATION" type="menu" defaultValue="3">
+				<List>
+					<Option value="1">1 secs</Option>
+					<Option value="3">3 secs</Option>
+					<Option value="5">5 secs</Option>
+					<Option value="7">7 secs</Option>
+					<Option value="10">10 secs</Option>
+					<Option value="15">15 secs</Option>
+					<Option value="20">20 secs</Option>
+					<Option value="30">30 secs</Option>
+					<Option value="45">45 secs</Option>
+					<Option value="60">1 minute </Option>
+					<Option value="120">2 minutes</Option>
+					<Option value="180">3 minutes</Option>
+					<Option value="240">4 minutes</Option>
+					<Option value="300">5 minutes</Option>
+					<Option value="360">6 minutes</Option>
+					<Option value="420">7 minutes</Option>
+					<Option value="480">8 minutes</Option>
+				</List>
+				<Label>length of alarm:</Label>
+			</Field>
+
+
+			<Field  id="OPTICAL_ALARM_SELECTION" type="menu" defaultValue="off">
+				<List>
+					<Option value="0">off </Option>
+					<Option value="1">blinking alternative, repeating </Option>
+					<Option value="2">blinking both, repeating </Option>
+					<Option value="3">double flashing, repeating </Option>
+					<Option value="4">flashing both, repeating </Option>
+					<Option value="5">confirmation Signal 0 </Option>
+					<Option value="6">confirmation Signal 1 </Option>
+					<Option value="6">confirmation Signal 2 </Option>
+				</List>
+				<Label>optical alarm:</Label>
+			</Field>
+
+			<Field  id="ACOUSTIC_ALARM_SELECTION" type="menu" defaultValue="off">
+				<List>
+					<Option value="0">off </Option>
+					<Option value="1">blinking alternative, repeating </Option>
+					<Option value="2">blinking both, repeating </Option>
+					<Option value="3">double flashing, repeating </Option>
+					<Option value="4">flashing both, repeating </Option>
+					<Option value="5">confirmation Signal 0 </Option>
+					<Option value="6">confirmation Signal 1 </Option>
+					<Option value="6">confirmation Signal 2 </Option>
+				</List>
+				<Label>acoustical alarm:</Label>
+			</Field>
+
+		</ConfigUI>
+    </Action>
+
+
+	<Action id="setDisplayWRCD">
+		<Name>Set Display Device on CCU..</Name>
+		<CallbackMethod>sendStringToDisplayAction</CallbackMethod> 
+		<ConfigUI>
+
+
+			<Field     id="lab0" type="label" fontColor="orange">
+				<Label>Send up to 5 lines to a WRCD device, may include beeps
+  You can send up to 11-16 characters (w /wo icon) per line
+  To blank a line set it to one blank,
+  To not show a line make it empty, will keep old line 
+</Label>
+			</Field>
+
+
+
+			<Field     id="devId" type="menu" defaultValue="0">
+				<Label>select WRCD device:</Label>
+				<List class="self" filter="display" method="filterDevices"  dynamicReload="no"/>
+			</Field>
+
+
+	<Field id="lab1" type="label" fontColor="green"> <Label>line 1...</Label>  </Field>
+			<Field  id="DDS-1" type="textfield" defaultValue="abc">
+				<Label>text:</Label>
+			</Field>
+
+
+			<Field  id="DDBC-1" type="menu" defaultValue="WHITE">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>background color:</Label>
+			</Field>
+
+			<Field  id="DDTC-1" type="menu" defaultValue="BLACK">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>text color:</Label>
+			</Field>
+
+			<Field  id="DDA-1" type="menu" defaultValue="CENTER">
+				<List>
+					<Option value="CENTER">center</Option>
+					<Option value="RIGHT">right</Option>
+					<Option value="LEFT">left</Option>
+				</List>
+				<Label>align:</Label>
+			</Field>
+
+			<Field  id="DDI-1" type="menu" defaultValue="5">
+				<List>
+					<Option value="0">none</Option>
+					<Option value="1">Lamp Off</Option>
+					<Option value="2">Lamp On </Option>
+					<Option value="3">Lock open </Option>
+					<Option value="4">Lock close</Option>
+					<Option value="5">X </Option>
+					<Option value="6">Check</Option>
+					<Option value="7">Info</Option>
+					<Option value="8">Letter</Option>
+					<Option value="9">Wrench</Option>
+					<Option value="10">Sun</Option>
+					<Option value="11">Moon</Option>
+					<Option value="12">Wind</Option>
+					<Option value="13">Cloud</Option>
+					<Option value="14">Could Flash</Option>
+					<Option value="15">Clould slight rain</Option>
+					<Option value="16">Cloud moon</Option>
+					<Option value="17">Cloud rain</Option>
+					<Option value="18">Cloud snow</Option>
+					<Option value="19">Cloud sun</Option>
+					<Option value="20">Cloud sun rain</Option>
+					<Option value="21">Cloud snow flake</Option>
+					<Option value="22">Cloud rain drop</Option>
+					<Option value="23">Flame</Option>
+					<Option value="24">Window open</Option>
+					<Option value="25">Rollo</Option>
+					<Option value="26">Eco</Option>
+					<Option value="27">Difuse</Option>
+					<Option value="28">Protect </Option>
+					<Option value="29">Protect 2</Option>
+					<Option value="30">Notification</Option>
+					<Option value="31">Clock</Option>
+				</List>
+				<Label>icon:</Label>
+			</Field>
+
+	<Field id="lab21" type="label" fontColor="green"> <Label>line 2...</Label>  </Field>
+			<Field  id="DDS-2" type="textfield" defaultValue=" ">
+				<Label>text:</Label>
+			</Field>
+
+
+			<Field  id="DDBC-2" type="menu" defaultValue="WHITE">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>background color:</Label>
+			</Field>
+
+			<Field  id="DDTC-2" type="menu" defaultValue="BLACK">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>text color:</Label>
+			</Field>
+
+
+			<Field  id="DDA-2" type="menu" defaultValue="CENTER">
+				<List>
+					<Option value="CENTER">center</Option>
+					<Option value="RIGHT">right</Option>
+					<Option value="LEFT">left</Option>
+				</List>
+				<Label>align:</Label>
+			</Field>
+
+			<Field  id="DDI-2" type="menu" defaultValue="5">
+				<List>
+					<Option value="0">none</Option>
+					<Option value="1">Lamp Off</Option>
+					<Option value="2">Lamp On </Option>
+					<Option value="3">Lock open </Option>
+					<Option value="4">Lock close</Option>
+					<Option value="5">X </Option>
+					<Option value="6">Check</Option>
+					<Option value="7">Info</Option>
+					<Option value="8">Letter</Option>
+					<Option value="9">Wrench</Option>
+					<Option value="10">Sun</Option>
+					<Option value="11">Moon</Option>
+					<Option value="12">Wind</Option>
+					<Option value="13">Cloud</Option>
+					<Option value="14">Could Flash</Option>
+					<Option value="15">Clould slight rain</Option>
+					<Option value="16">Cloud moon</Option>
+					<Option value="17">Cloud rain</Option>
+					<Option value="18">Cloud snow</Option>
+					<Option value="19">Cloud sun</Option>
+					<Option value="20">Cloud sun rain</Option>
+					<Option value="21">Cloud snow flake</Option>
+					<Option value="22">Cloud rain drop</Option>
+					<Option value="23">Flame</Option>
+					<Option value="24">Window open</Option>
+					<Option value="25">Rollo</Option>
+					<Option value="26">Eco</Option>
+					<Option value="27">Difuse</Option>
+					<Option value="28">Protect </Option>
+					<Option value="29">Protect 2</Option>
+					<Option value="30">Notification</Option>
+					<Option value="31">Clock</Option>
+				</List>
+				<Label>icon:</Label>
+			</Field>
+
+	<Field id="lab3" type="label" fontColor="green"> <Label>line 3...</Label>  </Field>
+			<Field  id="DDS-3" type="textfield" defaultValue=" ">
+				<Label>text:</Label>
+			</Field>
+
+
+			<Field  id="DDBC-3" type="menu" defaultValue="WHITE">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>background color:</Label>
+			</Field>
+
+			<Field  id="DDTC-3" type="menu" defaultValue="BLACK">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>text color:</Label>
+			</Field>
+
+
+			<Field  id="DDA-3" type="menu" defaultValue="CENTER">
+				<List>
+					<Option value="CENTER">center</Option>
+					<Option value="RIGHT">right</Option>
+					<Option value="LEFT">left</Option>
+				</List>
+				<Label>align:</Label>
+			</Field>
+
+			<Field  id="DDI-3" type="menu" defaultValue="5">
+				<List>
+					<Option value="0">none</Option>
+					<Option value="1">Lamp Off</Option>
+					<Option value="2">Lamp On </Option>
+					<Option value="3">Lock open </Option>
+					<Option value="4">Lock close</Option>
+					<Option value="5">X </Option>
+					<Option value="6">Check</Option>
+					<Option value="7">Info</Option>
+					<Option value="8">Letter</Option>
+					<Option value="9">Wrench</Option>
+					<Option value="10">Sun</Option>
+					<Option value="11">Moon</Option>
+					<Option value="12">Wind</Option>
+					<Option value="13">Cloud</Option>
+					<Option value="14">Could Flash</Option>
+					<Option value="15">Clould slight rain</Option>
+					<Option value="16">Cloud moon</Option>
+					<Option value="17">Cloud rain</Option>
+					<Option value="18">Cloud snow</Option>
+					<Option value="19">Cloud sun</Option>
+					<Option value="20">Cloud sun rain</Option>
+					<Option value="21">Cloud snow flake</Option>
+					<Option value="22">Cloud rain drop</Option>
+					<Option value="23">Flame</Option>
+					<Option value="24">Window open</Option>
+					<Option value="25">Rollo</Option>
+					<Option value="26">Eco</Option>
+					<Option value="27">Difuse</Option>
+					<Option value="28">Protect </Option>
+					<Option value="29">Protect 2</Option>
+					<Option value="30">Notification</Option>
+					<Option value="31">Clock</Option>
+				</List>
+				<Label>icon:</Label>
+			</Field>
+
+
+	<Field id="lab4" type="label" fontColor="green"> <Label>line 4...</Label>  </Field>
+			<Field  id="DDS-4" type="textfield" defaultValue=" ">
+				<Label>text:</Label>
+			</Field>
+
+
+			<Field  id="DDBC-4" type="menu" defaultValue="WHITE">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>background color:</Label>
+			</Field>
+
+			<Field  id="DDTC-4" type="menu" defaultValue="BLACK">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>text color:</Label>
+			</Field>
+
+
+			<Field  id="DDA-4" type="menu" defaultValue="CENTER">
+				<List>
+					<Option value="CENTER">center</Option>
+					<Option value="RIGHT">right</Option>
+					<Option value="LEFT">left</Option>
+				</List>
+				<Label>align:</Label>
+			</Field>
+
+			<Field  id="DDI-4" type="menu" defaultValue="5">
+				<List>
+					<Option value="0">none</Option>
+					<Option value="1">Lamp Off</Option>
+					<Option value="2">Lamp On </Option>
+					<Option value="3">Lock open </Option>
+					<Option value="4">Lock close</Option>
+					<Option value="5">X </Option>
+					<Option value="6">Check</Option>
+					<Option value="7">Info</Option>
+					<Option value="8">Letter</Option>
+					<Option value="9">Wrench</Option>
+					<Option value="10">Sun</Option>
+					<Option value="11">Moon</Option>
+					<Option value="12">Wind</Option>
+					<Option value="13">Cloud</Option>
+					<Option value="14">Could Flash</Option>
+					<Option value="15">Clould slight rain</Option>
+					<Option value="16">Cloud moon</Option>
+					<Option value="17">Cloud rain</Option>
+					<Option value="18">Cloud snow</Option>
+					<Option value="19">Cloud sun</Option>
+					<Option value="20">Cloud sun rain</Option>
+					<Option value="21">Cloud snow flake</Option>
+					<Option value="22">Cloud rain drop</Option>
+					<Option value="23">Flame</Option>
+					<Option value="24">Window open</Option>
+					<Option value="25">Rollo</Option>
+					<Option value="26">Eco</Option>
+					<Option value="27">Difuse</Option>
+					<Option value="28">Protect </Option>
+					<Option value="29">Protect 2</Option>
+					<Option value="30">Notification</Option>
+					<Option value="31">Clock</Option>
+				</List>
+				<Label>icon:</Label>
+			</Field>
+
+
+	<Field id="lab5" type="label" fontColor="green"> <Label>line 5...</Label>  </Field>
+			<Field  id="DDS-5" type="textfield" defaultValue=" ">
+				<Label>text:</Label>
+			</Field>
+
+
+			<Field  id="DDBC-5" type="menu" defaultValue="WHITE">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>background color:</Label>
+			</Field>
+
+			<Field  id="DDTC-5" type="menu" defaultValue="BLACK">
+				<List>
+					<Option value="BLACK">black</Option>
+					<Option value="WHITE">white</Option>
+				</List>
+				<Label>text color:</Label>
+			</Field>
+
+
+			<Field  id="DDA-5" type="menu" defaultValue="CENTER">
+				<List>
+					<Option value="CENTER">center</Option>
+					<Option value="RIGHT">right</Option>
+					<Option value="LEFT">left</Option>
+				</List>
+				<Label>align:</Label>
+			</Field>
+
+			<Field  id="DDI-5" type="menu" defaultValue="5">
+				<List>
+					<Option value="0">none</Option>
+					<Option value="1">Lamp Off</Option>
+					<Option value="2">Lamp On </Option>
+					<Option value="3">Lock open </Option>
+					<Option value="4">Lock close</Option>
+					<Option value="5">X </Option>
+					<Option value="6">Check</Option>
+					<Option value="7">Info</Option>
+					<Option value="8">Letter</Option>
+					<Option value="9">Wrench</Option>
+					<Option value="10">Sun</Option>
+					<Option value="11">Moon</Option>
+					<Option value="12">Wind</Option>
+					<Option value="13">Cloud</Option>
+					<Option value="14">Could Flash</Option>
+					<Option value="15">Clould slight rain</Option>
+					<Option value="16">Cloud moon</Option>
+					<Option value="17">Cloud rain</Option>
+					<Option value="18">Cloud snow</Option>
+					<Option value="19">Cloud sun</Option>
+					<Option value="20">Cloud sun rain</Option>
+					<Option value="21">Cloud snow flake</Option>
+					<Option value="22">Cloud rain drop</Option>
+					<Option value="23">Flame</Option>
+					<Option value="24">Window open</Option>
+					<Option value="25">Rollo</Option>
+					<Option value="26">Eco</Option>
+					<Option value="27">Difuse</Option>
+					<Option value="28">Protect </Option>
+					<Option value="29">Protect 2</Option>
+					<Option value="30">Notification</Option>
+					<Option value="31">Clock</Option>
+				</List>
+				<Label>icon:</Label>
+			</Field>
+
+	<Field id="labSound" type="label" fontColor="green"> <Label>Sound data...</Label>  </Field>
+
+			<Field  id="ANS" type="menu" defaultValue="5">
+				<List>
+					<Option value="-1">none</Option>
+					<Option value="0">battery empty s-s-s</Option>
+					<Option value="1">Alarm aus l-s</Option>
+					<Option value="2">Ext Alarm active l-s-s</Option>
+					<Option value="3">Int Alarm active l-s</Option>
+					<Option value="4">Ext Alarm delayed active s-s</Option>
+					<Option value="5">Int Alarm delayed active s</Option>
+					<Option value="6">Event m</Option>
+					<Option value="7">Error l</Option>
+			</List>
+				<Label>sound if :</Label>
+			</Field>
+
+			<Field  id="R" type="menu" defaultValue="1">
+				<List>
+					<Option value="1">1</Option>
+					<Option value="2">2</Option>
+					<Option value="3">3</Option>
+					<Option value="4">4</Option>
+					<Option value="5">5</Option>
+					<Option value="6">6</Option>
+					<Option value="7">7</Option>
+			</List>
+				<Label>repeat sounds:</Label>
+			</Field>
+			<Field  id="IN" type="menu" defaultValue="1">
+				<List>
+					<Option value="1">1</Option>
+					<Option value="2">2</Option>
+					<Option value="3">3</Option>
+					<Option value="4">4</Option>
+					<Option value="5">5</Option>
+					<Option value="6">6</Option>
+					<Option value="7">7</Option>
+			</List>
+				<Label>time gap between sounds:</Label>
+			</Field>
+
+
+		</ConfigUI>
+    </Action>
+
+
+</Actions>

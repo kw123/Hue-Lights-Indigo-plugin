@@ -1,0 +1,332 @@
+<Devices>
+  <Device type="sensor" id="HMIP-OnOff" allowUserCreation="false">
+    <Name>Homematic HMIP-ONOff input</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="relay" id="HMIP-Relay" allowUserCreation="false">
+    <Name>Homematic Relay</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="dimmer" id="HMIP-Dimmer" allowUserCreation="false">
+    <Name>Homematic Dimmer</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="dimmer" id="HMIP-Dimmer-C" allowUserCreation="false">
+    <Name>Homematic Dimmer Color</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="dimmer" id="HMIP-Dimmer-V" allowUserCreation="false">
+    <Name>Homematic Dimmer Valve</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="dimmer" id="HMIP-Dimmer-R" allowUserCreation="false">
+    <Name>Homematic Roll</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-LEVEL" allowUserCreation="false">
+    <Name>Homematic LEVEL</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-Voltage" allowUserCreation="false">
+    <Name>Homematic Volatge input Sensor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-Acceleration" allowUserCreation="false">
+    <Name>Homematic Acceleration Sensor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-Temperature" allowUserCreation="false">
+    <Name>Homematic Temperature Sensor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-Humidity" allowUserCreation="false">
+    <Name>Homematic Humidity Sensor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-Illumination" allowUserCreation="false">
+    <Name>Homematic Illumination Sensor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-SL" allowUserCreation="false">
+    <Name>Homematic HMIP-SLx Illumination Sensor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-ESI" allowUserCreation="false">
+    <Name>Homematic ESI-Gas counter monitor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-Rain" allowUserCreation="false">
+    <Name>Homematic Rain Sensor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-Sunshine" allowUserCreation="false">
+    <Name>Homematic Sunshine Sensor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-Wind" allowUserCreation="false">
+    <Name>Homematic Wind Sensor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-Direction" allowUserCreation="false">
+    <Name>Homematic Direction device</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-SCTH" allowUserCreation="false">
+    <Name>Homematic SCTH CO2-Temp-Humidity Sensor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-STE2" allowUserCreation="false">
+    <Name>Homematic STE2 Dual Temperature Sensor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-SFD" allowUserCreation="false">
+    <Name>Homematic SWO-SFD particulate sensor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-SWO-PR" allowUserCreation="false">
+    <Name>Homematic SWO-PR -PL -B weather station</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-MOD-OC8" allowUserCreation="false">
+    <Name>Homematic MOD-OC8 8 parent device</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-MIOB" allowUserCreation="false">
+    <Name>Homematic MIOB parent device</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-MIO16-PCB" allowUserCreation="false">
+    <Name>Homematic MIO16-PCB parent device</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-WRCD" allowUserCreation="false">
+    <Name>Homematic WRCR display and button</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="dimmer" id="HMIP-MP3P" allowUserCreation="false">
+    <Name>Homematic MP3P-Sound</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-DLD" allowUserCreation="false">
+    <Name>Homematic DLD-Door-Lock</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-FALMOT" allowUserCreation="false">
+    <Name>Homematic HMIP-FALMOT-C4/6/8/10/12-Actor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="thermostat" id="HMIP-HEATING" allowUserCreation="false">
+    <Name>Homematic Heating Group</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="thermostat" id="HMIP-ETRV" allowUserCreation="false">
+    <Name>Homematic eTRV-RadiatorValve</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-STHO" allowUserCreation="false">
+    <Name>Homematic STHO-Temp-Humidity Sensor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-SRD" allowUserCreation="false">
+    <Name>Homematic SRD-Rain Indicator</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="dimmer" id="HMIP-PDT" allowUserCreation="false">
+    <Name>Homematic PDT-outlet dimmer</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="dimmer" id="HMIP-PDT3" allowUserCreation="false">
+    <Name>Homematic PDT- 3 dimmer</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="ELV-SH-TACO" allowUserCreation="false">
+    <Name>Homematic ELV-SH-TACO parent device</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="dimmer" id="HMIP-PDT4" allowUserCreation="false">
+    <Name>Homematic PDT- DRBL 4 dimmer</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-ASIR" allowUserCreation="false">
+    <Name>Homematic HMIP-ASIR alarm</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="relay" id="ELV-SH-WSM" allowUserCreation="false">
+    <Name>Homematic ELV-SH-WSM Water Valve</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="dimmer" id="ELV-SH-WSC" allowUserCreation="false">
+    <Name>Homematic ELV-SH-WSC 2 channel servo controller</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="dimmer" id="HMIP-ROLL" allowUserCreation="false">
+    <Name>Homematic HMIP-xROLL window curtain roll </Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="custom" id="HMIP-SRH" allowUserCreation="false">
+    <Name>Homematic HMIP-SRH Window open/tilt/close </Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="relay" id="HMIP-PS" allowUserCreation="false">
+    <Name>Homematic HMIP-PS  etc Switch</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-PS2" allowUserCreation="false">
+    <Name>Homematic HMIP-PS2 dual Relay output</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-PS4" allowUserCreation="false">
+    <Name>Homematic HMIP-PS4 quad Relay output</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="relay" id="HMIP-PSM" allowUserCreation="false">
+    <Name>Homematic PSM  power switch w energy types:  BSM UBS...  </Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="relay" id="HMIP-FSM" allowUserCreation="false">
+    <Name>Homematic PSM  power switch w energy</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="thermostat" id="HMIP-WTH" allowUserCreation="false">
+    <Name>Homematic WTH-Wall Thermostat</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-SPI" allowUserCreation="false">
+    <Name>Homematic SPI-Motion sensor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-SMI" allowUserCreation="false">
+    <Name>Homematic SMI-Motion sensor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-SAM" allowUserCreation="false">
+    <Name>Homematic SAM-Motion sensor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-SWDM" allowUserCreation="false">
+    <Name>Homematic SWDM- Magnet/Optical/Contact sensor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="ELV-SH-SMSI" allowUserCreation="false">
+    <Name>Homematic ELV-SH-SMSI Earth Humidity sensor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="ELV-SH-CTV" allowUserCreation="false">
+    <Name>Homematic ELV-SH-CTV Motion/ Tilt sensor</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-SWD" allowUserCreation="false">
+    <Name>Homematic SWD Water Alarm</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="custom" id="HMIP-SWSD" allowUserCreation="false">
+    <Name>Homematic SWSD Smoke Alarm</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-SPDR" allowUserCreation="false">
+    <Name>Homematic SPDR-passage detector</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-WKP" allowUserCreation="false">
+    <Name>Homematic KeyPad devices</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-BUTTON" allowUserCreation="false">
+    <Name>Homematic Button devices</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-ROOM" allowUserCreation="false">
+    <Name>Homematic Room</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-SYSVAR-FLOAT" allowUserCreation="false">
+    <Name>Homematic SYSvar-FLOAT</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="custom" id="HMIP-SYSVAR-STRING" allowUserCreation="false">
+    <Name>Homematic SYSvar-STRING</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-SYSVAR-BOOL" allowUserCreation="false">
+    <Name>Homematic SYSvar-BOOL</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="HMIP-SYSVAR-ALARM" allowUserCreation="false">
+    <Name>Homematic SYSvar-ALARM</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="Homematic-AP" allowUserCreation="false">
+    <Name>Homematic AP</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+  <Device type="sensor" id="Homematic-Host" allowUserCreation="false">
+    <Name>Homematic Host</Name>
+    <ConfigUI> </ConfigUI>
+  </Device>
+
+</Devices>
