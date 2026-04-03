@@ -89,6 +89,7 @@ kDefaultPluginPrefs = {
 				'switchPrefix':							'switch',
 				'lightPrefix':							'light',
 				'groupPrefix':							'group',
+				'NumberOfSecondsEventWoMessage':		200,
 				'showLoginTest':						False,
 				'debugInit':							False,
 				'debugLoop':							False,
@@ -141,6 +142,9 @@ class Plugin(indigo.PluginBase):
 
 		self.rgbmaxAPi2 				= 100.
 	
+		self.NumberOfSecondsEventWoMessage	= int(pluginPrefs.get('NumberOfSecondsEventWoMessage',200))
+		self.NumberOfSecondsEventTimeOut = 660 # = 11 minutes, = 1 minute more than max sec wo..
+		self.lastCheckifListenerIsRunning	= 0		
 		
 		### one list for all devices on all bridges related to indigo devices
 		self.controlDeviceList 			= dict()	    # list of virtual dimmer device IDs that control bulb devices
@@ -548,8 +552,7 @@ class Plugin(indigo.PluginBase):
 		# Set the maximum loop counter value based on the highest of the above activity threshold variables.
 		self.printHueData({"whatToPrint":"NoHudevice", "sortBy":""},"")
 		self.printHueData({"whatToPrint":"NoIndigoDevice", "sortBy":""},"OnlySupportedDevices")
-		for hubNumber in range(5):
-			self.startEventListenersThreads(str(hubNumber))
+		
 			
 		self.startdelayedActionThreads()
 		self.handleFolder()
@@ -569,6 +572,7 @@ class Plugin(indigo.PluginBase):
 		
 		try:
 			while True:
+				self.checkIfListenerIsRunning()
 
 				## Give Indigo Some Time ##
 				if time.time() - lastSleep < sleepTime: continue
@@ -624,52 +628,52 @@ class Plugin(indigo.PluginBase):
 		#alwas create new list of scenes available, might be deleted.
 		if False and os.path.isfile(self.indigoPreferencesPluginDir+"scenesV2.json"):
 			try:
-				f = open(self.indigoPreferencesPluginDir+"scenesV2.json","r")
-				self.scenesV2 = json.loads(f.read())
-				f.close()
-			except: pass
+				with open(self.indigoPreferencesPluginDir+"scenesV2.json","r") as f:
+					self.scenesV2 = json.loads(f.read())
+			except Exception as e:
+				self.indiLOG.log(30,"readFiles scenesV2.json error: {}".format(e))
 
 		if os.path.isfile(self.indigoPreferencesPluginDir+"allV1Data.json"):
 			try:
-				f = open(self.indigoPreferencesPluginDir+"allV1Data.json","r")
-				self.allV1Data = json.loads(f.read())
-				f.close()
-			except: pass
+				with open(self.indigoPreferencesPluginDir+"allV1Data.json","r") as f:
+					self.allV1Data = json.loads(f.read())
+			except Exception as e:
+				self.indiLOG.log(30,"readFiles allV1Data.json error: {}".format(e))
 
 		if os.path.isfile(self.indigoPreferencesPluginDir+"indigoIdToService.json"):
 			try:
-				f = open(self.indigoPreferencesPluginDir+"indigoIdToService.json","r")
-				self.indigoIdToService = json.loads(f.read())
-				f.close()
-			except: pass
+				with open(self.indigoPreferencesPluginDir+"indigoIdToService.json","r") as f:
+					self.indigoIdToService = json.loads(f.read())
+			except Exception as e:
+				self.indiLOG.log(30,"readFiles indigoIdToService.json error: {}".format(e))
 
 		if os.path.isfile(self.indigoPreferencesPluginDir+"serviceidToIndigoId.json"):
 			try:
-				f = open(self.indigoPreferencesPluginDir+"serviceidToIndigoId.json","r")
-				self.serviceidToIndigoId = json.loads(f.read())
-				f.close()
-			except: pass
+				with open(self.indigoPreferencesPluginDir+"serviceidToIndigoId.json","r") as f:
+					self.serviceidToIndigoId = json.loads(f.read())
+			except Exception as e:
+				self.indiLOG.log(30,"readFiles serviceidToIndigoId.json error: {}".format(e))
 
 		if False and os.path.isfile(self.indigoPreferencesPluginDir+"allV2Data.json"):
 			try:
-				f = open(self.indigoPreferencesPluginDir+"allV2Data.json","r")
-				self.allV2Data = json.loads(f.read())
-				f.close()
-			except: pass
+				with open(self.indigoPreferencesPluginDir+"allV2Data.json","r") as f:
+					self.allV2Data = json.loads(f.read())
+			except Exception as e:
+				self.indiLOG.log(30,"readFiles allV2Data.json error: {}".format(e))
 
 		if False and os.path.isfile(self.indigoPreferencesPluginDir+"deviceList.json"):
 			try:
-				f = open(self.indigoPreferencesPluginDir+"deviceList.json","r")
-				self.deviceList = json.loads(f.read())
-				f.close()
-			except: pass
+				with open(self.indigoPreferencesPluginDir+"deviceList.json","r") as f:
+					self.deviceList = json.loads(f.read())
+			except Exception as e:
+				self.indiLOG.log(30,"readFiles deviceList.json error: {}".format(e))
 
 		if os.path.isfile(self.indigoPreferencesPluginDir+"ignoreDevices.json"):
 			try:
-				f = open(self.indigoPreferencesPluginDir+"ignoreDevices.json","r")
-				self.ignoreDevices = json.loads(f.read())
-				f.close()
-			except: pass
+				with open(self.indigoPreferencesPluginDir+"ignoreDevices.json","r") as f:
+					self.ignoreDevices = json.loads(f.read())
+			except Exception as e:
+				self.indiLOG.log(30,"readFiles ignoreDevices.json error: {}".format(e))
 		return
 
 
@@ -689,30 +693,23 @@ class Plugin(indigo.PluginBase):
 		self.saveFileTime[1] = time.time() + 5000
 		self.lastWrite = time.time()
 
-		f = open(self.indigoPreferencesPluginDir+"scenesV2.json","w")
-		f.write("{}".format(json.dumps(self.scenesV2, indent=2)))
-		f.close()
+		with open(self.indigoPreferencesPluginDir+"scenesV2.json","w") as f:
+			f.write("{}".format(json.dumps(self.scenesV2, indent=2)))
 
+		with open(self.indigoPreferencesPluginDir+"allV2Data.json","w") as f:
+			f.write("{}".format(json.dumps(self.allV2Data, indent=2)))
 
-		f = open(self.indigoPreferencesPluginDir+"allV2Data.json","w")
-		f.write("{}".format(json.dumps(self.allV2Data, indent=2)))
-		f.close()
+		with open(self.indigoPreferencesPluginDir+"deviceList.json","w") as f:
+			f.write("{}".format(json.dumps(self.deviceList, indent=2)))
 
-		f = open(self.indigoPreferencesPluginDir+"deviceList.json","w")
-		f.write("{}".format(json.dumps(self.deviceList, indent=2)))
-		f.close()
+		with open(self.indigoPreferencesPluginDir+"allV1Data.json","w") as f:
+			f.write("{}".format(json.dumps(self.allV1Data, indent=2)))
 
-		f = open(self.indigoPreferencesPluginDir+"allV1Data.json","w")
-		f.write("{}".format(json.dumps(self.allV1Data, indent=2)))
-		f.close()
+		with open(self.indigoPreferencesPluginDir+"serviceidToIndigoId.json","w") as f:
+			f.write("{}".format(json.dumps(self.serviceidToIndigoId, indent=2)))
 
-		f = open(self.indigoPreferencesPluginDir+"serviceidToIndigoId.json","w")
-		f.write("{}".format(json.dumps(self.serviceidToIndigoId, indent=2)))
-		f.close()
-
-		f = open(self.indigoPreferencesPluginDir+"ignoreDevices.json","w")
-		f.write("{}".format(json.dumps(self.ignoreDevices, indent=2)))
-		f.close()
+		with open(self.indigoPreferencesPluginDir+"ignoreDevices.json","w") as f:
+			f.write("{}".format(json.dumps(self.ignoreDevices, indent=2)))
 
 		return
 
@@ -1118,7 +1115,7 @@ class Plugin(indigo.PluginBase):
 					if not found:
 						name = "Hue_group_{}_{}_{}".format(hubNumber, theID, hueDevice['name'])
 						if name in indigo.devices:
-							self.indiLOG.log(10,"autocreateNewDevicesV1 group  {} from Bridge:{:>2s} already exixts, can not be re-created".format(name, hubNumber ))
+							self.indiLOG.log(10,"autocreateNewDevicesV1 group  {} from Bridge:{:>2s} already exists, can not be re-created".format(name, hubNumber ))
 							continue
 
 						address = ""
@@ -1219,6 +1216,7 @@ class Plugin(indigo.PluginBase):
 				if self.checkForLastNotPairedMessage(hubNumber):
 					if self.decideMyLog("Special"): self.indiLOG.log(20,"Data cmd:{}".format(command) )
 					errorText = self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(2)".format(ipAddress))
+					if hubNumber in self.listenThread: self.listenThread[hubNumber]['lastMessage'] = time.time() - self.NumberOfSecondsEventWoMessage + 10
 					errorsDict[errDict1] = errorText
 					errorsDict[errDict2] += errorsDict[errDict1]
 				self.resetBridgeBusy(hubNumber, "", 0)
@@ -1697,7 +1695,6 @@ class Plugin(indigo.PluginBase):
 				if otherDeviceId != deviceId:
 					otherDevice = indigo.devices[int(otherDeviceId)]
 					if valuesDict['sensorId'] == otherDevice.pluginProps.get('sensorId', 0) and hubNumber == otherDevice.states.get('bridge', "0"):
-						otherDevice = indigo.devices[int(otherDeviceId)]
 						isError = True
 						errorsDict['sensorId'] = "This Hue device is already being controlled by the \"{}\" Indigo device. Choose a different temperature sensor.".format(otherDevice.name)
 						errorsDict['showAlertText'] += errorsDict['sensorId'] + "\n\n"
@@ -1766,7 +1763,6 @@ class Plugin(indigo.PluginBase):
 				if otherDeviceId != deviceId:
 					otherDevice = indigo.devices[otherDeviceId]
 					if valuesDict['sensorId'] == otherDevice.pluginProps.get('sensorId', 0) and hubNumber == otherDevice.states.get('bridge', "0"):
-						otherDevice = indigo.devices[otherDeviceId]
 						isError = True
 						errorsDict['sensorId'] = "This Hue device is already being controlled by the \"{}\" Indigo device. Choose a different light sensor.".format(otherDevice.name)
 						errorsDict['showAlertText'] += errorsDict['sensorId'] + "\n\n"
@@ -2017,7 +2013,6 @@ class Plugin(indigo.PluginBase):
 				if otherDeviceId != deviceId:
 					otherDevice = indigo.devices[otherDeviceId]
 					if sensorId == otherDevice.pluginProps.get('sensorId', 0) and hubNumber == otherDevice.states.get('bridge', "0"):
-						otherDevice = indigo.devices[otherDeviceId]
 						isError = True
 						errorsDict['sensorId'] = "This Hue connected device is already being controlled by the \"{}\" Indigo device. Choose a different Rotary Wall Ring-Switch.".format(otherDevice.name)
 						errorsDict['showAlertText'] += errorsDict['sensorId'] + "\n\n"
@@ -2219,10 +2214,10 @@ class Plugin(indigo.PluginBase):
 						errorsDict['showAlertText'] += errorsDict['brightnessDevice'] + "\n\n"
 
 			if not useRateVariable:
-				if not rate and rate.__class__ != bool:
-					isError = True
-					errorsDict['rate'] = "Please enter a Ramp Rate."
-					errorsDict['showAlertText'] += errorsDict['rate'] + "\n\n"
+				if str(rate).lower() == "false":
+					rate = 0
+				elif str(rate).lower() == "true":
+					rate = 1
 				else:
 					try:
 						rate = round(float(rate), 1)
@@ -3111,9 +3106,8 @@ class Plugin(indigo.PluginBase):
 
 		self.ignoreDevices[ignoreHueDev] = indigoId
 
-		f = open(self.indigoPreferencesPluginDir+"ignoreDevices.json","w")
-		f.write("{}".format(json.dumps(self.ignoreDevices, indent=2)))
-		f.close()
+		with open(self.indigoPreferencesPluginDir+"ignoreDevices.json","w") as f:
+			f.write("{}".format(json.dumps(self.ignoreDevices, indent=2)))
 
 
 
@@ -3130,9 +3124,8 @@ class Plugin(indigo.PluginBase):
 		self.indiLOG.log(30,f"device {hueId} (hub#/type/id#) will be accepted from now on again")
 		del self.ignoreDevices[hueId]
 
-		f = open(self.indigoPreferencesPluginDir+"ignoreDevices.json","w")
-		f.write("{}".format(json.dumps(self.ignoreDevices, indent=2)))
-		f.close()
+		with open(self.indigoPreferencesPluginDir+"ignoreDevices.json","w") as f:
+			f.write("{}".format(json.dumps(self.ignoreDevices, indent=2)))
 
 		self.checkIfnewDevices()
 
@@ -3187,9 +3180,6 @@ class Plugin(indigo.PluginBase):
 			if self.hubNumberSelected in self.paired:
 				del self.paired[self.hubNumberSelected]
 
-			if self.hubNumberSelected in self.allV1Data:
-				del self.allV1Data[self.hubNumberSelected]
-
 			if self.hubNumberSelected in self.notPairedMsg:
 				del self.notPairedMsg[self.hubNumberSelected]
 
@@ -3238,10 +3228,10 @@ class Plugin(indigo.PluginBase):
 
 			if self.hubIsEnabled[hubNumber] != test:
 				self.hubIsEnabled[hubNumber] = test
-				self.pluginPrefs['hubIsEnabled'] = json.dumps(self.hubIsEnabled[hubNumber])
+				self.pluginPrefs['hubIsEnabled'] = json.dumps(self.hubIsEnabled)
 				if test:
 					self.updateAllHueListsForce()
-					self.startEventListenersThreads(hubNumber)
+					self.checkIfListenerIsRunning(onlyThisOne=hubNumber)
 					
 				else:
 					if hubNumber in self.listenThread:
@@ -3627,6 +3617,7 @@ class Plugin(indigo.PluginBase):
 		errorsDict['showAlertText'] = ""
 
 		maxPresetCount = valuesDict.get('maxPresetCount', "")
+		self.NumberOfSecondsEventWoMessage	= int(valuesDict.get('NumberOfSecondsEventWoMessage',200))
 
 		try: 	self.timeScaleFactor = float(valuesDict['timeScaleFactor'])/10.
 		except: self.timeScaleFactor = 1.
@@ -3684,6 +3675,8 @@ class Plugin(indigo.PluginBase):
 		if not userCancelled:
 			# Configuration was saved.
 
+			self.NumberOfSecondsEventWoMessage	= int(valuesDict.get('NumberOfSecondsEventWoMessage',200))
+			
 			try: 	self.sendDeviceUpdatesTo	= int(valuesDict['sendDeviceUpdatesTo'])
 			except:	self.sendDeviceUpdatesTo	= 20  # in case its is not a number
 			valuesDict['sendDeviceUpdatesTo']   = "{}".format(self.sendDeviceUpdatesTo)
@@ -5543,9 +5536,16 @@ class Plugin(indigo.PluginBase):
 								
 					if "command" in action:
 						self.indiLOG.log(20,"loopDelayedAction executing: {}  ".format(action))
-						try: exec(action['command'])
-						except Exception:
-							self.indiLOG.log(30,"", exc_info=True)
+						if "param" in action:
+							cmd = action['command'].strip(")") + action['param'] + ")"
+							try: exec(cmd)
+							except Exception:
+								self.indiLOG.log(30,"", exc_info=True)
+							
+						else:
+							try: exec(action['command'])
+							except Exception:
+								self.indiLOG.log(30,"", exc_info=True)
 							
 					if "getGroupV1Data" in action:
 						self.getGroupStatus(action['getGroupV1Data'])
@@ -7953,11 +7953,11 @@ class Plugin(indigo.PluginBase):
 	########################################
 	def getV2AllConfig(self, hubNumber, endpoint):
 
+		errorsDict = dict()
+		errDict1 = ""
+		errDict2 = ""
+		jsonData = dict()
 		try:
-			errorsDict = dict()
-			errDict1 = ""
-			errDict2 = ""
-			jsonData = dict()
 			ipAddress = self.ipAddresses[hubNumber]
 			if not self.isvalidIP(ipAddress):
 				if ipAddress == "":
@@ -8380,15 +8380,15 @@ class Plugin(indigo.PluginBase):
 		#self.indiLOG.log(20,"getDevicesForModelId  model Id: {}".format(modelid))
 		try:
 			devices = self.allV2Data[hubNumber]['devices']
-			returnDict = dict()
+			retDict = dict()
 			for deviceId in devices:
 				#self.indiLOG.log(20,"getDevicesForModelId  deviceId:{}".format(deviceId))
 				device = devices[deviceId]
 				product_data = device.get("product_data" ,None)
 				if product_data is None: continue
 				if "model_id" not in product_data: continue
-				if modelid == product_data['model_id']: returnDict[deviceId] = devices[deviceId]
-			return 	returnDict
+				if modelid == product_data['model_id']: retDict[deviceId] = devices[deviceId]
+			return 	retDict
 		except Exception:
 			self.indiLOG.log(40,f"getDevicesForModelId", exc_info=True)
 
@@ -12314,6 +12314,8 @@ class Plugin(indigo.PluginBase):
 			if not self.hubIsEnabled[hubNumber]: continue
 			for xx in self.lastTimeHTTPGet[hubNumber]:
 				self.lastTimeHTTPGet[hubNumber][xx] = 0
+			if hubNumber in self.listenThread:
+				self.listenThread[hubNumber]['status'] = "stop"
 		self.updateAllHueLists()
 		
 	# Update Light, Group, Scene and Sensor Lists
@@ -15023,31 +15025,70 @@ class Plugin(indigo.PluginBase):
 
 ####---------------------------receive events  ---------------------------------####
 
-
 	######################
-	def startEventListenersThreads(self, hubNumber):
-		try:
-			if hubNumber not in self.apiVersion: 			return
-			if not self.hubIsEnabled[hubNumber]: 			return 
-			if hubNumber not in self.hostIds: 				return
-			if self.apiVersion.get(hubNumber,"") != "2": 	return
+	def checkIfListenerIsRunning(self, onlyThisOne=None):
+		if time.time() - self.lastCheckifListenerIsRunning < 10: return 
+		self.lastCheckifListenerIsRunning = time.time()
 
-			if hubNumber not in self.listenThread:
+		for hubNumber in self.ipAddresses:
+			if onlyThisOne is not None and onlyThisOne != hubNumber: continue
+			if not self.hubIsEnabled[hubNumber]: 			continue
+			if hubNumber not in self.apiVersion: 			continue
+			if not self.hubIsEnabled[hubNumber]: 			continue 
+			if hubNumber not in self.hostIds: 				continue
+			if self.apiVersion.get(hubNumber,"") != "2": 	continue
+			
+			if hubNumber in self.listenThread: 			
+				dt = 	time.time() - self.listenThread[hubNumber]['lastMessage'] 
+				if dt > self.NumberOfSecondsEventWoMessage:
+					self.stop_listener(hubNumber, reason=f"no message in {dt:.0f} secs")
+					
+			if hubNumber not in self.listenThread: 				
 				if self.decideMyLog("EventApi"): self.indiLOG.log(20,"execEventlogging hubNumber:{}".format(hubNumber) )
-				self.listenThread[hubNumber] = dict()
-				self.listenThread[hubNumber]['status']  = "run"
-				self.listenThread[hubNumber]['fileName']  = self.indigoPreferencesPluginDir+"hueEvents.json"
-				self.listenThread[hubNumber]['thread']  = threading.Thread(name='listenToEvents', target=self.listenToEvents, args=(hubNumber,))
+				self.listenThread[hubNumber] = {
+					'lastMessage':  time.time() + 10,
+					'status':       "run",
+					'fileName':     self.indigoPreferencesPluginDir + "hueEvents.json",
+					'stop_event':   threading.Event(),
+					'response':     None, 
+					'stopIsActive': False, 
+					}
+				self.listenThread[hubNumber]['thread'] =  threading.Thread(name='listenToEvents', target=self.listenToEvents, args=(hubNumber, self.listenThread[hubNumber]['stop_event'],))
 				self.listenThread[hubNumber]['thread'].start()
-
-		except Exception:
-			self.indiLOG.log(40,"", exc_info=True)
 		return
 
 
+	# --- Stop (call this whenever you want to stop) ---
+	def stop_listener(self, hubNumber, reason=""):
+		self.indiLOG.log(20,f"Stopping api v2 listener...bridge {hubNumber} -> {self.ipAddresses[hubNumber]};  because:{reason}")
+		if hubNumber not in self.listenThread: return 
+		if self.listenThread[hubNumber]["stopIsActive"]: return 
+		self.listenThread[hubNumber]["stopIsActive"]  = True 
+		self.listenThread[hubNumber]['status']  = "stop"
+		self.listenThread[hubNumber]['stop_event'].set()
+		if self.listenThread[hubNumber].get('response'):
+			try:
+				self.listenThread[hubNumber]['response'].close()
+			except Exception:
+				pass
+		self.listenerCleanup(hubNumber)
+
+	# --- clean up listener stop 
+	def listenerCleanup(self, hubNumber):
+		if hubNumber not in self.listenThread: return
+		
+		thread = self.listenThread[hubNumber]['thread']
+		if thread is not threading.current_thread():    # ← don't join yourself
+			thread.join(timeout=5)
+			if thread.is_alive():
+				self.indiLOG.log(30, f"Warning: listener thread {hubNumber} did not stop cleanly")
+		del self.listenThread[hubNumber] 
+		self.indiLOG.log(20,f"api v2 event Listener {hubNumber} stopped.")
+		return 
+
+
 	######################
-	######################
-	def listenToEvents(self, hubNumber):
+	def listenToEvents(self, hubNumber, stopEvent):
 
 		if not self.hubIsEnabled[hubNumber]: return
 		tStart = time.time()
@@ -15065,87 +15106,116 @@ class Plugin(indigo.PluginBase):
 				self.hostIds[hubNumber] = ""
 				self.indiLOG.log(20,"Connecting to events from  hubNumber:{} not setup:  hostIds:{}".format(hubNumber, self.hostIds))
 				return
-			headers = {
-				"hue-application-key": self.hostIds[hubNumber],
-				"Accept": "text/event-stream"
-			}
+
+			headers = { "hue-application-key": self.hostIds[hubNumber], "Accept": "text/event-stream" }
 			EVENT_STREAM_URL = "https://{}/eventstream/clip/v2".format(self.ipAddresses[hubNumber])
+			
 			self.indiLOG.log(20,"Connecting to Hue EventStream hubNumber:{} .. at {}, writing events to:{}, ".format(hubNumber, EVENT_STREAM_URL,  self.listenThread[hubNumber]['fileName']))
 
-			response = requests.get(
-				EVENT_STREAM_URL,
-				headers=headers,
-				stream=True,
-				verify=False,
-				timeout=None
-			)
+			while not stopEvent.is_set():
+				try:
+					response = requests.get(
+						EVENT_STREAM_URL,
+						headers=headers,
+						stream=True,
+						verify=False,
+						timeout=(10, self.NumberOfSecondsEventTimeOut) # large fallback (700) actual test in NumberOfSecondsEventWoMessage
+					)
+					self.listenThread[hubNumber]['response'] = response
+		
+					#if time.time() - tStart > nSeconds: return
+					#self.indiLOG.log(20," running: {}, sec since start:{:9.1f}".format(hubNumber, time.time() - tStart))
 
-			#if time.time() - tStart > nSeconds: return
-			#self.indiLOG.log(20," running: {}, sec since start:{:9.1f}".format(hubNumber, time.time() - tStart))
-
-			if self.listenThread[hubNumber]['status'] != "run": 
-				del self.listenThread[hubNumber]
-				return
-
-			if response.status_code == 200:
-				self.indiLOG.log(20,"Successful Connected:  Listening for events on hub Number: {} at:{}".format(hubNumber, EVENT_STREAM_URL))
-
-				for line in response.iter_lines(decode_unicode=True):
-					if hubNumber not in self.listenThread:
-						self.indiLOG.log(20,"stopping event logging ")
+					if self.listenThread[hubNumber]['status'] != "run": 
+						self.listenerCleanup(hubNumber)
 						return
-					if self.listenThread[hubNumber]['status'] != "run":
-						del self.listenThread[hubNumber]
-						self.indiLOG.log(20,"stopping event logging ")
+	
+					if response.status_code == 200:
+						self.indiLOG.log(20,"Successful Connected: Listening for events on Bridge: {} at:{}".format(hubNumber, EVENT_STREAM_URL))
+		
+						for line in response.iter_lines(decode_unicode=True):
+							if hubNumber not in self.listenThread:
+								self.delayedActionThread['actions'].put({"executionTime":time.time()+0.5 , "command":"self.stop_listener()", "param": hubNumber})
+								self.indiLOG.log(20,f"stopping event logging Bridge {hubNumber}  was removed from listening")
+								return
+							if self.listenThread[hubNumber]['status'] != "run":
+								self.delayedActionThread['actions'].put({"executionTime":time.time()+0.5 , "command":"self.stop_listener()", "param": hubNumber})
+								self.indiLOG.log(20,f"status = {self.listenThread[hubNumber]['status']}")	
+								return
+							if not self.hubIsEnabled[hubNumber]:  
+								self.delayedActionThread['actions'].put({"executionTime":time.time()+0.5, "command":"self.stop_listener()", "param": hubNumber})
+								self.indiLOG.log(20,f"Bridge is disabled")	
+								return
+							if stopEvent.is_set():
+								return	
+								
+							if line:
+								#if self.decideMyLog("EventApi") and firstEvent == 0:  self.indiLOG.log(20,"Connected! Listening for events  in line for hub Number: {}".format(hubNumber))
+								if hubNumber not in self.listenThread: return 
+								self.listenThread[hubNumber]['lastMessage']  = time.time()
+		
+								if hubNumber not in self.bytesSend: self.bytesSend[hubNumber] = dict()
+								if "events" not in self.bytesSend[hubNumber]: self.bytesSend[hubNumber]['events'] = [0,0,0,0,0,0,0,0]
+								if line.startswith('id: '):
+									nextId = line.strip().split()[1]
+									self.bytesSend[hubNumber]['events'][0] += 1
+									self.bytesSend[hubNumber]['events'][1] += len(str(line))
+		
+								elif line.startswith('data: '):
+									data_str = line[5:].strip()
+		
+									try:
+										events = json.loads(data_str)
+										if firstEvent < 1:
+											self.indiLOG.log(20,"first event from Bridge#:{}, ev-id:{}, event:{}".format(hubNumber, nextId, events))
+											firstEvent +=1
+		
+										if self.decideMyLog("EventApi") and self.listenThread[hubNumber]['fileName'] != "":
+											nWrites += 1
+											if nWrites > 100: # store the last 100 events only
+												mode = "w"
+												nWrites = 0
+											else:
+												mode = "a"
+											with open(self.listenThread[hubNumber]['fileName'], mode) as f:
+												f.write("{}\n".format(json.dumps(events, indent=2)))
+		
+										self.bytesSend[hubNumber]['events'][2] += 1
+										self.bytesSend[hubNumber]['events'][3] += len(str(data_str))
+		
+										self.digestV2Event(hubNumber, nextId, events)
+									except json.JSONDecodeError:
+										self.indiLOG.log(20,"Connected! Listening json error  hub Number:{}, data received:<{}<".format(hubNumber, data_str))
+								else:
+										pass
+										#if debug:self.indiLOG.log(20,"event from:{}, decoded_line:>{}<".format(hubNumber, decoded_line))
+				except requests.Timeout:
+					if stopEvent.is_set():
 						return
-					if not self.hubIsEnabled[hubNumber]:  
-						del self.listenThread[hubNumber]
-						self.indiLOG.log(20,"stopping event logging , bridge is disabled")
+					self.indiLOG.log(20,"Bridge restarted. Reconnecting in 5s...")
+					time.sleep(5)
+		
+				except requests.ConnectionError:
+					if stopEvent.is_set():
 						return
+					self.indiLOG.log(20,"Bridge unreachable. Reconnecting in 10s...")
+					time.sleep(10)
+		
+				except Exception as e:
+					if stopEvent.is_set():
+						return
+					self.indiLOG.log(20,f"Error: {e}. Reconnecting in 10s...")
+					time.sleep(10)
+				finally:                                          # ← add this
+					if hubNumber in self.listenThread:
+						self.listenThread[hubNumber]['response'] = None
 
-					if line:
-						#if self.decideMyLog("EventApi") and firstEvent == 0:  self.indiLOG.log(20,"Connected! Listening for events  in line for hub Number: {}".format(hubNumber))
+				self.listenThread[hubNumber]['lastMessage']  = time.time()
 
-						if hubNumber not in self.bytesSend: self.bytesSend[hubNumber] = dict()
-						if "events" not in self.bytesSend[hubNumber]: self.bytesSend[hubNumber]['events'] = [0,0,0,0,0,0,0,0]
-						if line.startswith('id: '):
-							nextId = line.strip().split()[1]
-							self.bytesSend[hubNumber]['events'][0] += 1
-							self.bytesSend[hubNumber]['events'][1] += len(str(line))
-
-						elif line.startswith('data: '):
-							data_str = line[5:].strip()
-
-							try:
-								events = json.loads(data_str)
-								if firstEvent < 1:
-									self.indiLOG.log(20,"first event from Bridge#:{}, ev-id:{}, event:{}".format(hubNumber, nextId, events))
-									firstEvent +=1
-
-								if self.decideMyLog("EventApi") and self.listenThread[hubNumber]['fileName'] != "":
-									nWrites += 1
-									if nWrites > 100: # store the last 100 events only
-										f = open(self.listenThread[hubNumber]['fileName'],"w")
-										nWrites = 0
-									else:
-										f = open(self.listenThread[hubNumber]['fileName'],"a")
-
-									f.write("{}\n".format(json.dumps(events, indent=2)))
-									f.close()
-
-								self.bytesSend[hubNumber]['events'][2] += 1
-								self.bytesSend[hubNumber]['events'][3] += len(str(data_str))
-
-								self.digestV2Event(hubNumber, nextId, events)
-							except json.JSONDecodeError:
-								self.indiLOG.log(20,"Connected! Listening json error  hub Number:{}, data received:<{}<".format(hubNumber, data_str))
-						else:
-								pass
-								#if debug:self.indiLOG.log(20,"event from:{}, decoded_line:>{}<".format(hubNumber, decoded_line))
 		except Exception:
 			self.indiLOG.log(40,"", exc_info=True)
-		self.indiLOG.log(20,"stopping event receiving ")
-		return
+
+
 
 
 	######################

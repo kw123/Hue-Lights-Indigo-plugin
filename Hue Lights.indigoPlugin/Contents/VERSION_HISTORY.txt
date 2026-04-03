@@ -1,4 +1,10 @@
 ========================================
+2022.29.82 @ 2026-04-02
+1. add check if connection to hue bridge is lost through eg reboot.  The event listener in api v2 (pro bridge) does not realize if the connection is broken.
+   Now added a timeout you can set to re-establish the connection if no events where send from the bridge to the plugin.
+
+
+========================================
 2022.29.81 @ 2026-03-16
 1. fixed bugs
    lots of little format issues, misspelled variables, but used only in rare circumstances 
