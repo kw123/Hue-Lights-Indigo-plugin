@@ -1,4 +1,40 @@
 ========================================
+2022.32.82 @ 2026-05-13
+1. New device state 'lumen' added to all dimmer light types (hueBulb, hueAmbiance, hueLightStrips, hueLivingColorsBloom, hueLivingWhites, hueOnOffDevice) and hueGroup
+   - Lights: calculated as int(brightnessLevel * lumenMax / 100 + 0.5)
+   - Updated automatically on brightnessLevel changes
+   - Set to 0 when onOffState → False
+   - Recalculated from current brightness when onOffState → True
+   - hueGroup: calculated as the sum of the 'lumen' state of all ON member lights (computed in calculateGroupColor; off lights contribute 0). Group brightnessLevel % calculation is unchanged.
+2. New device property 'lumenMax' added to ConfigUI for all dimmer types and hueGroup
+   - Default value: 600 lumen
+   - Configurable per device in the device edit dialog
+   - Explanatory label shown in the UI
+3. Reformatted plugin XML files (Actions.xml, Devices.xml, MenuItems.xml, PluginConfig.xml) for readability
+   - Pretty-printed with tab indentation via xmllint
+   - <Field>, <Device>, <Action>, <MenuItem> opening tags: type= and id= on the opening line; remaining attributes one-per-line indented below; closing > or /> on its own line
+   - Empty-body <Field> tags collapsed to single-line self-closing form
+   - Blank line inserted before each <Field> for visual separation
+   - No functional change; XML validates as well-formed (xmllint)
+
+========================================
+2022.31.82 @ 2026-05-12
+1. Group color temperature: fixed group colorTemp state not updating when a member lamp's ct changes via the V2 SSE path
+2. Fixed colorMode state never being written for V2 SSE events (derived from dType bits: bit4=ct, bit8=xy)
+3. Fixed group brightness being stale after a ct-only change (group SSE trigger was conditioned on brightness change; now always delegates to configured lookup mode)
+4. Cross-group ct propagation: Zone and Room sharing the same lights now sync color temperature in both directions
+   - calculateGroupColor propagates to sibling hueGroup devices when colorTemp changes (ctChanged guard prevents ping-pong)
+   - getGroupStatus (readv1 path) also propagates to siblings after parseOneHueGroupDataV1
+   - compareGroupCalculations: added noPropagate flag to stop at one level of propagation
+5. Fixed AttributeError 'delayedActionThread' during startup when individual light SSE events arrive before startdelayedActionThreads() completes
+6. validateRGBWhiteOnOffetc now called in all three V2 device creation functions (checkIfCreateNewGroupsV2, checkifcreateNewLightV2, checkIfCreateNewSensorV2)
+7. New action + menu item: Dynamic scene speed — add 0.0–1.0 speed parameter when recalling a V2 dynamic scene
+8. New action + menu item: Power-On Behaviour — configure what a light does when physically power-cycled (last state / safety / powerfail / custom with on-mode, brightness, color temp); uses V2 power_up resource
+9. New action + menu item: Sunrise Timed Effect — start or stop a bridge-managed wake-up simulation on a light (1–60 min); uses V2 timed_effects resource
+10. New action + menu item: Recall Smart Scene — activate or deactivate a V2 smart scene (adaptive scenes that follow time-of-day and natural light cycle); new generateSmartSceneListV2 list generator
+11. For pro bridge add option how to calculate group colors (no, get group color w v1 method, calculate) 
+
+========================================
 2022.29.82 @ 2026-04-02
 1. add check if connection to hue bridge is lost through eg reboot.  The event listener in api v2 (pro bridge) does not realize if the connection is broken.
    Now added a timeout you can set to re-establish the connection if no events where send from the bridge to the plugin.

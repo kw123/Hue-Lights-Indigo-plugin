@@ -1,16 +1,33 @@
 <?xml version="1.0"?>
 <Devices>
-    <!-- Extended Color Device -->
-	<Device type="sensor" id="HueBridge" allowUserCreation="false">
+	<!-- Extended Color Device -->
+	<Device type="sensor" id="HueBridge"
+		allowUserCreation="false"
+	>
 		<Name>Hue Bridge</Name>
-		<Field id="SupportsSensorValue" type="checkbox" defaultValue="false" hidden="true"></Field>
-		<Field id="SupportsOnState" type="checkbox" defaultValue="true" hidden="true"></Field>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsSensorValue"
+			defaultValue="false"
+			hidden="true"
+		/>
+
+		<Field type="checkbox" id="SupportsOnState"
+			defaultValue="true"
+			hidden="true"
+		/>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This device canot be edited . Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-			</ConfigUI>
+		</ConfigUI>
 		<States>
 			<State id="created">
 				<ValueType>String</ValueType>
@@ -186,7 +203,7 @@
 				<ValueType>String</ValueType>
 				<TriggerLabel>ipAddress</TriggerLabel>
 				<ControlPageLabel>ipAddress</ControlPageLabel>
-			</State>			
+			</State>
 			<State id="nameOnBridge">
 				<ValueType>String</ValueType>
 				<TriggerLabel>nameOnBridge</TriggerLabel>
@@ -214,30 +231,61 @@
 			</State>
 		</States>
 	</Device>
-
-
-
-    <!-- Extended Color Device -->
-	<Device type="dimmer" id="hueBulb" allowUserCreation="false">
+	<!-- Extended Color Device -->
+	<Device type="dimmer" id="hueBulb"
+		allowUserCreation="false"
+	>
 		<Name>Hue Color/Ambiance and compatible</Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-	
-			<Field id="gamut" type="menu" defaultValue="a"
-				tooltip="see developers.meethue.com/develop/hue-api/supported-devices for supported values">
+
+			<Field type="menu" id="gamut"
+				defaultValue="a"
+			>
 				<Label>pick Gamut for this lamp:</Label>
 				<List>
-					<Option value="A">A</Option>
-					<Option value="B">B</Option>
-					<Option value="C">C</Option>
+					<Option value="A">A older gen</Option>
+					<Option value="B">B middle gen</Option>
+					<Option value="C">C Rich Colors</Option>
 				</List>
 			</Field>
 
-			
-			<Field id="defaultBrightness" type="menu" defaultValue="50">
+			<Field type="label" id="labelgamut"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
+				<Label>See developers.meethue.com/develop/hue-api/supported-devices for supported values.</Label>
+			</Field>
+
+			<Field type="textfield" id="lumenMax"
+				defaultValue="600"
+			>
+				<Label>Max Lumen:</Label>
+			</Field>
+
+			<Field type="label" id="labelLumenMax"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
+				<Label>Maximum lumen output of this light at 100% brightness (default 600).
+The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
+			</Field>
+
+			<Field type="menu" id="defaultBrightness"
+				defaultValue="50"
+			>
 				<Label>Default Brightness(%):</Label>
 				<List>
 					<Option value="1">1</Option>
@@ -267,14 +315,20 @@
 					<Option value="100">100</Option>
 				</List>
 			</Field>
-			
-			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelDefaultBrightness"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>(1 - 100 percent)
 Optionally set a default brightness level used whenever an ON command is sent to this light.  
-If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>			
+If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>
 			</Field>
 
-			<Field id="rate" type="menu" defaultValue="0.5">
+			<Field type="menu" id="rate"
+				defaultValue="0.5"
+			>
 				<Label>Ramp Rate(secs):</Label>
 				<List>
 					<Option value="0.1">0.1</Option>
@@ -338,31 +392,54 @@ If no value is entered, when an ON command is sent, the light will return to the
 					<Option value="540.0">540</Option>
 				</List>
 			</Field>
-			
-			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelRate"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
-			
-			<Field id="noOnRampRate" type="checkbox" defaultValue="false"
-				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times.">
+
+			<Field type="checkbox" id="noOnRampRate"
+				defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times."
+			>
 				<Label>Disable ON Ramp Rate</Label>
 			</Field>
-			<Field id="noOffRampRate" type="checkbox" defaultValue="false"
-				tooltip="Check this box to ignore ramp rates (transition times) when turning Off this device. Some non-Hue devices don't support Off transtion times.">
+
+			<Field type="checkbox" id="noOffRampRate"
+				defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning Off this device. Some non-Hue devices don't support Off transtion times."
+			>
 				<Label>Disable OFF Ramp Rate</Label>
 			</Field>
-			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelNoRates"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
 			</Field>
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="savedBrightness" type="textfield" hidden="true" />
-			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+
+			<Field type="textfield" id="savedBrightness"
+				hidden="true"
+			/>
+
+			<Field type="textfield" id="serialNumber"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned"
+			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -379,13 +456,18 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 			<State id="hue">
 				<ValueType>Number</ValueType>
-				<TriggerLabel>Hue (°)</TriggerLabel>
-				<ControlPageLabel>Hue (°)</ControlPageLabel>
+				<TriggerLabel>Hue (&#xB0;)</TriggerLabel>
+				<ControlPageLabel>Hue (&#xB0;)</ControlPageLabel>
 			</State>
 			<State id="saturation">
 				<ValueType>Number</ValueType>
 				<TriggerLabel>Saturation (%)</TriggerLabel>
 				<ControlPageLabel>Saturation (%)</ControlPageLabel>
+			</State>
+			<State id="brightness_on">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>brightness_on</TriggerLabel>
+				<ControlPageLabel>brightness_on</ControlPageLabel>
 			</State>
 			<State id="colorRed">
 				<ValueType>Number</ValueType>
@@ -486,19 +568,50 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>productName</TriggerLabel>
 				<ControlPageLabel>productName</ControlPageLabel>
+			</State>
+			<State id="lumen">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>lumen</TriggerLabel>
+				<ControlPageLabel>lumen</ControlPageLabel>
 			</State>
 		</States>
 	</Device>
 	<!-- Ambiance Device -->
-	<Device type="dimmer" id="hueAmbiance" allowUserCreation="false">
+	<Device type="dimmer" id="hueAmbiance"
+		allowUserCreation="false"
+	>
 		<Name>Ambiance Lights (color temperature)</Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-		
-			<Field id="defaultBrightness" type="menu" defaultValue="50">
+
+			<Field type="textfield" id="lumenMax"
+				defaultValue="600"
+			>
+				<Label>Max Lumen:</Label>
+			</Field>
+
+			<Field type="label" id="labelLumenMax"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
+				<Label>Maximum lumen output of this light at 100% brightness (default 600).
+The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
+			</Field>
+
+			<Field type="menu" id="defaultBrightness"
+				defaultValue="50"
+			>
 				<Label>Default Brightness(%):</Label>
 				<List>
 					<Option value="1">1</Option>
@@ -528,14 +641,20 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 					<Option value="100">100</Option>
 				</List>
 			</Field>
-			
-			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelDefaultBrightness"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>(1 - 100 percent)
 Optionally set a default brightness level used whenever an ON command is sent to this light.  
-If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>			
+If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>
 			</Field>
 
-			<Field id="rate" type="menu" defaultValue="0.5">
+			<Field type="menu" id="rate"
+				defaultValue="0.5"
+			>
 				<Label>Ramp Rate(secs):</Label>
 				<List>
 					<Option value="0.1">0.1</Option>
@@ -599,36 +718,57 @@ If no value is entered, when an ON command is sent, the light will return to the
 					<Option value="540.0">540</Option>
 				</List>
 			</Field>
-			
-			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelRate"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
 
-
-			<Field id="noOnRampRate" type="checkbox" defaultValue="false"
-				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times.">
+			<Field type="checkbox" id="noOnRampRate"
+				defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times."
+			>
 				<Label>Disable ON Ramp Rate</Label>
 			</Field>
-			<Field id="noOffRampRate" type="checkbox" defaultValue="false"
-				tooltip="Check this box to ignore ramp rates (transition times) when turning Off this device. Some non-Hue devices don't support Off transtion times.">
+
+			<Field type="checkbox" id="noOffRampRate"
+				defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning Off this device. Some non-Hue devices don't support Off transtion times."
+			>
 				<Label>Disable OFF Ramp Rate</Label>
 			</Field>
-			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelNoRates"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
 			</Field>
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="savedBrightness" type="textfield" hidden="true" />
-			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+
+			<Field type="textfield" id="savedBrightness"
+				hidden="true"
+			/>
+
+			<Field type="textfield" id="serialNumber"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned"
+			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
-		
 		<States>
 			<State id="created">
 				<ValueType>String</ValueType>
@@ -639,6 +779,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>softwareUpdate</TriggerLabel>
 				<ControlPageLabel>softwareUpdate</ControlPageLabel>
+			</State>
+			<State id="brightness_on">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>brightness_on</TriggerLabel>
+				<ControlPageLabel>brightness_on</ControlPageLabel>
 			</State>
 			<State id="colorTemp">
 				<ValueType>Number</ValueType>
@@ -715,28 +860,68 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>productName</TriggerLabel>
 				<ControlPageLabel>productName</ControlPageLabel>
 			</State>
+			<State id="lumen">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>lumen</TriggerLabel>
+				<ControlPageLabel>lumen</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
-    <!-- LightStrips Device -->
-	<Device type="dimmer" id="hueLightStrips" allowUserCreation="false">
+	<!-- LightStrips Device -->
+	<Device type="dimmer" id="hueLightStrips"
+		allowUserCreation="false"
+	>
 		<Name>Light Strips</Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
 
-				<Field id="gamut" type="menu" defaultValue="a"
-				tooltip="see developers.meethue.com/develop/hue-api/supported-devices for supported values">
+			<Field type="menu" id="gamut"
+				defaultValue="a"
+			>
 				<Label>pick Gamut for this lamp:</Label>
 				<List>
-					<Option value="A">A</Option>
-					<Option value="B">B</Option>
-					<Option value="C">C</Option>
+					<Option value="A">A older gen</Option>
+					<Option value="B">B middle gen</Option>
+					<Option value="C">C Rich Colors</Option>
 				</List>
 			</Field>
-			
-			<Field id="defaultBrightness" type="menu" defaultValue="50">
+
+			<Field type="label" id="labelgamut"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
+				<Label>See developers.meethue.com/develop/hue-api/supported-devices for supported values.</Label>
+			</Field>
+
+			<Field type="textfield" id="lumenMax"
+				defaultValue="600"
+			>
+				<Label>Max Lumen:</Label>
+			</Field>
+
+			<Field type="label" id="labelLumenMax"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
+				<Label>Maximum lumen output of this light at 100% brightness (default 600).
+The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
+			</Field>
+
+			<Field type="menu" id="defaultBrightness"
+				defaultValue="50"
+			>
 				<Label>Default Brightness(%):</Label>
 				<List>
 					<Option value="1">1</Option>
@@ -766,14 +951,20 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 					<Option value="100">100</Option>
 				</List>
 			</Field>
-			
-			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelDefaultBrightness"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>(1 - 100 percent)
 Optionally set a default brightness level used whenever an ON command is sent to this light.  
-If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>			
+If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>
 			</Field>
 
-			<Field id="rate" type="menu" defaultValue="0.5">
+			<Field type="menu" id="rate"
+				defaultValue="0.5"
+			>
 				<Label>Ramp Rate(secs):</Label>
 				<List>
 					<Option value="0.1">0.1</Option>
@@ -837,31 +1028,54 @@ If no value is entered, when an ON command is sent, the light will return to the
 					<Option value="540.0">540</Option>
 				</List>
 			</Field>
-			
-			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelRate"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
 
-			<Field id="noOnRampRate" type="checkbox" defaultValue="false"
-				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times.">
+			<Field type="checkbox" id="noOnRampRate"
+				defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times."
+			>
 				<Label>Disable ON Ramp Rate</Label>
 			</Field>
-			<Field id="noOffRampRate" type="checkbox" defaultValue="false"
-				tooltip="Check this box to ignore ramp rates (transition times) when turning Off this device. Some non-Hue devices don't support Off transtion times.">
+
+			<Field type="checkbox" id="noOffRampRate"
+				defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning Off this device. Some non-Hue devices don't support Off transtion times."
+			>
 				<Label>Disable OFF Ramp Rate</Label>
 			</Field>
-			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelNoRates"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
 			</Field>
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="savedBrightness" type="textfield" hidden="true" />
-			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+
+			<Field type="textfield" id="savedBrightness"
+				hidden="true"
+			/>
+
+			<Field type="textfield" id="serialNumber"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned"
+			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -878,13 +1092,18 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 			<State id="hue">
 				<ValueType>Number</ValueType>
-				<TriggerLabel>Hue (°)</TriggerLabel>
-				<ControlPageLabel>Hue (°)</ControlPageLabel>
+				<TriggerLabel>Hue (&#xB0;)</TriggerLabel>
+				<ControlPageLabel>Hue (&#xB0;)</ControlPageLabel>
 			</State>
 			<State id="saturation">
 				<ValueType>Number</ValueType>
 				<TriggerLabel>Saturation (%)</TriggerLabel>
 				<ControlPageLabel>Saturation (%)</ControlPageLabel>
+			</State>
+			<State id="brightness_on">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>brightness_on</TriggerLabel>
+				<ControlPageLabel>brightness_on</ControlPageLabel>
 			</State>
 			<State id="colorRed">
 				<ValueType>Number</ValueType>
@@ -986,29 +1205,68 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>productName</TriggerLabel>
 				<ControlPageLabel>productName</ControlPageLabel>
 			</State>
+			<State id="lumen">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>lumen</TriggerLabel>
+				<ControlPageLabel>lumen</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
-    <!-- LivingColors Bloom Device -->
-	<Device type="dimmer" id="hueLivingColorsBloom" allowUserCreation="false">
+	<!-- LivingColors Bloom Device -->
+	<Device type="dimmer" id="hueLivingColorsBloom"
+		allowUserCreation="false"
+	>
 		<Name>Color Lights (Aura, Bloom, StoryLight, LivingColors, etc.)</Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
 
-			<Field id="gamut" type="menu" defaultValue="a"
-				tooltip="see developers.meethue.com/develop/hue-api/supported-devices for supported values">
+			<Field type="menu" id="gamut"
+				defaultValue="a"
+			>
 				<Label>pick Gamut for this lamp:</Label>
 				<List>
-					<Option value="A">A</Option>
-					<Option value="B">B</Option>
-					<Option value="C">C</Option>
+					<Option value="A">A older gen</Option>
+					<Option value="B">B middle gen</Option>
+					<Option value="C">C Rich Colors</Option>
 				</List>
 			</Field>
 
-			
-			<Field id="defaultBrightness" type="menu" defaultValue="50">
+			<Field type="label" id="labelgamut"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
+				<Label>See developers.meethue.com/develop/hue-api/supported-devices for supported values.</Label>
+			</Field>
+
+			<Field type="textfield" id="lumenMax"
+				defaultValue="600"
+			>
+				<Label>Max Lumen:</Label>
+			</Field>
+
+			<Field type="label" id="labelLumenMax"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
+				<Label>Maximum lumen output of this light at 100% brightness (default 600).
+The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
+			</Field>
+
+			<Field type="menu" id="defaultBrightness"
+				defaultValue="50"
+			>
 				<Label>Default Brightness(%):</Label>
 				<List>
 					<Option value="1">1</Option>
@@ -1038,14 +1296,20 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 					<Option value="100">100</Option>
 				</List>
 			</Field>
-			
-			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelDefaultBrightness"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>(1 - 100 percent)
 Optionally set a default brightness level used whenever an ON command is sent to this light.  
-If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>			
+If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>
 			</Field>
 
-			<Field id="rate" type="menu" defaultValue="0.5">
+			<Field type="menu" id="rate"
+				defaultValue="0.5"
+			>
 				<Label>Ramp Rate(secs):</Label>
 				<List>
 					<Option value="0.1">0.1</Option>
@@ -1109,31 +1373,54 @@ If no value is entered, when an ON command is sent, the light will return to the
 					<Option value="540.0">540</Option>
 				</List>
 			</Field>
-			
-			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelRate"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
 
-			<Field id="noOnRampRate" type="checkbox" defaultValue="false"
-				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times.">
+			<Field type="checkbox" id="noOnRampRate"
+				defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times."
+			>
 				<Label>Disable ON Ramp Rate</Label>
 			</Field>
-			<Field id="noOffRampRate" type="checkbox" defaultValue="false"
-				tooltip="Check this box to ignore ramp rates (transition times) when turning Off this device. Some non-Hue devices don't support Off transtion times.">
+
+			<Field type="checkbox" id="noOffRampRate"
+				defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning Off this device. Some non-Hue devices don't support Off transtion times."
+			>
 				<Label>Disable OFF Ramp Rate</Label>
 			</Field>
-			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelNoRates"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
 			</Field>
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="savedBrightness" type="textfield" hidden="true" />
-			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+
+			<Field type="textfield" id="savedBrightness"
+				hidden="true"
+			/>
+
+			<Field type="textfield" id="serialNumber"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned"
+			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -1150,13 +1437,18 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 			<State id="hue">
 				<ValueType>Number</ValueType>
-				<TriggerLabel>Hue (°)</TriggerLabel>
-				<ControlPageLabel>Hue (°)</ControlPageLabel>
+				<TriggerLabel>Hue (&#xB0;)</TriggerLabel>
+				<ControlPageLabel>Hue (&#xB0;)</ControlPageLabel>
 			</State>
 			<State id="saturation">
 				<ValueType>Number</ValueType>
 				<TriggerLabel>Saturation (%)</TriggerLabel>
 				<ControlPageLabel>Saturation (%)</ControlPageLabel>
+			</State>
+			<State id="brightness_on">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>brightness_on</TriggerLabel>
+				<ControlPageLabel>brightness_on</ControlPageLabel>
 			</State>
 			<State id="colorRed">
 				<ValueType>Number</ValueType>
@@ -1253,19 +1545,49 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>productName</TriggerLabel>
 				<ControlPageLabel>productName</ControlPageLabel>
 			</State>
+			<State id="lumen">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>lumen</TriggerLabel>
+				<ControlPageLabel>lumen</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
-    <!-- LivingWhites Device -->
-	<Device type="dimmer" id="hueLivingWhites" allowUserCreation="false">
+	<!-- LivingWhites Device -->
+	<Device type="dimmer" id="hueLivingWhites"
+		allowUserCreation="false"
+	>
 		<Name>LivingWhites (Hue Lux, generic dimmable device, etc.)</Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
 
-			
-			<Field id="defaultBrightness" type="menu" defaultValue="50">
+			<Field type="textfield" id="lumenMax"
+				defaultValue="600"
+			>
+				<Label>Max Lumen:</Label>
+			</Field>
+
+			<Field type="label" id="labelLumenMax"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
+				<Label>Maximum lumen output of this light at 100% brightness (default 600).
+The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
+			</Field>
+
+			<Field type="menu" id="defaultBrightness"
+				defaultValue="50"
+			>
 				<Label>Default Brightness(%):</Label>
 				<List>
 					<Option value="1">1</Option>
@@ -1295,14 +1617,20 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 					<Option value="100">100</Option>
 				</List>
 			</Field>
-			
-			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelDefaultBrightness"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>(1 - 100 percent)
 Optionally set a default brightness level used whenever an ON command is sent to this light.  
-If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>			
+If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>
 			</Field>
 
-			<Field id="rate" type="menu" defaultValue="0.5">
+			<Field type="menu" id="rate"
+				defaultValue="0.5"
+			>
 				<Label>Ramp Rate(secs):</Label>
 				<List>
 					<Option value="0.1">0.1</Option>
@@ -1366,32 +1694,54 @@ If no value is entered, when an ON command is sent, the light will return to the
 					<Option value="540.0">540</Option>
 				</List>
 			</Field>
-			
-			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelRate"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
 
-
-			<Field id="noOnRampRate" type="checkbox" defaultValue="false"
-				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times.">
+			<Field type="checkbox" id="noOnRampRate"
+				defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times."
+			>
 				<Label>Disable ON Ramp Rate</Label>
 			</Field>
-			<Field id="noOffRampRate" type="checkbox" defaultValue="false"
-				tooltip="Check this box to ignore ramp rates (transition times) when turning Off this device. Some non-Hue devices don't support Off transtion times.">
+
+			<Field type="checkbox" id="noOffRampRate"
+				defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning Off this device. Some non-Hue devices don't support Off transtion times."
+			>
 				<Label>Disable OFF Ramp Rate</Label>
 			</Field>
-			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelNoRates"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
 			</Field>
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="savedBrightness" type="textfield" hidden="true" />
-			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+
+			<Field type="textfield" id="savedBrightness"
+				hidden="true"
+			/>
+
+			<Field type="textfield" id="serialNumber"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned"
+			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -1410,6 +1760,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>String</ValueType>
 				<TriggerLabel>Alert Mode</TriggerLabel>
 				<ControlPageLabel>Alert Mode</ControlPageLabel>
+			</State>
+			<State id="brightness_on">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>brightness_on</TriggerLabel>
+				<ControlPageLabel>brightness_on</ControlPageLabel>
 			</State>
 			<State id="effect">
 				<ValueType>String</ValueType>
@@ -1471,20 +1826,51 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>productName</TriggerLabel>
 				<ControlPageLabel>productName</ControlPageLabel>
 			</State>
+			<State id="lumen">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>lumen</TriggerLabel>
+				<ControlPageLabel>lumen</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
-    <!-- On/Off Only Device -->
-	<Device type="relay" id="hueOnOffDevice" allowUserCreation="false">
+	<!-- On/Off Only Device -->
+	<Device type="relay" id="hueOnOffDevice"
+		allowUserCreation="false"
+	>
 		<Name>On/Off Device (Hue Smart Plug, etc.)</Name>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+
+			<Field type="textfield" id="lumenMax"
+				defaultValue="600"
+			>
+				<Label>Max Lumen:</Label>
+			</Field>
+
+			<Field type="label" id="labelLumenMax"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
+				<Label>Maximum lumen output of this light at 100% brightness (default 600).
+The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
+			</Field>
+
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+
+			<Field type="textfield" id="serialNumber"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned"
+			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -1559,28 +1945,68 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>productName</TriggerLabel>
 				<ControlPageLabel>productName</ControlPageLabel>
 			</State>
+			<State id="lumen">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>lumen</TriggerLabel>
+				<ControlPageLabel>lumen</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
-    <!-- Hue Group Device -->
-	<Device type="dimmer" id="hueGroup" allowUserCreation="false">
+	<!-- Hue Group Device -->
+	<Device type="dimmer" id="hueGroup"
+		allowUserCreation="false"
+	>
 		<Name>Hue Group</Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
 
-			<Field id="gamut" type="menu" defaultValue="a"
-				tooltip="see developers.meethue.com/develop/hue-api/supported-devices for supported values">
+			<Field type="menu" id="gamut"
+				defaultValue="a"
+			>
 				<Label>pick Gamut for this lamp:</Label>
 				<List>
-					<Option value="A">A</Option>
-					<Option value="B">B</Option>
-					<Option value="C">C</Option>
+					<Option value="A">A older gen</Option>
+					<Option value="B">B middle gen</Option>
+					<Option value="C">C Rich Colors</Option>
 				</List>
 			</Field>
-			
-			<Field id="defaultBrightness" type="menu" defaultValue="50">
+
+			<Field type="label" id="labelgamut"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
+				<Label>See developers.meethue.com/develop/hue-api/supported-devices for supported values.</Label>
+			</Field>
+
+			<Field type="textfield" id="lumenMax"
+				defaultValue="600"
+			>
+				<Label>Max Lumen:</Label>
+			</Field>
+
+			<Field type="label" id="labelLumenMax"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
+				<Label>Maximum lumen output of this light at 100% brightness (default 600).
+The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
+			</Field>
+
+			<Field type="menu" id="defaultBrightness"
+				defaultValue="50"
+			>
 				<Label>Default Brightness(%):</Label>
 				<List>
 					<Option value="1">1</Option>
@@ -1610,14 +2036,20 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 					<Option value="100">100</Option>
 				</List>
 			</Field>
-			
-			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelDefaultBrightness"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>(1 - 100 percent)
 Optionally set a default brightness level used whenever an ON command is sent to this light.  
-If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>			
+If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>
 			</Field>
 
-			<Field id="rate" type="menu" defaultValue="0.5">
+			<Field type="menu" id="rate"
+				defaultValue="0.5"
+			>
 				<Label>Ramp Rate(secs):</Label>
 				<List>
 					<Option value="0.1">0.1</Option>
@@ -1681,29 +2113,74 @@ If no value is entered, when an ON command is sent, the light will return to the
 					<Option value="540.0">540</Option>
 				</List>
 			</Field>
-			
-			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelRate"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
 
-			<Field id="noOnRampRate" type="checkbox" defaultValue="false"
-				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times.">
+			<Field type="checkbox" id="noOnRampRate"
+				defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning On this device. Some non-Hue devices don't support On transtion times."
+			>
 				<Label>Disable ON Ramp Rate</Label>
 			</Field>
-			<Field id="noOffRampRate" type="checkbox" defaultValue="false"
-				tooltip="Check this box to ignore ramp rates (transition times) when turning Off this device. Some non-Hue devices don't support Off transtion times.">
+
+			<Field type="checkbox" id="noOffRampRate"
+				defaultValue="false"
+				tooltip="Check this box to ignore ramp rates (transition times) when turning Off this device. Some non-Hue devices don't support Off transtion times."
+			>
 				<Label>Disable OFF Ramp Rate</Label>
 			</Field>
-			<Field id="labelNoRates" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelNoRates"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>Some non-Hue devices don't support ON or OFF transition times. If you find a light doesn't trun ON or OFF when it should, try checking one or both of the above check boxes.</Label>
 			</Field>
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+
+			<Field type="menu" id="lookupColors"
+				defaultValue="calculate"
+			>
+				<Label>refresh group color (Pro bridge only)</Label>
+				<List>
+					<Option value="no">no</Option>
+					<Option value="readv1">read v1 data </Option>
+					<Option value="calculate">calculate</Option>
+					<Option value="compare">compare (diagnostic only)</Option>
+				</List>
+			</Field>
+
+			<Field type="label" id="labellookupColorss"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
+				<Label>V2 hub bridge does not send updated color values  for groups 
+when a light is changed. With this option you can select  
+(a) do not update this groups device Color
+(b) read bridge v1 data and fill color values
+(c) do a calculation with the lights of the group stored in indigo</Label>
+			</Field>
+
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="savedBrightness" type="textfield" hidden="true" />
+
+			<Field type="textfield" id="savedBrightness"
+				hidden="true"
+			/>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -1713,13 +2190,18 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 			<State id="hue">
 				<ValueType>Number</ValueType>
-				<TriggerLabel>Hue (°)</TriggerLabel>
-				<ControlPageLabel>Hue (°)</ControlPageLabel>
+				<TriggerLabel>Hue (&#xB0;)</TriggerLabel>
+				<ControlPageLabel>Hue (&#xB0;)</ControlPageLabel>
 			</State>
 			<State id="saturation">
 				<ValueType>Number</ValueType>
 				<TriggerLabel>Saturation (%)</TriggerLabel>
 				<ControlPageLabel>Saturation (%)</ControlPageLabel>
+			</State>
+			<State id="brightness_on">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>brightness_on</TriggerLabel>
+				<ControlPageLabel>brightness_on</ControlPageLabel>
 			</State>
 			<State id="colorRed">
 				<ValueType>Number</ValueType>
@@ -1821,23 +2303,42 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>bridge</TriggerLabel>
 				<ControlPageLabel>bridge</ControlPageLabel>
 			</State>
+			<State id="lumen">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>lumen</TriggerLabel>
+				<ControlPageLabel>lumen</ControlPageLabel>
+			</State>
 		</States>
 	</Device>
-	
 	<!-- SENSOR DEVICES -->
 	<!-- Hue Secure Contact -->
-	<Device type="sensor" id="hueContactSensor" allowUserCreation="false">
+	<Device type="sensor" id="hueContactSensor"
+		allowUserCreation="false"
+	>
 		<Name>Hue Contact Sensor </Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+
+			<Field type="textfield" id="serialNumber"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned"
+			>
 				<Label>Serial Number on sensor:</Label>
 			</Field>
 		</ConfigUI>
@@ -1934,24 +2435,36 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 		</States>
 	</Device>
-
-	
 	<!-- SENSOR DEVICES -->
 	<!-- Hue Motion Sensor (multi-sensor) -->
 	<!--   MOTION   -->
-	<Device type="sensor" id="hueMotionSensor" allowUserCreation="false">
+	<Device type="sensor" id="hueMotionSensor"
+		allowUserCreation="false"
+	>
 		<Name>Hue Motion Sensor (Motion)</Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-			
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+
+			<Field type="textfield" id="serialNumber"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned"
+			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -2063,37 +2576,61 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 		</States>
 	</Device>
-	
 	<!--   TEMPERATURE   -->
-	<Device type="sensor" id="hueMotionTemperatureSensor" allowUserCreation="false">
+	<Device type="sensor" id="hueMotionTemperatureSensor"
+		allowUserCreation="false"
+	>
 		<Name>Hue Temperature Sensor</Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-			<Field id="temperatureScale" type="menu" defaultValue="c"
-				tooltip="Select a temperature scale to display in Indigo.">
+
+			<Field type="menu" id="temperatureScale"
+				defaultValue="c"
+				tooltip="Select a temperature scale to display in Indigo."
+			>
 				<Label>Temperature Scale:</Label>
 				<List>
 					<Option value="c">Celsius</Option>
 					<Option value="f">Fahrenheit</Option>
 				</List>
 			</Field>
-			<Field id="sensorOffset" type="textfield"
-				tooltip="Optionally set a calibration offset if the sensor readings are inaccurate.">
+
+			<Field type="textfield" id="sensorOffset"
+				tooltip="Optionally set a calibration offset if the sensor readings are inaccurate."
+			>
 				<Label>Calibration Offset:</Label>
 			</Field>
-			<Field id="labelSensorOffset" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelSensorOffset"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>(-10 to 10 degrees)
 Optionally set a calibration offset if the sensor readings are inaccurate.
 </Label>
 			</Field>
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+
+			<Field type="textfield" id="serialNumber"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned"
+			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -2135,13 +2672,13 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 			<State id="temperatureC">
 				<ValueType>Number</ValueType>
-				<TriggerLabel>Temperature (ºC)</TriggerLabel>
-				<ControlPageLabel>Temperature (ºC)</ControlPageLabel>
+				<TriggerLabel>Temperature (&#xBA;C)</TriggerLabel>
+				<ControlPageLabel>Temperature (&#xBA;C)</ControlPageLabel>
 			</State>
 			<State id="temperatureF">
 				<ValueType>Number</ValueType>
-				<TriggerLabel>Temperature (ºF)</TriggerLabel>
-				<ControlPageLabel>Temperature (ºF)</ControlPageLabel>
+				<TriggerLabel>Temperature (&#xBA;F)</TriggerLabel>
+				<ControlPageLabel>Temperature (&#xBA;F)</ControlPageLabel>
 			</State>
 			<State id="nameOnBridge">
 				<ValueType>String</ValueType>
@@ -2195,23 +2732,48 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 		</States>
 	</Device>
-	
 	<!--   LUMINANCE   -->
-	<Device type="sensor" id="hueMotionLightSensor" allowUserCreation="false">
+	<Device type="sensor" id="hueMotionLightSensor"
+		allowUserCreation="false"
+	>
 		<Name>Hue Light Sensor</Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-			
-			<Field id="AllowOnStateChange" 		type="checkbox" defaultValue="false" hidden="false" ><Label>Allow OnStateChange:</Label></Field>
-			<Field id="SupportsOnState" 		type="checkbox" defaultValue="true"  hidden="false" ><Label>Supports OnState:</Label></Field>
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+
+			<Field type="checkbox" id="AllowOnStateChange"
+				defaultValue="false"
+				hidden="false"
+			>
+				<Label>Allow OnStateChange:</Label>
+			</Field>
+
+			<Field type="checkbox" id="SupportsOnState"
+				defaultValue="true"
+				hidden="false"
+			>
+				<Label>Supports OnState:</Label>
+			</Field>
+
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+
+			<Field type="textfield" id="serialNumber"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned"
+			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -2333,20 +2895,34 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 		</States>
 	</Device>
-    
 	<!-- Hue Tap Switch -->
-	<Device type="sensor" id="hueTapSwitch" allowUserCreation="false">
+	<Device type="sensor" id="hueTapSwitch"
+		allowUserCreation="false"
+	>
 		<Name>Hue Tap Switch</Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+
+			<Field type="textfield" id="serialNumber"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned"
+			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -2361,41 +2937,41 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>softwareUpdate</TriggerLabel>
 				<ControlPageLabel>softwareUpdate</ControlPageLabel>
 			</State>
- 			<State id="lastBatteryReplaced">
+			<State id="lastBatteryReplaced">
 				<ValueType>String</ValueType>
 				<TriggerLabel>lastBatteryReplaced</TriggerLabel>
 				<ControlPageLabel>lastBatteryReplaced</ControlPageLabel>
 			</State>
-           <State id="button1On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Button 1 Press</TriggerLabel>
-                <ControlPageLabel>Button 1 Press</ControlPageLabel>
-            </State>
-            <State id="button2On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Button 2 Press</TriggerLabel>
-                <ControlPageLabel>Button 2 Press</ControlPageLabel>
-            </State>
-            <State id="button3On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Button 3 Press</TriggerLabel>
-                <ControlPageLabel>Button 3 Press</ControlPageLabel>
-            </State>
-            <State id="button4On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Button 4 Press</TriggerLabel>
-                <ControlPageLabel>Button 4 Press</ControlPageLabel>
-            </State>
-            <State id="lastButtonPressed">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Last Button Pressed</TriggerLabel>
-                <ControlPageLabel>Last Button Pressed</ControlPageLabel>
-            </State>
-            <State id="buttonEventID">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Last Button Event ID</TriggerLabel>
-                <ControlPageLabel>Last Button Event ID</ControlPageLabel>
-            </State>
+			<State id="button1On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Button 1 Press</TriggerLabel>
+				<ControlPageLabel>Button 1 Press</ControlPageLabel>
+			</State>
+			<State id="button2On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Button 2 Press</TriggerLabel>
+				<ControlPageLabel>Button 2 Press</ControlPageLabel>
+			</State>
+			<State id="button3On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Button 3 Press</TriggerLabel>
+				<ControlPageLabel>Button 3 Press</ControlPageLabel>
+			</State>
+			<State id="button4On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Button 4 Press</TriggerLabel>
+				<ControlPageLabel>Button 4 Press</ControlPageLabel>
+			</State>
+			<State id="lastButtonPressed">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Last Button Pressed</TriggerLabel>
+				<ControlPageLabel>Last Button Pressed</ControlPageLabel>
+			</State>
+			<State id="buttonEventID">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Last Button Event ID</TriggerLabel>
+				<ControlPageLabel>Last Button Event ID</ControlPageLabel>
+			</State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Last Updated on Hub</TriggerLabel>
@@ -2453,21 +3029,34 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 		</States>
 	</Device>
-
 	<!-- Hue Dimmer Switch -->
-	<Device type="sensor" id="hueDimmerSwitch" allowUserCreation="false">
+	<Device type="sensor" id="hueDimmerSwitch"
+		allowUserCreation="false"
+	>
 		<Name>Hue Dimmer Switch</Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-			
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+
+			<Field type="textfield" id="serialNumber"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned"
+			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -2487,101 +3076,101 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>lastBatteryReplaced</TriggerLabel>
 				<ControlPageLabel>lastBatteryReplaced</ControlPageLabel>
 			</State>
-            <State id="button1On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>ON Button Press</TriggerLabel>
-                <ControlPageLabel>ON Button Press</ControlPageLabel>
-            </State>
+			<State id="button1On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>ON Button Press</TriggerLabel>
+				<ControlPageLabel>ON Button Press</ControlPageLabel>
+			</State>
 			<State id="button1LongPress">
 				<ValueType>Boolean</ValueType>
 				<TriggerLabel>ON Button Long Press</TriggerLabel>
 				<ControlPageLabel>ON Button Long Press</ControlPageLabel>
 			</State>
-            <State id="button1ReleaseShort">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>ON Button Short Release</TriggerLabel>
-                <ControlPageLabel>ON Button Short Release</ControlPageLabel>
-            </State>
-            <State id="button1ReleaseLong">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>ON Button Long Release</TriggerLabel>
-                <ControlPageLabel>ON Button Long Release</ControlPageLabel>
-            </State>
-            <State id="button2On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>DIM UP Button Press</TriggerLabel>
-                <ControlPageLabel>DIM UP Button Press</ControlPageLabel>
-            </State>
-            <State id="button2LongPress">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>DIM UP Button Long Press</TriggerLabel>
-                <ControlPageLabel>DIM UP Button Long Press</ControlPageLabel>
-            </State>
-            <State id="button2ReleaseShort">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>DIM UP Button Short Release</TriggerLabel>
-                <ControlPageLabel>DIM UP Button Short Release</ControlPageLabel>
-            </State>
-            <State id="button2ReleaseLong">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>DIM UP Button Long Release</TriggerLabel>
-                <ControlPageLabel>DIM UP Button Long Release</ControlPageLabel>
-            </State>
-            <State id="button3On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>DIM DOWN Button Press</TriggerLabel>
-                <ControlPageLabel>DIM DOWN Button Press</ControlPageLabel>
-            </State>
-            <State id="button3LongPress">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>DIM DOWN Button Long Press</TriggerLabel>
-                <ControlPageLabel>DIM DOWN Button Long Press</ControlPageLabel>
-            </State>
-            <State id="button3ReleaseShort">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>DIM DOWN Button Short Release</TriggerLabel>
-                <ControlPageLabel>DIM DOWN Button Short Release</ControlPageLabel>
-            </State>
-            <State id="button3ReleaseLong">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>DIM DOWN Button Long Release</TriggerLabel>
-                <ControlPageLabel>DIM DOWN Button Long Release</ControlPageLabel>
-            </State>
-            <State id="button4On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>OFF Button Press</TriggerLabel>
-                <ControlPageLabel>OFF Button Press</ControlPageLabel>
-            </State>
-            <State id="button4LongPress">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>OFF Button Long Press</TriggerLabel>
-                <ControlPageLabel>OFF Button Long Press</ControlPageLabel>
-            </State>
-            <State id="button4ReleaseShort">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>OFF Button Short Release</TriggerLabel>
-                <ControlPageLabel>OFF Button Short Release</ControlPageLabel>
-            </State>
-            <State id="button4ReleaseLong">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>OFF Button Long Release</TriggerLabel>
-                <ControlPageLabel>OFF Button Long Release</ControlPageLabel>
-            </State>
+			<State id="button1ReleaseShort">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>ON Button Short Release</TriggerLabel>
+				<ControlPageLabel>ON Button Short Release</ControlPageLabel>
+			</State>
+			<State id="button1ReleaseLong">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>ON Button Long Release</TriggerLabel>
+				<ControlPageLabel>ON Button Long Release</ControlPageLabel>
+			</State>
+			<State id="button2On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>DIM UP Button Press</TriggerLabel>
+				<ControlPageLabel>DIM UP Button Press</ControlPageLabel>
+			</State>
+			<State id="button2LongPress">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>DIM UP Button Long Press</TriggerLabel>
+				<ControlPageLabel>DIM UP Button Long Press</ControlPageLabel>
+			</State>
+			<State id="button2ReleaseShort">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>DIM UP Button Short Release</TriggerLabel>
+				<ControlPageLabel>DIM UP Button Short Release</ControlPageLabel>
+			</State>
+			<State id="button2ReleaseLong">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>DIM UP Button Long Release</TriggerLabel>
+				<ControlPageLabel>DIM UP Button Long Release</ControlPageLabel>
+			</State>
+			<State id="button3On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>DIM DOWN Button Press</TriggerLabel>
+				<ControlPageLabel>DIM DOWN Button Press</ControlPageLabel>
+			</State>
+			<State id="button3LongPress">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>DIM DOWN Button Long Press</TriggerLabel>
+				<ControlPageLabel>DIM DOWN Button Long Press</ControlPageLabel>
+			</State>
+			<State id="button3ReleaseShort">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>DIM DOWN Button Short Release</TriggerLabel>
+				<ControlPageLabel>DIM DOWN Button Short Release</ControlPageLabel>
+			</State>
+			<State id="button3ReleaseLong">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>DIM DOWN Button Long Release</TriggerLabel>
+				<ControlPageLabel>DIM DOWN Button Long Release</ControlPageLabel>
+			</State>
+			<State id="button4On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>OFF Button Press</TriggerLabel>
+				<ControlPageLabel>OFF Button Press</ControlPageLabel>
+			</State>
+			<State id="button4LongPress">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>OFF Button Long Press</TriggerLabel>
+				<ControlPageLabel>OFF Button Long Press</ControlPageLabel>
+			</State>
+			<State id="button4ReleaseShort">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>OFF Button Short Release</TriggerLabel>
+				<ControlPageLabel>OFF Button Short Release</ControlPageLabel>
+			</State>
+			<State id="button4ReleaseLong">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>OFF Button Long Release</TriggerLabel>
+				<ControlPageLabel>OFF Button Long Release</ControlPageLabel>
+			</State>
 			<State id="online">
 				<ValueType>Boolean</ValueType>
 				<TriggerLabel>Online</TriggerLabel>
 				<ControlPageLabel>Online</ControlPageLabel>
 			</State>
-            <State id="buttonEventID">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Last Button Event ID</TriggerLabel>
-                <ControlPageLabel>Last Button Event ID</ControlPageLabel>
-            </State>
-            <State id="lastButtonPressed">
-                <ValueType>String</ValueType>
-                <TriggerLabel>Last Button Pressed</TriggerLabel>
-                <ControlPageLabel>Last Button Pressed</ControlPageLabel>
-            </State>
+			<State id="buttonEventID">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Last Button Event ID</TriggerLabel>
+				<ControlPageLabel>Last Button Event ID</ControlPageLabel>
+			</State>
+			<State id="lastButtonPressed">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Button Pressed</TriggerLabel>
+				<ControlPageLabel>Last Button Pressed</ControlPageLabel>
+			</State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Last Updated on Hub</TriggerLabel>
@@ -2639,21 +3228,34 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 		</States>
 	</Device>
-
 	<!-- Hue Smart Button -->
-	<Device type="sensor" id="hueSmartButton" allowUserCreation="false">
+	<Device type="sensor" id="hueSmartButton"
+		allowUserCreation="false"
+	>
 		<Name>Hue Smart Button</Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-			
-		<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+
+			<Field type="textfield" id="serialNumber"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned"
+			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -2673,41 +3275,41 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>lastBatteryReplaced</TriggerLabel>
 				<ControlPageLabel>lastBatteryReplaced</ControlPageLabel>
 			</State>
-            <State id="button1On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Button Press</TriggerLabel>
-                <ControlPageLabel>Button Press</ControlPageLabel>
-            </State>
+			<State id="button1On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Button Press</TriggerLabel>
+				<ControlPageLabel>Button Press</ControlPageLabel>
+			</State>
 			<State id="button1Repeat">
 				<ValueType>Boolean</ValueType>
 				<TriggerLabel>Button Press and Repeat</TriggerLabel>
 				<ControlPageLabel>Button Press and Repeat</ControlPageLabel>
 			</State>
-            <State id="button1ReleaseShort">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Button Short Release</TriggerLabel>
-                <ControlPageLabel>Button Short Release</ControlPageLabel>
-            </State>
-            <State id="button1ReleaseLong">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Button Long Release</TriggerLabel>
-                <ControlPageLabel>Button Long Release</ControlPageLabel>
-            </State>
-            <State id="button1LongPress">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Button Long Press</TriggerLabel>
-                <ControlPageLabel>Button Long Press</ControlPageLabel>
-            </State>
+			<State id="button1ReleaseShort">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Button Short Release</TriggerLabel>
+				<ControlPageLabel>Button Short Release</ControlPageLabel>
+			</State>
+			<State id="button1ReleaseLong">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Button Long Release</TriggerLabel>
+				<ControlPageLabel>Button Long Release</ControlPageLabel>
+			</State>
+			<State id="button1LongPress">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Button Long Press</TriggerLabel>
+				<ControlPageLabel>Button Long Press</ControlPageLabel>
+			</State>
 			<State id="online">
 				<ValueType>Boolean</ValueType>
 				<TriggerLabel>Online</TriggerLabel>
 				<ControlPageLabel>Online</ControlPageLabel>
 			</State>
-            <State id="buttonEventID">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Last Button Event ID</TriggerLabel>
-                <ControlPageLabel>Last Button Event ID</ControlPageLabel>
-            </State>
+			<State id="buttonEventID">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Last Button Event ID</TriggerLabel>
+				<ControlPageLabel>Last Button Event ID</ControlPageLabel>
+			</State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Last Updated on Hub</TriggerLabel>
@@ -2765,21 +3367,34 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 		</States>
 	</Device>
-
 	<!-- Hue Wall Switch Module -->
-	<Device type="sensor" id="hueWallSwitchModule" allowUserCreation="false">
+	<Device type="sensor" id="hueWallSwitchModule"
+		allowUserCreation="false"
+	>
 		<Name>Hue Wall Switch Module</Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
 
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
-			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+
+			<Field type="textfield" id="serialNumber"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned"
+			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -2794,66 +3409,66 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>softwareUpdate</TriggerLabel>
 				<ControlPageLabel>softwareUpdate</ControlPageLabel>
 			</State>
- 			<State id="lastBatteryReplaced">
+			<State id="lastBatteryReplaced">
 				<ValueType>String</ValueType>
 				<TriggerLabel>lastBatteryReplaced</TriggerLabel>
 				<ControlPageLabel>lastBatteryReplaced</ControlPageLabel>
 			</State>
-            <State id="button1On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Button 1 Press</TriggerLabel>
-                <ControlPageLabel>Button 1 Press</ControlPageLabel>
-            </State>
+			<State id="button1On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Button 1 Press</TriggerLabel>
+				<ControlPageLabel>Button 1 Press</ControlPageLabel>
+			</State>
 			<State id="button1LongPress">
 				<ValueType>Boolean</ValueType>
 				<TriggerLabel>Button 1 Press and Hold</TriggerLabel>
 				<ControlPageLabel>Button 1 Press and Hold</ControlPageLabel>
 			</State>
-            <State id="button1ReleaseShort">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Button 1 Short Release</TriggerLabel>
-                <ControlPageLabel>Button 1 Short Release</ControlPageLabel>
-            </State>
-            <State id="button1ReleaseLong">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Button 1 Long Release</TriggerLabel>
-                <ControlPageLabel>Button 1 Long Release</ControlPageLabel>
-            </State>
-            <State id="button2On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Button 2 Press</TriggerLabel>
-                <ControlPageLabel>Button 2 Press</ControlPageLabel>
-            </State>
+			<State id="button1ReleaseShort">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Button 1 Short Release</TriggerLabel>
+				<ControlPageLabel>Button 1 Short Release</ControlPageLabel>
+			</State>
+			<State id="button1ReleaseLong">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Button 1 Long Release</TriggerLabel>
+				<ControlPageLabel>Button 1 Long Release</ControlPageLabel>
+			</State>
+			<State id="button2On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Button 2 Press</TriggerLabel>
+				<ControlPageLabel>Button 2 Press</ControlPageLabel>
+			</State>
 			<State id="button2LongPress">
 				<ValueType>Boolean</ValueType>
 				<TriggerLabel>Button 2 Press and Hold</TriggerLabel>
 				<ControlPageLabel>Button 2 Press and Hold</ControlPageLabel>
 			</State>
-            <State id="button2ReleaseShort">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Button 2 Short Release</TriggerLabel>
-                <ControlPageLabel>Button 2 Short Release</ControlPageLabel>
-            </State>
-            <State id="button2ReleaseLong">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Button 2 Long Release</TriggerLabel>
-                <ControlPageLabel>Button 2 Long Release</ControlPageLabel>
-            </State>
+			<State id="button2ReleaseShort">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Button 2 Short Release</TriggerLabel>
+				<ControlPageLabel>Button 2 Short Release</ControlPageLabel>
+			</State>
+			<State id="button2ReleaseLong">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Button 2 Long Release</TriggerLabel>
+				<ControlPageLabel>Button 2 Long Release</ControlPageLabel>
+			</State>
 			<State id="online">
 				<ValueType>Boolean</ValueType>
 				<TriggerLabel>Online</TriggerLabel>
 				<ControlPageLabel>Online</ControlPageLabel>
 			</State>
-            <State id="lastButtonPressed">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Last Button Pressed</TriggerLabel>
-                <ControlPageLabel>Last Button Pressed</ControlPageLabel>
-            </State>
-            <State id="buttonEventID">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Last Button Event ID</TriggerLabel>
-                <ControlPageLabel>Last Button Event ID</ControlPageLabel>
-            </State>
+			<State id="lastButtonPressed">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Last Button Pressed</TriggerLabel>
+				<ControlPageLabel>Last Button Pressed</ControlPageLabel>
+			</State>
+			<State id="buttonEventID">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Last Button Event ID</TriggerLabel>
+				<ControlPageLabel>Last Button Event ID</ControlPageLabel>
+			</State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Last Updated on Hub</TriggerLabel>
@@ -2911,23 +3526,40 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 		</States>
 	</Device>
-
 	<!-- Run Less Wire or Niko Switch -->
-	<Device type="sensor" id="runLessWireSwitch" allowUserCreation="false">
+	<Device type="sensor" id="runLessWireSwitch"
+		allowUserCreation="false"
+	>
 		<Name>Run Less Wire, Niko Switch, FriendsOfHue</Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-				
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<!-- The buttonBeingHeld property is used by the plugin to track when a button is being held down since the Hue bridge doesn't do that for us, but the switch does report button release events, so we can figure it out ourselves. -->
-			<Field id="buttonBeingHeld" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+
+			<Field type="checkbox" id="buttonBeingHeld"
+				hidden="true"
+				defaultValue="false"
+			/>
+
+			<Field type="textfield" id="serialNumber"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned"
+			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -2942,151 +3574,151 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>softwareUpdate</TriggerLabel>
 				<ControlPageLabel>softwareUpdate</ControlPageLabel>
 			</State>
- 			<State id="lastBatteryReplaced">
+			<State id="lastBatteryReplaced">
 				<ValueType>String</ValueType>
 				<TriggerLabel>lastBatteryReplaced</TriggerLabel>
 				<ControlPageLabel>lastBatteryReplaced</ControlPageLabel>
 			</State>
-            <State id="button1On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>LEFT TOP Button Press</TriggerLabel>
-                <ControlPageLabel>LEFT TOP Button Press</ControlPageLabel>
-            </State>
-            <State id="button1LongPress">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>LEFT TOP Button Long Press</TriggerLabel>
-                <ControlPageLabel>LEFT TOP Button Long Press</ControlPageLabel>
-            </State>
-            <State id="button1Release">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>LEFT TOP Button Release</TriggerLabel>
-                <ControlPageLabel>LEFT TOP Button Release</ControlPageLabel>
-            </State>
-             <State id="button1ReleaseShort">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>LEFT TOP Button Release SHort</TriggerLabel>
-                <ControlPageLabel>LEFT TOP Button Release Short</ControlPageLabel>
-            </State>
-           <State id="button2On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>LEFT BOTTOM Button Press</TriggerLabel>
-                <ControlPageLabel>LEFT BOTTOM Button Press</ControlPageLabel>
-            </State>
-            <State id="button2LongPress">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>LEFT BOTTOM Button Long Press</TriggerLabel>
-                <ControlPageLabel>LEFT BOTTOM Button Long Press</ControlPageLabel>
-            </State>
-            <State id="button2Release">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>LEFT BOTTOM Button Release</TriggerLabel>
-                <ControlPageLabel>LEFT BOTTOM Button Release</ControlPageLabel>
-            </State>
-             <State id="button2ReleaseShort">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>LEFT BOTTOM Button Release SHort</TriggerLabel>
-                <ControlPageLabel>LEFT BOTTOM Button Release Short</ControlPageLabel>
-            </State>
-            <State id="button3On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>RIGHT BOTTOM Button Press</TriggerLabel>
-                <ControlPageLabel>RIGHT BOTTOM Button Press</ControlPageLabel>
-            </State>
-            <State id="button3LongPress">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>RIGHT BOTTOM Button Long Press</TriggerLabel>
-                <ControlPageLabel>RIGHT BOTTOM Button Long Press</ControlPageLabel>
-            </State>
-            <State id="button3Release">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>RIGHT BOTTOM Button Release</TriggerLabel>
-                <ControlPageLabel>RIGHT BOTTOM Button Release</ControlPageLabel>
-            </State>
-             <State id="button3ReleaseShort">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>RIGHT BOTTOM Button Release SHort</TriggerLabel>
-                <ControlPageLabel>RIGHT BOTTOM Button Release Short</ControlPageLabel>
-            </State>
-            <State id="button4On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>RIGHT TOP Button Press</TriggerLabel>
-                <ControlPageLabel>RIGHT TOP Button Press</ControlPageLabel>
-            </State>
-            <State id="button4LongPress">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>RIGHT TOP Button Long Press</TriggerLabel>
-                <ControlPageLabel>RIGHT TOP Button Long Press</ControlPageLabel>
-            </State>
-            <State id="button4Release">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>RIGHT TOP Button Release</TriggerLabel>
-                <ControlPageLabel>RIGHT TOP Button Release</ControlPageLabel>
-            </State>
-            <State id="button4ReleaseShort">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>RIGHT TOP Button Release SHort</TriggerLabel>
-                <ControlPageLabel>RIGHT TOP Button Release Short</ControlPageLabel>
-            </State>
-            <State id="button5On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>COMBINED TOP Button Press</TriggerLabel>
-                <ControlPageLabel>COMBINED TOP Button Press</ControlPageLabel>
-            </State>
-            <State id="button5LongPress">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>COMBINED TOP Button Long Press</TriggerLabel>
-                <ControlPageLabel>COMBINED TOP Button Long Press</ControlPageLabel>
-            </State>
-            <State id="button5Release">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>COMBINED TOP Button Release</TriggerLabel>
-                <ControlPageLabel>COMBINED TOP Button Release</ControlPageLabel>
-            </State>
-             <State id="button5ReleaseShort">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>COMBINED TOP Button Release SHort</TriggerLabel>
-                <ControlPageLabel>COMBINED TOP Button Release Short</ControlPageLabel>
-            </State>
-           <State id="button6On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>COMBINED BOTTOM Button Press</TriggerLabel>
-                <ControlPageLabel>COMBINED BOTTOM Button Press</ControlPageLabel>
-            </State>
-            <State id="button6LongPress">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>COMBINED BOTTOM Button Long Press</TriggerLabel>
-                <ControlPageLabel>COMBINED BOTTOM Button Long Press</ControlPageLabel>
-            </State>
-            <State id="button6Release">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>COMBINED BOTTOM Button Release</TriggerLabel>
-                <ControlPageLabel>COMBINED BOTTOM Button Release</ControlPageLabel>
-            </State>
-            <State id="button6ReleaseShort">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>COMBINED BOTTOM Button Release SHort</TriggerLabel>
-                <ControlPageLabel>COMBINED BOTTOM Button Release Short</ControlPageLabel>
-            </State>
-            <State id="buttonBeingHeld">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Button behing held</TriggerLabel>
-                <ControlPageLabel>Button behing held</ControlPageLabel>
-            </State>
+			<State id="button1On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>LEFT TOP Button Press</TriggerLabel>
+				<ControlPageLabel>LEFT TOP Button Press</ControlPageLabel>
+			</State>
+			<State id="button1LongPress">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>LEFT TOP Button Long Press</TriggerLabel>
+				<ControlPageLabel>LEFT TOP Button Long Press</ControlPageLabel>
+			</State>
+			<State id="button1Release">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>LEFT TOP Button Release</TriggerLabel>
+				<ControlPageLabel>LEFT TOP Button Release</ControlPageLabel>
+			</State>
+			<State id="button1ReleaseShort">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>LEFT TOP Button Release SHort</TriggerLabel>
+				<ControlPageLabel>LEFT TOP Button Release Short</ControlPageLabel>
+			</State>
+			<State id="button2On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>LEFT BOTTOM Button Press</TriggerLabel>
+				<ControlPageLabel>LEFT BOTTOM Button Press</ControlPageLabel>
+			</State>
+			<State id="button2LongPress">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>LEFT BOTTOM Button Long Press</TriggerLabel>
+				<ControlPageLabel>LEFT BOTTOM Button Long Press</ControlPageLabel>
+			</State>
+			<State id="button2Release">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>LEFT BOTTOM Button Release</TriggerLabel>
+				<ControlPageLabel>LEFT BOTTOM Button Release</ControlPageLabel>
+			</State>
+			<State id="button2ReleaseShort">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>LEFT BOTTOM Button Release SHort</TriggerLabel>
+				<ControlPageLabel>LEFT BOTTOM Button Release Short</ControlPageLabel>
+			</State>
+			<State id="button3On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>RIGHT BOTTOM Button Press</TriggerLabel>
+				<ControlPageLabel>RIGHT BOTTOM Button Press</ControlPageLabel>
+			</State>
+			<State id="button3LongPress">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>RIGHT BOTTOM Button Long Press</TriggerLabel>
+				<ControlPageLabel>RIGHT BOTTOM Button Long Press</ControlPageLabel>
+			</State>
+			<State id="button3Release">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>RIGHT BOTTOM Button Release</TriggerLabel>
+				<ControlPageLabel>RIGHT BOTTOM Button Release</ControlPageLabel>
+			</State>
+			<State id="button3ReleaseShort">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>RIGHT BOTTOM Button Release SHort</TriggerLabel>
+				<ControlPageLabel>RIGHT BOTTOM Button Release Short</ControlPageLabel>
+			</State>
+			<State id="button4On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>RIGHT TOP Button Press</TriggerLabel>
+				<ControlPageLabel>RIGHT TOP Button Press</ControlPageLabel>
+			</State>
+			<State id="button4LongPress">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>RIGHT TOP Button Long Press</TriggerLabel>
+				<ControlPageLabel>RIGHT TOP Button Long Press</ControlPageLabel>
+			</State>
+			<State id="button4Release">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>RIGHT TOP Button Release</TriggerLabel>
+				<ControlPageLabel>RIGHT TOP Button Release</ControlPageLabel>
+			</State>
+			<State id="button4ReleaseShort">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>RIGHT TOP Button Release SHort</TriggerLabel>
+				<ControlPageLabel>RIGHT TOP Button Release Short</ControlPageLabel>
+			</State>
+			<State id="button5On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>COMBINED TOP Button Press</TriggerLabel>
+				<ControlPageLabel>COMBINED TOP Button Press</ControlPageLabel>
+			</State>
+			<State id="button5LongPress">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>COMBINED TOP Button Long Press</TriggerLabel>
+				<ControlPageLabel>COMBINED TOP Button Long Press</ControlPageLabel>
+			</State>
+			<State id="button5Release">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>COMBINED TOP Button Release</TriggerLabel>
+				<ControlPageLabel>COMBINED TOP Button Release</ControlPageLabel>
+			</State>
+			<State id="button5ReleaseShort">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>COMBINED TOP Button Release SHort</TriggerLabel>
+				<ControlPageLabel>COMBINED TOP Button Release Short</ControlPageLabel>
+			</State>
+			<State id="button6On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>COMBINED BOTTOM Button Press</TriggerLabel>
+				<ControlPageLabel>COMBINED BOTTOM Button Press</ControlPageLabel>
+			</State>
+			<State id="button6LongPress">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>COMBINED BOTTOM Button Long Press</TriggerLabel>
+				<ControlPageLabel>COMBINED BOTTOM Button Long Press</ControlPageLabel>
+			</State>
+			<State id="button6Release">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>COMBINED BOTTOM Button Release</TriggerLabel>
+				<ControlPageLabel>COMBINED BOTTOM Button Release</ControlPageLabel>
+			</State>
+			<State id="button6ReleaseShort">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>COMBINED BOTTOM Button Release SHort</TriggerLabel>
+				<ControlPageLabel>COMBINED BOTTOM Button Release Short</ControlPageLabel>
+			</State>
+			<State id="buttonBeingHeld">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Button behing held</TriggerLabel>
+				<ControlPageLabel>Button behing held</ControlPageLabel>
+			</State>
 			<State id="online">
 				<ValueType>Boolean</ValueType>
 				<TriggerLabel>Online</TriggerLabel>
 				<ControlPageLabel>Online</ControlPageLabel>
 			</State>
-            <State id="buttonEventID">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Last Button Event ID</TriggerLabel>
-                <ControlPageLabel>Last Button Event ID</ControlPageLabel>
-            </State>
-            <State id="lastButtonPressed">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Last Button Pressed</TriggerLabel>
-                <ControlPageLabel>Last Button Pressed</ControlPageLabel>
-            </State>
+			<State id="buttonEventID">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Last Button Event ID</TriggerLabel>
+				<ControlPageLabel>Last Button Event ID</ControlPageLabel>
+			</State>
+			<State id="lastButtonPressed">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Last Button Pressed</TriggerLabel>
+				<ControlPageLabel>Last Button Pressed</ControlPageLabel>
+			</State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Last Updated on Hub</TriggerLabel>
@@ -3144,22 +3776,40 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 		</States>
 	</Device>
-
 	<!-- Run Less Wire or Niko Switch -->
-	<Device type="sensor" id="hueRotaryWallSwitches" allowUserCreation="false">
+	<Device type="sensor" id="hueRotaryWallSwitches"
+		allowUserCreation="false"
+	>
 		<Name>Rotary Wall Switch Switches part</Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<!-- The buttonBeingHeld property is used by the plugin to track when a button is being held down since the Hue bridge doesn't do that for us, but the switch does report button release events, so we can figure it out ourselves. -->
-			<Field id="buttonBeingHeld" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+
+			<Field type="checkbox" id="buttonBeingHeld"
+				hidden="true"
+				defaultValue="false"
+			/>
+
+			<Field type="textfield" id="serialNumber"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned"
+			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -3174,106 +3824,106 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>softwareUpdate</TriggerLabel>
 				<ControlPageLabel>softwareUpdate</ControlPageLabel>
 			</State>
- 			<State id="lastBatteryReplaced">
+			<State id="lastBatteryReplaced">
 				<ValueType>String</ValueType>
 				<TriggerLabel>lastBatteryReplaced</TriggerLabel>
 				<ControlPageLabel>lastBatteryReplaced</ControlPageLabel>
 			</State>
-            <State id="button1On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Left Top Button Press</TriggerLabel>
-                <ControlPageLabel>Left Top Button Press</ControlPageLabel>
-            </State>
-            <State id="button1LongPress">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Left Top Button Long Press</TriggerLabel>
-                <ControlPageLabel>Left Top Button Long Press</ControlPageLabel>
-            </State>
-            <State id="button1ReleaseShort">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Left Top Button Release Short</TriggerLabel>
-                <ControlPageLabel>Left Top Button Release Shortwallswitch</ControlPageLabel>
-            </State>
-            <State id="button1ReleaseLong">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Left Top Button Release Long</TriggerLabel>
-                <ControlPageLabel>Left Top Button Release Long</ControlPageLabel>
-            </State>
-            <State id="button2On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Top Right Button Press</TriggerLabel>
-                <ControlPageLabel>Top Right  Button Press</ControlPageLabel>
-            </State>
-            <State id="button2LongPress">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Top Right  Button Long Press</TriggerLabel>
-                <ControlPageLabel>Top Right  Button Long Press</ControlPageLabel>
-            </State>
-            <State id="button2ReleaseShort">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Top Right  Button Release Short</TriggerLabel>
-                <ControlPageLabel>Top Right  Button Release Short</ControlPageLabel>
-            </State>
-            <State id="button2ReleaseLong">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Bottom Right  Button Release Long</TriggerLabel>
-                <ControlPageLabel>Bottom Right  Button Release Long</ControlPageLabel>
-            </State>
-            <State id="button3On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Left BOTTOM Button Press</TriggerLabel>
-                <ControlPageLabel>Left BOTTOM Button Press</ControlPageLabel>
-            </State>
-            <State id="button3LongPress">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Left Bottom Button Long Press</TriggerLabel>
-                <ControlPageLabel>Left Bottom Button Long Press</ControlPageLabel>
-            </State>
-            <State id="button3ReleaseShort">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Left Bottom Button Release Short</TriggerLabel>
-                <ControlPageLabel>Left Bottom Button Release Short</ControlPageLabel>
-            </State>
-            <State id="button3ReleaseLong">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Left Bottom  Button Release Long</TriggerLabel>
-                <ControlPageLabel>Left Bottom  Button Release Long</ControlPageLabel>
-            </State>
-            <State id="button4On">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Bottom Right  Button Press</TriggerLabel>
-                <ControlPageLabel>Bottom Right  Button Press</ControlPageLabel>
-            </State>
-            <State id="button4LongPress">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Bottom Right Button Long Press</TriggerLabel>
-                <ControlPageLabel>Bottom Right  Button Long Press</ControlPageLabel>
-            </State>
-            <State id="button4ReleaseShort">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Bottom Right  Button Release Short</TriggerLabel>
-                <ControlPageLabel>Bottom Right  Button Release</ControlPageLabel>
-            </State>
-            <State id="button4ReleaseLong">
-                <ValueType>Boolean</ValueType>
-                <TriggerLabel>Bottom Right  Button Release Long</TriggerLabel>
-                <ControlPageLabel>Bottom Right  Button Release Long</ControlPageLabel>
-            </State>
- 			<State id="online">
+			<State id="button1On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Left Top Button Press</TriggerLabel>
+				<ControlPageLabel>Left Top Button Press</ControlPageLabel>
+			</State>
+			<State id="button1LongPress">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Left Top Button Long Press</TriggerLabel>
+				<ControlPageLabel>Left Top Button Long Press</ControlPageLabel>
+			</State>
+			<State id="button1ReleaseShort">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Left Top Button Release Short</TriggerLabel>
+				<ControlPageLabel>Left Top Button Release Shortwallswitch</ControlPageLabel>
+			</State>
+			<State id="button1ReleaseLong">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Left Top Button Release Long</TriggerLabel>
+				<ControlPageLabel>Left Top Button Release Long</ControlPageLabel>
+			</State>
+			<State id="button2On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Top Right Button Press</TriggerLabel>
+				<ControlPageLabel>Top Right  Button Press</ControlPageLabel>
+			</State>
+			<State id="button2LongPress">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Top Right  Button Long Press</TriggerLabel>
+				<ControlPageLabel>Top Right  Button Long Press</ControlPageLabel>
+			</State>
+			<State id="button2ReleaseShort">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Top Right  Button Release Short</TriggerLabel>
+				<ControlPageLabel>Top Right  Button Release Short</ControlPageLabel>
+			</State>
+			<State id="button2ReleaseLong">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Bottom Right  Button Release Long</TriggerLabel>
+				<ControlPageLabel>Bottom Right  Button Release Long</ControlPageLabel>
+			</State>
+			<State id="button3On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Left BOTTOM Button Press</TriggerLabel>
+				<ControlPageLabel>Left BOTTOM Button Press</ControlPageLabel>
+			</State>
+			<State id="button3LongPress">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Left Bottom Button Long Press</TriggerLabel>
+				<ControlPageLabel>Left Bottom Button Long Press</ControlPageLabel>
+			</State>
+			<State id="button3ReleaseShort">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Left Bottom Button Release Short</TriggerLabel>
+				<ControlPageLabel>Left Bottom Button Release Short</ControlPageLabel>
+			</State>
+			<State id="button3ReleaseLong">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Left Bottom  Button Release Long</TriggerLabel>
+				<ControlPageLabel>Left Bottom  Button Release Long</ControlPageLabel>
+			</State>
+			<State id="button4On">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Bottom Right  Button Press</TriggerLabel>
+				<ControlPageLabel>Bottom Right  Button Press</ControlPageLabel>
+			</State>
+			<State id="button4LongPress">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Bottom Right Button Long Press</TriggerLabel>
+				<ControlPageLabel>Bottom Right  Button Long Press</ControlPageLabel>
+			</State>
+			<State id="button4ReleaseShort">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Bottom Right  Button Release Short</TriggerLabel>
+				<ControlPageLabel>Bottom Right  Button Release</ControlPageLabel>
+			</State>
+			<State id="button4ReleaseLong">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Bottom Right  Button Release Long</TriggerLabel>
+				<ControlPageLabel>Bottom Right  Button Release Long</ControlPageLabel>
+			</State>
+			<State id="online">
 				<ValueType>Boolean</ValueType>
 				<TriggerLabel>Online</TriggerLabel>
 				<ControlPageLabel>Online</ControlPageLabel>
 			</State>
-            <State id="buttonEventID">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Last Button Event ID</TriggerLabel>
-                <ControlPageLabel>Last Button Event ID</ControlPageLabel>
-            </State>
-            <State id="lastButtonPressed">
-                <ValueType>Number</ValueType>
-                <TriggerLabel>Last Button Pressed</TriggerLabel>
-                <ControlPageLabel>Last Button Pressed</ControlPageLabel>
-            </State>
+			<State id="buttonEventID">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Last Button Event ID</TriggerLabel>
+				<ControlPageLabel>Last Button Event ID</ControlPageLabel>
+			</State>
+			<State id="lastButtonPressed">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Last Button Pressed</TriggerLabel>
+				<ControlPageLabel>Last Button Pressed</ControlPageLabel>
+			</State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Last Updated on Hub</TriggerLabel>
@@ -3331,23 +3981,40 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 		</States>
 	</Device>
-
-
 	<!-- hue Rotary Wall Switch-->
-	<Device type="sensor" id="hueRotaryWallRing" allowUserCreation="false">
+	<Device type="sensor" id="hueRotaryWallRing"
+		allowUserCreation="false"
+	>
 		<Name>Rotary Wall Switch rotate part</Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 			<!-- The buttonBeingHeld property is used by the plugin to track when a button is being held down since the Hue bridge doesn't do that for us, but the switch does report button release events, so we can figure it out ourselves. -->
-			<Field id="buttonBeingHeld" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="serialNumber" type="textfield"
-				tooltip="to keep a record of the serial number in case it needs to be re-learned">
+
+			<Field type="checkbox" id="buttonBeingHeld"
+				hidden="true"
+				defaultValue="false"
+			/>
+
+			<Field type="textfield" id="serialNumber"
+				tooltip="to keep a record of the serial number in case it needs to be re-learned"
+			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
 		</ConfigUI>
@@ -3357,31 +4024,31 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				<TriggerLabel>created</TriggerLabel>
 				<ControlPageLabel>created</ControlPageLabel>
 			</State>
- 			<State id="lastBatteryReplaced">
+			<State id="lastBatteryReplaced">
 				<ValueType>String</ValueType>
 				<TriggerLabel>lastBatteryReplaced</TriggerLabel>
 				<ControlPageLabel>lastBatteryReplaced</ControlPageLabel>
 			</State>
-            <State id="expectedEventDuration">
-                <ValueType>number</ValueType>
-                <TriggerLabel>Expected Event Duration</TriggerLabel>
-                <ControlPageLabel>Expected Event Duration</ControlPageLabel>
-            </State>
-            <State id="expectedRotation">
-                <ValueType>number</ValueType>
-                <TriggerLabel>Expected Rotation</TriggerLabel>
-                <ControlPageLabel>Expected Rotation</ControlPageLabel>
-            </State>
+			<State id="expectedEventDuration">
+				<ValueType>number</ValueType>
+				<TriggerLabel>Expected Event Duration</TriggerLabel>
+				<ControlPageLabel>Expected Event Duration</ControlPageLabel>
+			</State>
+			<State id="expectedRotation">
+				<ValueType>number</ValueType>
+				<TriggerLabel>Expected Rotation</TriggerLabel>
+				<ControlPageLabel>Expected Rotation</ControlPageLabel>
+			</State>
 			<State id="online">
 				<ValueType>Boolean</ValueType>
 				<TriggerLabel>Online</TriggerLabel>
 				<ControlPageLabel>Online</ControlPageLabel>
 			</State>
-            <State id="rotaryEventID">
-                <ValueType>String</ValueType>
-                <TriggerLabel>Last Rotary Event ID</TriggerLabel>
-                <ControlPageLabel>Last Rotary Event ID</ControlPageLabel>
-            </State>
+			<State id="rotaryEventID">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Last Rotary Event ID</TriggerLabel>
+				<ControlPageLabel>Last Rotary Event ID</ControlPageLabel>
+			</State>
 			<State id="lastUpdated">
 				<ValueType>String</ValueType>
 				<TriggerLabel>Last Updated on Hub</TriggerLabel>
@@ -3439,35 +4106,55 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			</State>
 		</States>
 	</Device>
-
-
-
 	<!-- ATTRIBUTE CONTROLLER VIRTUAL DEVICE -->
-    <!-- Hue Device Attribute Controller (Virtual Dimmer Device) -->
+	<!-- Hue Device Attribute Controller (Virtual Dimmer Device) -->
 	<Device type="dimmer" id="hueAttributeController">
 		<Name>Hue Device Attribute Controller</Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
 
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
+			<Field type="menu" id="hubNumber"
+				tooltip="Select the Gateway / Bridge this device is associated with"
+			>
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
+				<List
+					class="self"
+					method="gwListGenerator"
+					filter="active"
+					dynamicReload="true"
+				/>
 			</Field>
-			<Field id="confirmGWNumber" type="button">
+
+			<Field type="button" id="confirmGWNumber">
 				<Label>click to</Label>
 				<Title>select GW Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default =""  >	</Field>
 
-			<Field id="bulbDeviceId" type="menu"
-				tooltip="Select a Hue light or group that this attribute controller should control.">
+			<Field type="textfield" id="confirmHubNumberText"
+				default=""
+			/>
+
+			<Field type="menu" id="bulbDeviceId"
+				tooltip="Select a Hue light or group that this attribute controller should control."
+			>
 				<Label>Hue Device:</Label>
-				<List class="self" filter="yes" method="bulbAndGroupDeviceListGenerator" dynamicReload="true"/>
+				<List
+					class="self"
+					filter="yes"
+					method="bulbAndGroupDeviceListGenerator"
+					dynamicReload="true"
+				/>
 			</Field>
-			<Field id="attributeToControl" type="menu" defaultValue="hue"
-				tooltip="Select an attribute associated with the Hue Device above that this attribute controller should control. Note that if you select an attribute that the Hue Device doesn't have, this attribute controller will not work.">
+
+			<Field type="menu" id="attributeToControl"
+				defaultValue="hue"
+				tooltip="Select an attribute associated with the Hue Device above that this attribute controller should control. Note that if you select an attribute that the Hue Device doesn't have, this attribute controller will not work."
+			>
 				<Label>Attribute to Control:</Label>
 				<List>
 					<Option value="hue">Hue</Option>
@@ -3478,30 +4165,52 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 					<Option value="colorTemp">Color Temperature (K)</Option>
 				</List>
 			</Field>
-			<Field id="labelAttribute" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelAttribute"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>Select an attribute on the Hue device to be conrolled.
 </Label>
 			</Field>
-			<Field id="rate" type="textfield"
-				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the Hue Device selected above should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant.">
+
+			<Field type="textfield" id="rate"
+				tooltip="Optionally override the default Ramp Rate (transition time) by entering the number of seconds the Hue Device selected above should take to change settings, if not overriden by the action telling it to change. Accurate to 0.1 seconds. A value of 0 makes changes instant."
+			>
 				<Label>Ramp Rate(secs):</Label>
 			</Field>
-			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelRate"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>(0 - 540 seconds)
 0 = instant.
 Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 </Label>
 			</Field>
-			<Field id="defaultOnLevel" type="textfield"
-				tooltip="Optionally set a default On level. When turned on, the Hue Device Attribute Controller will go to the percentage specified here. If no value is specified, the control will always go to 100% when turned on by Indigo. Range is 1 to 100 percent.">
+
+			<Field type="textfield" id="defaultOnLevel"
+				tooltip="Optionally set a default On level. When turned on, the Hue Device Attribute Controller will go to the percentage specified here. If no value is specified, the control will always go to 100% when turned on by Indigo. Range is 1 to 100 percent."
+			>
 				<Label>Default On Level:</Label>
 			</Field>
-			<Field id="labelOnLevel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelOnLevel"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>(1 to 100 percent)
 Optionally set a default "on" level. When turned on, the Hue Device Attribute Controller will go to the percentage specified here.  If no value is specified, the control will always go to 100% when turned "on" by Indigo.
 </Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true">
+
+			<Field type="textfield" id="address"
+				hidden="true"
+			>
 				<Label/>
 			</Field>
 		</ConfigUI>
@@ -3516,21 +4225,30 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 				<TriggerLabel>id_v1</TriggerLabel>
 				<ControlPageLabel>id_v1</ControlPageLabel>
 			</State>
-
 		</States>
 	</Device>
-
-
-
 	<!--   MOTION   convienience event sensor bridge pro api2 only-->
-	<Device type="sensor" id="hueMotionArea" allowUserCreation="false">
+	<Device type="sensor" id="hueMotionArea"
+		allowUserCreation="false"
+	>
 		<Name>Hue Motion area</Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 		</ConfigUI>
@@ -3612,16 +4330,28 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 			</State>
 		</States>
 	</Device>
-
 	<!--   MOTION   convienience event sensor bridge pro api2 only-->
-	<Device type="sensor" id="hueGroupedMotion" allowUserCreation="false">
+	<Device type="sensor" id="hueGroupedMotion"
+		allowUserCreation="false"
+	>
 		<Name>Hue Grouped Motion</Name>
-		<Field id="SupportsStatusRequest" type="checkbox" defaultValue="False" hidden="true"></Field>
+
+		<Field type="checkbox" id="SupportsStatusRequest"
+			defaultValue="False"
+			hidden="true"
+		/>
 		<ConfigUI>
-			<Field id="labeltop" type="label"  fontColor="orange">
+
+			<Field type="label" id="labeltop"
+				fontColor="orange"
+			>
 				<Label>This is only to EDIT devices. Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
-			<Field id="logChanges" type="checkbox" defaultValue="True" hidden="false">
+
+			<Field type="checkbox" id="logChanges"
+				defaultValue="True"
+				hidden="false"
+			>
 				<Label>log events and changes to indigolog</Label>
 			</Field>
 		</ConfigUI>
@@ -3713,5 +4443,4 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 			</State>
 		</States>
 	</Device>
-
 </Devices>

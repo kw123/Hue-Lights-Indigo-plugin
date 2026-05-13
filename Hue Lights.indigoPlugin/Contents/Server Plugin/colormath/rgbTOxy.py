@@ -243,15 +243,15 @@ class Converter:
         """Converts red, green and blue integer values to approximate CIE 1931
         x and y coordinates.
         """
-        point, bri = self.color.get_xy_point_from_rgb(red, green, blue)
-        return point.x, point.y
+        x, y, bri = self.color.get_xy_point_from_rgb(red, green, blue)
+        return x, y
 
     def rgb_to_xyY(self, red: int, green: int, blue: int) -> tuple[float, float]:
         """Converts red, green and blue integer values to approximate CIE 1931
         x and y coordinates.
         """
-        point , bri = self.color.get_xy_point_from_rgb(red, green, blue)
-        return point.x, point.y, bri
+        x, y, bri = self.color.get_xy_point_from_rgb(red, green, blue)
+        return x, y, bri
 
     def xy_to_hex(self, x: float, y: float, bri: float = 1) -> str:
         """Converts CIE 1931 x and y coordinates and brightness value from 0 to 1

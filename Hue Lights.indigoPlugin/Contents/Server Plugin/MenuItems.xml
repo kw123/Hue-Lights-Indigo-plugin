@@ -9,30 +9,67 @@
 		<Name>Save Preset...</Name>
 		<CallbackMethod>savePreset</CallbackMethod>
 		<ConfigUI>
-			<Field id="deviceId" type="menu" defaultValue="">
+
+			<Field type="menu" id="deviceId"
+				defaultValue=""
+			>
 				<Label>Hue Device:</Label>
-				<List class="self" filter="no" method="bulbAndGroupDeviceListGenerator"></List>
+				<List
+					class="self"
+					filter="no"
+					method="bulbAndGroupDeviceListGenerator"
+				/>
 			</Field>
-			<Field id="deviceLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="deviceLabel"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>Select the Hue device whose current settings you'd like to save to a Preset. The settings can be restored to any compatible Hue device at a later time.</Label>
 			</Field>
-			<Field id="presetId" type="menu" defaultValue="">
+
+			<Field type="menu" id="presetId"
+				defaultValue=""
+			>
 				<Label>Preset:</Label>
-				<List class="self" method="presetListGenerator"></List>
+				<List
+					class="self"
+					method="presetListGenerator"
+				/>
 			</Field>
-			<Field id="presetLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="presetLabel"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>Select the Preset in which the above device's current settings should be stored. Presets with an asterisk (*) next to them have data already saved in them. Selecting one of these Presets will overwrite the data saved in that Preset.</Label>
 			</Field>
-			<Field id="presetName" type="textfield" defaultValue="">
+
+			<Field type="textfield" id="presetName"
+				defaultValue=""
+			>
 				<Label>Preset Name:</Label>
 			</Field>
-			<Field id="nameLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="nameLabel"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>Optionally assign a name to this Preset.</Label>
 			</Field>
-			<Field id="rate" type="textfield">
+
+			<Field type="textfield" id="rate">
 				<Label>Ramp Rate:</Label>
 			</Field>
-			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelRate"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>(0 - 540 seconds)
 0 = instant
 Save a Ramp Rate (transition time) to be used when recalling this Preset, accurate to 0.1 seconds.</Label>
@@ -43,24 +80,53 @@ Save a Ramp Rate (transition time) to be used when recalling this Preset, accura
 		<Name>Recall Preset...</Name>
 		<CallbackMethod>recallPreset</CallbackMethod>
 		<ConfigUI>
-			<Field id="deviceId" type="menu" defaultValue="">
+
+			<Field type="menu" id="deviceId"
+				defaultValue=""
+			>
 				<Label>Hue Device:</Label>
-				<List class="self" filter="no" method="bulbAndGroupDeviceListGenerator"></List>
+				<List
+					class="self"
+					filter="no"
+					method="bulbAndGroupDeviceListGenerator"
+				/>
 			</Field>
-			<Field id="deviceLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="deviceLabel"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>Select the Hue device to which the Preset should be applied.</Label>
 			</Field>
-			<Field id="presetId" type="menu" defaultValue="">
+
+			<Field type="menu" id="presetId"
+				defaultValue=""
+			>
 				<Label>Preset:</Label>
-				<List class="self" method="presetListGenerator"></List>
+				<List
+					class="self"
+					method="presetListGenerator"
+				/>
 			</Field>
-			<Field id="presetLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="presetLabel"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>Select the Preset that should be applied to the device. Presets with an asterisk (*) next to them have data saved in them.</Label>
 			</Field>
-			<Field id="rate" type="textfield">
+
+			<Field type="textfield" id="rate">
 				<Label>Ramp Rate:</Label>
 			</Field>
-			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelRate"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>(0 - 540 seconds)
 0 = instant
 Optionally override this Preset's saved Ramp Rate (transition time). This overrides the device's default rate as well. Ramp Rates are accurate to 0.1 seconds.</Label>
@@ -68,21 +134,29 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 		</ConfigUI>
 	</MenuItem>
 	<MenuItem id="sep2" />
-	
-		
 	<MenuItem id="setSensitivityV2">
 		<Name>Set Sensitivity of Sensor (pro Bridge)...</Name>
 		<ConfigUI>
-			<Field id="instructions1" type="label" fontSize="small">
+
+			<Field type="label" id="instructions1"
+				fontSize="small"
+			>
 				<Label>Hue Sensors hav the option to set senbsitivity</Label>
 			</Field>
-			
-			<Field id="sensorId" type="menu">
+
+			<Field type="menu" id="sensorId">
 				<Label>select Motion Sensor:</Label>
-				<List class="self" method="sensorListGenerator" filter="hueMotionSensor,hueMotionArea"  dynamicReload="false"/>
+				<List
+					class="self"
+					method="sensorListGenerator"
+					filter="hueMotionSensor,hueMotionArea"
+					dynamicReload="false"
+				/>
 			</Field>
-			
-			<Field id="sensitivity" type="menu" defaultValue="2">
+
+			<Field type="menu" id="sensitivity"
+				defaultValue="2"
+			>
 				<Label>sensitivity:</Label>
 				<List>
 					<Option value="0">0, very Low </Option>
@@ -93,60 +167,78 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 				</List>
 			</Field>
 
-			<Field id="doSet" type="button">
+			<Field type="button" id="doSet">
 				<Label>Click to</Label>
 				<Title>Set</Title>
 				<CallbackMethod>setSensitivityV2</CallbackMethod>
 			</Field>
-
 		</ConfigUI>
 	</MenuItem>
-
-		
 	<MenuItem id="activateScene">
 		<Name>Activate Hue Scene (not pro Bridge)...</Name>
 		<ConfigUI>
-			<Field id="instructions1" type="label" fontSize="small">
+
+			<Field type="label" id="instructions1"
+				fontSize="small"
+			>
 				<Label>Hue Scenes are stored on the Hue Bridge and can be activated.</Label>
 			</Field>
-			
-			<Field id="hubNumber" type="menu">
+
+			<Field type="menu" id="hubNumber">
 				<Label>Hue Bridge Number:</Label>
-				<List class="self" method="gwListGenerator" filter="active" dynamicReload="false"> </List>
+				<List
+					class="self"
+					method="gwListGenerator"
+					filter="active"
+					dynamicReload="false"
+				> </List>
 			</Field>
-			<Field id="confirmGWNumber" type="button">
+
+			<Field type="button" id="confirmGWNumber">
 				<Label>click to</Label>
 				<Title>select Bridge Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
-			
-			<Field id="sceneId" type="menu">
+
+			<Field type="menu" id="sceneId">
 				<Label>select Scene:</Label>
-				<List class="self" method="sceneListGenerator" dynamicReload="false"> </List>
+				<List
+					class="self"
+					method="sceneListGenerator"
+					dynamicReload="false"
+				> </List>
 			</Field>
-			<Field id="doCreate" type="button">
+
+			<Field type="button" id="doCreate">
 				<Label>Click to</Label>
 				<Title>execute action</Title>
 				<CallbackMethod>activateScene</CallbackMethod>
 			</Field>
-
 		</ConfigUI>
 	</MenuItem>
-
-
 	<MenuItem id="recallSceneV2">
 		<Name>Recall scene on a bridge, (pro bridge)...</Name>
 		<ConfigUI>
-			<Field id="instructions1" type="label">
+
+			<Field type="label" id="instructions1">
 				<Label>the plugin reads all scenes from the bridge and here you can  select one and send activation (recall) of that scene to the bridge</Label>
 			</Field>
-			
-			<Field id="sceneId" type="menu" defaultValue=""
-				tooltip="">
+
+			<Field type="menu" id="sceneId"
+				defaultValue=""
+				tooltip=""
+			>
 				<Label>szene:</Label>
-				<List class="self" method="generateSceneListV2" dynamicReload="true" ></List>
+				<List
+					class="self"
+					method="generateSceneListV2"
+					dynamicReload="true"
+				/>
 			</Field>
-			<Field id="brightness" type="menu" defaultValue="50">
+
+			<Field type="menu" id="brightness"
+				defaultValue="50"
+			>
 				<Label>Bightness(%):</Label>
 				<List>
 					<Option value="-1">use default</Option>
@@ -177,8 +269,10 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 					<Option value="100">100</Option>
 				</List>
 			</Field>
-			
-			<Field id="duration" type="menu" defaultValue="500">
+
+			<Field type="menu" id="duration"
+				defaultValue="500"
+			>
 				<Label>Ramp Rate(secs):</Label>
 				<List>
 					<Option value="-1">use default</Option>
@@ -244,25 +338,61 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 				</List>
 			</Field>
 
-			<Field id="exeScene" type="button">
+			<Field type="menu" id="speed"
+				defaultValue="-1.0"
+			>
+				<Label>Dynamic speed (0=slow, 1=fast):</Label>
+				<List>
+					<Option value="-1.0">use default</Option>
+					<Option value="0.0">0.0  slowest</Option>
+					<Option value="0.1">0.1</Option>
+					<Option value="0.2">0.2</Option>
+					<Option value="0.3">0.3</Option>
+					<Option value="0.4">0.4</Option>
+					<Option value="0.5">0.5</Option>
+					<Option value="0.6">0.6</Option>
+					<Option value="0.7">0.7</Option>
+					<Option value="0.8">0.8</Option>
+					<Option value="0.9">0.9</Option>
+					<Option value="1.0">1.0  fastest</Option>
+				</List>
+			</Field>
+
+			<Field type="label" id="labelSpeed"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
+				<Label>Speed only applies to dynamic scenes. Has no effect on static scenes.</Label>
+			</Field>
+
+			<Field type="button" id="exeScene">
 				<Label>Click to</Label>
 				<Title>Recall Scene</Title>
 				<CallbackMethod>recallSceneV2</CallbackMethod>
 			</Field>
-
 		</ConfigUI>
 	</MenuItem>
-	
-	<MenuItem id="blinkV2menu" >
+	<MenuItem id="blinkV2menu">
 		<Name>Send blink (pro Bridge)...</Name>
 		<ConfigUI>
-			<Field id="devId" type="menu" defaultValue=""
-				tooltip="">
+
+			<Field type="menu" id="devId"
+				defaultValue=""
+				tooltip=""
+			>
 				<Label>device to blink:</Label>
-				<List class="self" method="bulbAndGroupDeviceListGenerator" dynamicReload="true" ></List>
+				<List
+					class="self"
+					method="bulbAndGroupDeviceListGenerator"
+					dynamicReload="true"
+				/>
 			</Field>
 
-			<Field id="blinkType" type="menu" defaultValue="breathe"	tooltip="">
+			<Field type="menu" id="blinkType"
+				defaultValue="breathe"
+				tooltip=""
+			>
 				<Label>what kind of action:</Label>
 				<List>
 					<Option value="breathe">breath 15 times (alert)</Option>
@@ -270,7 +400,11 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 				</List>
 			</Field>
 
-			<Field id="duration" type="menu" defaultValue="2000"	visibleBindingId="blinkType"  visibleBindingValue="signal">
+			<Field type="menu" id="duration"
+				defaultValue="2000"
+				visibleBindingId="blinkType"
+				visibleBindingValue="signal"
+			>
 				<Label>duration(secs):</Label>
 				<List>
 					<Option value="1000">1 </Option>
@@ -290,7 +424,11 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 				</List>
 			</Field>
 
-			<Field id="signal" type="menu" defaultValue="on_off"	visibleBindingId="blinkType"  visibleBindingValue="signal">
+			<Field type="menu" id="signal"
+				defaultValue="on_off"
+				visibleBindingId="blinkType"
+				visibleBindingValue="signal"
+			>
 				<Label>signal type:</Label>
 				<List>
 					<Option value="on_off">on off </Option>
@@ -298,39 +436,58 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 				</List>
 			</Field>
 
-			<Field id="exeAction" type="button">
+			<Field type="button" id="exeAction">
 				<Label>Click to</Label>
 				<Title>send alert</Title>
 				<CallbackMethod>blinkV2</CallbackMethod>
 			</Field>
 		</ConfigUI>
-
 	</MenuItem>
-
 	<MenuItem id="effectV2">
 		<Name>Effect (pro bridge)</Name>
 		<ConfigUI>
 
-			<Field id="destinationType" type="menu" defaultValue="light">
+			<Field type="menu" id="destinationType"
+				defaultValue="light"
+			>
 				<Label>destination type::</Label>
-			<List>
+				<List>
 					<Option value="scene">scene</Option>
 					<Option value="light">light</Option>
 				</List>
 			</Field>
 
-			<Field id="devId" type="menu" defaultValue="" visibleBindingId="destinationType" visibleBindingValue="light">
+			<Field type="menu" id="devId"
+				defaultValue=""
+				visibleBindingId="destinationType"
+				visibleBindingValue="light"
+			>
 				<Label>light device to send the command to:</Label>
-				<List class="self" method="lightsListGenerator" filter="oneLight" dynamicReload="false" ></List>
+				<List
+					class="self"
+					method="lightsListGenerator"
+					filter="oneLight"
+					dynamicReload="false"
+				/>
 			</Field>
-			
-			<Field id="sceneId" type="menu" defaultValue="" visibleBindingId="destinationType" visibleBindingValue="scene">
+
+			<Field type="menu" id="sceneId"
+				defaultValue=""
+				visibleBindingId="destinationType"
+				visibleBindingValue="scene"
+			>
 				<Label>scene to send the command to:</Label>
-				<List class="self" method="generateSceneListV2" dynamicReload="false" ></List>
+				<List
+					class="self"
+					method="generateSceneListV2"
+					dynamicReload="false"
+				/>
 			</Field>
-		
-			<Field type="menu" id="effect" defaultValue="none"
-				tooltip="Select a preset effect. Effect presets are usually built into the light device itself. These presets are not the same as Hue Lights presets.">
+
+			<Field type="menu" id="effect"
+				defaultValue="none"
+				tooltip="Select a preset effect. Effect presets are usually built into the light device itself. These presets are not the same as Hue Lights presets."
+			>
 				<Label>Presets:</Label>
 				<List>
 					<Option value="no_effect">None = off</Option>
@@ -346,88 +503,334 @@ Optionally override this Preset's saved Ramp Rate (transition time). This overri
 					<Option value="enchant">enchant</Option>
 				</List>
 			</Field>
-			<Field id="labelEffect" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="labelEffect"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>Select a Hue effect.</Label>
 			</Field>
 
-
-			<Field id="exeAction" type="button">
+			<Field type="button" id="exeAction">
 				<Label>Click to</Label>
 				<Title>send effect</Title>
 				<CallbackMethod>effectV2</CallbackMethod>
 			</Field>
-			
-			
-			<Field id="debug" type="checkbox" defaultValue="false"  >
+
+			<Field type="checkbox" id="debug"
+				defaultValue="false"
+			>
 				<Label>debug:</Label>
 			</Field>
-
 		</ConfigUI>
 	</MenuItem>
+	<MenuItem id="powerOnBehaviourV2">
+		<Name>Power-On Behaviour (pro bridge)...</Name>
+		<ConfigUI>
 
-	
+			<Field type="label" id="instructions1">
+				<Label>Set what a light does when physically power-cycled (wall switch off/on). Only individual lights are supported, not groups.</Label>
+			</Field>
+
+			<Field type="menu" id="devId"
+				defaultValue=""
+			>
+				<Label>Light:</Label>
+				<List
+					class="self"
+					method="lightsListGenerator"
+					filter="oneLight"
+					dynamicReload="true"
+				/>
+			</Field>
+
+			<Field type="menu" id="preset"
+				defaultValue="last_on_state"
+			>
+				<Label>When power is restored:</Label>
+				<List>
+					<Option value="last_on_state">Restore last on-state</Option>
+					<Option value="safety">Safety (1% warm white)</Option>
+					<Option value="powerfail">Restore if was on, else off</Option>
+					<Option value="custom">Custom...</Option>
+				</List>
+			</Field>
+
+			<Field type="menu" id="customOnMode"
+				defaultValue="on"
+				visibleBindingId="preset"
+				visibleBindingValue="custom"
+			>
+				<Label>Turn on:</Label>
+				<List>
+					<Option value="on">Always on</Option>
+					<Option value="toggle">Toggle (on if was off)</Option>
+					<Option value="previous">Use previous on/off state</Option>
+				</List>
+			</Field>
+
+			<Field type="menu" id="customBrightMode"
+				defaultValue="previous"
+				visibleBindingId="preset"
+				visibleBindingValue="custom"
+			>
+				<Label>Brightness:</Label>
+				<List>
+					<Option value="previous">Restore previous brightness</Option>
+					<Option value="dimming">Set a fixed value</Option>
+				</List>
+			</Field>
+
+			<Field type="textfield" id="customBrightness"
+				defaultValue="80"
+				visibleBindingId="preset"
+				visibleBindingValue="custom"
+			>
+				<Label>Brightness % (1-100, used when "Set a fixed value"):</Label>
+			</Field>
+
+			<Field type="menu" id="customColorMode"
+				defaultValue="previous"
+				visibleBindingId="preset"
+				visibleBindingValue="custom"
+			>
+				<Label>Color:</Label>
+				<List>
+					<Option value="previous">Restore previous color</Option>
+					<Option value="color_temperature">Set color temperature</Option>
+				</List>
+			</Field>
+
+			<Field type="textfield" id="customMirek"
+				defaultValue="366"
+				visibleBindingId="preset"
+				visibleBindingValue="custom"
+			>
+				<Label>Color temp mirek (153=cool, 500=warm, used when "Set color temperature"):</Label>
+			</Field>
+
+			<Field type="button" id="exeAction">
+				<Label>Click to</Label>
+				<Title>Set Power-On Behaviour</Title>
+				<CallbackMethod>powerOnBehaviourV2</CallbackMethod>
+			</Field>
+		</ConfigUI>
+	</MenuItem>
+	<MenuItem id="sunriseTimedV2">
+		<Name>Sunrise Timed Effect (pro bridge)...</Name>
+		<ConfigUI>
+
+			<Field type="label" id="instructions1">
+				<Label>Start a sunrise wake-up simulation. The bridge manages the transition autonomously. Requires a newer Hue bulb that supports timed effects.</Label>
+			</Field>
+
+			<Field type="menu" id="devId"
+				defaultValue=""
+			>
+				<Label>Light:</Label>
+				<List
+					class="self"
+					method="lightsListGenerator"
+					filter="oneLight"
+					dynamicReload="true"
+				/>
+			</Field>
+
+			<Field type="menu" id="action"
+				defaultValue="start"
+			>
+				<Label>Action:</Label>
+				<List>
+					<Option value="start">Start sunrise</Option>
+					<Option value="stop">Stop / cancel</Option>
+				</List>
+			</Field>
+
+			<Field type="menu" id="duration"
+				defaultValue="900000"
+				visibleBindingId="action"
+				visibleBindingValue="start"
+			>
+				<Label>Duration:</Label>
+				<List>
+					<Option value="60000">1 minute</Option>
+					<Option value="120000">2 minutes</Option>
+					<Option value="300000">5 minutes</Option>
+					<Option value="600000">10 minutes</Option>
+					<Option value="900000">15 minutes</Option>
+					<Option value="1200000">20 minutes</Option>
+					<Option value="1800000">30 minutes</Option>
+					<Option value="2700000">45 minutes</Option>
+					<Option value="3600000">60 minutes</Option>
+				</List>
+			</Field>
+
+			<Field type="button" id="exeAction">
+				<Label>Click to</Label>
+				<Title>Send Sunrise Effect</Title>
+				<CallbackMethod>sunriseTimedV2</CallbackMethod>
+			</Field>
+		</ConfigUI>
+	</MenuItem>
+	<MenuItem id="recallSmartSceneV2">
+		<Name>Recall Smart Scene (pro bridge)...</Name>
+		<ConfigUI>
+
+			<Field type="label" id="instructions1">
+				<Label>Smart scenes adapt brightness and color temperature to the time of day and natural light cycle. They are stored per room or zone on the bridge.</Label>
+			</Field>
+
+			<Field type="menu" id="sceneId"
+				defaultValue=""
+			>
+				<Label>Smart Scene:</Label>
+				<List
+					class="self"
+					method="generateSmartSceneListV2"
+					dynamicReload="true"
+				/>
+			</Field>
+
+			<Field type="menu" id="action"
+				defaultValue="activate"
+			>
+				<Label>Action:</Label>
+				<List>
+					<Option value="activate">Activate</Option>
+					<Option value="deactivate">Deactivate</Option>
+				</List>
+			</Field>
+
+			<Field type="button" id="exeAction">
+				<Label>Click to</Label>
+				<Title>Recall Smart Scene</Title>
+				<CallbackMethod>recallSmartSceneV2</CallbackMethod>
+			</Field>
+		</ConfigUI>
+	</MenuItem>
 	<MenuItem id="recallScene">
 		<Name>Recall Hue Scene (not pro Bridge)...</Name>
 		<CallbackMethod>recallScene</CallbackMethod>
 		<ConfigUI>
-			<Field id="instructions1" type="label" fontSize="small">
+
+			<Field type="label" id="instructions1"
+				fontSize="small"
+			>
 				<Label>Hue Scenes are stored on the Hue Bridge and are organized here by which application created them.</Label>
 			</Field>
-			<Field id="userId" type="menu" defaultValue=""
-				tooltip="Scene Creators are the applications on various devices that have connected to the Hue Bridge and created Scenes.">
+
+			<Field type="menu" id="userId"
+				defaultValue=""
+				tooltip="Scene Creators are the applications on various devices that have connected to the Hue Bridge and created Scenes."
+			>
 				<Label>Scene Creator:</Label>
-				<List class="self" method="usersListGenerator" dynamicReload="false"></List>
+				<List
+					class="self"
+					method="usersListGenerator"
+					dynamicReload="false"
+				/>
 				<CallbackMethod>usersListItemSelected</CallbackMethod>
 			</Field>
-			<Field id="userLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="userLabel"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>Select a Scene Creator from the Bridge first (or use "All Scene Creators").
 				</Label>
 			</Field>
-			<Field id="sceneId" type="menu" defaultValue=""
-				tooltip="Scenes are stored on the Hue Bridge along with which application created them. Scenes in this menu were created by the Scene Creator selected above.">
+
+			<Field type="menu" id="sceneId"
+				defaultValue=""
+				tooltip="Scenes are stored on the Hue Bridge along with which application created them. Scenes in this menu were created by the Scene Creator selected above."
+			>
 				<Label>Scene:</Label>
-				<List class="self" method="scenesListGenerator" dynamicReload="true"></List>
+				<List
+					class="self"
+					method="scenesListGenerator"
+					dynamicReload="true"
+				/>
 				<CallbackMethod>scenesListItemSelected</CallbackMethod>
 			</Field>
-			<Field id="scemeLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="scemeLabel"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>Some Scenes may have the same name because of how the Hue app creates them on the GW. Use the Lights Affected list below to distinguish between Scenes with the same name.
 				</Label>
 			</Field>
-			<Field id="groupId" type="menu" defaultValue=""
-				tooltip="The Hue bridge allows you to limit a Scene to just one Group, as long as at least one light in the Scene is part of the Group. Lights that are part of a Scene but NOT part of the selected Group Limit will not be affected.">
+
+			<Field type="menu" id="groupId"
+				defaultValue=""
+				tooltip="The Hue bridge allows you to limit a Scene to just one Group, as long as at least one light in the Scene is part of the Group. Lights that are part of a Scene but NOT part of the selected Group Limit will not be affected."
+			>
 				<Label>Group Limit:</Label>
-				<List class="self" method="groupListGenerator" dynamicReload="true" ></List>
+				<List
+					class="self"
+					method="groupListGenerator"
+					dynamicReload="true"
+				/>
 				<CallbackMethod>groupsListItemSelected</CallbackMethod>
 			</Field>
-			<Field id="groupLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="groupLabel"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>Limit the Scene to a specific Hue Group.
 				</Label>
 			</Field>
-			<Field id="sceneLights" type="list" defaultValue="" readonly="true" enabledBindingId="sceneLightsDisabler"
-				tooltip="This list shows all the lights that will be affected by the combination of Scene and Group Limit selections above. These cannot be edited.">
+
+			<Field type="list" id="sceneLights"
+				defaultValue=""
+				readonly="true"
+				enabledBindingId="sceneLightsDisabler"
+				tooltip="This list shows all the lights that will be affected by the combination of Scene and Group Limit selections above. These cannot be edited."
+			>
 				<Label>Lights Affected:</Label>
-				<List class="self" method="sceneLightsListGenerator" dynamicReload="true"></List>
+				<List
+					class="self"
+					method="sceneLightsListGenerator"
+					dynamicReload="true"
+				/>
 			</Field>
-			<Field id="scemeLightsLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="scemeLightsLabel"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>This list shows which lights are affected by the Scene and Group Limit selections above. This cannot be edited.</Label>
 			</Field>
-			<Field id="sceneLightsDisabler" type="checkbox" defaultValue="false" hidden="true">
+
+			<Field type="checkbox" id="sceneLightsDisabler"
+				defaultValue="false"
+				hidden="true"
+			>
 				<!-- This hidden, static value field is necessary in order to disable the Lights list
 				 field above because using the "readonly" property appears to have no effect with
 				 Indigo 7.0.2 and earlier. -->
-				<Label></Label>
+				<Label/>
 			</Field>
-			<Field id="description" type="textfield" hidden="true">
+
+			<Field type="textfield" id="description"
+				hidden="true"
+			>
 				<Label/>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
 	<MenuItem id="sep2.1" />
-
 	<MenuItem id="findNewDevices">
 		<Name>Start Search for new Devices on Bridge...</Name>
 		<ConfigUI>
-			<Field id="instructions1" type="label">
+
+			<Field type="label" id="instructions1">
 				<Label>This will start the bridge scan for new devcies process. It will add newly found devices to the bridge, not to Indigio.
 Select bridge, then select what to seach for. 
 you will need to reset/set the new switch/light to be able to be found by the bridge
@@ -436,61 +839,76 @@ after 30+ secs, please run a report
  "Print hue config data to log"/"Hue devices w no Indigo device"
 to list new devices found, then use menu "Add New Hue Devices in Indigo" to add these new devcies to indigo.</Label>
 			</Field>
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge this device is associated with">
+
+			<Field type="menu" id="hubNumber"
+				tooltip="Select the Gateway / Bridge this device is associated with"
+			>
 				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
+				<List
+					class="self"
+					method="gwListGenerator"
+					filter="active"
+					dynamicReload="true"
+				/>
 			</Field>
-			<Field id="confirmGWNumber" type="button">
+
+			<Field type="button" id="confirmGWNumber">
 				<Label>click to</Label>
 				<Title>select Bridge Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
 
-			<Field id="confirmHubNumberText" type="textfield" default ="first select hue bridge" >	</Field>
+			<Field type="textfield" id="confirmHubNumberText"
+				default="first select hue bridge"
+			/>
 
-			<Field id="startSearchNewSwitches" type="button">
+			<Field type="button" id="startSearchNewSwitches">
 				<Label>Click to</Label>
 				<Title>Start search for new switches</Title>
 				<CallbackMethod>startSearchNewSwitches</CallbackMethod>
 			</Field>
 
-			<Field id="startSearchNewLights" type="button">
+			<Field type="button" id="startSearchNewLights">
 				<Label>Click to</Label>
 				<Title>Start search for new Lights</Title>
 				<CallbackMethod>startSearchNewLights</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
-
 	<MenuItem id="createNewLightDevicesFromGWDict">
 		<Name>Add New Devices from Hue Bridge to Indigo...</Name>
 		<ConfigUI>
-			<Field id="infoLabel" type="label" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="infoLabel"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>Use this to add ALL hue lights/sensors/groups that do not have a corresponding indigo device
 It is a good idea to restart the plugin afterwards to get all states etc created properly
 Check the logfile for new devices created
 The names will be Hue_type_bridge#_id_nameOnBridge
 eg Hue_light_0_30_Stairs</Label>
 			</Field>
-			<Field id="hueFolderName" type="textfield" default ="New Hue Devices"
-				tooltip="If left empty it will be:  Hue New Devices ">
+
+			<Field type="textfield" id="hueFolderName"
+				default="New Hue Devices"
+				tooltip="If left empty it will be:  Hue New Devices "
+			>
 				<Label>Folder Name where new devices get created:</Label>
 			</Field>
-			<Field id="doCreate" type="button">
+
+			<Field type="button" id="doCreate">
 				<Label>Click to</Label>
 				<Title>Create folder and devices</Title>
 				<CallbackMethod>forceNewDevices</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
-
-
 	<MenuItem id="moveDevBetweenBridges">
 		<Name>Move Device(s) from one bridge to another...</Name>
 		<ConfigUI>
 
-			<Field id="instructions1" type="label">
+			<Field type="label" id="instructions1">
 				<Label>If you have moved lights/sensors to a new bridge  or migrated the bridge to a new pro bridge you can use this menue item.
 It will keep the old indigo device (ID) and replace it with the properties of the new hue dev on the new bridge
 Then it will delete the new indigo device, as the old device will have all the properties of the new device
@@ -522,301 +940,413 @@ After reload if the device still exists on the old bridge (and the bridge exists
 </Label>
 			</Field>
 
-			<Field id="hubNumberOld" type="menu"
-				tooltip="Select the Gateway / Bridge of OLD device">
+			<Field type="menu" id="hubNumberOld"
+				tooltip="Select the Gateway / Bridge of OLD device"
+			>
 				<Label>Hue Bridge number (w OLD Device):</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
+				<List
+					class="self"
+					method="gwListGenerator"
+					filter="active"
+					dynamicReload="true"
+				/>
 			</Field>
 
-			<Field id="hubNumberNew" type="menu"
-				tooltip="Select the Gateway / Bridge of NEW device">
+			<Field type="menu" id="hubNumberNew"
+				tooltip="Select the Gateway / Bridge of NEW device"
+			>
 				<Label>Hue Bridge number(w NEW device):</Label>
-				<List class="self" method="gwListGenerator" filter = "active" dynamicReload="true"/> 
+				<List
+					class="self"
+					method="gwListGenerator"
+					filter="active"
+					dynamicReload="true"
+				/>
 			</Field>
 
-			<Field id="confirmGWNumber" type="button">
+			<Field type="button" id="confirmGWNumber">
 				<Label>click to</Label>
 				<Title>confirm Bridge selection</Title>
 				<CallbackMethod>confirmGWNumbers</CallbackMethod>
 			</Field>
 
-			<Field id="MSG" type="textfield" default ="first select hue bridges" >	</Field>
+			<Field type="textfield" id="MSG"
+				default="first select hue bridges"
+			/>
 
-
-			<Field id="sepall" type="label">
+			<Field type="label" id="sepall">
 				<Label>Move all devices, use for migration of bridge------------------------------</Label>
 			</Field>
 
-			<Field id="execMoveAllToNewBridgeprintOnly" type="button">
+			<Field type="button" id="execMoveAllToNewBridgeprintOnly">
 				<Label>click to</Label>
 				<Title>Print device matches</Title>
 				<CallbackMethod>moveAllToNewBridgePrintOnly</CallbackMethod>
 			</Field>
-	
-			<Field id="instructionsall" type="label">
+
+			<Field type="label" id="instructionsall">
 				<Label>ONLY move after you do have done a print of move candidates / matches</Label>
 			</Field>
 
-			<Field id="execMoveAllToNewBridge" type="button">
+			<Field type="button" id="execMoveAllToNewBridge">
 				<Label>click to</Label>
 				<Title>move all devices</Title>
 				<CallbackMethod>moveAllToNewBridge</CallbackMethod>
 			</Field>
 
-
-
-			<Field id="sepallEnd" type="label">
+			<Field type="label" id="sepallEnd">
 				<Label>Move individual devices------------------------------------------------------</Label>
 			</Field>
-			<Field id="sep1" type="label">
+
+			<Field type="label" id="sep1">
 				<Label>Either move light:                           .</Label>
 			</Field>
 
-
-			<Field id="bulbIdOld" type="menu"
-				tooltip="Select a lights/ bulb Device.">
+			<Field type="menu" id="bulbIdOld"
+				tooltip="Select a lights/ bulb Device."
+			>
 				<Label>Select LIGHT (on OLD bridge) - indigo dev will be kept:</Label>
-				<List class="self" method="GroupSensLightGeneratorForMove" filter="old-bulbId"  dynamicReload="true"/>
+				<List
+					class="self"
+					method="GroupSensLightGeneratorForMove"
+					filter="old-bulbId"
+					dynamicReload="true"
+				/>
 			</Field>
 
-			<Field id="bulbIdNew" type="menu"
-				tooltip="Select a lights/ bulb Device.">
+			<Field type="menu" id="bulbIdNew"
+				tooltip="Select a lights/ bulb Device."
+			>
 				<Label>Select LIGHT (on new bridge) - will be deleted:</Label>
-				<List class="self" method="GroupSensLightGeneratorForMove" filter="new-bulbId"  dynamicReload="true"/>
+				<List
+					class="self"
+					method="GroupSensLightGeneratorForMove"
+					filter="new-bulbId"
+					dynamicReload="true"
+				/>
 			</Field>
 
-			<Field id="execMoveLight" type="button">
+			<Field type="button" id="execMoveLight">
 				<Label>Click to</Label>
 				<Title>Execute Move Light</Title>
 				<CallbackMethod>executeMoveLightToNewBridge</CallbackMethod>
 			</Field>
 
-			<Field id="sep" type="label">
+			<Field type="label" id="sep">
 				<Label>Or move Sensor:                              .</Label>
 			</Field>
 
-			<Field id="sensorIdOld" type="menu"
-				tooltip="Select a Sensor Device.">
+			<Field type="menu" id="sensorIdOld"
+				tooltip="Select a Sensor Device."
+			>
 				<Label>Select SENSOR (on new bridge) - indigo dev will be kept</Label>
-				<List class="self" method="GroupSensLightGeneratorForMove" filter="old-sensorId"  dynamicReload="true"/>
+				<List
+					class="self"
+					method="GroupSensLightGeneratorForMove"
+					filter="old-sensorId"
+					dynamicReload="true"
+				/>
 			</Field>
 
-			<Field id="sensorIdNew" type="menu"
-				tooltip="Select a Sensor Device.">
+			<Field type="menu" id="sensorIdNew"
+				tooltip="Select a Sensor Device."
+			>
 				<Label>Select SENSOR (on old bridge) - will be deleted::</Label>
-				<List class="self" method="GroupSensLightGeneratorForMove" filter="new-sensorId"  dynamicReload="true"/>
+				<List
+					class="self"
+					method="GroupSensLightGeneratorForMove"
+					filter="new-sensorId"
+					dynamicReload="true"
+				/>
 			</Field>
 
-			<Field id="execMoveSensor" type="button">
+			<Field type="button" id="execMoveSensor">
 				<Label>Click to</Label>
 				<Title>Execute Move Sensor</Title>
 				<CallbackMethod>executeMoveSensorToNewBridge</CallbackMethod>
 			</Field>
 
-
-			<Field id="sepg" type="label">
+			<Field type="label" id="sepg">
 				<Label>Or move Group:                              .</Label>
 			</Field>
 
-			<Field id="groupIdOld" type="menu"
-				tooltip="Select a group Device.">
+			<Field type="menu" id="groupIdOld"
+				tooltip="Select a group Device."
+			>
 				<Label>Select Group (on new bridge) - indigo dev will be kept:</Label>
-				<List class="self" method="GroupSensLightGeneratorForMove" filter="old-groupId"  dynamicReload="true"/>
+				<List
+					class="self"
+					method="GroupSensLightGeneratorForMove"
+					filter="old-groupId"
+					dynamicReload="true"
+				/>
 			</Field>
 
-			<Field id="groupIdNew" type="menu"
-				tooltip="Select a group Device.">
+			<Field type="menu" id="groupIdNew"
+				tooltip="Select a group Device."
+			>
 				<Label>Select Group (on old bridge) - will be deleted:</Label>
-				<List class="self" method="GroupSensLightGeneratorForMove" filter="new-groupId"  dynamicReload="true"/>
+				<List
+					class="self"
+					method="GroupSensLightGeneratorForMove"
+					filter="new-groupId"
+					dynamicReload="true"
+				/>
 			</Field>
 
-			<Field id="execMoveGroupr" type="button">
+			<Field type="button" id="execMoveGroupr">
 				<Label>Click to</Label>
 				<Title>Execute Move Group</Title>
 				<CallbackMethod>executeMoveGroupToNewBridge</CallbackMethod>
 			</Field>
-
-
-
 		</ConfigUI>
 	</MenuItem>
-
-
-
 	<MenuItem id="menuRenameHueDevice">
 		<Name>Rename Hue Devices on Bridge...</Name>
 		<ConfigUI>
-			<Field id="instructions1" type="label">
+
+			<Field type="label" id="instructions1">
 				<Label>With this action you can rename (a) device(s) on the bridge.
 First select bridge number and confirm</Label>
 			</Field>
-			<Field id="instructions2" type="label" alignText="right" fontSize="small" fontColor="darkgrey">
+
+			<Field type="label" id="instructions2"
+				alignText="right"
+				fontSize="small"
+				fontColor="darkgrey"
+			>
 				<Label>It will set element "name":newName on the Bridge. 
 Max 32 characters can be used
 You can set option to rename all devices on bridge to their indigo device name</Label>
 			</Field>
 
-			<Field id="sep1" type="separator"/>
-			<Field id="instructionssensor" type="label" >
+			<Field type="separator" id="sep1" />
+
+			<Field type="label" id="instructionssensor">
 				<Label>Rename Sensor</Label>
 			</Field>
-			<Field id="sensorId" type="menu"
-				tooltip="Select a Sensor Device.">
+
+			<Field type="menu" id="sensorId"
+				tooltip="Select a Sensor Device."
+			>
 				<Label>Select SENSOR (Name on bridge):</Label>
-				<List class="self" method="sensorListGenerator" filter=""  dynamicReload="true"/>
+				<List
+					class="self"
+					method="sensorListGenerator"
+					filter=""
+					dynamicReload="true"
+				/>
 			</Field>
-			<Field id="newNamesensors" type="textfield">
+
+			<Field type="textfield" id="newNamesensors">
 				<Label>Enter new name for device (use * for same name as indigo Device):</Label>
 			</Field>
-			<Field id="removePrefixsensors" type="checkbox"> 
+
+			<Field type="checkbox" id="removePrefixsensors">
 				<Label>remove std prefix: Hue_sensor_Bridge#_id_:</Label>
 			</Field>
-			<Field id="execSensors" type="button">
+
+			<Field type="button" id="execSensors">
 				<Label>Click to</Label>
 				<Title>execute</Title>
 				<CallbackMethod>menuRenameSensorDevice</CallbackMethod>
 			</Field>
-			<Field id="sep2" type="separator"/>
-			<Field id="instructionslight" type="label" >
+
+			<Field type="separator" id="sep2" />
+
+			<Field type="label" id="instructionslight">
 				<Label>Rename Light bulb</Label>
 			</Field>
-			<Field id="bulbId" type="menu"
-				tooltip="Select a lights/ bulb Device.">
+
+			<Field type="menu" id="bulbId"
+				tooltip="Select a lights/ bulb Device."
+			>
 				<Label>Select LIGHT (Name on bridge):</Label>
-				<List class="self" method="lightsListGenerator" filter=""  dynamicReload="true"/>
+				<List
+					class="self"
+					method="lightsListGenerator"
+					filter=""
+					dynamicReload="true"
+				/>
 			</Field>
-			<Field id="newNamelights" type="textfield">
+
+			<Field type="textfield" id="newNamelights">
 				<Label>Enter new name for device (use * for same name as indigo Device):</Label>
 			</Field>
-			<Field id="removePrefixlights" type="checkbox"> 
+
+			<Field type="checkbox" id="removePrefixlights">
 				<Label>remove std prefix: Hue_light_Bridge#_id_:</Label>
 			</Field>
-			<Field id="execLights" type="button">
+
+			<Field type="button" id="execLights">
 				<Label>Click to</Label>
 				<Title>execute</Title>
 				<CallbackMethod>menuRenameLightsDevice</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
-
 	<MenuItem id="ignoreDevice">
 		<Name>Un-ignore Hue Devices for auto creation...</Name>
 		<ConfigUI>
-		
-			<Field id="infoLabel" type="label">
+
+			<Field type="label" id="infoLabel">
 				<Label>Select an existing indigo device to be ignored in the future
 			if the indigo device is deleted it will not be re-created</Label>
 			</Field>
-			
-			<Field id="indigoId" type="menu">
+
+			<Field type="menu" id="indigoId">
 				<Label>indigo device to be ignored in the future:</Label>
-				<List class="self" method="getalldevicesxlist" dynamicReload="true"/>
+				<List
+					class="self"
+					method="getalldevicesxlist"
+					dynamicReload="true"
+				/>
 			</Field>
-			
-			<Field id="ignore" type="button">
+
+			<Field type="button" id="ignore">
 				<Label>Click to</Label>
 				<Title>ignore device </Title>
 				<CallbackMethod>ignoreDeviceConfirm</CallbackMethod>
 			</Field>
 
-			<Field id="infoLabel2" type="label">
+			<Field type="label" id="infoLabel2">
 				<Label>Select an ignored Hue to be accepted again</Label>
 			</Field>
-			
-			<Field id="ignoreHubTypeNumber" type="menu">
+
+			<Field type="menu" id="ignoreHubTypeNumber">
 				<Label>Hue device to be UN-ignored = it will be recreated automatically in indigo:</Label>
-				<List class="self" method="getallIgnoredDevicesxlist" dynamicReload="false"/>
+				<List
+					class="self"
+					method="getallIgnoredDevicesxlist"
+					dynamicReload="false"
+				/>
 			</Field>
-			
-			<Field id="unignore" type="button">
+
+			<Field type="button" id="unignore">
 				<Label>Click to</Label>
 				<Title>UN-ignore device </Title>
 				<CallbackMethod>unignoreDeviceConfirm</CallbackMethod>
 			</Field>
-			
 		</ConfigUI>
 	</MenuItem>
 	<MenuItem id="deleteDevices">
 		<Name>Delete Devices on Bridge...</Name>
 		<ConfigUI>
-			<Field id="instructions1" type="label">
+
+			<Field type="label" id="instructions1">
 				<Label>Select bridge, then select what type of device to delete
 then select the device. 
 This will delete the devcie on the bridge, not in indigo
 </Label>
 			</Field>
 
-			<Field id="sep1" type="separator"/>
-			<Field id="sensid" type="menu"
-				tooltip="Select a Hue  Sensor.">
+			<Field type="separator" id="sep1" />
+
+			<Field type="menu" id="sensid"
+				tooltip="Select a Hue  Sensor."
+			>
 				<Label>Hue Sensor (Name on bridge):</Label>
-				<List class="self" method="sensorListGenerator" filter="oneSensor"  dynamicReload="true"/>
+				<List
+					class="self"
+					method="sensorListGenerator"
+					filter="oneSensor"
+					dynamicReload="true"
+				/>
 			</Field>
-			<Field id="deleteSensor" type="button">
+
+			<Field type="button" id="deleteSensor">
 				<Label>Click to</Label>
 				<Title>execute</Title>
 				<CallbackMethod>menuDeleteSensor</CallbackMethod>
 			</Field>
 
-			<Field id="sep2" type="separator"/>
-			<Field id="bulbId" type="menu"
-				tooltip="Select a Hue Light.">
+			<Field type="separator" id="sep2" />
+
+			<Field type="menu" id="bulbId"
+				tooltip="Select a Hue Light."
+			>
 				<Label>Hue Light (Name on bridge):</Label>
-				<List class="self" method="lightsListGenerator" filter="oneLight"  dynamicReload="true"/>
+				<List
+					class="self"
+					method="lightsListGenerator"
+					filter="oneLight"
+					dynamicReload="true"
+				/>
 			</Field>
-			<Field id="deleteLight" type="button">
+
+			<Field type="button" id="deleteLight">
 				<Label>Click to</Label>
 				<Title>execute</Title>
 				<CallbackMethod>menuDeleteLight</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
-
-
 	<MenuItem id="menuEnableDisableSensor">
 		<Name>Enable/disable Sensor on Bridge...</Name>
 		<ConfigUI>
-			<Field id="instructions1" type="label">
+
+			<Field type="label" id="instructions1">
 				<Label>With this action you can enable or disable a sensor device on the bridge.
 This might be useful if you are home / away to disable / enable a motion sensor to suppress actions or enable actions on the bridge</Label>
 			</Field>
-			<Field id="instructions2" type="label" alignText="right" fontSize="small" fontColor="darkgrey">
+
+			<Field type="label" id="instructions2"
+				alignText="right"
+				fontSize="small"
+				fontColor="darkgrey"
+			>
 				<Label>It will set element "config":{"on":true/false} on the Bridge. 
 That should enable/disable any action coming from that device.</Label>
 			</Field>
 
-			<Field id="sensorId" type="menu"
-				tooltip="Select a Hue  Sensor.">
+			<Field type="menu" id="sensorId"
+				tooltip="Select a Hue  Sensor."
+			>
 				<Label>Hue Sensor (Name on bridge):</Label>
-				<List class="self" method="sensorListGenerator" filter="oneSensor"  dynamicReload="true"/>
+				<List
+					class="self"
+					method="sensorListGenerator"
+					filter="oneSensor"
+					dynamicReload="true"
+				/>
 			</Field>
-			<Field id="onOff" type="menu">
+
+			<Field type="menu" id="onOff">
 				<Label>On/off:</Label>
-				 <List>
+				<List>
 					<Option value="on">on, enable</Option>
 					<Option value="off">off, disable</Option>
-				 </List>
+				</List>
 			</Field>
-			<Field id="menuEnableDisableSensor" type="button">
+
+			<Field type="button" id="menuEnableDisableSensor">
 				<Label>Click to</Label>
 				<Title>execute</Title>
 				<CallbackMethod>menuEnableDisableSensor</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
-
-
-
 	<MenuItem id="sep3" />
 	<MenuItem id="displayPreset">
 		<Name>Print preset to Log...</Name>
 		<CallbackMethod>displayPreset</CallbackMethod>
 		<ConfigUI>
-			<Field id="presetId" type="menu" defaultValue="">
+
+			<Field type="menu" id="presetId"
+				defaultValue=""
+			>
 				<Label>Preset:</Label>
-				<List class="self" method="presetListGenerator"></List>
+				<List
+					class="self"
+					method="presetListGenerator"
+				/>
 			</Field>
-			<Field id="presetLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
+
+			<Field type="label" id="presetLabel"
+				alignWithControl="true"
+				fontSize="small"
+				fontColor="darkgray"
+			>
 				<Label>Select the Preset whose data you'd like to view in the Indigo log. Presets with an asterisk (*) next to them have data saved in them.</Label>
 			</Field>
 		</ConfigUI>
@@ -824,40 +1354,59 @@ That should enable/disable any action coming from that device.</Label>
 	<MenuItem id="trackSpecificDevice">
 		<Name>Print Tracking of ONE specific device to log</Name>
 		<ConfigUI>
-			<Field id="instructions1" type="label">
+
+			<Field type="label" id="instructions1">
 				<Label>With this function you can print the detailed data received from ONE specific device on the bridge to the indigo log
 You can see when and if e.g. button presses arrive at the plugin and check the status changes etc.</Label>
 			</Field>
 
-			<Field  id="whatToPrint" 
-					type="menu" 
-					defaultValue="sensors">
+			<Field type="menu" id="whatToPrint"
+				defaultValue="sensors"
+			>
 				<Label>Select what type of device to track:</Label>
 				<List>
 					<Option value="lights">lights</Option>
 					<Option value="sensors">sensors</Option>
 				</List>
 			</Field>
-			<Field id="sensorId" type="menu"
-				tooltip="Select a Sensor Device." 
-				visibleBindingId="whatToPrint" visibleBindingValue="sensors" >
+
+			<Field type="menu" id="sensorId"
+				tooltip="Select a Sensor Device."
+				visibleBindingId="whatToPrint"
+				visibleBindingValue="sensors"
+			>
 				<Label>Select SENSOR (Name on bridge):</Label>
-				<List class="self" method="sensorListGenerator" filter="oneSensor"  dynamicReload="true"/>
-			</Field>
-			<Field id="bulbId" type="menu"
-				tooltip="Select a Light bulb Device."
-				visibleBindingId="whatToPrint" visibleBindingValue="lights" >
-				<Label>Select LIGHT (Name on bridge):</Label>
-				<List class="self" method="lightsListGenerator" filter="oneLight"  dynamicReload="true"/>
+				<List
+					class="self"
+					method="sensorListGenerator"
+					filter="oneSensor"
+					dynamicReload="true"
+				/>
 			</Field>
 
-			<Field id="sep1" type="separator"/>
-			<Field id="startTrack" type="button">
+			<Field type="menu" id="bulbId"
+				tooltip="Select a Light bulb Device."
+				visibleBindingId="whatToPrint"
+				visibleBindingValue="lights"
+			>
+				<Label>Select LIGHT (Name on bridge):</Label>
+				<List
+					class="self"
+					method="lightsListGenerator"
+					filter="oneLight"
+					dynamicReload="true"
+				/>
+			</Field>
+
+			<Field type="separator" id="sep1" />
+
+			<Field type="button" id="startTrack">
 				<Label>Click to</Label>
 				<Title>Start tracking</Title>
 				<CallbackMethod>startTrackSpecificDevice</CallbackMethod>
 			</Field>
-			<Field id="stopTrack" type="button">
+
+			<Field type="button" id="stopTrack">
 				<Label>Click to</Label>
 				<Title>Stop Tracking</Title>
 				<CallbackMethod>stopTrackSpecificDevice</CallbackMethod>
@@ -867,9 +1416,10 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 	<MenuItem id="printHueDataMenu">
 		<Name>Print hue config data to log...</Name>
 		<ConfigUI>
-			<Field  id="whatToPrint" 
-					type="menu" 
-					defaultValue="lights">
+
+			<Field type="menu" id="whatToPrint"
+				defaultValue="lights"
+			>
 				<Label>Select what to print:</Label>
 				<List>
 					<Option value="lights">lights</Option>
@@ -898,15 +1448,16 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 					<Option value="NoIndigoDevice">Hue devices w no Indigo device</Option>
 					<Option value="pluginPrefs">plugin preferences</Option>
 					<Option value="bytesSend">bytes send /received to/from bridge</Option>
-					<Option value="bytesSendWithReset">reset bytes send /received to/from bridge</Option>
+					<Option value="bytesSendWithReset">bytes send /received to/from bridge and RESET</Option>
 					<Option value="indigoIdToOwnerId">print indigo devices and their mapped resource ids (development)</Option>
-
 				</List>
 			</Field>
-			<Field  id="sortBy" 
-					type="menu" 
-					defaultValue="id"
-					visibleBindingId="whatToPrint" visibleBindingValue="lights,sensors,scenes,groups,rules,resourcelinks,schedules" >
+
+			<Field type="menu" id="sortBy"
+				defaultValue="id"
+				visibleBindingId="whatToPrint"
+				visibleBindingValue="lights,sensors,scenes,groups,rules,resourcelinks,schedules"
+			>
 				<Label>Select how to sort lights:</Label>
 				<List>
 					<Option value="id">id</Option>
@@ -917,58 +1468,106 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 				</List>
 			</Field>
 
-			<Field  id="lights" type="menu" 
-					visibleBindingId="whatToPrint" visibleBindingValue="specificLights" >
+			<Field type="menu" id="lights"
+				visibleBindingId="whatToPrint"
+				visibleBindingValue="specificLights"
+			>
 				<Label>Select the LIGHT you want to print all info:</Label>
-				<List class="self" method="printsListGenerator" filter="lights"/>
-			</Field>
-			<Field  id="groups" type="menu" 
-					visibleBindingId="whatToPrint" visibleBindingValue="specificGroups" >
-				<Label>Select the GROUP you want to print all info:</Label>
-				<List class="self" method="printsListGenerator" filter="groups"/>
-			</Field>
-			<Field  id="sensors" type="menu" 
-					visibleBindingId="whatToPrint" visibleBindingValue="specificSensors" >
-				<Label>Select the SENSOR you want to print all info:</Label>
-				<List class="self" method="printsListGenerator" filter="sensors"/>
-			</Field>
-			<Field  id="scenes" type="menu" 
-					visibleBindingId="whatToPrint" visibleBindingValue="specificScenes" >
-				<Label>Select the SCENE you want to print all info:</Label>
-				<List class="self" method="printsListGenerator" filter="scenes"/>
-			</Field>
-			<Field  id="rules" type="menu" 
-					visibleBindingId="whatToPrint" visibleBindingValue="specificRules" >
-				<Label>Select the RULES you want to print all info:</Label>
-				<List class="self" method="printsListGenerator" filter="rules"/>
-			</Field>
-			<Field  id="schedules" type="menu" 
-					visibleBindingId="whatToPrint" visibleBindingValue="specificSchedules" >
-				<Label>Select the SCHEDULES you want to print all info:</Label>
-				<List class="self" method="printsListGenerator" filter="schedules"/>
-			</Field>
-			<Field  id="resourcelinks" type="menu" 
-					visibleBindingId="whatToPrint" visibleBindingValue="specificResourcelinks" >
-				<Label>Select the RESOURCE LINKS links you want to print all info:</Label>
-				<List class="self" method="printsListGenerator" filter="resourcelinks"/>
+				<List
+					class="self"
+					method="printsListGenerator"
+					filter="lights"
+				/>
 			</Field>
 
-			<Field id="doPrint" type="button"
-					visibleBindingId="whatToPrint" 
-					visibleBindingValue="indigoIdToOwnerId,bytesSend,bytesSendWithReset,lights,lightsDict,mappingOfNames,sensors,sensorsDict,scenes,v2scenes,groups,rules,resourcelinks,schedules,shortBridgeInfo,config,configJson,configDict,specificLights,specificSensors,specificGroups,specificScenes,specificRules,specificSchedules,specificResourcelinks,NoHudevice,NoIndigoDevice,pluginPrefs" >
+			<Field type="menu" id="groups"
+				visibleBindingId="whatToPrint"
+				visibleBindingValue="specificGroups"
+			>
+				<Label>Select the GROUP you want to print all info:</Label>
+				<List
+					class="self"
+					method="printsListGenerator"
+					filter="groups"
+				/>
+			</Field>
+
+			<Field type="menu" id="sensors"
+				visibleBindingId="whatToPrint"
+				visibleBindingValue="specificSensors"
+			>
+				<Label>Select the SENSOR you want to print all info:</Label>
+				<List
+					class="self"
+					method="printsListGenerator"
+					filter="sensors"
+				/>
+			</Field>
+
+			<Field type="menu" id="scenes"
+				visibleBindingId="whatToPrint"
+				visibleBindingValue="specificScenes"
+			>
+				<Label>Select the SCENE you want to print all info:</Label>
+				<List
+					class="self"
+					method="printsListGenerator"
+					filter="scenes"
+				/>
+			</Field>
+
+			<Field type="menu" id="rules"
+				visibleBindingId="whatToPrint"
+				visibleBindingValue="specificRules"
+			>
+				<Label>Select the RULES you want to print all info:</Label>
+				<List
+					class="self"
+					method="printsListGenerator"
+					filter="rules"
+				/>
+			</Field>
+
+			<Field type="menu" id="schedules"
+				visibleBindingId="whatToPrint"
+				visibleBindingValue="specificSchedules"
+			>
+				<Label>Select the SCHEDULES you want to print all info:</Label>
+				<List
+					class="self"
+					method="printsListGenerator"
+					filter="schedules"
+				/>
+			</Field>
+
+			<Field type="menu" id="resourcelinks"
+				visibleBindingId="whatToPrint"
+				visibleBindingValue="specificResourcelinks"
+			>
+				<Label>Select the RESOURCE LINKS links you want to print all info:</Label>
+				<List
+					class="self"
+					method="printsListGenerator"
+					filter="resourcelinks"
+				/>
+			</Field>
+
+			<Field type="button" id="doPrint"
+				visibleBindingId="whatToPrint"
+				visibleBindingValue="indigoIdToOwnerId,bytesSend,bytesSendWithReset,lights,lightsDict,mappingOfNames,sensors,sensorsDict,scenes,v2scenes,groups,rules,resourcelinks,schedules,shortBridgeInfo,config,configJson,configDict,specificLights,specificSensors,specificGroups,specificScenes,specificRules,specificSchedules,specificResourcelinks,NoHudevice,NoIndigoDevice,pluginPrefs"
+			>
 				<Label>Click to</Label>
 				<Title>Print</Title>
 				<CallbackMethod>printHueData</CallbackMethod>
 			</Field>
 		</ConfigUI>
 	</MenuItem>
-
-
 	<MenuItem id="overwritebridgeid">
 		<Name>Overwrite bridge. (manual config of bridge)..</Name>
 		<ConfigUI>
-		<Field id="lab10" type="label" >
-			<Label>this is for experts ony. you must have generated the heu bridge username manuall beforeand past it ihere 
+
+			<Field type="label" id="lab10">
+				<Label>this is for experts ony. you must have generated the heu bridge username manuall beforeand past it ihere 
  you can generate it with:
      curl -X POST https://huprobridgeIPnumber/api --insecure -H "Content-Type: application/json" -d '{"devicetype":anynamehere, "generateclientkey":true}'
  you will get something like this:
@@ -976,26 +1575,38 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 use the username as the key id here 	
 you also must enter the ip and the hub number 	       
 			</Label>
-		</Field>
-			<Field id="hubNumber" type="menu"
-				tooltip="Select the Gateway / Bridge">
-				<Label>Hue Bridge number:</Label>
-				<List class="self" method="gwListGenerator" dynamicReload="true"/> 
 			</Field>
-			<Field id="confirmGWNumber" type="button">
+
+			<Field type="menu" id="hubNumber"
+				tooltip="Select the Gateway / Bridge"
+			>
+				<Label>Hue Bridge number:</Label>
+				<List
+					class="self"
+					method="gwListGenerator"
+					dynamicReload="true"
+				/>
+			</Field>
+
+			<Field type="button" id="confirmGWNumber">
 				<Label>click to</Label>
 				<Title>select Bridge Number</Title>
 				<CallbackMethod>confirmGWNumber</CallbackMethod>
 			</Field>
-			<Field id="confirmHubNumberText" type="textfield" default ="first select hue bridge" >	</Field>
-			
-			<Field id="newKey" type="textfield">
+
+			<Field type="textfield" id="confirmHubNumberText"
+				default="first select hue bridge"
+			/>
+
+			<Field type="textfield" id="newKey">
 				<Label>enter new app key id(username):</Label>
 			</Field>
-			<Field id="newIpNumber" type="textfield" >
+
+			<Field type="textfield" id="newIpNumber">
 				<Label>enter new IPnumber or leave empty to not change:</Label>
 			</Field>
-			<Field id="newHubVersion" type="menu" >
+
+			<Field type="menu" id="newHubVersion">
 				<Label>enter hub version:</Label>
 				<List>
 					<Option value="1">hue hub version 2 </Option>
@@ -1003,14 +1614,11 @@ you also must enter the ip and the hub number
 				</List>
 			</Field>
 
-			<Field id="confirmGNewkey" type="button">
+			<Field type="button" id="confirmGNewkey">
 				<Label>click to</Label>
 				<Title>Confirm new key</Title>
 				<CallbackMethod>execNewKey</CallbackMethod>
 			</Field>
-
 		</ConfigUI>
 	</MenuItem>
-
-
 </MenuItems>
