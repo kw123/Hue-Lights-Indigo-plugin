@@ -8699,14 +8699,16 @@ class Plugin(indigo.PluginBase):
 								dType = dev['type'].lower()
 								if dType.find('rotary') == -1:
 									productname = dev['productname'].lower()
-									if   productname == "hue dimmer switch": 		Hue_dimmer_switch += 1
-									elif productname == "hue smart button": 		Hue_smart_button += 1
-									elif productname == "hue tap dial switch": 		Hue_tap_dial_switch += 1
-									elif productname == "works with hue switch": 	Works_with_Hue_Switch += 1
-									elif productname == "hue motion sensor": 		Hue_motion_sensor += 1
-									elif productname == "hue wall switch module": 	Hue_wall_switch += 1
-									elif productname == "hue temperature sensor": 	pass
-									elif productname == "hue ambient light sensor":	pass
+									if   productname == "hue dimmer switch": 			Hue_dimmer_switch += 1
+									elif productname == "hue smart button": 			Hue_smart_button += 1
+									elif productname == "hue tap dial switch": 			Hue_tap_dial_switch += 1
+									elif productname == "works with hue switch": 		Works_with_Hue_Switch += 1
+									elif productname == "hue motion sensor": 			Hue_motion_sensor += 1
+									elif productname == "hue outdoor motion sensor": 	Hue_motion_sensor += 1
+									elif productname == "hue wall switch module": 		Hue_wall_switch += 1
+									elif productname == "hue temperature sensor": 		pass
+									elif productname == "hue ambient light sensor":		pass
+									elif productname.find("outdoor") > -1:				pass
 									else : 															
 																					sensorOther += 1
 																					self.indiLOG.log(20,"v1 other sensor type: {}".format(productname))

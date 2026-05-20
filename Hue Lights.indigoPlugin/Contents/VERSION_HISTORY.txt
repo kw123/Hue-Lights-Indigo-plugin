@@ -1,4 +1,10 @@
 ========================================
+2022.32.83 @ 2026-05-20
+1. did not recognize "xxx outdoor XXX "
+  fixed in counting number of device types attached.
+  
+  
+========================================
 2022.32.82 @ 2026-05-13
 1. New device state 'lumen' added to all dimmer light types (hueBulb, hueAmbiance, hueLightStrips, hueLivingColorsBloom, hueLivingWhites, hueOnOffDevice) and hueGroup
    - Lights: calculated as int(brightnessLevel * lumenMax / 100 + 0.5)
