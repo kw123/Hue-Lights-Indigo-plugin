@@ -1,5 +1,5 @@
 ========================================
-2022.32.83 @ 2026-05-20
+2022.32.84 @ 2026-05-20
 1. did not recognize "xxx outdoor XXX "
   fixed in counting number of device types attached.
   

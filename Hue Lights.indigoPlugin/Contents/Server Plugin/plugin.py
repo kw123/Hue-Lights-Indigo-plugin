@@ -8501,7 +8501,7 @@ class Plugin(indigo.PluginBase):
 					#self.indiLOG.log(30,"n:{}, devName:{}".format(hubNumber, device.name))
 					
 					stateUpdateList		= []
-					stateUpdateList 	= self.checkIfUpdateState(device, 'enabled', 					self.hubIsEnabled[hubNumber], 			stateUpdateList=stateUpdateList )
+					stateUpdateList 	= self.checkIfUpdateState(device, 'enabled', 					self.hubIsEnabled[hubNumber], 	stateUpdateList=stateUpdateList )
 
 					if not self.hubIsEnabled[hubNumber]: 
 						self.updateDeviceState(device, stateUpdateList, calledFrom="checkIfBridgeUpdates")
@@ -8514,15 +8514,15 @@ class Plugin(indigo.PluginBase):
 						continue
 
 
-					stateUpdateList 	= self.checkIfUpdateState(device, 'bridgeType', 				self.hubVersion[hubNumber], 			stateUpdateList=stateUpdateList )
-					stateUpdateList 	= self.checkIfUpdateState(device, 'ipAddress', 					self.ipAddresses[hubNumber], 			stateUpdateList=stateUpdateList )
-					stateUpdateList 	= self.checkIfUpdateState(device, 'paired', 					self.paired[hubNumber], 				stateUpdateList=stateUpdateList )
+					stateUpdateList 	= self.checkIfUpdateState(device, 'bridgeType', 				self.hubVersion[hubNumber], 	stateUpdateList=stateUpdateList )
+					stateUpdateList 	= self.checkIfUpdateState(device, 'ipAddress', 					self.ipAddresses[hubNumber], 	stateUpdateList=stateUpdateList )
+					stateUpdateList 	= self.checkIfUpdateState(device, 'paired', 					self.paired[hubNumber], 		stateUpdateList=stateUpdateList )
 					online = self.testPing(self.ipAddresses[hubNumber]) == 0
 					if not online:	
 							device.setErrorStateOnServer("disconnected")
-							stateUpdateList 	= self.checkIfUpdateState(device, 'onOffState', 				online, uiValue="offline",			stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'onOffState', 		online, uiValue="offline",		stateUpdateList=stateUpdateList )
 					else:			
-							stateUpdateList 	= self.checkIfUpdateState(device, 'onOffState', 				online, uiValue="online",			stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'onOffState', 		online, uiValue="online",		stateUpdateList=stateUpdateList )
 							device.setErrorStateOnServer(None)
 
 					allDataV1 = self.allV1Data.get(hubNumber,dict())
@@ -8549,7 +8549,6 @@ class Plugin(indigo.PluginBase):
 						Hue_tap_dial_switch 	= 0
 						Works_with_Hue_Switch 	= 0
 						Hue_wall_switch			= 0
-						Hue_secure_contact		= 0
 						sensorOther				= 0
 						Hue_motion_sensor 		= 0
 						buttonDevs 				= 0
@@ -8590,17 +8589,20 @@ class Plugin(indigo.PluginBase):
 
 							else:
 								tt = product_data['product_name'].lower()
-								if   tt == "hue dimmer switch": 		Hue_dimmer_switch += 1
-								elif tt == "hue smart button": 			Hue_smart_button += 1
-								elif tt == "hue tap dial switch": 		Hue_tap_dial_switch += 1
-								elif tt == "works with hue switch": 	Works_with_Hue_Switch += 1
-								elif tt == "hue wall switch module": 	Hue_wall_switch += 1
-								elif tt == "hue secure contact sensor": pass
-								elif tt.find("bridge") > -1: 			pass
-								elif tt == "hue motion sensor": 		Hue_motion_sensor += 1
+								if   tt.find("dimmer switch") > -1: 			Hue_dimmer_switch += 1
+								elif tt.find("smart button") > -1: 				Hue_smart_button += 1
+								elif tt.find("tap dial switch") > -1: 			Hue_tap_dial_switch += 1
+								elif tt.find("works with") > -1: 				Works_with_Hue_Switch += 1
+								elif tt.find("motion sensor") > -1: 			Hue_motion_sensor += 1
+								elif tt.find("wall switch module") > -1: 		Hue_wall_switch += 1
+								elif tt.find("temperature sensor") > -1: 		pass
+								elif tt.find("temp. sensor") > -1: 				pass
+								elif tt.find("light sensor") > -1:				pass
+								elif tt.find("outdoor") > -1:					pass
+								elif tt.find("bridge") > -1: 					pass
 								else : 															
-																		sensorOther += 1
-																		self.indiLOG.log(20,"V2 other sensor type: {}".format(product_data['product_name']))
+																				sensorOther += 1
+																				self.indiLOG.log(20,"V2 other sensor type: {}".format(product_data['product_name']))
 
 						
 						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_extendedColor',		Extended, 								stateUpdateList=stateUpdateList )
@@ -8610,14 +8612,14 @@ class Plugin(indigo.PluginBase):
 						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_onOff',				onOff, 									stateUpdateList=stateUpdateList )
 						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_other',				otherL, 								stateUpdateList=stateUpdateList )
 
-						stateUpdateList 	= self.checkIfUpdateState(device, 'hostId', 					self.hostIds[hubNumber],						stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'apiVersion', 				self.apiVersion[hubNumber],						stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'ownerId', 					bridgeOwnerId, 									stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'bridgeVersion', 				product_data['product_archetype'],				stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'softwareVersion', 			product_data['software_version'],				stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'nameOnBridge', 				metadata['name'],					 			stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'mac', 						zigbeeInfo['mac_address'],	 					stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'zigbeeChannel', 				zigbeeInfo['channel']['value'].split("_")[1],	stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'hostId', 						self.hostIds[hubNumber],					stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'apiVersion', 					self.apiVersion[hubNumber],					stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'ownerId', 						bridgeOwnerId, 								stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'bridgeVersion', 					product_data['product_archetype'],			stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'softwareVersion', 				product_data['software_version'],			stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'nameOnBridge', 					metadata['name'],					 		stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'mac', 							zigbeeInfo['mac_address'],	 				stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'zigbeeChannel', 					zigbeeInfo['channel']['value'].split("_")[1], stateUpdateList=stateUpdateList )
 						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_softwareUpdates', 		swupdates, 									stateUpdateList=stateUpdateList )
 						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_dimmer',		Hue_dimmer_switch, 							stateUpdateList=stateUpdateList )
 						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_wall',			Hue_wall_switch, 							stateUpdateList=stateUpdateList )
@@ -8628,27 +8630,27 @@ class Plugin(indigo.PluginBase):
 						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_other', 		sensorOther, 								stateUpdateList=stateUpdateList )
 						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_totalButtons',	len(services['button']),					stateUpdateList=stateUpdateList )
 						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_sensor_motion',			Hue_motion_sensor, 							stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_behaviorScripts',	len(services['behavior_script']), 				stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_securityAreaMotion', len(services['security_area_motion']), 		stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_groupedMotions',	len(services['grouped_motion']), 				stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights', 			len(services['light']), 						stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_rooms', 			len(services['room']), 							stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_zones', 			len(services['zone']), 							stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_scenes', 			len(services['scene']), 						stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_behaviorScripts',		len(services['behavior_script']), 			stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_securityAreaMotion', 	len(services['security_area_motion']), 		stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_groupedMotions',		len(services['grouped_motion']), 			stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights', 				len(services['light']), 					stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_rooms', 				len(services['room']), 						stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_zones', 				len(services['zone']), 						stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_scenes', 				len(services['scene']), 					stateUpdateList=stateUpdateList )
 						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_sensor_groupedMotion',	len(services['grouped_motion']),			stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_sensor_areaMotion',	len(services['motion_area_configuration']),		stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_sensor_contact',	len(services['contact']),						stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_smartScenes', 		len(services['smart_scene']), 					stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'hostId', 					self.hostIds[hubNumber],						stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_sensor_areaMotion',		len(services['motion_area_configuration']),	stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_sensor_contact',		len(services['contact']),					stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_smartScenes', 			len(services['smart_scene']), 				stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'hostId', 						self.hostIds[hubNumber],					stateUpdateList=stateUpdateList )
 
 					if "config" in allDataV1:
 						
-						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_resourcelinks', 	len(allDataV1['resourcelinks']), 				stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_rules', 			len(allDataV1['rules']), 						stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_users', 			len(allDataV1['users']), 						stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_schedules', 		len(allDataV1['schedules']), 					stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_resourcelinks', 		len(allDataV1['resourcelinks']), 			stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_rules', 				len(allDataV1['rules']), 					stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_users', 				len(allDataV1['users']), 					stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_schedules', 			len(allDataV1['schedules']), 				stateUpdateList=stateUpdateList )
 
-						if self.apiVersion[hubNumber] == "1":		# for apiv2 we have that abouve
+						if self.apiVersion[hubNumber] == "1":		# for apiv2 we have that above
 
 							Extended = 0
 							Dimmable = 0
@@ -8670,12 +8672,12 @@ class Plugin(indigo.PluginBase):
 																		otherL += 1
 																		self.indiLOG.log(20,"other light type: {}".format(tt))
 								
-							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_extendedColor',		Extended, 							stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_dimmable',			Dimmable, 							stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_colorTemperature',	ColorT, 							stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_color',				ColorL, 							stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_onOff',				onOff, 								stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_other',				otherL, 								stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_extendedColor',		Extended, 	stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_dimmable',			Dimmable, 	stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_colorTemperature',	ColorT, 	stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_color',				ColorL, 	stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_onOff',				onOff, 		stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_other',				otherL, 	stateUpdateList=stateUpdateList )
 
 
 							sensors =  allDataV1['sensors']
@@ -8698,56 +8700,56 @@ class Plugin(indigo.PluginBase):
 								if "productname" not in dev: continue
 								dType = dev['type'].lower()
 								if dType.find('rotary') == -1:
-									productname = dev['productname'].lower()
-									if   productname == "hue dimmer switch": 			Hue_dimmer_switch += 1
-									elif productname == "hue smart button": 			Hue_smart_button += 1
-									elif productname == "hue tap dial switch": 			Hue_tap_dial_switch += 1
-									elif productname == "works with hue switch": 		Works_with_Hue_Switch += 1
-									elif productname == "hue motion sensor": 			Hue_motion_sensor += 1
-									elif productname == "hue outdoor motion sensor": 	Hue_motion_sensor += 1
-									elif productname == "hue wall switch module": 		Hue_wall_switch += 1
-									elif productname == "hue temperature sensor": 		pass
-									elif productname == "hue ambient light sensor":		pass
-									elif productname.find("outdoor") > -1:				pass
+									tt = dev['productname'].lower()
+									if   tt.find("dimmer switch") > -1: 			Hue_dimmer_switch += 1
+									elif tt.find("smart button") > -1: 				Hue_smart_button += 1
+									elif tt.find("tap dial switch") > -1: 			Hue_tap_dial_switch += 1
+									elif tt.find("works with") > -1: 				Works_with_Hue_Switch += 1
+									elif tt.find("motion sensor") > -1: 			Hue_motion_sensor += 1
+									elif tt.find("wall switch module") > -1: 		Hue_wall_switch += 1
+									elif tt.find("temperature sensor") > -1: 		pass
+									elif tt.find("temp. sensor") > -1: 				pass
+									elif tt.find("light sensor") > -1:				pass
+									elif tt.find("outdoor") > -1:					pass
 									else : 															
 																					sensorOther += 1
-																					self.indiLOG.log(20,"v1 other sensor type: {}".format(productname))
+																					self.indiLOG.log(20,"v1 other sensor type: {}".format(tt))
 								
-								if dType in kbuttonTypes:						buttonDevs += 1
+								if dType in kbuttonTypes:							buttonDevs += 1
 								if "swupdate" in dev:
-									if dev['swupdate'].get('state') != "noupdates":swupdates +=1
+									if dev['swupdate'].get('state') != "noupdates":	swupdates +=1
 								
 							for uuid in allDataV1['lights']:
 								sens = allDataV1['lights'][uuid]
 								if "swupdate" in sens:
-									if sens['swupdate'].get('state') != "noupdates":swupdates +=1
+									if sens['swupdate'].get('state') != "noupdates": swupdates +=1
 								
 							for uuid in allDataV1['groups']:
 								sens = allDataV1['groups'][uuid]
-								if sens['type'] == "Room": rooms += 1
-								if sens['type'] == "Zone": zones += 1
+								if sens['type'] == "Room": 							rooms += 1
+								if sens['type'] == "Zone": 							zones += 1
 
-							stateUpdateList 	= self.checkIfUpdateState(device, 'hostId', 					self.hostIds[hubNumber],					stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'apiVersion', 				bridgeDevice['apiversion'],					stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'ownerId', 					bridgeDevice['bridgeid'], 					stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'bridgeVersion', 				"2",										stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'softwareVersion', 			bridgeDevice['swversion'],					stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'nameOnBridge', 				bridgeDevice['name'],						stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'mac', 						bridgeDevice['mac'], 						stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'zigbeeChannel', 				str(bridgeDevice['zigbeechannel']), 		stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights', 			len(allDataV1['lights']), 					stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_scenes', 			len(allDataV1['scenes']), 					stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_softwareUpdates', 	swupdates, 									stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches', 			buttonDevs, 								stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_dimmer',		Hue_dimmer_switch, 						stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_SmartButton',	Hue_smart_button, 						stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_TapDial',		Hue_tap_dial_switch, 					stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_FriendsOfHue',	Works_with_Hue_Switch, 					stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_wall',			Hue_wall_switch, 							stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_other', 		sensorOther, 								stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_sensor_motion',			Hue_motion_sensor, 						stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_rooms', 			rooms, 										stateUpdateList=stateUpdateList )
-							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_zones', 			zones, 										stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'hostId', 					self.hostIds[hubNumber],			stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'apiVersion', 				bridgeDevice['apiversion'],			stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'ownerId', 					bridgeDevice['bridgeid'], 			stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'bridgeVersion', 				"2",								stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'softwareVersion', 			bridgeDevice['swversion'],			stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'nameOnBridge', 				bridgeDevice['name'],				stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'mac', 						bridgeDevice['mac'], 				stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'zigbeeChannel', 				str(bridgeDevice['zigbeechannel']), stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights', 			len(allDataV1['lights']), 			stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_scenes', 			len(allDataV1['scenes']), 			stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_softwareUpdates', 	swupdates, 							stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches', 			buttonDevs, 						stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_rooms', 			rooms, 								stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_zones', 			zones, 								stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_dimmer',		Hue_dimmer_switch, 				stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_SmartButton',	Hue_smart_button, 				stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_TapDial',		Hue_tap_dial_switch, 			stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_FriendsOfHue',	Works_with_Hue_Switch, 			stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_wall',			Hue_wall_switch, 				stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_switches_other', 		sensorOther, 					stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_sensor_motion',			Hue_motion_sensor, 				stateUpdateList=stateUpdateList )
 
 					
 						
