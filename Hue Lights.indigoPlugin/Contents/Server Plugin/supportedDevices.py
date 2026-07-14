@@ -543,7 +543,6 @@ kmodelIdToIndigodevTypes = {
 								'RWL022': ["hueDimmerSwitch"],
 								'ROM001': ["hueSmartButton"],
 								'RDM005': ["hueSmartButton"],
-								'ROM001': ["hueSmartButton"],
 								'ZGPSWITCH': ["hueTapSwitch"],
 								'SWT001': ["hueTapSwitch"],
 								'RDM002': ["hueRotaryWallRing", "hueRotaryWallSwitches"],

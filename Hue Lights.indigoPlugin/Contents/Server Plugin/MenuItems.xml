@@ -1306,7 +1306,7 @@ That should enable/disable any action coming from that device.</Label>
 				<List
 					class="self"
 					method="sensorListGenerator"
-					filter="oneSensor"
+					filter="oneSensor,noswitches"
 					dynamicReload="true"
 				/>
 			</Field>
@@ -1414,7 +1414,7 @@ You can see when and if e.g. button presses arrive at the plugin and check the s
 		</ConfigUI>
 	</MenuItem>
 	<MenuItem id="printHueDataMenu">
-		<Name>Print hue config data to log...</Name>
+		<Name>Print hue config  / stats data to log...</Name>
 		<ConfigUI>
 
 			<Field type="menu" id="whatToPrint"

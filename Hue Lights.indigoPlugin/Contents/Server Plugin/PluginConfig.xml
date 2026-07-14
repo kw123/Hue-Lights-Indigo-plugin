@@ -452,28 +452,11 @@ Shown after successful pairing process</Label>
 		<Label>Directory for new indigo devices</Label>
 	</Field>
 
-	<Field type="menu" id="NumberOfSecondsEventWoMessage"
-		default="240"
-		tooltip=" used in mesaure # of secs since last message for api v2 event listener, if greater then restart listener"
-	>
-		<Label>time wo events before restart of api-V2 listener:</Label>
-		<List>
-			<Option value="5">5s for testing</Option>
-			<Option value="60">1 minute if you have a lot of sensors amd movements</Option>
-			<Option value="120">2 minutes</Option>
-			<Option value="180">3 minutes</Option>
-			<Option value="240">4 minutes (default) </Option>
-			<Option value="300">5 minutes</Option>
-			<Option value="360">6 minutes</Option>
-			<Option value="420">7 minutes</Option>
-			<Option value="480">8 minutes</Option>
-			<Option value="540">9 minutes..in-frequent messages</Option>
-		</List>
-	</Field>
+	<!-- 'restart api-V2 event listener after no events for N seconds' (NumberOfSecondsEventWoMessage)
+	     moved to the expert section at the bottom of this dialog -->
 	<!--  timeScaleFactor is devided by 10 in plugin, as floats do not work well in prefs; eg 5 becomes  0.5 -->
 
 	<Field type="menu" id="timeScaleFactor"
-		default="10"
 		tooltip="scale factor for light, sensors, groups: set higher if you have cpu load issues, lower if you like faster response time, default: sensors every 1 sec, lights,groups every 5 secs, other = every 3..5 minutes fixed  use the largest for api v2 bridges "
 	>
 		<Label>How often the Hue Bridge should be read (http apv1 calls):</Label>
@@ -486,21 +469,6 @@ Shown after successful pairing process</Label>
 			<Option value="2">lights = every 1 secs, sensors every .5 secs</Option>
 		</List>
 	</Field>
-	<!-- fixed to 100 = 200 secs min, 400 secs max 
-
-	<Field type="menu" id="timeScaleFactorAPIV2"
-		default="500"
-		tooltip="these api v1 calls to a hue pro bridge are essentially only needed when new devcies or at start, so set to longest time possible if not problems  "
-	>>
-		<Label>reduction factor apiv1 http calls in apiv2 type bridges:</Label>
-	  <List>
-		<Option value="500">500</Option>
-		<Option value="50">50</Option>
-		<Option value="10">10 only for testing</Option>
-	 </List>
- 	</Field>
-
--->
 
 	<Field type="label" id="timeScaleFactorLabel"
 		alignWithControl="true"
@@ -592,7 +560,6 @@ others: fixed at 3-5 minutes
 	</Field>
 
 	<Field type="menu" id="sendDeviceUpdatesTo"
-		default="20"
 		tooltip="either indigo log AND plugin.log or only in plugin.log file "
 	>
 		<Label>Log messages in:</Label>
@@ -679,5 +646,38 @@ others: fixed at 3-5 minutes
 
 	<Field type="textfield" id="searchForStringinFindHueBridge">
 		<Label>String to look for in finding hue bridges</Label>
+	</Field>
+
+	<Field type="separator" id="sepRestart" />
+
+	<Field type="label" id="restartLabel" fontColor="green">
+		<Label>for experts only ! api-V2 event listener restart thresholds</Label>
+	</Field>
+
+	<Field type="menu" id="NumberOfSecondsEventRestart"
+		tooltip="MAIN restart path (TCP keepalive). Restart the api-V2 event listener if the connection is terminated "
+	>
+		<Label>(main) restart listener after no events for:</Label>
+		<List>
+			<Option value="5">5 s</Option>
+			<Option value="10">10 s (default)</Option>
+			<Option value="20">20 s</Option>
+			<Option value="30">30 s</Option>
+			<Option value="40">40 s</Option>
+		</List>
+	</Field>
+
+	<Field type="menu" id="NumberOfSecondsEventWoMessage"
+		tooltip="FALLBACK watchdog. If the TCP connection stays alive but the bridge stops sending events, the keepalive can't detect it; this watchdog restarts the listener after this many seconds without any event. Keep it above the (main) value; it only fires in the rare TCP-alive-but-silent case. should be larger than the previous parameter"
+	>
+		<Label>(fallback) watchdog restart after no events for:</Label>
+		<List>
+			<Option value="100">100 s</Option>
+			<Option value="120">120 s (default)</Option>
+			<Option value="140">140 s</Option>
+			<Option value="160">160 s</Option>
+			<Option value="180">180 s</Option>
+			<Option value="200">200 s</Option>
+		</List>
 	</Field>
 </PluginConfig>

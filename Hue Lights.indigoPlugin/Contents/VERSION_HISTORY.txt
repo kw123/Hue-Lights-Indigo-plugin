@@ -1,4 +1,286 @@
 ========================================
+2022.32.112 @ 2026-07-09
+The "shortBridgeInfo" print (bridge/lights/groups/... summary header + per-bridge lines) is now built into
+one string (leading \n, each line \n-separated) and written with a single log call, instead of one log
+entry per line. The rare not-setup/not-paired lines are included in the same block (now level 20).
+
+
+========================================
+2022.32.111 @ 2026-07-09
+The full bridge re-read now runs ONLY on a real outage (gap > kEventReplayWindowSecs). Previously it also
+fired for short gaps where 0 events were replayed (nothing had happened) — unnecessary. Now: gap > window
+-> level 20 + re-read; replay recovered events (short gap) -> level 10, no re-read; short gap with no events
+-> level 10, no re-read. So no re-read for the routine hourly recycle.
+
+
+========================================
+2022.32.110 @ 2026-07-09
+Shortened the reconnect-table header line: "eventstream reconnects (last N of 100) — M replayed, avg gap Xs".
+Dropped the long column-explanation parenthetical (the column names are self-explanatory).
+
+
+========================================
+2022.32.109 @ 2026-07-09
+Level 20 now fires only when events may actually have been MISSED (not merely recovered). Reasoning:
+recovered events are counted reliably and are NOT missed; a true miss only happens if the reconnect gap
+outlasts the bridge's Last-Event-ID replay buffer (then the oldest events age out). So: gap <= the assumed
+replay window (kEventReplayWindowSecs, default 300s) -> fully recoverable -> level 10; gap > the window ->
+possible data loss -> level 20 ("gap of Ns EXCEEDED the ~Ws replay window ... MAY HAVE BEEN MISSED").
+Honest limitation: from the stream alone a quiet gap and a buffer-overflow gap are indistinguishable, so
+this is a gap-duration proxy, not a perfect miss detector. For the ~40s hourly recycles it stays at level 10.
+Also: the re-read is now forced whenever there was no full replay OR the gap exceeded the window.
+
+
+========================================
+2022.32.108 @ 2026-07-09
+The "real gap ... recovered N events" line is now level 10 too. The hourly bridge-recycle reconnect is
+routine and self-healing, so it produces no level-20 output at all now (details remain in the print-stats
+reconnect table). Still level 20: the first-connect "Successful Connected" (startup) and the generic
+"Error: ... Reconnecting" for unexpected exceptions.
+
+
+========================================
+2022.32.107 @ 2026-07-09
+Reconnect table "last event" column now shows the full YYYY-MM-DD HH:MM:SS timestamp (column widened).
+
+
+========================================
+2022.32.106 @ 2026-07-09
+Reconnect table: replaced the raw epoch ev-ids (useless to read) with human-readable columns —
+"last event" = the bridge time of the last ev-id before the gap (epoch converted to local, dd HH:MM:SS),
+and "next event" = "+Ns" seconds to the first ev-id after. Dropped the separate ev-gap column (now the
+"next event" delta).
+
+
+========================================
+2022.32.105 @ 2026-07-09
+Reconnect table: dropped the misleading "spurious?" label. recovered==0 only means "no events occurred
+during the gap", NOT that the restart was unneeded — the connection gap was still real (confirmed by
+the ev-id epochs jumping tens of seconds). Added an "ev-gap" column = the time hole between the last
+ev-id before and the first ev-id after (seconds), which shows the real gap even when 0 events were
+recovered. Summary line now reports total events replayed + average gap, no spurious count.
+
+
+========================================
+2022.32.104 @ 2026-07-09
+Quieter reconnect logging. Routine reconnect notices are now level 10 (debug): "Bridge connection
+closed/unreachable / read timeout ... Reconnecting", "Successful Connected" (on reconnects only — still
+level 20 on the first connect), "reconnect after Ns gap ... checking replay", and the "no events missed
+/ likely unneeded restart" resolution. Only a REAL gap (events actually recovered) logs at level 20,
+now as one self-contained line including the gap duration: "bridge X: real gap of Ns — last ev-id ...
+-> first ev-id ...; N events replayed by bridge". So a spurious reconnect is silent at normal level;
+a genuine data-gap shows exactly one line.
+
+
+========================================
+2022.32.103 @ 2026-07-08
+Single source of truth for config defaults: all plugin-config parameter reads now use
+kDefaultPluginPrefs["key"] as their fallback instead of hardcoded literals — timeScaleFactor,
+sendDeviceUpdatesTo, timeScaleFactorAPIV2, showLoginTest (startup + getDebugLevels), the debug* flags,
+autoCreatedNewDevices, folderNameForNewDevices, and logAnyChanges (now a safe .get). The event
+thresholds already used kDefaultPluginPrefs + minMaxEventRecovery ranges. (Consistent with removing the
+default= attributes from PluginConfig.xml — defaults now live only in kDefaultPluginPrefs.) Action /
+device dialog fields are unchanged; those aren't plugin-config parameters.
+
+
+========================================
+2022.32.102 @ 2026-07-08
+Faster reconnect. The eventstream reconnect used a fixed 5-10s sleep, adding ~10s to every gap. Now a
+drop of a *working* connection (the common case: the bridge gracefully recycles/close-notifies the SSE
+connection) reconnects IMMEDIATELY (0s); the delay only escalates (2 -> 5 -> 10s) if the reconnect
+itself keeps failing (bridge genuinely down). reconnectFailures resets as soon as data flows again.
+This covers the TLS close-notify case without parsing the alert (requests abstracts it away).
+Also fixed two bugs introduced in the parameter-driven readEventTimerPrefs edit: a missing ')' on the
+NumberOfSecondsEventRestart read, and the fallback clamp using 'restart' instead of 'woMsg'.
+Note: the remaining gap (~25s in the captured case) is the bridge holding the connection open/idle
+before it closes it — that part is bridge-side and not reducible from here.
+
+
+========================================
+2022.32.101 @ 2026-07-08
+Track the last ev-id before a reconnect and the first ev-id received after, to tell a real gap from a
+spurious restart. Each reconnect log line and the print-stats reconnect table now show both ids, and
+the table adds a summary ("N real gap, M with NO events missed"). A reconnect that recovers 0 events
+(recovered==0) means nothing was actually missed — flagged "0 no-gap"; a run of these at a low
+NumberOfSecondsEventRestart indicates the threshold is too aggressive (spurious restarts, no data lost).
+
+
+========================================
+2022.32.100 @ 2026-07-08
+Fix: the v.99 "apply NumberOfSecondsEventRestart immediately" didn't work — validatePrefsConfigUi
+applies the new value before closedPrefsConfigUi captured the old one, so the change was never detected
+(it only took effect on a full plugin reload). Now each listener session is stamped with the threshold
+it was built with ('restartSecs'), and checkIfListenerIsRunning (main loop, every ~10s) restarts the
+listener when that differs from the current config value. Works regardless of the dialog callback order.
+
+
+========================================
+2022.32.99 @ 2026-07-08
+Changing the (main) NumberOfSecondsEventRestart threshold now takes effect immediately. The keepalive
+is baked into the socket at session creation, so a changed value previously needed a plugin reload
+(in-thread reconnects reuse the same session). closedPrefsConfigUi now detects a change to that value
+and restarts the V2 event listeners, so checkIfListenerIsRunning respawns them with a fresh session
+(new keepalive) within ~10s. The (fallback) NumberOfSecondsEventWoMessage watchdog already applied live.
+
+
+========================================
+2022.32.98 @ 2026-07-08
+Cosmetic: getDebugLevels() collapsed its two duplicate branches (loop + showLoginTest read) into one
+path — "if useMe is None or empty: useMe = self.pluginPrefs", then a single loop. No behaviour change.
+
+
+========================================
+2022.32.97 @ 2026-07-08
+Refactor (continued): the general prefs that were applied in startup + validatePrefsConfigUi +
+closedPrefsConfigUi (timeScaleFactor, sendDeviceUpdatesTo, searchForStringinFindHueBridge, and the
+fixed timeScaleFactorAPIV2) are now read/applied by one method applyGeneralPrefs(prefs), called from
+all three. Removes the duplicated apply blocks and the dead `if False:` timeScaleFactorAPIV2 reads
+(the value was already forced to 119). All three sites now apply the same set consistently. No
+behaviour change for real values.
+
+
+========================================
+2022.32.96 @ 2026-07-08
+Refactor: the read+range-clamp of the two eventstream restart thresholds was duplicated in three
+places (startup, validatePrefsConfigUi, closedPrefsConfigUi). Consolidated into one method
+readEventTimerPrefs(prefs) that all three call. No behaviour change.
+
+
+========================================
+2022.32.95 @ 2026-07-08
+Split the eventstream restart control into two separate expert-section config dropdowns:
+- (main) NumberOfSecondsEventRestart: 10..130s, default 90 — drives the TCP keepalive (fast restart,
+  fires "Bridge unreachable. Reconnecting"). This is the primary threshold.
+- (fallback) NumberOfSecondsEventWoMessage: 60..200s, default 180 — drives the no-message watchdog,
+  the backstop for the rare case where TCP stays alive but the bridge stops sending events.
+Both defaults are in kDefaultPluginPrefs; both are range-clamped on load (legacy values → default).
+The stream read timeout now sits above whichever of the two is larger (+60s).
+
+
+========================================
+2022.32.94 @ 2026-07-08
+1. Full bridge re-read after a gap is now conditional: if the bridge replays the missed events
+   (Last-Event-ID), processing them already makes device states current, so the re-read is skipped.
+   The re-read is only forced when the bridge sends no backlog. Removes the redundant per-hour re-read
+   on bridges that support replay.
+2. Restart threshold is now a config dropdown (expert section, bottom of plugin config):
+   "Restart api-V2 event listener after no events for:" with fixed values 10..130s, default 90.
+   Reuses the existing NumberOfSecondsEventWoMessage pref and now drives BOTH the TCP keepalive
+   (idle = threshold-20, +2x10s probes) and the no-message watchdog, so the whole range is effective.
+   Legacy/out-of-range saved values (e.g. 180/240) are clamped to the new default 90 on load.
+
+
+========================================
+2022.32.93 @ 2026-07-08
+1. Restart threshold raised to ~90s: eventstream TCP keepalive is now 60s idle + 3x10s probes (was
+   30s + 3x10s = ~60s). A >=90s silence has <0.01% chance of being normal (observed max gap ~40s), so
+   this never false-triggers and avoids reconnecting into a still-stalled bridge.
+2. Reconnect table in print-stats clarified: the count column is now labelled "recovered" (= gap events
+   the bridge replayed), right-aligned; values are a number or "pending" (events not yet resumed).
+   Columns realigned.
+   Note: the separate watchdog backstop (config: NumberOfSecondsEventWoMessage, ~180s) is unchanged;
+   lower it to ~90s in plugin config if you also want the "no message in N secs" path to fire at 90s.
+
+
+========================================
+2022.32.92 @ 2026-07-08
+Harden the skipped-event count against a bridge event-id going backwards (e.g. a bridge reboot whose
+clock resets before NTP re-sync). The backfill test now requires resumeEpoch <= evTs < reconnect-time
+(previously only the upper bound), so a backward id jump reads as "0 / no replay" instead of counting
+every live event as skipped. Gap duration, forced re-read, and Last-Event-ID resume were already safe.
+
+
+========================================
+2022.32.91 @ 2026-07-08
+Print-stats now includes a rolling eventstream-reconnect history. Each reconnect records timestamp,
+bridge, gap duration (s), and events skipped/recovered; the list is capped to the last 100 (oldest
+dropped). Shown at the bottom of the "bytes send /received to/from bridge" (and ...WithReset) menu output.
+
+
+========================================
+2022.32.90 @ 2026-07-08
+Report skipped-event count on reconnect. The SSE event id is <unix-epoch-seconds>:<index>, so after a
+gap-reconnect the plugin counts how many replayed events carry an id-epoch earlier than the reconnect
+moment (= events that were skipped by the live connection and are now being backfilled). Logs either
+"recovered N events that were skipped during the gap (bridge replayed them)" or, if the bridge sends no
+backlog, "bridge did not replay any skipped events; states were made current by the forced re-read".
+The reconnect line now also prints the gap duration in seconds.
+
+
+========================================
+2022.32.89 @ 2026-07-08
+Event-stream gap recovery — after an SSE stall/reconnect, missed events no longer leave device states stale:
+1. Last-Event-ID resume: the plugin now remembers the last SSE event id per bridge (persists across
+   listener restarts) and sends it as the Last-Event-ID header on reconnect, so a compliant bridge
+   replays events buffered during the gap. (Buffer depth is bridge-dependent/short; confirm from the
+   log by watching for a burst of events right after "reconnect after gap".)
+2. Forced full re-read on reconnect: whenever the listener reconnects with a stored event id (i.e. a
+   gap occurred, not the first-ever connect), it zeroes the getHueConfig / 'all' / 'v2' / checkMissing
+   timers so the next main-loop pass re-reads the whole bridge and brings all device states current —
+   the same reconcile the bridge already does on add/delete events. This guarantees persistent state
+   (on/off, brightness, colour, sensor values) is correct after a gap even if the Last-Event-ID replay
+   buffer has rolled over. Transient events (a button press / motion pulse that already cleared during
+   the gap) are only recoverable via #1, not the re-read.
+Note: the underlying hourly stalls are a bridge-side issue (bridge stalls its own eventstream ~hourly,
+stays ping-reachable throughout) — see VERSION_HISTORY .87/.88; this change limits the data impact of each stall.
+
+
+========================================
+2022.32.88 @ 2026-07-07
+1. TCP keepalive enabled on the event-stream socket (probe after 30s idle, then every 10s, 3 probes).
+   The SSE connection is inbound-only after the request; NAT tables / power-save / bridge firmware
+   silently drop such connections (~hourly stalls on bridge 1). Keepalive probes maintain the path
+   (usually preventing the stall) and let the OS detect a dead peer in ~1 minute, so recovery happens
+   as a normal reconnect instead of waiting for the watchdog.
+2. "listener thread did not stop cleanly" warning downgraded to an informational message — with the
+   v.87 stop mechanism an old reader draining in the background is expected and harmless.
+
+
+========================================
+2022.32.87 @ 2026-07-07
+1. Event-listener restart after a stalled stream now takes seconds instead of ~8 minutes:
+   - stop_listener closed the streaming response inline from the watchdog thread; closing an SSL
+     socket that the listener thread is blocked reading waits on the SSL lock until the read times
+     out (NumberOfSecondsEventTimeOut = 660s), stalling the whole plugin loop. The close now runs
+     in a small daemon thread.
+   - The stream read timeout now tracks the watchdog window (NumberOfSecondsEventWoMessage + 60s,
+     capped at NumberOfSecondsEventTimeOut) so an abandoned reader thread exits soon after being replaced.
+   - A replaced (zombie) reader can no longer clear the new listener's response reference or
+     lastMessage, and no longer queues a stop_listener that would tear down the replacement listener.
+
+
+========================================
+2022.32.86 @ 2026-07-07
+Code audit: ~40 bug fixes across plugin.py (no new features). Highlights:
+1. Save Preset no longer rejects every light device (validation compared the Python builtin "type" against the compatibility list)
+2. Recall scene without a group works again (int 0 vs string "0" groupId mismatch); doScene now tolerates int groupIds
+3. activateScene picks the API version of the action's own bridge, not the last bridge selected in a config dialog; removed an older dead duplicate of activateScene
+4. V2 set-color-temperature now sends the requested brightness and turns the light off at brightness 0 (previously always on:true, brightness discarded)
+5. RGB scaling is no longer corrupted after saving plugin prefs (stale "rgbmax" block set rgbIndigoMax to 1.0)
+6. White-level slider: hue is converted from degrees to the bridge 0-65535 scale (lights snapped to red before); hueGroup white slider no longer forces saturation to 0
+7. Attribute Controller colorGreen toggle-on no longer swaps green into the red channel
+8. V1 "off" commands use the noOffRampRate prop instead of noOnRampRate; V2 "off" reads the correctly spelled brightnessLevel state (ramp rate was always forced to 0)
+9. Dimmer-switch/button onOffState is no longer inverted (triggers fired backwards)
+10. hueOnOffDevice V1 "on": Indigo state updates again (undefined vars aborted the handler after the bridge command)
+11. Hue state for bulbs/light strips/LivingColors stored in degrees again (normalizeHue return value was discarded)
+12. V2 color/ct-only events no longer reset brightness to 100% (missing "dimming" now keeps the last known level)
+13. zgp (Tap / Friends-of-Hue) connectivity events no longer mark connected devices as disconnected (quoting typo)
+14. Motion-area device creation fixed (moti905onInfo typo, indigo.devices["name"] literal, getConvenienceAreaMotionInfo returning a bare None); grouped-motion states no longer set to literal key names; contact-sensor tamper state no longer clobbered to None
+15. Event stream: health updates no longer leak to the wrong device; per-bridge listener threads no longer share one deviceUpdate dict; listener shutdown race guarded
+16. One offline V2 bridge no longer aborts the data refresh for all bridges; child-service exclusion in fillAllDataV2 fixed (stale loop variable)
+17. Move-device-to-new-bridge: states are actually transferred now, and the moved device is no longer auto-recreated on the old bridge (ignore list used wrong key and wrong id)
+18. Hold-to-brighten/dim worker thread logs errors and keeps running instead of dying silently
+19. Expired auto-pairing window stops retrying instead of re-pairing on every poll cycle
+20. Many smaller fixes: scene/preset dialog crashes (KeyErrors, Py2 leftover .items()[0], "{}}" format string), color-picker hex builder, sensor status requests skipped when debug logging was on, temperature offset now scaled correctly for Fahrenheit, sensitivityMax gating, duplicate-sensor validation no longer crashes on stale devices, various wrong/misleading log messages
+
+
+========================================
+2022.32.84 @ 2026-05-30
+1. fix apiv2 event error when a motion sensor is disabled, had no impact on results, only log entry
+2. remove switches from enable / disabled sensors, only true sensor and sensor groups can be en/disabled  
+ 
+ 
+ ========================================
 2022.32.84 @ 2026-05-20
 1. did not recognize "xxx outdoor XXX "
   fixed in counting number of device types attached.

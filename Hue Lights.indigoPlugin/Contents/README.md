@@ -1,6 +1,6 @@
 # Hue Lights — Indigo Plugin
 
-**Version:** 2022.32.82  
+**Version:** 2022.32.112  
 **Bundle ID:** `com.nathansheldon.indigoplugin.HueLights`  
 **Platform:** macOS · [Indigo Home Automation](https://www.indigodomo.com/) 3.0+
 
@@ -152,20 +152,41 @@ Additional menu-only utilities:
 - **API v2 key** — client key for SSE stream (pro bridge only)
 - **Enable / disable bridge** — pause communication without removing devices
 - **Scan interval** — how often to poll the bridge (seconds)
-- **SSE reconnect timeout** — re-establish SSE connection if no events received within N seconds
 - **Device name prefixes** — customise auto-created device name format per type (light / group / switch / sensor)
 - **Debug flags** — per-area verbose logging: `EditSetup`, `SendCommandsToBridge`, `StateChange`, `NewDevice`, `IpChange`, `TrackedDevice`, …
+
+### Event-stream restart thresholds *(expert section, Pro bridge)*
+
+Two thresholds control when the V2 Server-Sent-Events listener is restarted (see *Event-stream resilience* below):
+
+- **(main) restart after no events for N s** — `NumberOfSecondsEventRestart`. Drives the TCP keepalive (the primary/fast path). A dead connection is detected roughly this many seconds after the last event.
+- **(fallback) watchdog restart after no events for N s** — `NumberOfSecondsEventWoMessage`. Backstop for the rare case where the TCP connection stays alive but the bridge goes silent. Keep it above the main value.
+
+Both defaults and valid ranges live in `kDefaultPluginPrefs` / `minMaxEventRecovery` in the plugin (single source of truth); out-of-range saved values are clamped to the nearest bound on load.
 
 ---
 
 ## Architecture Notes
 
-- **Single source file** — `Contents/Server Plugin/plugin.py` (~6 800+ lines), one `Plugin` class subclassing `indigo.PluginBase`.
-- **Background threads** — SSE listener, API v1 poll loop, offline watchdog, delayed-action queue, save loop.
+- **Single source file** — `Contents/Server Plugin/plugin.py` (~20 000 lines), one `Plugin` class subclassing `indigo.PluginBase`.
+- **Background threads** — SSE listener (one per V2 bridge), API v1 poll loop, offline watchdog, delayed-action queue, save loop.
 - **Delayed-action queue** — group colour recalculations are token-debounced; only the newest queued token for a device executes, preventing redundant bridge calls from rapid SSE bursts.
 - **Colour math** — `colormath/` module handles RGB↔XY↔colour-temperature conversions; `add_rgb_temp_to_rgb.py` averages mixed RGB + kelvin lamp lists.
 - **Persistent state** — not used for lights (bridge is source of truth). Bridge data cached in `allV2Data` / `allV1Data` in-memory dicts and saved to JSON in the Indigo preferences folder on a throttled schedule.
 - **No build system / no test framework.** Testing is manual via the Indigo native or web UI. Reload with **Plugins → Reload Plugins**.
+
+---
+
+## Event-stream resilience *(Pro bridge, API v2)*
+
+The Hue Pro bridge periodically drops/recycles its long-lived SSE connection (commonly about once an hour). The plugin absorbs this transparently with no data loss:
+
+- **TCP keepalive** on the stream socket detects a dead/black-holed connection (inbound-only TLS connections are otherwise dropped silently). Timing is driven by the *(main)* restart threshold.
+- **Fast reconnect with backoff** — a dropped *working* connection reconnects immediately (0 s); the delay only escalates (2 → 5 → 10 s) if reconnects keep failing (bridge genuinely down).
+- **Last-Event-ID replay** — on reconnect the plugin sends the last received event id, so the bridge replays any events buffered during the gap; those are recovered without loss.
+- **Conditional full re-read** — the whole bridge is re-read to reconcile device states **only on a real outage** (a gap longer than the assumed replay-buffer window, `kEventReplayWindowSecs`); routine recycles need no re-read.
+- **Quiet logging** — routine reconnects log at debug level (10); only a gap long enough to risk missed events logs at level 20.
+- **Reconnect history** — the last 100 reconnects (time, gap, events recovered, last/next event time) are viewable via **Plugins → Print Hue config → bytes send/received**.
 
 ---
 
@@ -182,14 +203,13 @@ Additional menu-only utilities:
 
 See `Contents/VERSION_HISTORY.txt` for the full change log.
 
-**Current release — 2022.32.82 (2026-05-13):**
-- New `lumen` device state on all dimmer types and groups: lights auto-calculated as `int(brightnessLevel × lumenMax / 100 + 0.5)` (0 when off); groups aggregated as the sum of member lights' `lumen` (off lights contribute 0). Group `brightnessLevel` % is unchanged.
-- New `lumenMax` device property in device edit ConfigUI (default 600); configurable per device
-- Reformatted plugin XML files (`Actions.xml`, `Devices.xml`, `MenuItems.xml`, `PluginConfig.xml`) for readability — `type=`/`id=` on opening line, remaining attributes one-per-line; no functional change
+**Current release — 2022.32.112 (2026-07-09):**
+- **Code audit (.85 → .86):** ~40 correctness bugs fixed across `plugin.py` (Save Preset, scene recall, V2 colour-temperature/brightness, RGB scaling, white-slider hue scaling, inverted button state, motion-area device creation, bridge-move state transfer, and more — see `VERSION_HISTORY.txt`).
+- **Event-stream resilience (.87 → .112):** major rework of the V2 SSE listener — see *Event-stream resilience* above. Eliminated an 8-minute restart stall, added TCP keepalive, fast reconnect with backoff, Last-Event-ID replay, conditional re-read only on a real outage, a 100-entry reconnect-history table in print-stats, and near-silent routine logging.
+- **Config thresholds:** the SSE restart control was split into two expert-section parameters (main keepalive + fallback watchdog) with configurable ranges; changes now apply live (within ~10 s) without a plugin reload.
+- **Refactors:** config-parameter defaults consolidated into `kDefaultPluginPrefs` (single source of truth); duplicated pref-reading collapsed into `readEventTimerPrefs` / `applyGeneralPrefs`.
 
-**Previous release — 2022.31.82 (2026-05-12):**
-- Fixed group colour temperature not updating on member lamp ct change
-- Fixed `colorMode` never written in V2 SSE path
-- Cross-group ct propagation: Zones and Rooms sharing lights now sync bidirectionally
-- Fixed `AttributeError: delayedActionThread` during startup
+**Earlier — 2022.32.82 (2026-05-13):**
+- New `lumen` device state on all dimmer types and groups; new `lumenMax` device property (default 600)
+- Reformatted plugin XML files for readability (no functional change)
 - New actions: dynamic scene speed, power-on behaviour, sunrise timed effect, smart scene recall
