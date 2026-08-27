@@ -283,8 +283,35 @@
 The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
 			</Field>
 
+			<Field type="menu" id="onBrightnessMode"
+				defaultValue="default"
+				tooltip="What this light does when an ON command is sent without a brightness. standard = follow the plugin config setting."
+			>
+				<Label>On command brightness:</Label>
+				<List>
+					<Option value="standard">use plugin config setting</Option>
+					<Option value="default">a Default Brightness</Option>
+					<Option value="last">last brightness (restore)</Option>
+				</List>
+			</Field>
+
+			<Field type="menu" id="defaultBrightnessSource"
+				defaultValue="plugin"
+				visibleBindingId="onBrightnessMode"
+				visibleBindingValue="default"
+				tooltip="Where the Default Brightness value comes from: the plugin-wide value (Plugin Config), or a manual value set below for this light."
+			>
+				<Label>Default Brightness source:</Label>
+				<List>
+					<Option value="plugin">use plugin default</Option>
+					<Option value="manual">manual value (below)</Option>
+				</List>
+			</Field>
+
 			<Field type="menu" id="defaultBrightness"
-				defaultValue="50"
+				defaultValue="80"
+				visibleBindingId="defaultBrightnessSource"
+				visibleBindingValue="manual"
 			>
 				<Label>Default Brightness(%):</Label>
 				<List>
@@ -320,10 +347,11 @@ The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
 				alignWithControl="true"
 				fontSize="small"
 				fontColor="darkgray"
+				visibleBindingId="defaultBrightnessSource"
+				visibleBindingValue="manual"
 			>
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an ON command is sent to this light.  
-If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>
+Manual Default Brightness for this light, used on an ON command when "On command brightness" = a Default Brightness and the source above = manual value.</Label>
 			</Field>
 
 			<Field type="menu" id="rate"
@@ -468,6 +496,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>Number</ValueType>
 				<TriggerLabel>brightness_on</TriggerLabel>
 				<ControlPageLabel>brightness_on</ControlPageLabel>
+			</State>
+			<State id="lastBrightness">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>last brightness (%)</TriggerLabel>
+				<ControlPageLabel>last brightness (%)</ControlPageLabel>
 			</State>
 			<State id="colorRed">
 				<ValueType>Number</ValueType>
@@ -609,8 +642,35 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
 			</Field>
 
+			<Field type="menu" id="onBrightnessMode"
+				defaultValue="default"
+				tooltip="What this light does when an ON command is sent without a brightness. standard = follow the plugin config setting."
+			>
+				<Label>On command brightness:</Label>
+				<List>
+					<Option value="standard">use plugin config setting</Option>
+					<Option value="default">a Default Brightness</Option>
+					<Option value="last">last brightness (restore)</Option>
+				</List>
+			</Field>
+
+			<Field type="menu" id="defaultBrightnessSource"
+				defaultValue="plugin"
+				visibleBindingId="onBrightnessMode"
+				visibleBindingValue="default"
+				tooltip="Where the Default Brightness value comes from: the plugin-wide value (Plugin Config), or a manual value set below for this light."
+			>
+				<Label>Default Brightness source:</Label>
+				<List>
+					<Option value="plugin">use plugin default</Option>
+					<Option value="manual">manual value (below)</Option>
+				</List>
+			</Field>
+
 			<Field type="menu" id="defaultBrightness"
-				defaultValue="50"
+				defaultValue="80"
+				visibleBindingId="defaultBrightnessSource"
+				visibleBindingValue="manual"
 			>
 				<Label>Default Brightness(%):</Label>
 				<List>
@@ -646,10 +706,11 @@ The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
 				alignWithControl="true"
 				fontSize="small"
 				fontColor="darkgray"
+				visibleBindingId="defaultBrightnessSource"
+				visibleBindingValue="manual"
 			>
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an ON command is sent to this light.  
-If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>
+Manual Default Brightness for this light, used on an ON command when "On command brightness" = a Default Brightness and the source above = manual value.</Label>
 			</Field>
 
 			<Field type="menu" id="rate"
@@ -785,6 +846,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>brightness_on</TriggerLabel>
 				<ControlPageLabel>brightness_on</ControlPageLabel>
 			</State>
+			<State id="lastBrightness">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>last brightness (%)</TriggerLabel>
+				<ControlPageLabel>last brightness (%)</ControlPageLabel>
+			</State>
 			<State id="colorTemp">
 				<ValueType>Number</ValueType>
 				<TriggerLabel>Color Temperature (K)</TriggerLabel>
@@ -919,8 +985,35 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
 			</Field>
 
+			<Field type="menu" id="onBrightnessMode"
+				defaultValue="default"
+				tooltip="What this light does when an ON command is sent without a brightness. standard = follow the plugin config setting."
+			>
+				<Label>On command brightness:</Label>
+				<List>
+					<Option value="standard">use plugin config setting</Option>
+					<Option value="default">a Default Brightness</Option>
+					<Option value="last">last brightness (restore)</Option>
+				</List>
+			</Field>
+
+			<Field type="menu" id="defaultBrightnessSource"
+				defaultValue="plugin"
+				visibleBindingId="onBrightnessMode"
+				visibleBindingValue="default"
+				tooltip="Where the Default Brightness value comes from: the plugin-wide value (Plugin Config), or a manual value set below for this light."
+			>
+				<Label>Default Brightness source:</Label>
+				<List>
+					<Option value="plugin">use plugin default</Option>
+					<Option value="manual">manual value (below)</Option>
+				</List>
+			</Field>
+
 			<Field type="menu" id="defaultBrightness"
-				defaultValue="50"
+				defaultValue="80"
+				visibleBindingId="defaultBrightnessSource"
+				visibleBindingValue="manual"
 			>
 				<Label>Default Brightness(%):</Label>
 				<List>
@@ -956,10 +1049,11 @@ The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
 				alignWithControl="true"
 				fontSize="small"
 				fontColor="darkgray"
+				visibleBindingId="defaultBrightnessSource"
+				visibleBindingValue="manual"
 			>
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an ON command is sent to this light.  
-If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>
+Manual Default Brightness for this light, used on an ON command when "On command brightness" = a Default Brightness and the source above = manual value.</Label>
 			</Field>
 
 			<Field type="menu" id="rate"
@@ -1104,6 +1198,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>Number</ValueType>
 				<TriggerLabel>brightness_on</TriggerLabel>
 				<ControlPageLabel>brightness_on</ControlPageLabel>
+			</State>
+			<State id="lastBrightness">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>last brightness (%)</TriggerLabel>
+				<ControlPageLabel>last brightness (%)</ControlPageLabel>
 			</State>
 			<State id="colorRed">
 				<ValueType>Number</ValueType>
@@ -1264,8 +1363,35 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
 			</Field>
 
+			<Field type="menu" id="onBrightnessMode"
+				defaultValue="default"
+				tooltip="What this light does when an ON command is sent without a brightness. standard = follow the plugin config setting."
+			>
+				<Label>On command brightness:</Label>
+				<List>
+					<Option value="standard">use plugin config setting</Option>
+					<Option value="default">a Default Brightness</Option>
+					<Option value="last">last brightness (restore)</Option>
+				</List>
+			</Field>
+
+			<Field type="menu" id="defaultBrightnessSource"
+				defaultValue="plugin"
+				visibleBindingId="onBrightnessMode"
+				visibleBindingValue="default"
+				tooltip="Where the Default Brightness value comes from: the plugin-wide value (Plugin Config), or a manual value set below for this light."
+			>
+				<Label>Default Brightness source:</Label>
+				<List>
+					<Option value="plugin">use plugin default</Option>
+					<Option value="manual">manual value (below)</Option>
+				</List>
+			</Field>
+
 			<Field type="menu" id="defaultBrightness"
-				defaultValue="50"
+				defaultValue="80"
+				visibleBindingId="defaultBrightnessSource"
+				visibleBindingValue="manual"
 			>
 				<Label>Default Brightness(%):</Label>
 				<List>
@@ -1301,10 +1427,11 @@ The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
 				alignWithControl="true"
 				fontSize="small"
 				fontColor="darkgray"
+				visibleBindingId="defaultBrightnessSource"
+				visibleBindingValue="manual"
 			>
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an ON command is sent to this light.  
-If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>
+Manual Default Brightness for this light, used on an ON command when "On command brightness" = a Default Brightness and the source above = manual value.</Label>
 			</Field>
 
 			<Field type="menu" id="rate"
@@ -1450,6 +1577,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<TriggerLabel>brightness_on</TriggerLabel>
 				<ControlPageLabel>brightness_on</ControlPageLabel>
 			</State>
+			<State id="lastBrightness">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>last brightness (%)</TriggerLabel>
+				<ControlPageLabel>last brightness (%)</ControlPageLabel>
+			</State>
 			<State id="colorRed">
 				<ValueType>Number</ValueType>
 				<TriggerLabel>Red Level (0-255)</TriggerLabel>
@@ -1585,8 +1717,35 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
 			</Field>
 
+			<Field type="menu" id="onBrightnessMode"
+				defaultValue="default"
+				tooltip="What this light does when an ON command is sent without a brightness. standard = follow the plugin config setting."
+			>
+				<Label>On command brightness:</Label>
+				<List>
+					<Option value="standard">use plugin config setting</Option>
+					<Option value="default">a Default Brightness</Option>
+					<Option value="last">last brightness (restore)</Option>
+				</List>
+			</Field>
+
+			<Field type="menu" id="defaultBrightnessSource"
+				defaultValue="plugin"
+				visibleBindingId="onBrightnessMode"
+				visibleBindingValue="default"
+				tooltip="Where the Default Brightness value comes from: the plugin-wide value (Plugin Config), or a manual value set below for this light."
+			>
+				<Label>Default Brightness source:</Label>
+				<List>
+					<Option value="plugin">use plugin default</Option>
+					<Option value="manual">manual value (below)</Option>
+				</List>
+			</Field>
+
 			<Field type="menu" id="defaultBrightness"
-				defaultValue="50"
+				defaultValue="80"
+				visibleBindingId="defaultBrightnessSource"
+				visibleBindingValue="manual"
 			>
 				<Label>Default Brightness(%):</Label>
 				<List>
@@ -1622,10 +1781,11 @@ The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
 				alignWithControl="true"
 				fontSize="small"
 				fontColor="darkgray"
+				visibleBindingId="defaultBrightnessSource"
+				visibleBindingValue="manual"
 			>
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an ON command is sent to this light.  
-If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>
+Manual Default Brightness for this light, used on an ON command when "On command brightness" = a Default Brightness and the source above = manual value.</Label>
 			</Field>
 
 			<Field type="menu" id="rate"
@@ -1765,6 +1925,11 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				<ValueType>Number</ValueType>
 				<TriggerLabel>brightness_on</TriggerLabel>
 				<ControlPageLabel>brightness_on</ControlPageLabel>
+			</State>
+			<State id="lastBrightness">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>last brightness (%)</TriggerLabel>
+				<ControlPageLabel>last brightness (%)</ControlPageLabel>
 			</State>
 			<State id="effect">
 				<ValueType>String</ValueType>
@@ -2004,8 +2169,35 @@ The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
 The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
 			</Field>
 
+			<Field type="menu" id="onBrightnessMode"
+				defaultValue="default"
+				tooltip="What this light does when an ON command is sent without a brightness. standard = follow the plugin config setting."
+			>
+				<Label>On command brightness:</Label>
+				<List>
+					<Option value="standard">use plugin config setting</Option>
+					<Option value="default">a Default Brightness</Option>
+					<Option value="last">last brightness (restore)</Option>
+				</List>
+			</Field>
+
+			<Field type="menu" id="defaultBrightnessSource"
+				defaultValue="plugin"
+				visibleBindingId="onBrightnessMode"
+				visibleBindingValue="default"
+				tooltip="Where the Default Brightness value comes from: the plugin-wide value (Plugin Config), or a manual value set below for this light."
+			>
+				<Label>Default Brightness source:</Label>
+				<List>
+					<Option value="plugin">use plugin default</Option>
+					<Option value="manual">manual value (below)</Option>
+				</List>
+			</Field>
+
 			<Field type="menu" id="defaultBrightness"
-				defaultValue="50"
+				defaultValue="80"
+				visibleBindingId="defaultBrightnessSource"
+				visibleBindingValue="manual"
 			>
 				<Label>Default Brightness(%):</Label>
 				<List>
@@ -2041,10 +2233,11 @@ The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
 				alignWithControl="true"
 				fontSize="small"
 				fontColor="darkgray"
+				visibleBindingId="defaultBrightnessSource"
+				visibleBindingValue="manual"
 			>
 				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an ON command is sent to this light.  
-If no value is entered, when an ON command is sent, the light will return to the brightness it was at before being turned off.</Label>
+Manual Default Brightness for this light, used on an ON command when "On command brightness" = a Default Brightness and the source above = manual value.</Label>
 			</Field>
 
 			<Field type="menu" id="rate"
@@ -2202,6 +2395,11 @@ when a light is changed. With this option you can select
 				<ValueType>Number</ValueType>
 				<TriggerLabel>brightness_on</TriggerLabel>
 				<ControlPageLabel>brightness_on</ControlPageLabel>
+			</State>
+			<State id="lastBrightness">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>last brightness (%)</TriggerLabel>
+				<ControlPageLabel>last brightness (%)</ControlPageLabel>
 			</State>
 			<State id="colorRed">
 				<ValueType>Number</ValueType>

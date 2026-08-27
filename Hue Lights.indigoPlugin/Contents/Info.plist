@@ -2,18 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>PluginVersion</key>
-	<string>2022.32.112</string>
-	<key>ServerApiVersion</key>
-	<string>3.0</string>
-	<key>IwsApiVersion</key>
-	<string>1.0.0</string>
 	<key>CFBundleDisplayName</key>
 	<string>Hue Lights</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.nathansheldon.indigoplugin.HueLights</string>
-	<key>CFBundleVersion</key>
-	<string>1.0.0</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -21,5 +13,13 @@
 			<string>http://www.nathansheldon.com/files/Hue-Lights-Plugin.php</string>
 		</dict>
 	</array>
+	<key>CFBundleVersion</key>
+	<string>1.0.0</string>
+	<key>IwsApiVersion</key>
+	<string>1.0.0</string>
+	<key>PluginVersion</key>
+	<string>2022.33.115</string>
+	<key>ServerApiVersion</key>
+	<string>3.0</string>
 </dict>
 </plist>

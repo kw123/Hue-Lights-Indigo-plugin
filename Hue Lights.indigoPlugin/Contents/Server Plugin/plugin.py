@@ -91,6 +91,8 @@ kDefaultPluginPrefs = {
 				'timeScaleFactor':						'10',
 				'timeScaleFactorAPIV2':					'119',
 				'sendDeviceUpdatesTo':					'20',
+				'onBrightnessMode':						'default',	# on ON command: 'default' = use each light's Default Brightness, 'last' = restore last brightness
+				'defaultBrightnessGlobal':				'80',		# plugin-wide Default Brightness (%) used when a light in 'default' mode uses the plugin default (defaultBrightnessSource='plugin')
 				'autoCreatedNewDevices':				True,
 				'rgbmaxIndigo':							'100',
 				'folderNameForNewDevices':				'Hue New Devices',
@@ -131,6 +133,64 @@ kmaxHueItems = {'lights':200, 'sensors':200, 'groups':200, 'scenes':400, 'rules'
 kHueBridges 	= 5
 kPossibleHubVersions = ['1','2']
 kPossibleAPIVersions = ['1','2']
+
+# ---- daily min/max/average and change/trend tracking for numeric sensor states ----
+# (same scheme as the homematic / piBeacon / uniFiAP plugins)
+# per deviceTypeId: the base states that can carry the derived states below
+K_MINMAX_TRACKED = {
+	"hueMotionTemperatureSensor": ("temperatureC", "temperatureF"),
+	"hueMotionLightSensor":       ("luminance",),
+}
+K_MINMAX_ALLKEYS = set()
+for _states in K_MINMAX_TRACKED.values():
+	K_MINMAX_ALLKEYS.update(_states)
+
+# derived-state suffix groups; two INDEPENDENT groups, each owned by its own checkbox in device config:
+#   "minMaxEnable_<state>"  -> Min/Max Today/Yesterday + ..At timestamps + Ave + Measurements
+#   "enableChanges_<state>" -> ChangeMinutes../ChangeHours.. and the Trend derived from them
+K_MINMAX_SUFFIXES = (
+	("_MinToday","n"), ("_MinTodayAt","s"), ("_MaxToday","n"), ("_MaxTodayAt","s"),
+	("_MinYesterday","n"), ("_MinYesterdayAt","s"), ("_MaxYesterday","n"), ("_MaxYesterdayAt","s"),
+	("_AveToday","n"), ("_AveYesterday","n"), ("_MeasurementsToday","i"), ("_MeasurementsYesterday","i"),
+)
+K_CHANGES_SUFFIXES = (
+	("_ChangeMinutes10","n"), ("_ChangeMinutes20","n"), ("_ChangeHours01","n"), ("_ChangeHours02","n"),
+	("_ChangeHours06","n"), ("_ChangeHours12","n"), ("_ChangeHours24","n"), ("_Trend","s"),
+)
+
+def _minMaxConfigFieldsXml(typeId):
+	"""ConfigUI <Field> block for one device type: per tracked state the two checkboxes
+	(min/max/average + change/trend) and the trend menus bound to the changes checkbox."""
+	if typeId not in K_MINMAX_TRACKED: return ""
+	out = '<Field id="hue-sep-minmax" type="separator"/>'
+	for st in K_MINMAX_TRACKED[typeId]:
+		out += '<Field id="minMaxEnable_'+st+'" type="checkbox" defaultValue="false"><Label>Enable '+st+' min/max/average states</Label></Field>'
+		out += '<Field id="ignoreZerominMaxEnable_'+st+'" type="checkbox" defaultValue="false" visibleBindingId="minMaxEnable_'+st+'" visibleBindingValue="true"><Label> ... ignore 0</Label></Field>'
+		out += '<Field id="enableChanges_'+st+'" type="checkbox" defaultValue="false"><Label>Enable '+st+' change/trend states</Label></Field>'
+		out += '<Field id="trendTimeDeltaMin_'+st+'" type="menu" defaultValue="600" visibleBindingId="enableChanges_'+st+'" visibleBindingValue="true"><Label> ... trend min delta time:</Label>'
+		out += '<List>'
+		out += '<Option value="300"   > 5 minutes</Option>'
+		out += '<Option value="600"   > 10 minutes</Option>'
+		out += '<Option value="1200"  > 20 minutes</Option>'
+		out += '<Option value="3600"  > 1 hour</Option>'
+		out += '<Option value="7200"  > 2 hour</Option>'
+		out += '<Option value="21600" > 6 hour</Option>'
+		out += '<Option value="43200" > 12 hour</Option>'
+		out += '<Option value="86400" > 24 hour</Option>'
+		out += '</List></Field>'
+		out += '<Field id="trendDelta_'+st+'" type="menu" defaultValue="100" visibleBindingId="enableChanges_'+st+'" visibleBindingValue="true"><Label> ... trend min delta value:</Label>'
+		out += '<List>'
+		out += '<Option value="10"    > 0.1  %</Option>'
+		out += '<Option value="25"    > 0.25 %</Option>'
+		out += '<Option value="50"    > 0.5 %</Option>'
+		out += '<Option value="100"   > 1 %</Option>'
+		out += '<Option value="150"   > 1.5 %</Option>'
+		out += '<Option value="200"   > 2 %</Option>'
+		out += '<Option value="300"   > 3 %</Option>'
+		out += '<Option value="500"   > 5 %</Option>'
+		out += '<Option value="1000"  > 10 %</Option>'
+		out += '</List></Field>'
+	return out
 
 
 ################################################################################
@@ -453,6 +513,23 @@ class Plugin(indigo.PluginBase):
 			os.mkdir(self.indigoPreferencesPluginDir)
 		self.readFiles()
 
+		# change history + time-weight accumulators for the min/max/average / change/trend states
+		self.averagesCounts = dict()
+		self.changedValues = dict()
+		self.changedValuesSaveLast = time.time()
+		try:
+			if os.path.isfile(self.indigoPreferencesPluginDir+"changedValues.json"):
+				f = open(self.indigoPreferencesPluginDir+"changedValues.json", "r")
+				self.changedValues = json.loads(f.read())
+				f.close()
+				for devIdS in copy.copy(self.changedValues):
+					try:
+						if int(devIdS) not in indigo.devices: del self.changedValues[devIdS]
+					except: del self.changedValues[devIdS]
+		except	Exception as e:
+			self.changedValues = dict()
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+
 
 
 		# Prior to version 1.2.0, the "presets" property did not exist in the plugin preferences.
@@ -774,6 +851,12 @@ class Plugin(indigo.PluginBase):
 
 		self.searchForStringinFindHueBridge = prefs.get('searchForStringinFindHueBridge', kDefaultPluginPrefs['searchForStringinFindHueBridge'])
 
+		# ON-command brightness policy: 'default' (use each light's Default Brightness) or 'last' (restore last brightness)
+		self.onBrightnessMode = prefs.get('onBrightnessMode', kDefaultPluginPrefs['onBrightnessMode'])
+		# Plugin-wide Default Brightness (%) used by lights whose Default Brightness source is 'plugin'
+		try:	self.defaultBrightnessGlobal = int(prefs.get('defaultBrightnessGlobal', kDefaultPluginPrefs['defaultBrightnessGlobal']))
+		except Exception:	self.defaultBrightnessGlobal = 80
+
 	########################################
 	# Standard Plugin Methods
 	########################################
@@ -844,6 +927,9 @@ class Plugin(indigo.PluginBase):
 				if time.time() - self.saveFileTime[1] > 0:
 					self.saveFiles()
 
+				self.moveAveragesToLastDay()
+				self.saveChangedValues()
+
 				dt = int(time.time() - self.startTimeForbytesReceived)
 				if self.decideMyLog("PrintStats"):
 					if dt%(3600*24) == 1: # every 24 hours
@@ -857,6 +943,7 @@ class Plugin(indigo.PluginBase):
 
 
 		self.saveFiles(force=True)
+		self.saveChangedValues(force=True)
 		self.pluginState = "stop"
 		self.findHueBridgesDict['status'] = "stop"
 		self.delayedActionThread['status'] = "stop"
@@ -1290,7 +1377,8 @@ class Plugin(indigo.PluginBase):
 						props['bulbId'] = theID
 						props['type'] = hueDevice['type']
 						props['modelId'] = hueDevice['modelid']
-						props['defaultBrightness'] = "50"
+						props['defaultBrightness'] = "80"
+						props['defaultBrightnessSource'] = "plugin"
 						props['gamut'] = "C"
 						props['rate'] = "0.5"
 						props['noOnRampRate'] = False
@@ -4557,6 +4645,20 @@ class Plugin(indigo.PluginBase):
 				## stateList.append(someYesNoBoolState)
 				## stateList.append(someOneZeroBoolState)
 				## stateList.append(someTrueFalseBoolState)
+
+			# per-state daily min/max/average and change/trend states, each group behind its own
+			# checkbox in device config (opt-in, default off - nothing changes for existing devices)
+			if device.deviceTypeId in K_MINMAX_TRACKED:
+				props = device.pluginProps
+				for st in K_MINMAX_TRACKED[device.deviceTypeId]:
+					groups = list()
+					if props.get("minMaxEnable_"+st, False):  groups.append(K_MINMAX_SUFFIXES)
+					if props.get("enableChanges_"+st, False): groups.append(K_CHANGES_SUFFIXES)
+					for group in groups:
+						for suf, code in group:
+							if   code == "n": stateList.append(self.getDeviceStateDictForNumberType(st+suf, st+suf, st+suf))
+							elif code == "i": stateList.append(self.getDeviceStateDictForIntegerType(st+suf, st+suf, st+suf))
+							else:             stateList.append(self.getDeviceStateDictForStringType(st+suf, st+suf, st+suf))
 
 		# Return the updated state list.
 		return stateList
@@ -8355,6 +8457,12 @@ class Plugin(indigo.PluginBase):
 					else:
 						apd = {"key":key, "value":value, "uiValue":uiValue, "decimalPlaces":decimalPlaces, "uiImage":uiImage}
 					stateUpdateList.append(apd)
+					if key == 'brightnessLevel' and 'lastBrightness' in device.states:
+						try:
+							if int(value) > 0:		# remember the last ON brightness (%), used by 'restore last'
+								stateUpdateList.append({"key": "lastBrightness", "value": int(value)})
+						except (ValueError, TypeError):
+							pass
 					if 'lumen' in device.states:
 						try:
 							lumenMax = int(device.pluginProps.get('lumenMax', 600))
@@ -8369,8 +8477,18 @@ class Plugin(indigo.PluginBase):
 								stateUpdateList.append({"key": "lumen", "value": lumen, "uiValue": str(lumen)})
 						except (ValueError, TypeError):
 							pass
+					# numeric sensor value -> fill the derived min/max/average and change/trend states.
+					# derived keys are not in K_MINMAX_ALLKEYS, so the recursion ends after one level
+					if key in K_MINMAX_ALLKEYS:
+						stateUpdateList = self._fillMinMaxAndChanges(device, key, value, stateUpdateList)
 					return stateUpdateList
 				self.updateDeviceState(device, key, value, uiValue=uiValue, decimalPlaces=decimalPlaces, uiImage=uiImage, calledFrom="checkIfUpdateState")
+				if key == 'brightnessLevel' and 'lastBrightness' in device.states:
+					try:
+						if int(value) > 0:		# remember the last ON brightness (%), used by 'restore last'
+							self.updateDeviceState(device, "lastBrightness", int(value))
+					except (ValueError, TypeError):
+						pass
 				if 'lumen' in device.states:
 					try:
 						lumenMax = int(device.pluginProps.get('lumenMax', 600))
@@ -8385,7 +8503,229 @@ class Plugin(indigo.PluginBase):
 							self.updateDeviceState(device, 'lumen', lumen)
 					except (ValueError, TypeError):
 						pass
+				if key in K_MINMAX_ALLKEYS:
+					self._fillMinMaxAndChanges(device, key, value, None)
 		return stateUpdateList
+
+
+	# Device ConfigUI - inject the min/max/average + change/trend checkboxes for tracked sensor types
+	########################################
+	def getDeviceConfigUiXml(self, typeId, devId):
+		"""Append the per-state min/max/average and change/trend option fields to the ConfigUI
+		of the tracked sensor device types (before </ConfigUI>)."""
+		xml = super(Plugin, self).getDeviceConfigUiXml(typeId, devId)
+		try:
+			if xml and "</ConfigUI>" in xml and typeId in K_MINMAX_TRACKED and 'id="minMaxEnable_' not in xml:
+				xml = xml.replace("</ConfigUI>", _minMaxConfigFieldsXml(typeId) + "</ConfigUI>", 1)
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return xml
+
+
+	####----------------- min/max/average + changes/trend tracking (same scheme as homematic/piBeacon/uniFiAP plugins) ---------
+	def _fillMinMaxAndChanges(self, device, key, value, stateUpdateList):
+		"""Dispatch one new sensor reading into the two optional tracking groups of its device."""
+		try:
+			if key not in K_MINMAX_TRACKED.get(device.deviceTypeId, ()): return stateUpdateList
+			try:	val = float(value)
+			except:	return stateUpdateList
+			props = device.pluginProps
+			if props.get("minMaxEnable_"+key, False):
+				stateUpdateList = self.fillMinMaxSensors(device, key, val, 1, stateUpdateList)
+			if props.get("enableChanges_"+key, False):
+				stateUpdateList = self.updateChangedValuesInLastXXMinutes(device, key, val, 1, stateUpdateList)
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+		return stateUpdateList
+
+	####-----------------	 ---------
+	def fillMinMaxSensors(self, device, stateName, value, decimalPlaces, stateUpdateList):
+		"""Raise MaxToday / lower MinToday (with timestamps) and recompute the TIME-WEIGHTED daily average."""
+		try:
+			if stateName+"_MaxToday" not in device.states:											return stateUpdateList
+			if device.pluginProps.get("ignoreZerominMaxEnable_"+stateName, False) and value == 0:	return stateUpdateList
+			tNow = datetime.datetime.now().strftime("%H:%M:%S")
+
+			if value > float(device.states[stateName+"_MaxToday"]) or len("{}".format(device.states[stateName+"_MaxTodayAt"])) == 0:
+				stateUpdateList = self.checkIfUpdateState(device, stateName+"_MaxToday",   round(value, decimalPlaces), stateUpdateList=stateUpdateList)
+				stateUpdateList = self.checkIfUpdateState(device, stateName+"_MaxTodayAt", tNow, stateUpdateList=stateUpdateList)
+
+			if (
+					( value < float(device.states[stateName+"_MinToday"]) or len("{}".format(device.states[stateName+"_MinTodayAt"])) == 0 ) or
+					( value > 0 and device.pluginProps.get("ignoreZerominMaxEnable_"+stateName, False) and float(device.states[stateName+"_MinToday"]) == 0 )
+				):
+				stateUpdateList = self.checkIfUpdateState(device, stateName+"_MinToday",   round(value, decimalPlaces), stateUpdateList=stateUpdateList)
+				stateUpdateList = self.checkIfUpdateState(device, stateName+"_MinTodayAt", tNow, stateUpdateList=stateUpdateList)
+
+			if stateName+"_AveToday" in device.states and stateName+"_MeasurementsToday" in device.states:
+				devId = device.id
+				if devId not in self.averagesCounts: self.averagesCounts[devId] = dict()
+				if stateName+"_MeasurementsToday" not in self.averagesCounts[devId]:
+					self.averagesCounts[devId][stateName+"_MeasurementsToday"] = [device.states[stateName+"_MeasurementsToday"], 0]
+				nMeas = max(0, self.averagesCounts[devId][stateName+"_MeasurementsToday"][0])
+
+				# TIME-WEIGHTED average: a reading is weighted by how LONG it was valid, not by how
+				# often it arrived. accumulator = [timeOfLastReading, valueValidSinceThen, secondsSoFarToday],
+				# kept in self.changedValues so it is persisted+restored with the change history
+				devIdS = "{}".format(devId)
+				if devIdS not in self.changedValues: self.changedValues[devIdS] = dict()
+				accKey = stateName+"_aveTimeWeighted"
+				acc    = self.changedValues[devIdS].get(accKey,"")
+				now    = time.time()
+				try:	currentAve = float(device.states[stateName+"_AveToday"])
+				except:	currentAve = None
+
+				if type(acc) != type([]) or len(acc) != 3:	# first reading, or accumulator lost in a crash
+					if currentAve is None or nMeas < 1:		# no usable average yet -> start from this reading
+						self.changedValues[devIdS][accKey] = [now, value, 0.]
+						newAve = value
+					else:
+						# AveToday already covers today up to now, so it must KEEP that weight -
+						# rebuild the weight from the clock: seconds since midnight
+						secsToday = now - time.mktime(datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timetuple())
+						self.changedValues[devIdS][accKey] = [now, value, max(0., secsToday)]
+						newAve = currentAve
+				else:
+					lastTime, lastVal, accSecs = acc
+					dtSecs = max(0., now - lastTime)		# clock moved backwards -> 0
+					if currentAve is None: currentAve = lastVal
+					if accSecs + dtSecs > 0:	newAve = (currentAve*accSecs + lastVal*dtSecs) / (accSecs + dtSecs)
+					else:						newAve = value
+					self.changedValues[devIdS][accKey] = [now, value, accSecs + dtSecs]
+
+				stateUpdateList = self.checkIfUpdateState(device, stateName+"_AveToday", round(newAve, decimalPlaces), stateUpdateList=stateUpdateList)
+				self.averagesCounts[devId][stateName+"_MeasurementsToday"][0] += 1
+				if time.time() - self.averagesCounts[devId][stateName+"_MeasurementsToday"][1] > 63.1:
+					self.averagesCounts[devId][stateName+"_MeasurementsToday"][1] = time.time()
+					stateUpdateList = self.checkIfUpdateState(device, stateName+"_MeasurementsToday", nMeas+1, stateUpdateList=stateUpdateList)
+
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"{} {} {}".format(device.name, stateName, value), exc_info=True)
+		return stateUpdateList
+
+	####-----------------	 ---------
+	def updateChangedValuesInLastXXMinutes(self, device, stateToUpdate, value, decimalPlaces, stateUpdateList):
+		"""Update the <state>_ChangeXX states from the kept history and derive the Trend from it."""
+		try:
+			if stateToUpdate+"_ChangeHours01" not in device.states: return stateUpdateList
+
+			devIdS = "{}".format(device.id)
+			props = device.pluginProps
+			trendTimeDeltaMin = int(props.get("trendTimeDeltaMin_"+stateToUpdate,"600"))
+			trendDelta = float(props.get("trendDelta_"+stateToUpdate,100.)) / 100.
+
+			updateList = list()
+			for suf, code in K_CHANGES_SUFFIXES:
+				state = stateToUpdate + suf
+				if state not in device.states: continue
+				if   suf.find("_ChangeHours")   == 0: deltaSecs = int(suf.split("_ChangeHours")[1])   * 3600
+				elif suf.find("_ChangeMinutes") == 0: deltaSecs = int(suf.split("_ChangeMinutes")[1]) * 60
+				else: continue
+				updateList.append({"state":state, "deltaSecs":deltaSecs, "pointer":0})
+			if len(updateList) < 1: return stateUpdateList
+
+			if devIdS not in self.changedValues: self.changedValues[devIdS] = dict()
+			if stateToUpdate+"list" in self.changedValues[devIdS]:
+				valueList = self.changedValues[devIdS][stateToUpdate+"list"]
+			else:
+				valueList = [(0,0),(0,0)]
+
+			valueList.append([int(time.time()), round(value, decimalPlaces)])
+
+			updateList = sorted(updateList, key = lambda x: x["deltaSecs"])
+			cutMax	= updateList[-1]["deltaSecs"]
+			for ii in range(len(valueList)):
+				if len(valueList) <= 2: break
+				if (valueList[-1][0] - valueList[0][0]) > cutMax: valueList.pop(0)
+				else: break
+
+			ll = len(valueList)
+			if ll > 1:
+				for kk in range(len(updateList)):
+					cut = updateList[kk]["deltaSecs"]
+					updateList[kk]["pointer"] = 0
+					if cut != cutMax:
+						for ii in range(ll-1,-1,-1):
+							if (valueList[-1][0] - valueList[ii][0]) <= cut:
+								updateList[kk]["pointer"] = ii
+							else:
+								break
+
+					changed = round(( valueList[-1][1] - valueList[updateList[kk]["pointer"]][1] ), decimalPlaces)
+					if changed != device.states[updateList[kk]["state"]]:
+						stateUpdateList = self.checkIfUpdateState(device, updateList[kk]["state"], changed, stateUpdateList=stateUpdateList)
+
+					if stateToUpdate+"_Trend" in device.states:
+						if cut == trendTimeDeltaMin:
+							changedPerc = 200 * ( valueList[-1][1] - valueList[updateList[kk]["pointer"]][1] ) / max(0.01, valueList[-1][1] + valueList[updateList[kk]["pointer"]][1] )
+							if   changedPerc > trendDelta*8:	Trend = "^^^^"
+							elif changedPerc > trendDelta*4:	Trend = "^^^"
+							elif changedPerc > trendDelta*2:	Trend = "^^"
+							elif changedPerc > trendDelta: 		Trend = "^"
+							elif changedPerc < -trendDelta*8:	Trend = "vvvv"
+							elif changedPerc < -trendDelta*4:	Trend = "vvv"
+							elif changedPerc < -trendDelta*2:	Trend = "vv"
+							elif changedPerc < -trendDelta:		Trend = "v"
+							else:								Trend = "=="
+							if Trend != device.states[stateToUpdate+"_Trend"]:
+								stateUpdateList = self.checkIfUpdateState(device, stateToUpdate+"_Trend", Trend, stateUpdateList=stateUpdateList)
+
+			self.changedValues[devIdS][stateToUpdate+"list"] = valueList
+
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"{} {} {}".format(device.name, stateToUpdate, value), exc_info=True)
+		return stateUpdateList
+
+	####-----------------	 ---------
+	def moveAveragesToLastDay(self):
+		"""At midnight roll the Today min/max/ave/measurement states into Yesterday and reseed Today."""
+		try:
+			dNow = datetime.datetime.now()
+			if dNow.hour != 0 or self.pluginPrefs.get("dayResetMinMax", -1) == dNow.day: return
+			self.pluginPrefs["dayResetMinMax"] = dNow.day
+			tNow = dNow.strftime("%H:%M:%S")
+			self.averagesCounts = dict()
+			for device in indigo.devices.iter(self.pluginId):
+				if not device.enabled: continue
+				if device.deviceTypeId not in K_MINMAX_TRACKED: continue
+				stateUpdateList = list()
+				for ttx in K_MINMAX_TRACKED[device.deviceTypeId]:
+					try:
+						if ttx not in device.states or ttx+"_MaxToday" not in device.states: continue
+						val = device.states[ttx]
+						for xx in ["_Max", "_Min", "_Ave", "_Measurements"]:
+							stateUpdateList.append({"key":ttx+xx+"Yesterday", "value":device.states[ttx+xx+"Today"]})
+							if xx != "_Measurements": stateUpdateList.append({"key":ttx+xx+"Today", "value":val})
+						stateUpdateList.append({"key":ttx+"_MeasurementsToday", "value":1})
+						stateUpdateList.append({"key":ttx+"_MaxYesterdayAt", "value":device.states[ttx+"_MaxTodayAt"]})
+						stateUpdateList.append({"key":ttx+"_MinYesterdayAt", "value":device.states[ttx+"_MinTodayAt"]})
+						stateUpdateList.append({"key":ttx+"_MaxTodayAt", "value":tNow})
+						stateUpdateList.append({"key":ttx+"_MinTodayAt", "value":tNow})
+						# drop the time-weight accumulator, the new day starts with 0 seconds
+						try:	del self.changedValues["{}".format(device.id)][ttx+"_aveTimeWeighted"]
+						except: pass
+					except	Exception as e:
+						if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+				if stateUpdateList:
+					try:	device.updateStatesOnServer(stateUpdateList)
+					except	Exception as e:
+						if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+			self.saveChangedValues(force=True)
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
+
+	####-----------------	 ---------
+	def saveChangedValues(self, force=False):
+		"""Persist the change history + time-weight accumulators every 10 minutes (restored at startup)."""
+		try:
+			if not force and time.time() - self.changedValuesSaveLast < 600: return
+			self.changedValuesSaveLast = time.time()
+			if self.changedValues == dict(): return
+			f = open(self.indigoPreferencesPluginDir+"changedValues.json", "w")
+			f.write(json.dumps(self.changedValues, sort_keys=True))
+			f.close()
+		except	Exception as e:
+			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 
 
 	# Update Device Properties
@@ -10890,7 +11230,8 @@ class Plugin(indigo.PluginBase):
 						props['bulbId'] = theID
 						props['type'] = HueDeviceType
 						props['modelId'] = modelid
-						props['defaultBrightness'] = "50"
+						props['defaultBrightness'] = "80"
+						props['defaultBrightnessSource'] = "plugin"
 						props['gamut'] = gamut
 						props['rate'] = "0.5"
 						props['noOnRampRate'] = False
@@ -13428,6 +13769,38 @@ class Plugin(indigo.PluginBase):
 		return
 
 
+	# Resolve the ON-command brightness for a light/group
+	########################################
+	def getOnBrightnessPercent(self, device):
+		"""
+		Resolve the brightness (%) to apply when a light/group is turned ON, per its onBrightnessMode
+		device prop: 'standard' -> plugin-wide self.onBrightnessMode, 'default' -> the device's Default
+		Brightness, 'last' -> keep the last brightness.
+
+		Args:
+		    device (indigo.device): the light or group being turned on
+
+		Returns:
+		    int 1-100 to force that brightness, or None to keep/restore the last brightness
+		"""
+		if device.deviceTypeId == "hueOnOffDevice":		# on/off plug has no brightness
+			return None
+		mode = device.pluginProps.get('onBrightnessMode', 'default')
+		if mode == 'standard':
+			mode = getattr(self, 'onBrightnessMode', 'default')
+		if mode != 'default':							# 'last' (or anything unexpected) -> keep last brightness
+			return None
+		# Default Brightness value source: 'plugin' = plugin-wide config value, 'manual' = this light's own value
+		source = device.pluginProps.get('defaultBrightnessSource', 'plugin')
+		if source == 'manual':
+			try:	pct = int(device.pluginProps.get('defaultBrightness', 0))
+			except Exception:	pct = 0
+		else:
+			pct = getattr(self, 'defaultBrightnessGlobal', 80)
+		if pct <= 0:									# nothing usable -> keep last brightness
+			return None
+		return min(100, max(1, pct))
+
 	# Turn Device On or Off
 	########################################
 	def doOnOff(self, device, onState, rampRate=-1, showLog=True):
@@ -13468,21 +13841,15 @@ class Plugin(indigo.PluginBase):
 					# Get the current brightness. Range is 0-100.
 					currentBrightness = int(device.states['brightnessLevel'])
 					savedBrightness = int(device.states['brightness_on'])
-					# Get the bulb's default brightness (if it exists). Range is 1-100.
-					defaultBrightness = device.pluginProps.get('defaultBrightness', 0)
-					# Make sure the defaultBrightness is valid.
-					try:
-						defaultBrightness = int(defaultBrightness)
-					except ValueError:
-						defaultBrightness = 0
-					# If the bulb has a default brightness, use it instead of the saved brightness.
-					#   (We're using the "savedBrightness" variable as the brightness goal here).
-					if defaultBrightness > 0:
-						# Convert default brightness from percentage to 1-255 range.
-						savedBrightness = int(round(defaultBrightness * 255.0 / 100.0))
-					# If the currentBrightness is less than 100% and is the same as the savedBrightness, go to 100%
-					if currentBrightness < 100 and currentBrightness == int(round(savedBrightness * 100.0 / 255.0)):
-						savedBrightness = 255
+					# Resolve the ON brightness per the device's onBrightnessMode (default / last / standard).
+					onPct = self.getOnBrightnessPercent(device)
+					if onPct is not None:
+						# 'default' mode: force the configured Default Brightness (convert % -> 1-255).
+						savedBrightness = int(round(onPct * 255.0 / 100.0))
+					else:
+						# 'last' mode: keep last brightness; if already at it and <100%, go to 100% (toggle-to-full)
+						if currentBrightness < 100 and currentBrightness == int(round(savedBrightness * 100.0 / 255.0)):
+							savedBrightness = 255
 	
 				# Sanity check for an IP address
 				if ipAddress is None:
@@ -13612,7 +13979,7 @@ class Plugin(indigo.PluginBase):
 						])
 					
 					
-			else:  # apiupdateAllHueListsV2() 
+			else:  # apiupdateAllHueListsV2()
 				if theType == "hueOnOffDevice":						rampRate = 0
 				if onState:
 					if device.pluginProps.get('noOnRampRate', False): rampRate = 0
@@ -13620,6 +13987,10 @@ class Plugin(indigo.PluginBase):
 						requestData = {  'on': {'on':True}, "dynamics": { "duration": rampRate*100} }
 					else:
 						requestData = {  'on': {'on':True} }
+					# 'default' mode: force the configured Default Brightness on turn-on ('last' -> let the bridge restore)
+					onPct = self.getOnBrightnessPercent(device)
+					if onPct is not None:
+						requestData['dimming'] = {'brightness': onPct}
 				else:
 					if int(device.states.get('brightnessLevel',0)) < 6:rampRate = 0
 					if device.pluginProps.get('noOffRampRate', False): 	rampRate = 0
@@ -13790,9 +14161,9 @@ class Plugin(indigo.PluginBase):
 					if currentBrightness < 6:							rampRate = 0
 					if device.pluginProps.get('noOffRampRate', False): 	rampRate = 0
 					if rampRate > 0:
-						requestData = {  'dimming':{'brightness':0},  'on':{'on':False}, "dynamics": { "duration": rampRate*100}}
+						requestData = {  'on':{'on':False}, "dynamics": { "duration": rampRate*100}}
 					else:
-						requestData = {  'dimming':{'brightness':0},  'on':{'on':False}}
+						requestData = {  'on':{'on':False}}
 					
 				self.prepHpptCallV2(hubNumber, device, requestData )
 				return 
@@ -13981,7 +14352,7 @@ class Plugin(indigo.PluginBase):
 					requestData = {'color': {'xy':{'x':round(x,4), 'y':round(y,4)} },  'dimming':{'brightness': round(float(brightness),2)},   "dynamics": { "duration": rampRate*100}, 'on': {'on':True}}
 				else:
 					if device.pluginProps.get('noOffRampRate', False): 	rampRate = 0
-					requestData = {  'dimming':{'brightness':0},  'on':{'on':False}, "dynamics": { "duration": rampRate*100}}
+					requestData = {  'on':{'on':False}, "dynamics": { "duration": rampRate*100}}
 				
 				self.prepHpptCallV2(hubNumber, device, requestData )
 

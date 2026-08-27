@@ -1,3 +1,78 @@
+########################################
+SHORT CHANGELOG (since 2022.33.113)
+########################################
+- 2022.33.115  Default Brightness is now a real plugin-wide value (default 80%). Each dimmable light/group
+               picks its Default Brightness "source": use plugin default, or a manual value. New device
+               state lastBrightness (last ON %). ON-command-brightness applies to all dimmable devices
+               (lamps AND dimmers); on/off-only plugs have no brightness and are unaffected.
+- 2022.33.114  Added the plugin-config ON-command brightness policy field and fixed its default attribute.
+               (Superseded/extended by .115 — see below.)
+- 2022.33.113  Daily min/max/average + change/trend tracking for numeric sensor states (motion temperature
+               and light-level sensors); time-weighted averages, persisted and rolled over at midnight.
+
+
+========================================
+2022.33.115 @ 2026-08-27
+New: plugin-wide "Default Brightness (%)" value in the plugin config (Other settings), default 80%
+(pref defaultBrightnessGlobal). Replaces the "fallback (%)" field from .114.
+New: per-device "Default Brightness source" (light/group edit, all 6 dimmable device types) =
+"use plugin default" (default) or "manual value". The manual value field and its help text are shown
+only when the source is "manual" and the ON command uses a Default Brightness.
+Resolution in getOnBrightnessPercent(): if the ON command resolves to a Default Brightness, use the
+device manual value when source='manual', else the plugin-wide value; if neither is usable keep last
+brightness. New light/group devices are created with source='plugin' and manual value 80.
+New: device state "lastBrightness" (last ON brightness %) on all 6 dimmable device types; maintained
+centrally in checkIfUpdateState() whenever brightnessLevel updates to a non-zero value.
+Note: existing dimmable devices default to source='plugin', so on an ON command that uses a Default
+Brightness they now use the 80% plugin value unless you set a per-device manual value.
+Q/scope: ON-command brightness covers every dimmable device (bulbs, colour, ambiance, strips, generic
+dimmer, and hueGroup). On/off-only devices (hueOnOffDevice) have no brightness and are skipped.
+
+========================================
+2022.33.114 @ 2026-08-27
+Fix: the config "ON command uses" menu (onBrightnessMode) used the invalid attribute default="default"
+instead of defaultValue="default", so it had no default selection; corrected.
+Label: plugin config "On command uses (unless overridden per device):" renamed to "ON command uses".
+(The .114 "Default Brightness fallback (%)" field was reworked into the plugin-wide value in .115.)
+
+
+========================================
+2022.33.113 @ 2026-07-28
+NEW: daily min/max/average and change/trend tracking for the numeric sensor states (same scheme as the
+homematic / piBeacon / uniFiAP plugins). Tracked: temperatureC/temperatureF on the hue motion temperature
+sensor and luminance on the hue motion light sensor. Per state TWO independent opt-in checkboxes in the
+device config dialog (both default OFF, nothing changes for existing devices until enabled):
+  "Enable <state> min/max/average states"  -> Min/Max Today/Yesterday + ..At timestamps + AveToday/Yesterday
+                                              + Measurements counters (plus an "ignore 0" sub-option)
+  "Enable <state> change/trend states"     -> ChangeMinutes10/20 + ChangeHours01/02/06/12/24 and a Trend
+                                              state, with trend time/delta menus
+The daily average is TIME-WEIGHTED: a reading counts by how long it was valid, not by how often it arrived.
+History + accumulators persist in changedValues.json (saved every 10 minutes and at plugin stop) and roll
+over at midnight.
+
+
+========================================
+2022.32.114 @ 2026-07-09
+Fix: V2 "off" payloads no longer send dimming:{brightness:0}. The Hue V2 API cannot store brightness 0 —
+it clamps a written 0 to the lowest brightness, which overwrote the bridge's remembered on-brightness to
+~1%. That corrupted the last-brightness restore (a light turned off via set-brightness-0 then turned back
+on in 'last' mode came on at ~1%). doBrightness (bri 0) and doColorTemperature (bri 0) now send just
+{'on':{'on':False}} (+ dynamics ramp), matching the Hue app; the bridge keeps the real brightness.
+
+
+========================================
+2022.32.113 @ 2026-07-09
+New: choose what a light/group does on an ON command (no explicit brightness) — use its Default Brightness
+or restore the last brightness.
+- Plugin config (Other settings): "On command uses ..." = the light's Default Brightness (default) / last brightness.
+- Device edit (6 dimmer types incl. hueGroup): "On command brightness:" = standard (follow plugin config) /
+  this light's Default Brightness / last brightness. Default "standard"? -> defaults to the light's Default
+  Brightness value (existing behaviour preserved).
+- Resolver getOnBrightnessPercent(device) applies this in doOnOff for BOTH API v1 and v2. Previously v2 ignored
+  Default Brightness on turn-on (it just let the bridge restore); now it honors the setting.
+- 'default' with no Default Brightness value set -> falls back to last brightness (as before).
+
+
 ========================================
 2022.32.112 @ 2026-07-09
 The "shortBridgeInfo" print (bridge/lights/groups/... summary header + per-bridge lines) is now built into

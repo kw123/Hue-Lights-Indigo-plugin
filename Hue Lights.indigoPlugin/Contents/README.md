@@ -80,6 +80,7 @@ One Indigo device is auto-created per bridge, exposing 30+ read-only states: lig
 
 - `onOffState` — On / off
 - `brightnessLevel` — 0–100 %
+- `lastBrightness` — last ON brightness (%); holds the last non-zero `brightnessLevel`, so it survives the light being turned off. This is the level used by the *restore last brightness* ON behaviour.
 - `lumen` — Calculated lumen output: `int(brightnessLevel × lumenMax / 100 + 0.5)`; 0 when light is off. For `hueGroup` devices this is the **sum** of the `lumen` state of all ON member lights (off lights contribute 0); group `brightnessLevel` % is unchanged.
 - `colorMode` — `hs` (colour), `ct` (white), `xy` (extended colour)
 - `colorTemp` — Colour temperature in mirek (153–500)
@@ -153,6 +154,9 @@ Additional menu-only utilities:
 - **Enable / disable bridge** — pause communication without removing devices
 - **Scan interval** — how often to poll the bridge (seconds)
 - **Device name prefixes** — customise auto-created device name format per type (light / group / switch / sensor)
+- **On-command brightness** — what a light/group does on an ON command with no explicit brightness: use a **Default Brightness**, or **restore the last brightness**. Overridable per device (light edit dialog: *standard / a Default Brightness / last brightness*). Applies to both API v1 and v2 (Pro) bridges.
+- **Default Brightness (%)** — the plugin-wide Default Brightness value (default **80 %**), used whenever *On-command brightness* resolves to a Default Brightness and the light's **Default Brightness source** is *use plugin default*.
+- **Per-device Default Brightness source** *(light edit dialog)* — each dimmable light/group can choose **use plugin default** (the value above) or **manual value** (a level set on that device). Resolution when the ON command uses a Default Brightness: manual value if the source is *manual*, otherwise the plugin-wide value; if neither yields a usable level the light keeps its last brightness.
 - **Debug flags** — per-area verbose logging: `EditSetup`, `SendCommandsToBridge`, `StateChange`, `NewDevice`, `IpChange`, `TrackedDevice`, …
 
 ### Event-stream restart thresholds *(expert section, Pro bridge)*

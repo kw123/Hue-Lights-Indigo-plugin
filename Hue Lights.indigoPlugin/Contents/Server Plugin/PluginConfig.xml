@@ -452,6 +452,55 @@ Shown after successful pairing process</Label>
 		<Label>Directory for new indigo devices</Label>
 	</Field>
 
+	<Field type="menu" id="onBrightnessMode"
+		defaultValue="default"
+		tooltip="What a light/group does when an ON command is sent without a brightness. Each light can override this in its device settings (standard = follow this)."
+	>
+		<Label>ON command uses</Label>
+		<List>
+			<Option value="default">the light's Default Brightness</Option>
+			<Option value="last">the last brightness (restore)</Option>
+		</List>
+	</Field>
+
+	<Field type="menu" id="defaultBrightnessGlobal"
+		defaultValue="80"
+		tooltip="Plugin-wide Default Brightness used when a light's ON command uses the Default Brightness and its Default Brightness source is 'use plugin default'."
+	>
+		<Label>Default Brightness (%):</Label>
+		<List>
+			<Option value="1">1</Option>
+			<Option value="5">5</Option>
+			<Option value="10">10</Option>
+			<Option value="15">15</Option>
+			<Option value="20">20</Option>
+			<Option value="25">25</Option>
+			<Option value="30">30</Option>
+			<Option value="35">35</Option>
+			<Option value="40">40</Option>
+			<Option value="45">45</Option>
+			<Option value="50">50</Option>
+			<Option value="55">55</Option>
+			<Option value="60">60</Option>
+			<Option value="65">65</Option>
+			<Option value="70">70</Option>
+			<Option value="75">75</Option>
+			<Option value="80">80</Option>
+			<Option value="85">85</Option>
+			<Option value="90">90</Option>
+			<Option value="95">95</Option>
+			<Option value="100">100</Option>
+		</List>
+	</Field>
+
+	<Field type="label" id="labelDefaultBrightnessGlobal"
+		alignWithControl="true"
+		fontSize="small"
+		fontColor="darkgray"
+	>
+		<Label>Used when "ON command uses" = the light's Default Brightness and a light's Default Brightness source is "use plugin default". Each light can instead pick "manual value" in its device settings.</Label>
+	</Field>
+
 	<!-- 'restart api-V2 event listener after no events for N seconds' (NumberOfSecondsEventWoMessage)
 	     moved to the expert section at the bottom of this dialog -->
 	<!--  timeScaleFactor is devided by 10 in plugin, as floats do not work well in prefs; eg 5 becomes  0.5 -->
