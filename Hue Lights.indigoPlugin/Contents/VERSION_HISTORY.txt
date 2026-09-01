@@ -1,6 +1,29 @@
 ########################################
 SHORT CHANGELOG (since 2022.33.113)
 ########################################
+- 2022.33.120  Ported three fixes found in the Hue Lights-4 (2022.32.112) branch that current lacked:
+               (1) services[...] KeyError hardening -> services.get(...,{}) in the V2 bridge-info counters
+               (a bridge missing a service type no longer aborts the update); (2) fillAllDataV2() now runs
+               even when auto-create is disabled (V2 data was otherwise never refreshed); (3) doLightUpdate
+               now sets onOffState from 'on' regardless of brightness (on=True + brightness 0 no longer
+               leaves the device showing off). No -4 features were missing; current remains a superset.
+- 2022.33.119  setBridgeBusy: a request stalled >15s on a slow/unreachable bridge no longer emits the
+               misleading "bridge gets polled too often, reduce polling" warning; it logs a plain
+               "previous request still active … bridge slow or unreachable" instead. The reduce-polling
+               advice is kept only for genuine short overlaps.
+- 2022.33.118  The WriteData debug area now also writes received SSE events to hueEvents.json (alongside
+               its allV1Data.json / allV2Data.json dumps); previously only the EventApi area did.
+- 2022.33.117  Fix: "Log messages in = ONLY plugin.log" did not keep DEBUG-area output out of the Indigo
+               log — those lines were logged at hard-coded level 20. The 98 debug-gated (decideMyLog...)
+               log(20) calls now log at sendDeviceUpdatesTo, so ONLY plugin.log (10) routes them to
+               plugin.log alone. Normal (ungated) info stays in both. Plugin file handler set to THREADDEBUG.
+- 2022.33.116  EventStream reliability rework for the Pro bridge: a quiet stream is no longer treated as a
+               failure (removed the no-message watchdog restart); dead connections are detected by TCP
+               keepalive only. A fresh requests.Session is built after every stream failure (no reused
+               poisoned pooled connection). Outage duration is measured from when the connection actually
+               dropped (disconnectTime) instead of from the last Hue event, fixing needless full re-reads
+               on quiet bridges. Removed dead _lastEventTime. Keepalive replay + bounded reconnect history
+               retained.
 - 2022.33.115  Default Brightness is now a real plugin-wide value (default 80%). Each dimmable light/group
                picks its Default Brightness "source": use plugin default, or a manual value. New device
                state lastBrightness (last ON %). ON-command-brightness applies to all dimmable devices
@@ -9,6 +32,92 @@ SHORT CHANGELOG (since 2022.33.113)
                (Superseded/extended by .115 — see below.)
 - 2022.33.113  Daily min/max/average + change/trend tracking for numeric sensor states (motion temperature
                and light-level sensors); time-weighted averages, persisted and rolled over at midnight.
+
+
+========================================
+2022.33.120 @ 2026-08-28
+Reconciliation with the Hue Lights-4 branch (2022.32.112). Current is a strict superset of -4 (its
+changelog contains every -4 entry, plus .32.113/.114 and the .33.x line), and no whole functions or
+features from -4 were missing. A code-level diff surfaced three fixes that existed in -4 but not in the
+current line; all three are ported here:
+1. KeyError hardening in the V2 bridge-info counters: services['button'] / ['device_software_update'] /
+   ['light'] / ['room'] / ['zone'] / ['scene'] / ['contact'] / ['smart_scene'] / ['behavior_script'] /
+   ['security_area_motion'] / ['grouped_motion'] / ['motion_area_configuration'] are now read with
+   services.get(name, {}). A Pro bridge that lacks one of these service types no longer raises KeyError
+   and aborts the whole numberOf_* state update. (2 loop headers + 12 len() call sites.)
+2. checkIfnewDevices(): self.fillAllDataV2() now runs BEFORE the "auto-create disabled" early return,
+   so V2 bridge data is populated even when automatic Indigo device creation is off. Previously that was
+   the only fillAllDataV2() call site, so with auto-create off the V2 data was never read on this path.
+3. doLightUpdate(): onOffState now follows 'on' independently of brightness. The old code only set
+   onOffState when (on and brightness>0), so a light reporting on=True with brightness 0 (an on/off-only
+   event) left the Indigo device stuck showing off. brightnessLevel/brightness_on are still updated only
+   when brightness>0.
+No behavioural change was taken from -4 in the EventStream/logging/brightness areas — current already has
+the newer .33.x work there (min/max, default-brightness value+source, lastBrightness, the EventStream
+rework, the logging fixes, etc.).
+
+
+========================================
+2022.33.119 @ 2026-08-28
+setBridgeBusy: when the bridge is disconnected, a REST poll can sit "active" ~20s (the requests retry
+adapter stacks several connect attempts), and the next scheduled poll then tripped the busy detector and
+logged "!! bridge gets polled too often ... reduce polling". That advice is misleading during an outage —
+the previous request was hung on a dead bridge, not overlapping because of poll frequency.
+Fix: the mxDelay>5 branch is split. A very long stall (>15s, past the retry ceiling) now logs a plain
+"previous request still active after N secs — bridge slow or unreachable; abandoning wait" with no
+reduce-polling advice. Moderate overlaps (5-15s) keep the original over-polling warning, as does the
+cumulative max-delay path. No behavioural change to the wait/abandon logic itself.
+
+
+========================================
+2022.33.118 @ 2026-08-28
+The WriteData debug area (config: "(9) write data read from bridge to prefs dir") now also writes the
+received API v2 SSE events to hueEvents.json, consistent with its allV1Data.json / allV2Data.json dumps.
+Previously the event dump was gated only by the EventApi debug area; the listener now writes hueEvents.json
+when EITHER EventApi OR WriteData is enabled (still last-100-events, rolling). Config label updated to
+list the three files.
+
+
+========================================
+2022.33.117 @ 2026-08-28
+Fix: the "Log messages in" plugin-config option (sendDeviceUpdatesTo: 20 = Indigo log + plugin.log,
+10 = ONLY plugin.log) did not keep DEBUG-area output out of the Indigo log when "ONLY plugin.log" was
+selected (e.g. "digestV2Event evType update" kept appearing in the Indigo log).
+Root cause: the debug-area messages (gated by decideMyLog(...)) were logged at a hard-coded level 20, so
+they always passed the Indigo log handler (INFO) regardless of the option.
+Fix: the 98 debug-gated log(20) calls now log at self.sendDeviceUpdatesTo. When the option is 10, those
+records are emitted at level 10 -> the Indigo log handler (INFO) drops them and only plugin.log keeps
+them; when 20 they go to both, as before. This is scoped to DEBUG output only: normal (ungated) info
+messages are still logged at level 20 and remain in the Indigo log in both modes.
+Also: self.plugin_file_handler is set to logging.THREADDEBUG so plugin.log always captures the level-10
+debug records (otherwise a >INFO file handler would drop them). Warnings/errors (>=30) reach both logs.
+Note: an earlier attempt in this version raised the whole Indigo log handler to WARNING for option 10;
+that suppressed ALL info (including startup/connection lines) and was reverted in favour of the scoped
+per-message-level approach above.
+
+
+========================================
+2022.33.116 @ 2026-08-28
+EventStream (Pro bridge, API v2) reliability rework — ports the fixes validated on the author's
+2022.32.112 branch onto this line. Four changes:
+1. Quiet stream is no longer a restart trigger. checkIfListenerIsRunning() no longer restarts a v2
+   listener merely because no SSE events arrived — the Pro bridge legitimately goes silent for long
+   periods. The listener is restarted only when the keepalive/restart threshold changes (restartSecs).
+   Genuine failures are handled by the socket/HTTP layer instead.
+2. TCP keepalive is now the sole health check (SO_KEEPALIVE, TCP_KEEPALIVE/KEEPIDLE, KEEPINTVL, KEEPCNT,
+   TCP_NODELAY; idle derived from NumberOfSecondsEventRestart). Extracted into _newEventStreamSession().
+3. Never reuse the SSE requests.Session after a failure. On any stream exception the session is closed
+   and a fresh keepalive session is built before the next attempt, preventing a poisoned pooled TLS/TCP
+   connection from wedging all further reconnects.
+4. Outage timing measured from disconnectTime (when the connection actually dropped) instead of the last
+   Hue event. On a quiet-but-healthy bridge the last event may be hours old, which previously inflated the
+   measured gap past the ~300s replay window and forced needless full bridge re-reads. Removed the now-dead
+   self._lastEventTime (init + update + read).
+Cleanup: removed the now-inert line in commandToHub_HTTP that backdated the SSE listener's lastMessage
+to provoke the old watchdog (the SSE socket detects real outages via keepalive; backdating only skewed
+the event-frequency stats). lastMessage is now used solely for the event-frequency histogram.
+Retained from prior work: Last-Event-ID replay, ~300s replay-window overrun -> forced full re-read,
+bounded (100-entry) reconnect history in _reconnectLog.
 
 
 ========================================

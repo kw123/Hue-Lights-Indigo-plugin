@@ -662,7 +662,7 @@ others: fixed at 3-5 minutes
 	</Field>
 
 	<Field type="checkbox" id="debugWriteData">
-		<Label>     ... (9)  write data read from bridge to prefs dir:</Label>
+		<Label>     ... (9)  write data read from bridge to prefs dir (allV1Data.json, allV2Data.json, hueEvents.json):</Label>
 	</Field>
 
 	<Field type="checkbox" id="debugPrintStats">
