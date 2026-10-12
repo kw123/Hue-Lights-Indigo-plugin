@@ -368,6 +368,7 @@ class Plugin(indigo.PluginBase):
 		self.updateList 				= dict()
 		self.bridgeRequestsSession		= dict()
 		self._latestGroupActionToken	= dict()  # devId -> float token; deduplicates per-lamp SSE events for group actions
+		self._lastV1GroupRead			= dict()  # devId -> wall-clock of last readv1 group fetch; coalesces bursts to one read/sec
 		self.bridgesAvailable 			= dict()
 		self.bridgesAvailableSelected	= ''
 		self.findHueBridgesNowForce		= 0
@@ -4046,7 +4047,7 @@ class Plugin(indigo.PluginBase):
 				return valuesDict, errorsDict
 
 			else:
-				errorsDict['showAlertText'] = "Not a valid IP# entered"
+				errorsDict['showAlertText'] = "first define bridge"
 				return valuesDict, errorsDict
 
 
@@ -9385,12 +9386,11 @@ class Plugin(indigo.PluginBase):
 					rgbVal[2] += dev.states["colorBlue"]
 					brightnessLevel += dev.states["brightnessLevel"]
 					if self.decideMyLog("CalculateGroupColor"): self.indiLOG.log(self.sendDeviceUpdatesTo,"calculateGroupColor     RGB   rgbVal:{},  brightnessLevel:{}; RGB:{}, {}, {} ".format(rgbVal, brightnessLevel, dev.states["colorRed"], dev.states["colorGreen"], dev.states["colorBlue"]))
-					# collect colorTemp when light is in ct mode.
-					# "hs" is also accepted here: the V2 SSE path now writes "ct"/"xy"
-					# on every update, but devices not yet refreshed may still carry
-					# the old V1-polled "hs" value; excluding them would drop all
-					# full-colour bulbs from the average until the next SSE event.
-					if dev.states.get("colorMode","") in ("ct", "hs"):
+					# Collect colorTemp only from lights actually in white/ct mode. A light showing a
+					# colour (colorMode "hs"/"xy") has no meaningful white temperature, and including it
+					# dragged the group's averaged colorTemp far off (e.g. two 2890K white lights + two
+					# colour lights carrying a stale ~380K ct averaged to ~1635K instead of 2890K).
+					if dev.states.get("colorMode","") == "ct":
 						ct = dev.states.get("colorTemp", 0)
 						if ct > 0:
 							totalTemp  += ct
@@ -9433,8 +9433,20 @@ class Plugin(indigo.PluginBase):
 					if self.decideMyLog("CalculateGroupColor"): self.indiLOG.log(self.sendDeviceUpdatesTo,"calculateGroupColor     ONOff rgbVal:{},  brightnessLevel:{}, BRI:{}".format(rgbVal, brightnessLevel, v))
 
 			if self.decideMyLog("CalculateGroupColor"): self.indiLOG.log(self.sendDeviceUpdatesTo,"calculateGroupColor nLights:{}".format(nLights ))
-			if nLights == 0: return 
-	
+			if nLights == 0:
+				# no member light is on -> the whole group is off. The member loop skips off lights, so
+				# without this the group device kept its last (on) brightnessLevel and Indigo still showed
+				# it on after an all-off command (e.g. switching a Zone off). Set it to 0 so the dimmer
+				# device goes off (Indigo derives onState from brightnessLevel).
+				stateUpdateList.append({"key":"brightnessLevel", "value": 0 } )
+				stateUpdateList.append({"key":"brightness_on",   "value": 0 } )
+				stateUpdateList.append({"key":"lumen",           "value": 0, "uiValue": "0" } )
+				for st in ("colorRed","colorGreen","colorBlue","redLevel","greenLevel","blueLevel"):
+					stateUpdateList.append({"key": st, "value": 0 } )
+				self.updateDeviceState(device, stateUpdateList, calledFrom="calculateGroupColor(all-off)",
+					uiImage=indigo.kStateImageSel.DimmerOff)
+				return
+
 			brightnessLevel = max(0,int(brightnessLevel/nLights +0.5))
 			stateUpdateList.append({"key":"brightnessLevel", "value": brightnessLevel } )
 			stateUpdateList.append({"key":"brightness_on", "value": brightnessLevel } )
@@ -9520,6 +9532,13 @@ class Plugin(indigo.PluginBase):
 
 
 		if int(groupId) < 0: return
+		# Debounce: coalesce several group updates arriving within ~1 s into a single V1 read. The
+		# scheduled read runs 1 s after an event; by then a burst has settled, so a V1 read done less
+		# than 1 s ago already reflects the latest state and another fetch would be redundant.
+		now = time.time()
+		if now - self._lastV1GroupRead.get(deviceId, 0.) < 1.0:
+			return
+		self._lastV1GroupRead[deviceId] = now
 		retCode, group, errorsDict =  self.commandToHub_HTTP( hubNumber, "groups/{}".format(groupId))
 		if not retCode:
 				return
@@ -19124,15 +19143,17 @@ no devId for:
 
 						#this is v1 stuff:#############################################
 						elif vType not in [""] and not done:
-							indigoId  = self.serviceidToIndigoId[hubNumber].get(serviceId, None)
+							# Prefer the service-id -> device map, but fall back to the indigoId already resolved
+							# from owner/id_v1 above. A zone's grouped_light id is often missing from
+							# serviceidToIndigoId while its owner (the zone) still resolves to the Indigo group
+							# device; without this fallback the zone's grouped_light events were dropped (rooms
+							# worked because their grouped_light id happened to be in the map).
+							indigoIdBySvc = self.serviceidToIndigoId[hubNumber].get(serviceId, None)
+							if indigoIdBySvc is not None:
+								indigoId = indigoIdBySvc
 
-
-							if indigoId is not None:
-								try:
-									indigoDevice = self.deviceCopiesFromIndigo[indigoId]
-								except Exception:
-									if self.decideMyLog("EventApi"): self.indiLOG.log(10,"digestV2Event (5) REJECT indigoId:{} does not give valid device, digestV2Event:{}".format(  indigoId, eventDict), exc_info=True)
-									continue
+							if indigoId is not None and indigoId in self.deviceCopiesFromIndigo:
+								indigoDevice = self.deviceCopiesFromIndigo[indigoId]
 							else:
 								if self.decideMyLog("EventApi"): self.indiLOG.log(10,"digestV2Event (6) REJECT indigoId:{} does not give valid device, digestV2Event:{}".format(  indigoId, eventDict), exc_info=True)
 								continue
@@ -20403,11 +20424,22 @@ no devId for:
 			# configured recalculation so we read from individual light states.
 			# This fires on ANY group SSE event: brightness-only, ct-only, colour-only.
 			if indigoDevice.deviceTypeId == "hueGroup":
+				# An explicit off in the group's own grouped_light event is authoritative for the whole
+				# group — honour it directly rather than delegating to the member/bridge recalculation.
+				# The recalc (calculate: averages only ON members; readv1: bridge aggregate) could leave
+				# the group showing on after an off command (brightness changes worked, turn-off did not).
+				if "on" in eventDict and not on:
+					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'brightnessLevel', 0, stateUpdateList=stateUpdateList)
+					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'onOffState', False,
+						uiImage=indigo.kStateImageSel.DimmerOff, stateUpdateList=stateUpdateList, calledFrom="doLightUpdate")
+					return stateUpdateList
 				lookupColors = indigoDevice.pluginProps.get("lookupColors","calculate")
 				token = time.time()
 				self._latestGroupActionToken[indigoDevice.id] = token
 				if lookupColors == "readv1":
-					self.delayedActionThread['actions'].put({"executionTime":time.time()+0.4 , "getGroupV1Data":indigoDevice.id, "token":token})
+					# read the single group's V1 state 1 s after the event so the bridge has settled the
+					# group aggregate (reading too soon returns the pre-command/transitional values)
+					self.delayedActionThread['actions'].put({"executionTime":time.time()+1.0 , "getGroupV1Data":indigoDevice.id, "token":token})
 					return stateUpdateList
 				elif lookupColors == "calculate":
 					self.delayedActionThread['actions'].put({"executionTime":time.time()+0.4 , "calculateGroupColor":indigoDevice.id, "token":token})
@@ -20515,7 +20547,7 @@ no devId for:
 							token = time.time()
 							self._latestGroupActionToken[grp.id] = token
 							if lookupColors == "readv1":
-								_queue.put({"executionTime": time.time()+0.4, "getGroupV1Data":        grp.id, "token": token})
+								_queue.put({"executionTime": time.time()+1.0, "getGroupV1Data":        grp.id, "token": token})
 							elif lookupColors == "calculate":
 								_queue.put({"executionTime": time.time()+0.4, "calculateGroupColor":   grp.id, "token": token})
 							elif lookupColors == "compare":

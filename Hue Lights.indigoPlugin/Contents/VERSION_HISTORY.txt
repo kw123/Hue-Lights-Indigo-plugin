@@ -1,6 +1,20 @@
-########################################
-SHORT CHANGELOG (since 2022.33.113)
-########################################
+
+2022.33.122 @ 2016-10-12
+    Hue Pro (v2) group fixes :
+    * Zone grouped_light events now update their Indigo device — digestV2Event no longer
+      overwrites the owner/id_v1-resolved indigoId with a (frequently absent) zone grouped_light
+      serviceid mapping; it falls back to the resolved device. Zones update like rooms.
+    * Turning a Zone/Room fully OFF now turns the Indigo group device off in all lookupColors
+      modes: doLightUpdate honours an explicit off in the group's own event directly, and the
+      calculate path sets the group to 0 when no member light is on (was left stale).
+    * Group colorTemp averages only white/ct-mode lights; colour-mode ("hs"/"xy") lights with a
+      stale ct no longer skew it (e.g. 2890K was reading ~1635K).
+    * readv1 "get v1 data" reads only the single group (GET groups/<id>), now 1 s after the event
+      so the bridge has settled, and is coalesced to at most one read per group per second.
+
+
+- 2022.33.121  confirmGWMod: when the selected bridge is not yet defined, the alert now reads
+               "first define bridge" instead of the misleading "Not a valid IP# entered".
 - 2022.33.120  Ported three fixes found in the Hue Lights-4 (2022.32.112) branch that current lacked:
                (1) services[...] KeyError hardening -> services.get(...,{}) in the V2 bridge-info counters
                (a bridge missing a service type no longer aborts the update); (2) fillAllDataV2() now runs
@@ -32,6 +46,51 @@ SHORT CHANGELOG (since 2022.33.113)
                (Superseded/extended by .115 — see below.)
 - 2022.33.113  Daily min/max/average + change/trend tracking for numeric sensor states (motion temperature
                and light-level sensors); time-weighted averages, persisted and rolled over at midnight.
+
+
+========================================
+2022.33.122 @ 2026-10-12
+Hue Pro bridge (API v2) group handling - several related fixes, shipped as one version.
+
+1. Zone grouped_light events now reach their Indigo device. In digestV2Event the generic service branch
+   re-resolved the target with serviceidToIndigoId[serviceId] (serviceId = the grouped_light's own id).
+   A Zone's grouped_light id is frequently not in that map, so the event was rejected (REJECT (6)) even
+   though its owner (rtype 'zone') and id_v1 (/groups/N) had already resolved to the correct hueGroup
+   device. Rooms happened to be in the map, so they worked. The branch now keeps the owner/id_v1-resolved
+   indigoId and only overrides it when serviceidToIndigoId actually has the serviceId. Lights/sensors are
+   unaffected. Example that now updates the zone:
+     {'dimming': {'brightness': 0.0}, 'id': 'ac750062-...', 'id_v1': '/groups/101',
+      'on': {'on': False}, 'owner': {'rid': '6f5099a3-...', 'rtype': 'zone'}, 'type': 'grouped_light'}
+
+2. Turning a Zone/Room fully OFF now turns the Indigo group device off in every lookupColors mode.
+   doLightUpdate previously always delegated a group's event to the member/bridge recalc and returned,
+   never applying the event's own on/off; the recalc could not represent 'off' (calculate averages only
+   ON members; the readv1 aggregate could lag), so brightness changes worked but off did not. doLightUpdate
+   now honours an explicit 'on':false in the group's own event directly (brightnessLevel 0, onOffState off,
+   DimmerOff) before any delegation. The calculate path (calculateGroupColor) also now sets the group to 0
+   when no member light is on, instead of returning early and leaving stale state.
+
+3. Group colorTemp average. calculateGroupColor averaged colorTemp over any member in colorMode 'ct' OR
+   'hs'; the 'hs' inclusion pulled in lights actively showing a colour (stale, meaningless ct) and skewed
+   the group white temperature (two 2890K whites + two colour lights at ~380K -> ~1635K). It now averages
+   only lights in white/ct mode (colorMode == 'ct'). Trade-off: a white light not yet refreshed to 'ct' is
+   skipped until its next event. Brightness/RGB averaging unchanged.
+
+4. readv1 ('get v1 data') group refresh. It already read only the single group (getGroupStatus ->
+   commandToHub_HTTP(hubNumber, 'groups/<id>')), not the whole bridge. Its scheduling after a group event
+   is raised from 0.4 s to 1.0 s so the bridge has settled the group aggregate before the read (reading too
+   soon returned pre-command/transitional values); changed at the group's own event and the member-light
+   -> parent-group propagation (compare mode already used 1.0 s; sibling ct-propagation stays at 0.1 s).
+   getGroupStatus also coalesces bursts: it records the wall-clock of each readv1 fetch per group
+   (self._lastV1GroupRead) and returns early if that group was read less than 1 s ago, so a burst of
+   updates and the member/sibling cascade do at most one groups/<id> read per group per second.
+
+
+========================================
+2022.33.121 @ 2026-09-22
+confirmGWMod: in the "else" branch (the selected bridge slot is not yet in self.ipAddresses, i.e. the
+bridge has not been defined), the alert text was the misleading "Not a valid IP# entered". It now reads
+"first define bridge". The genuine malformed-IP path keeps "Not a valid IP# entered".
 
 
 ========================================
