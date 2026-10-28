@@ -39,7 +39,6 @@ import platform
 import copy
 import threading
 import codecs
-import subprocess
 import requests
 import socket
 import queue
@@ -93,6 +92,7 @@ kDefaultPluginPrefs = {
 				'sendDeviceUpdatesTo':					'20',
 				'onBrightnessMode':						'default',	# on ON command: 'default' = use each light's Default Brightness, 'last' = restore last brightness
 				'defaultBrightnessGlobal':				'80',		# plugin-wide Default Brightness (%) used when a light in 'default' mode uses the plugin default (defaultBrightnessSource='plugin')
+				'iconStyle':							'default',	# plugin-wide device-icon style: 'default' (by device type), 'greenOnRedOff', 'redOnGreenOff'
 				'autoCreatedNewDevices':				True,
 				'rgbmaxIndigo':							'100',
 				'folderNameForNewDevices':				'Hue New Devices',
@@ -337,7 +337,7 @@ class Plugin(indigo.PluginBase):
 
 		self.apiVersion					= json.loads(pluginPrefs.get('apiVersion', json.dumps(defAPIVersions)))
 		if "1" not in self.apiVersion: self.apiVersion = copy.copy(defAPIVersions)
-		
+
 		self.hubIsEnabled				= json.loads(pluginPrefs.get('hubIsEnabled', json.dumps(defEnabled)))
 		if "1" not in self.hubIsEnabled: self.hubIsEnabled = copy.copy(defEnabled)
 
@@ -353,6 +353,7 @@ class Plugin(indigo.PluginBase):
 
 		self.hubNumberSelected 			= '0'    # default hub number
 		self.lastErrorMessage 			= ''	    # last error message displayed in log
+		self._errorThrottle				= dict()    # doErrorLog gate: key -> {'last': ts, 'suppressed': n}
 		self.selHubNumberLast			= 0
 		self.unsupportedDeviceWarned 	= False	# Boolean. Was user warned this device isn't supported?
 		self.usersListSelection 		= ''	# String. The Hue whilelist user ID selected in action UIs.
@@ -368,6 +369,7 @@ class Plugin(indigo.PluginBase):
 		self.updateList 				= dict()
 		self.bridgeRequestsSession		= dict()
 		self._latestGroupActionToken	= dict()  # devId -> float token; deduplicates per-lamp SSE events for group actions
+		self._motionHealthEvents		= dict()  # motion-area name -> rolling list of health-change timestamps (last hour)
 		self._lastV1GroupRead			= dict()  # devId -> wall-clock of last readv1 group fetch; coalesces bursts to one read/sec
 		self.bridgesAvailable 			= dict()
 		self.bridgesAvailableSelected	= ''
@@ -684,6 +686,16 @@ class Plugin(indigo.PluginBase):
 		try:
 			device.setErrorStateOnServer(None)
 
+			# Apply this device's icon on every start (per its style + current on/off state), so icons are
+			# correct right after a plugin reload instead of only once the next state update happens.
+			# _defaultIconFor returns None for types with no on/off icon (button remotes, bridge) -> left as-is.
+			try:
+				sel = self._defaultIconFor(device)
+				if sel is not None:
+					device.updateStateImageOnServer(self._iconFor(device, sel))
+			except Exception:
+				pass
+
 			# Rebuild the device if needed (fixes missing states and properties).
 			self.rebuildDevice(device)
 
@@ -863,6 +875,9 @@ class Plugin(indigo.PluginBase):
 		try:	self.defaultBrightnessGlobal = int(prefs.get('defaultBrightnessGlobal', kDefaultPluginPrefs['defaultBrightnessGlobal']))
 		except Exception:	self.defaultBrightnessGlobal = 80
 
+		# plugin-wide device-icon style; each device may override it (iconStyle prop) or follow this ('standard')
+		self.iconStyle = prefs.get('iconStyle', kDefaultPluginPrefs['iconStyle'])
+
 	########################################
 	# Standard Plugin Methods
 	########################################
@@ -892,6 +907,11 @@ class Plugin(indigo.PluginBase):
 		self.handleFolder()
 		self.indiLOG.log(20,"... initialized")
 		#self.indiLOG.log(20,f" apiVersion: {self.apiVersion}")
+		# Auto-detect each paired bridge's API version at startup (self-heal). An unreachable bridge keeps
+		# its stored version, so a momentarily-offline Pro bridge is never downgraded to v1.
+		for xx in list(self.ipAddresses):
+			if self.isvalidIP(self.ipAddresses.get(xx, "")):
+				self.detectAndSetBridgeApi(xx, "startup")
 		sleepTimeDefault = 2.
 		sleepTime = sleepTimeDefault
 		for xx in self.ipAddresses:
@@ -1135,8 +1155,7 @@ class Plugin(indigo.PluginBase):
 								# Log the new brightness.
 								self.indiLOG.log(20,"Sent Hue Lights  \"{}\" status request (received: 100)".format(brightenDevice.name))
 							else:
-								if self.checkForLastNotPairedMessage(hubNumber):
-									if self.decideMyLog("Loop"): self.indiLOG.log(10,"Not currently paired with Hue bridge. Status update skipped.")
+								if self.decideMyLog("Loop"): self.indiLOG.log(10,"Not currently paired with Hue bridge. Status update skipped.")
 						# Convert percent-based brightness to 255-based brightness.
 						brightness = int(round(brightness * 255.0 / 100.0))
 						# Set brightness to new value, with 0.5 sec ramp rate and no logging.
@@ -1164,8 +1183,7 @@ class Plugin(indigo.PluginBase):
 								# Log the new brightness.
 								self.indiLOG.log(20,"Sent Hue Lights \"{}\" status request (received: 0)".format(dimDevice.name ))
 							else:
-								if self.checkForLastNotPairedMessage(hubNumber):
-									if self.decideMyLog("Loop"): self.indiLOG.log(10,"Not currently paired with Hue bridge. Status update skipped.")
+								if self.decideMyLog("Loop"): self.indiLOG.log(10,"Not currently paired with Hue bridge. Status update skipped.")
 
 						# Convert percent-based brightness to 255-based brightness.
 						brightness = int(round(brightness * 255.0 / 100.0))
@@ -1681,23 +1699,21 @@ class Plugin(indigo.PluginBase):
 				#if cmd == "" or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(20,"Sending URL request: {}, bytes returned: {}   ...{}".format(command, len(r.content), str(r.content)[0:100]) )
 
 			except requests.exceptions.Timeout:
-				if self.checkForLastNotPairedMessage(hubNumber):
-					errorText = self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on. (1)".format(ipAddress, kTimeout),force=True)
-					errorsDict[errDict1] = errorText
-					errorsDict[errDict2] += errorsDict[errDict1]
-					self.resetBridgeBusy(hubNumber, "", 0)
+				errorText = self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on. (1)".format(ipAddress, kTimeout))
+				errorsDict[errDict1] = errorText
+				errorsDict[errDict2] += errorsDict[errDict1]
+				self.resetBridgeBusy(hubNumber, "", 0)
 				return (False, "", errorsDict)
 			except requests.exceptions.ConnectionError:
 				self._createBridgeSession(hubNumber, force=True)   # drop stale connection
-				self.indiLOG.log(30, "bridge {}: connection lost, session reset".format(hubNumber))
-				if self.checkForLastNotPairedMessage(hubNumber):
-					if self.decideMyLog("Special"): self.indiLOG.log(self.sendDeviceUpdatesTo,"Data cmd:{}".format(command) )
-					errorText = self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(2)".format(ipAddress))
-					# (removed) backdating the SSE listener's lastMessage to force the old no-message watchdog:
-					# that watchdog is gone (a quiet stream is not a failure), and the SSE socket detects a real
-					# outage on its own via keepalive. Backdating here would only skew the event-frequency stats.
-					errorsDict[errDict1] = errorText
-					errorsDict[errDict2] += errorsDict[errDict1]
+				self.doErrorLog("bridge {}: connection lost, session reset".format(hubNumber), level=30)
+				if self.decideMyLog("Special"): self.indiLOG.log(self.sendDeviceUpdatesTo,"Data cmd:{}".format(command) )
+				errorText = self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(2)".format(ipAddress))
+				# (removed) backdating the SSE listener's lastMessage to force the old no-message watchdog:
+				# that watchdog is gone (a quiet stream is not a failure), and the SSE socket detects a real
+				# outage on its own via keepalive. Backdating here would only skew the event-frequency stats.
+				errorsDict[errDict1] = errorText
+				errorsDict[errDict2] += errorsDict[errDict1]
 				self.resetBridgeBusy(hubNumber, "", 0)
 				return (False, "", errorsDict)
 			except Exception :
@@ -1772,6 +1788,85 @@ class Plugin(indigo.PluginBase):
 		if entry is None or entry.get("session") is None:
 			self._createBridgeSession(hubNumber)
 		return self.bridgeRequestsSession[hubNumber]["session"]
+
+	# ---- bridge type / API-version auto-detection ---------------------------
+	########################################
+	def _detectBridgeApi(self, ipAddress, hostId=""):
+		"""Detect a bridge's API version from the apiversion it reports in its config. THREE outcomes:
+		  "2"  = Pro:  apiversion major >= 2  (the Hue Bridge Pro reports 2.x).
+		  "1"  = old:  apiversion major == 1  (round BSB001 and square BSB002 report 1.x — a square bridge
+		               is https/clip-v2 CAPABLE but still reports apiversion 1.x, so we must key on the
+		               version, not on https-capability, or a square bridge is wrongly promoted to v2).
+		  None = inconclusive: the bridge did not answer at all (down / unreachable). The caller then keeps
+		         the last known version and must NOT downgrade a Pro bridge just because it was offline.
+		The config endpoint (/api/<key>/config, or /api/0/config unauthenticated) reports apiversion over
+		both http (old) and https (pro), so we try both schemes."""
+		if not self.isvalidIP(ipAddress): return None
+		# 0) reachability gate: no ping reply -> down -> inconclusive (never misread an offline bridge)
+		try:
+			if self.testBridgeUp(ipAddress) != 0:
+				if self.decideMyLog("Init"): self.indiLOG.log(10, "detectBridgeApi {}: ping failed -> inconclusive (keep stored version)".format(ipAddress))
+				return None
+		except Exception:
+			pass
+		# 1) read the bridge's UNAUTHENTICATED public config over whichever scheme answers (old=http, pro=https).
+		#    /api/config (no key) returns just name/modelid/swversion/apiversion/mac/bridgeid - tiny, and it
+		#    avoids pulling the full whitelist that /api/<key>/config returns.
+		path = "/api/config"
+		cfg = None; usedScheme = None
+		for scheme in ("https", "http"):
+			try:
+				r = requests.get(scheme + "://{}".format(ipAddress) + path, timeout=kTimeout, verify=False, headers={'Connection':'close'})
+				j = json.loads(r.content)
+				if isinstance(j, dict) and "apiversion" in j:
+					cfg = j; usedScheme = scheme
+					break
+			except Exception:
+				continue
+		if cfg is None:
+			if self.decideMyLog("Init"): self.indiLOG.log(10, "detectBridgeApi {}: no config from https/http -> inconclusive (keep stored version)".format(ipAddress))
+			return None	# no config from either scheme -> inconclusive
+		model = str(cfg.get("modelid", "")).upper().strip()
+		if not model:
+			if self.decideMyLog("Init"): self.indiLOG.log(10, "detectBridgeApi {}: config has no modelid -> inconclusive (keep stored version)".format(ipAddress))
+			return None
+		# modelid IS the discriminator (apiversion is 1.x on every bridge, incl. the Pro, and every recent
+		# bridge speaks https/clip-v2, so neither distinguishes old from Pro):
+		#   BSB001 (round) / BSB002 (square) -> old -> api v1
+		#   BSB003 (Hue Bridge Pro) and anything newer        -> api v2
+		ver = "1" if model in ("BSB001", "BSB002") else "2"
+		if self.decideMyLog("Init"): self.indiLOG.log(10, "detectBridgeApi {}: modelid={} -> api v{} ({})".format(ipAddress, model, ver, "old" if ver == "1" else "pro"))
+		return ver
+
+	def detectAndSetBridgeApi(self, hubNumber, calledFrom=""):
+		"""Probe hubNumber and store the detected API version in self.apiVersion / self.hubVersion
+		(they move together: old=1/http, pro=2/https). Only changes the stored value on a CONCLUSIVE
+		result — if the bridge is unreachable, the last known version is kept (no false downgrade).
+		Persists to pluginPrefs and logs any change. Returns the detected version, or None if unreachable."""
+		try:
+			ipAddress = self.ipAddresses.get(hubNumber, "")
+			hostId    = self.hostIds.get(hubNumber, "")
+			if not self.isvalidIP(ipAddress): return None
+			ver = self._detectBridgeApi(ipAddress, hostId)
+			if ver is None:
+				if self.decideMyLog("Init"):
+					self.indiLOG.log(10, "bridge {}: API-version probe inconclusive (bridge unreachable); keeping api v{}  [{}]".format(
+						hubNumber, self.apiVersion.get(hubNumber, "?"), calledFrom))
+				return None
+			old = self.apiVersion.get(hubNumber, "")
+			self.apiVersion[hubNumber] = ver
+			self.hubVersion[hubNumber] = ver
+			self.pluginPrefs['apiVersion'] = json.dumps(self.apiVersion)
+			self.pluginPrefs['hubVersion'] = json.dumps(self.hubVersion)
+			kind = "pro (api v2)" if ver == "2" else "old (api v1)"
+			if old != ver:
+				self.indiLOG.log(20, "bridge {}: detected {}  (was api v{})  [{}]".format(hubNumber, kind, old or "?", calledFrom))
+			elif self.decideMyLog("Init"):
+				self.indiLOG.log(10, "bridge {}: {} confirmed  [{}]".format(hubNumber, kind, calledFrom))
+			return ver
+		except Exception:
+			self.indiLOG.log(30, "", exc_info=True)
+			return None
 
 
 	# Validate Device Configuration
@@ -3732,10 +3827,6 @@ class Plugin(indigo.PluginBase):
 					valuesDict['showGwDel']					= True
 
 
-				elif valuesDict['gwAction'] == "api":
-					valuesDict['showApiMod']				= True
-
-
 				elif valuesDict['gwAction'] == "disable":
 					valuesDict['showGwDisable']				= True
 
@@ -3962,51 +4053,6 @@ class Plugin(indigo.PluginBase):
 		errorsDict['showAlertText'] = "check logfile for error message"
 		return valuesDict, errorsDict
 
-	# confirmAPIMod
-	########################################
-	def confirmAPIMod(self, valuesDict):
-		"""
-		Update the API version (v1 or v2) for a selected bridge and save to preferences.
-
-		Args:
-		    valuesDict (indigo.Dict): UI values dictionary from the dialog or action config
-
-		Returns:
-		    tuple: (indigo.Dict valuesDict, indigo.Dict errorsDict)
-		"""
-
-		isError = False
-		errorsDict = indigo.Dict()
-		errorsDict['showAlertText'] = ""
-		try:
-			#self.indiLOG.log(10,"confirmGWMod valuesDict:{}".format(valuesDict))
-			if valuesDict['modAPIList'] not in khubNumbersAvailable:
-				errorsDict['showAlertText'] = "bridge# not selected"
-				return valuesDict, errorsDict
-
-			self.hubNumberSelected = valuesDict['modAPIList']
-
-			if not self.hubNumberSelected in self.ipAddresses:
-				errorsDict['showAlertText'] = "bridge does not have ip number"
-				valuesDict['gwAction'] = "keep"
-				return valuesDict, errorsDict
-
-			self.indiLOG.log(20,"bridge:{} has old API V:{}, new:{}".format(self.hubNumberSelected, self.apiVersion[self.hubNumberSelected], valuesDict['newAPIVersion']))
-			self.apiVersion[self.hubNumberSelected] = valuesDict['newAPIVersion']
-			self.pluginPrefs['apiVersion'] = json.dumps(self.apiVersion)
-
-			if self.hubNumberSelected != "0":
-				self.hubNumberSelected = "0"
-
-			errorsDict['showAlertText'] = "API version updated:{}  <Save> at exit".format(valuesDict['newAPIVersion'])
-			valuesDict['gwAction'] = "api"
-
-			return valuesDict, errorsDict
-		except Exception:
-				self.indiLOG.log(30,"", exc_info=True)
-		valuesDict['gwDelResponse'] = "check logfile"
-		errorsDict['showAlertText'] = "check logfile for error message"
-		return valuesDict, errorsDict
 
 
 
@@ -4088,7 +4134,7 @@ class Plugin(indigo.PluginBase):
 			self.tryAutoCreatePairTimeWindow = 0
 			self.tryAutoCreatePairValuesDict = dict()
 			## option keep / create
-			self.indiLOG.log(20,"selHubNumberGWPair: bridgesAvailableSelected:{}, hubVersions:{}".format(self.bridgesAvailableSelected,  self.hubVersion))
+			if self.decideMyLog("EditSetup"): self.indiLOG.log(10,"selHubNumberGWPair: bridgesAvailableSelected:{}, hubVersions:{}".format(self.bridgesAvailableSelected,  self.hubVersion))
 
 			if self.bridgesAvailableSelected == "":
 				if self.hubNumberSelected in self.ipAddresses:
@@ -4122,11 +4168,8 @@ class Plugin(indigo.PluginBase):
 			self.indiLOG.log(20,"selHubNumberGWPair: (4) hubNumberSelected:{}, ipAddress:{}, hostId:{},".format(self.hubNumberSelected, self.ipAddresses.get(self.hubNumberSelected,"none"), valuesDict['hostId'] ))
 
 
-			if self.hubNumberSelected in self.ipAddresses:
-				version = valuesDict['newHubVersionPair']
-				if version in kPossibleHubVersions:
-					self.hubVersion[self.hubNumberSelected] = version
-			else:
+			# bridge type (old/pro -> api v1/v2) is auto-detected in restartPairing; no manual pick here
+			if self.hubNumberSelected not in self.ipAddresses:
 				self.indiLOG.log(20,"error hubnumer:{} not in ip address lists:{}".format(self.hubNumberSelected,   self.ipAddresses))
 				valuesDict['showAlertText'] = "ip # not set"
 				return valuesDict, errorsDict
@@ -4205,7 +4248,17 @@ class Plugin(indigo.PluginBase):
 		#   if it's actually a Hue bridge.
 		try:
 			if self.decideMyLog("Init"): self.indiLOG.log(10,"Verifying that a Hue bridge exists at IP address \"{}\".".format(valuesDict['address']))
-			https = self.httpS[self.hubVersion[self.hubNumberSelected]]
+			# Auto-detect the bridge type instead of asking the user: a working https/clip-v2 endpoint => Pro
+			# (api v2), otherwise an http-only old bridge (api v1). None => not reachable right now.
+			detectedVer = self._detectBridgeApi(valuesDict['address'])
+			if detectedVer is None:
+				self.doErrorLog("Bridge at {} did not respond (ping/connect failed); cannot pair.".format(valuesDict['address']))
+				if not autoSearch: errorsDict['showAlertText'] = "bridge not reachable (ping/connect failed)"
+				return valuesDict, errorsDict
+			self.hubVersion[self.hubNumberSelected] = detectedVer
+			self.apiVersion[self.hubNumberSelected] = detectedVer
+			self.indiLOG.log(20,"Auto-detected bridge {} as {} (api v{})".format(self.hubNumberSelected, "pro" if detectedVer=="2" else "old", detectedVer))
+			https = self.httpS[detectedVer]
 
 
 			command = https+"://{}/api/nouser/config".format(valuesDict['address'])
@@ -4261,10 +4314,8 @@ class Plugin(indigo.PluginBase):
 
 			self.indiLOG.log(20,"Attempting to pair with the Hue bridge at \"{}\".".format(valuesDict['address']))
 
-			if self.hubVersion[self.hubNumberSelected] == "2":
-				requestData = json.dumps({"devicetype":"Indigo Hue Lights#1", "generateclientkey":True})
-			else: # old v1 bridge "
-				requestData = json.dumps({"devicetype": "Indigo Hue Lights"})
+			# Always request a client key; old bridges simply ignore the extra field and return just a username.
+			requestData = json.dumps({"devicetype":"Indigo Hue Lights#1", "generateclientkey":True})
 
 			command = https+"://{}/api".format(valuesDict['address'])
 			if self.decideMyLog("SendCommandsToBridge") or self.decideMyLog("Special"): self.indiLOG.log(10,"SEND {}, data={}".format(command, requestData) )
@@ -6235,7 +6286,7 @@ class Plugin(indigo.PluginBase):
 						return valuesDict
 					except requests.exceptions.ConnectionError:
 						self._createBridgeSession(hubNumber, force=True)   # drop stale connection
-						self.indiLOG.log(30, "bridge {}: connection lost, session reset".format(hubNumber))
+						self.doErrorLog("bridge {}: connection lost, session reset".format(hubNumber), level=30)
 						self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(4)".format(ipAddress))
 						# Don't display the error if it's been displayed already.
 						self.resetBridgeBusy(hubNumber, "", 0)
@@ -6302,19 +6353,13 @@ class Plugin(indigo.PluginBase):
 								self.updateDeviceState(device, state, value, uiValue=uiValue, uiImage=uiImage)
 								self.deviceCopiesFromIndigo[device.id] = self.getIndigoDevice(device.id, calledFrom="loopDelayedAction")
 								
-					if "command" in action:
-						self.indiLOG.log(20,"loopDelayedAction executing: {}  ".format(action))
-						if "param" in action:
-							cmd = action['command'].strip(")") + action['param'] + ")"
-							try: exec(cmd)
-							except Exception:
-								self.indiLOG.log(30,"", exc_info=True)
-							
-						else:
-							try: exec(action['command'])
-							except Exception:
-								self.indiLOG.log(30,"", exc_info=True)
-							
+					if "stopListener" in action:
+						# typed delayed action (replaces the old exec("self.stop_listener(" + param + ")") which
+						# passed the hub as an int and silently no-op'd); runs ~0.5s later on this thread
+						try: self.stop_listener(action["stopListener"], reason="bridge disabled")
+						except Exception:
+							self.indiLOG.log(30,"", exc_info=True)
+
 					if "getGroupV1Data" in action:
 						devId = action['getGroupV1Data']
 						if action.get('token') == self._latestGroupActionToken.get(devId):
@@ -6460,7 +6505,7 @@ class Plugin(indigo.PluginBase):
 					return valuesDict
 				except requests.exceptions.ConnectionError:
 					self._createBridgeSession(hubNumber, force=True)   # drop stale connection
-					self.indiLOG.log(30, "bridge {}: connection lost, session reset".format(hubNumber))
+					self.doErrorLog("bridge {}: connection lost, session reset".format(hubNumber), level=30)
 					self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(6)".format(ipAddress))
 					# Don't display the error if it's been displayed already.
 					self.resetBridgeBusy(hubNumber, "", 0)
@@ -6605,7 +6650,7 @@ class Plugin(indigo.PluginBase):
 					return
 				except requests.exceptions.ConnectionError:
 					self._createBridgeSession(hubNumber, force=True)   # drop stale connection
-					self.indiLOG.log(30, "bridge {}: connection lost, session reset".format(hubNumber))
+					self.doErrorLog("bridge {}: connection lost, session reset".format(hubNumber), level=30)
 					self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(8)".format(ipAddress))
 					# Don't display the error if it's been displayed already.
 					self.resetBridgeBusy(hubNumber, "", 0)
@@ -8273,6 +8318,89 @@ class Plugin(indigo.PluginBase):
 		"""
 		self.deviceCopiesFromIndigo.mark_dirty(devId)
 
+	# ---- device icon helpers -------------------------------------------------
+	########################################
+	def _resolveIconStyle(self, device):
+		"""Icon style for this device: its own iconStyle prop, or the plugin-wide default when 'standard'."""
+		style = device.pluginProps.get('iconStyle', 'standard')
+		if style == 'standard':
+			style = getattr(self, 'iconStyle', 'default')
+		return style
+
+	def _iconFor(self, device, sel):
+		"""Remap an on/off state-image selector to the device's icon style.
+		'default' (by type): return the caller's already type-appropriate selector unchanged.
+		'greenOnRedOff'/'redOnGreenOff': map on->green / off->red (SensorOn/SensorTripped), swapped per polarity.
+		Colour styles apply only to on/off devices; sensors keep their native icon (a motion sensor is
+		already grey=no-motion / red=motion, which is meaningful and must not be recoloured). Non on/off
+		selectors (e.g. TemperatureSensor) are left unchanged."""
+		try:
+			if sel is None: return None
+			style = self._resolveIconStyle(device)
+			if style not in ('greenOnRedOff', 'redOnGreenOff'):
+				return sel
+			# sensors keep their native (motion/contact/temperature/light) icon regardless of colour style
+			if device.deviceTypeId in ("hueMotionSensor","hueMotionArea","hueGroupedMotion","hueContactSensor",
+										"hueMotionTemperatureSensor","hueMotionLightSensor"):
+				return sel
+			K = indigo.kStateImageSel
+			onSels  = (K.DimmerOn,  K.PowerOn,  K.MotionSensorTripped, K.LightSensorOn, K.SensorOn)
+			offSels = (K.DimmerOff, K.PowerOff, K.MotionSensor,        K.LightSensor,   K.SensorOff)
+			if   sel in onSels:  isOn = True
+			elif sel in offSels: isOn = False
+			else: return sel
+			# SensorOn renders green; SensorOff renders GREY (not red), so use SensorTripped for red.
+			green, red = K.SensorOn, K.SensorTripped
+			if style == 'greenOnRedOff':
+				return green if isOn else red
+			return red if isOn else green
+		except Exception:
+			return sel
+
+	def _defaultIconFor(self, device):
+		"""Type-default on/off state image at the device's current onState (used by the one-time migration).
+		Returns None for types with no meaningful on/off icon (bridge, button remotes) so they are left as-is."""
+		try:
+			tid = device.deviceTypeId
+			try:    isOn = bool(device.onState)
+			except Exception: isOn = False
+			K = indigo.kStateImageSel
+			if tid in ("hueBulb","hueAmbiance","hueLightStrips","hueLivingColorsBloom","hueLivingWhites","hueGroup"):
+				return K.DimmerOn if isOn else K.DimmerOff
+			# on/off plug and switch/button remotes -> on/off icon (buttons may have no real onState -> off)
+			if tid in ("hueOnOffDevice","hueWallSwitchModule","runLessWireSwitch","hueTapSwitch",
+					   "hueDimmerSwitch","hueSmartButton","hueRotaryWallSwitches","hueRotaryWallRing",
+					   "hueAttributeController"):
+				return K.PowerOn if isOn else K.PowerOff
+			if tid in ("hueMotionSensor","hueMotionArea","hueGroupedMotion","hueContactSensor"):
+				return K.MotionSensorTripped if isOn else K.MotionSensor
+			if tid == "hueMotionTemperatureSensor":
+				return K.TemperatureSensor
+			if tid == "hueMotionLightSensor":
+				return K.LightSensorOn if isOn else K.LightSensor
+			return None
+		except Exception:
+			return None
+
+	def applyDeviceIconsNow(self):
+		"""Plugins-menu action: (re)apply the icon to every plugin device now, per its current state and
+		its configured icon style (plugin default or per-device override). Lets the user apply the icon
+		setting on demand instead of relying on the one-time, version-gated startup migration."""
+		n = 0; skipped = 0
+		for device in indigo.devices.iter(self.pluginId):
+			try:
+				sel = self._defaultIconFor(device)	# type-default on/off for the current state
+				if sel is None:
+					# types with no on/off icon (button remotes, bridge) — nothing meaningful to set
+					skipped += 1
+					continue
+				device.updateStateImageOnServer(self._iconFor(device, sel))	# remap per style (default = unchanged)
+				n += 1
+			except Exception:
+				pass
+		self.indiLOG.log(20, "applyDeviceIconsNow: set icons on {} device(s); {} skipped (no on/off icon, e.g. buttons/bridge)".format(n, skipped))
+		return
+
 	# Update Device State
 	########################################
 	def updateDeviceState(self, device, state, value=None, decimalPlaces=None, uiValue=None, uiImage=None, calledFrom="", log=False):
@@ -8348,7 +8476,7 @@ class Plugin(indigo.PluginBase):
 					# Apply it immediately if set; this fires per-state before the batch update.
 					perDictUiImage = statesDict.pop('uiImage', None)
 					if perDictUiImage is not None:
-						device.updateStateImageOnServer(perDictUiImage)
+						device.updateStateImageOnServer(self._iconFor(device, perDictUiImage))
 					if statesDict.get("decimalPlaces","abc") is None:
 						del statesDict['decimalPlaces']
 					# Keep id_v1 reverse-lookup index in sync.
@@ -8365,7 +8493,7 @@ class Plugin(indigo.PluginBase):
 				device.updateStatesOnServer(tempKeyValList)
 				# Apply the top-level uiImage kwarg (passed directly to this method, not via a dict).
 				if topLevelUiImage is not None:
-					device.updateStateImageOnServer(topLevelUiImage)
+					device.updateStateImageOnServer(self._iconFor(device, topLevelUiImage))
 				self.markDirty(device.id)   # derived states (e.g. onOffState) updated lazily on next read
 
 			# If state wasn't a list, treat it like a string and just update 1 device state.
@@ -8397,7 +8525,7 @@ class Plugin(indigo.PluginBase):
 						self._id_v1Index.setdefault(hub, {})[value] = device.id
 					# Update the device UI icon if one was specified.
 					if uiImage is not None:
-						device.updateStateImageOnServer(uiImage)
+						device.updateStateImageOnServer(self._iconFor(device, uiImage))
 				self.markDirty(device.id)   # derived states (e.g. onOffState) updated lazily on next read
 
 			# End if state is a list or not.
@@ -8932,7 +9060,7 @@ class Plugin(indigo.PluginBase):
 					stateUpdateList 	= self.checkIfUpdateState(device, 'bridgeType', 				self.hubVersion[hubNumber], 	stateUpdateList=stateUpdateList )
 					stateUpdateList 	= self.checkIfUpdateState(device, 'ipAddress', 					self.ipAddresses[hubNumber], 	stateUpdateList=stateUpdateList )
 					stateUpdateList 	= self.checkIfUpdateState(device, 'paired', 					self.paired[hubNumber], 		stateUpdateList=stateUpdateList )
-					online = self.testPing(self.ipAddresses[hubNumber]) == 0
+					online = self.testBridgeUp(self.ipAddresses[hubNumber]) == 0
 					if not online:	
 							device.setErrorStateOnServer("disconnected")
 							stateUpdateList 	= self.checkIfUpdateState(device, 'onOffState', 		online, uiValue="offline",		stateUpdateList=stateUpdateList )
@@ -9027,11 +9155,16 @@ class Plugin(indigo.PluginBase):
 						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_onOff',				onOff, 									stateUpdateList=stateUpdateList )
 						stateUpdateList 	= self.checkIfUpdateState(device, 'numberOf_lights_other',				otherL, 								stateUpdateList=stateUpdateList )
 
+						# the bridge's OWN product_data (not the loop variable product_data, which is left over
+						# from the device-counting loop above and holds the last device, e.g. a motion sensor).
+						# Prefer the copy captured during detection (same clip/v2 device resource).
+						bridgeProduct = bridgeDevice.get('product_data', {})
 						stateUpdateList 	= self.checkIfUpdateState(device, 'hostId', 						self.hostIds[hubNumber],					stateUpdateList=stateUpdateList )
 						stateUpdateList 	= self.checkIfUpdateState(device, 'apiVersion', 					self.apiVersion[hubNumber],					stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'modelId', 						bridgeProduct.get('model_id', ''),			stateUpdateList=stateUpdateList )
 						stateUpdateList 	= self.checkIfUpdateState(device, 'ownerId', 						bridgeOwnerId, 								stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'bridgeVersion', 					product_data['product_archetype'],			stateUpdateList=stateUpdateList )
-						stateUpdateList 	= self.checkIfUpdateState(device, 'softwareVersion', 				product_data['software_version'],			stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'bridgeVersion', 					bridgeProduct.get('product_archetype', ''),	stateUpdateList=stateUpdateList )
+						stateUpdateList 	= self.checkIfUpdateState(device, 'softwareVersion', 				bridgeProduct.get('software_version', ''),	stateUpdateList=stateUpdateList )
 						stateUpdateList 	= self.checkIfUpdateState(device, 'nameOnBridge', 					metadata['name'],					 		stateUpdateList=stateUpdateList )
 						stateUpdateList 	= self.checkIfUpdateState(device, 'mac', 							zigbeeInfo['mac_address'],	 				stateUpdateList=stateUpdateList )
 						stateUpdateList 	= self.checkIfUpdateState(device, 'zigbeeChannel', 					zigbeeInfo['channel']['value'].split("_")[1], stateUpdateList=stateUpdateList )
@@ -9143,8 +9276,10 @@ class Plugin(indigo.PluginBase):
 								if sens['type'] == "Room": 							rooms += 1
 								if sens['type'] == "Zone": 							zones += 1
 
+							# v1 /api/config fields (raw build number for softwareVersion, e.g. 1978418030)
 							stateUpdateList 	= self.checkIfUpdateState(device, 'hostId', 					self.hostIds[hubNumber],			stateUpdateList=stateUpdateList )
 							stateUpdateList 	= self.checkIfUpdateState(device, 'apiVersion', 				bridgeDevice['apiversion'],			stateUpdateList=stateUpdateList )
+							stateUpdateList 	= self.checkIfUpdateState(device, 'modelId', 					bridgeDevice.get('modelid', ''),	stateUpdateList=stateUpdateList )
 							stateUpdateList 	= self.checkIfUpdateState(device, 'ownerId', 					bridgeDevice['bridgeid'], 			stateUpdateList=stateUpdateList )
 							stateUpdateList 	= self.checkIfUpdateState(device, 'bridgeVersion', 				"2",								stateUpdateList=stateUpdateList )
 							stateUpdateList 	= self.checkIfUpdateState(device, 'softwareVersion', 			bridgeDevice['swversion'],			stateUpdateList=stateUpdateList )
@@ -9174,27 +9309,32 @@ class Plugin(indigo.PluginBase):
 
 		return 
 
-	# testPing
+	# testBridgeUp
 	########################################
-	def testPing(self, ipN):
+	def testBridgeUp(self, ipN):
 		"""
-		Ping an IP address using subprocess and return 0 if reachable within the timeout.
+		Reachability check for a Hue bridge IP, pure Python — a short TCP connect to its https (443) then
+		http (80) port. A bridge always listens on one of those, so this is more reliable than ICMP (which
+		some networks block) and much cheaper than forking /sbin/ping (no subprocess, negligible CPU).
 
 		Args:
-		    ipN (str): the IP address to ping
+		    ipN (str): the IP address to test
 
 		Returns:
-		    int: the result integer value
+		    int: 0 if reachable, 1 if not (same contract as the old ping-based version)
 		"""
 		try:
-			ret = subprocess.call("/sbin/ping  -c 1 -W 40 -o " + ipN, shell=True) # send max 2 packets, wait 40 msec   if one gets back stop
-
-			if int(ret) ==0:  return 0
-			self.sleep(0.1)
-			ret = subprocess.call("/sbin/ping  -c 1 -W 400 -o " + ipN, shell=True)
-
-			if int(ret) ==0:  return 0
-			return 1
+			for port in (443, 80):
+				s = None
+				try:
+					s = socket.create_connection((ipN, port), timeout=0.5)
+					return 0
+				except Exception:
+					continue
+				finally:
+					if s is not None:
+						try:	s.close()
+						except Exception:	pass
 		except Exception as e:
 			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
 		return 1
@@ -9977,10 +10117,31 @@ class Plugin(indigo.PluginBase):
 					self.resetBridgeBusy(hubNumber, command, len(r.content))
 					responseData = json.loads(r.content)
 				try:
-					if "errors" in responseData:
-						if responseData['errors'] != list():
+					errs = responseData.get("errors", []) if isinstance(responseData, dict) else []
+					if errs:
+						codes = {e.get('error_code', '') for e in errs if isinstance(e, dict)}
+						# resolve the target device from the response data rid, if present
+						rid = ""
+						try:	rid = responseData.get('data', [{}])[0].get('rid', "")
+						except Exception:	rid = ""
+						dev = self.deviceCopiesFromIndigo.get(self.serviceidToIndigoId.get(hubNumber, {}).get(rid))
+						if codes == {"communication_error"}:
+							# the bridge can't currently reach this Zigbee device (light off at the wall, out of
+							# mesh range, failing bulb); it accepted the command but it may not take effect.
+							# Log one concise warning and surface it on the Indigo device, instead of dumping the
+							# raw response. The next zigbee_connectivity event / status read clears it.
+							name = dev.name if dev is not None else (rid or "?")
+							self.indiLOG.log(30,"Hue bridge: device \"{}\" unreachable (communication_error); command {} may not have taken effect".format(name, requestData))
+							if dev is not None:
+								try:
+									dev.setErrorStateOnServer("unreachable")
+									if 'online' in dev.states: self.updateDeviceState(dev, 'online', False)
+								except Exception:	pass
+						else:
+							# other error codes -> keep the full response for diagnosis
 							self.indiLOG.log(20,"doApiV2httpCall: {}   {}; Got response {}".format(command, requestData, responseData))
-				except: pass
+				except Exception:
+					self.indiLOG.log(30, "", exc_info=True)
 				if doPrint0 or self.decideMyLog("ReadFromBridge") or self.decideMyLog("SendCommandsToBridge"): self.indiLOG.log(self.sendDeviceUpdatesTo,"doApiV2httpCall response: {}".format(responseData))
 				return responseData
 
@@ -9992,7 +10153,7 @@ class Plugin(indigo.PluginBase):
 
 			except requests.exceptions.ConnectionError:
 				self._createBridgeSession(hubNumber, force=True)   # drop stale connection
-				self.indiLOG.log(30, "bridge {}: connection lost, session reset".format(hubNumber))
+				self.doErrorLog("bridge {}: connection lost, session reset".format(hubNumber), level=30)
 				self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(30)".format(ipAddress))
 				self.resetBridgeBusy(hubNumber, "", 0)
 				return dict()
@@ -10107,19 +10268,17 @@ class Plugin(indigo.PluginBase):
 				r = self._getBridgeSession(hubNumber).get(command, headers=headers, timeout=3.)
 				self.resetBridgeBusy(hubNumber, command, len(r.content))
 			except requests.exceptions.Timeout:
-				if self.checkForLastNotPairedMessage(hubNumber):
-					errorText = self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on. (1)".format(ipAddress, kTimeout),force=True)
-					errorsDict[errDict1] = errorText
-					errorsDict[errDict2] += errorsDict[errDict1]
-					self.resetBridgeBusy(hubNumber, "", 0)
+				errorText = self.doErrorLog("Failed to connect to the Hue bridge at {} after {} seconds. - Check that the bridge is connected and turned on. (1)".format(ipAddress, kTimeout))
+				errorsDict[errDict1] = errorText
+				errorsDict[errDict2] += errorsDict[errDict1]
+				self.resetBridgeBusy(hubNumber, "", 0)
 				return (False, "", errorsDict)
 			except requests.exceptions.ConnectionError:
 				self._createBridgeSession(hubNumber, force=True)   # drop stale connection
-				self.indiLOG.log(30, "bridge {}: connection lost, session reset".format(hubNumber))
-				if self.checkForLastNotPairedMessage(hubNumber):
-					errorText = self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(2)".format(ipAddress), force=True)
-					errorsDict[errDict1] = errorText
-					errorsDict[errDict2] += errorsDict[errDict1]
+				self.doErrorLog("bridge {}: connection lost, session reset".format(hubNumber), level=30)
+				errorText = self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(2)".format(ipAddress))
+				errorsDict[errDict1] = errorText
+				errorsDict[errDict2] += errorsDict[errDict1]
 				self.resetBridgeBusy(hubNumber, "", 0)
 				return (False, "", errorsDict)
 			except Exception :
@@ -10377,12 +10536,12 @@ class Plugin(indigo.PluginBase):
 									temp[indigoId][servicetype].append(serviceId)
 				self.indigoIdToService = copy.copy(temp)
 
-				for sceneOwnerId in newV2['services']['scene']:
+				for sceneOwnerId in newV2['services'].get('scene', {}):
 					scene = newV2['services']['scene'][sceneOwnerId]
 					rtype  = scene['group']['rtype']
 					rid = scene['group']['rid']
 					scene['name'] = ""
-					if rtype in newV2['services']:
+					if rtype in newV2['services'] and rid in newV2['services'][rtype]:
 						group = newV2['services'][rtype][rid]
 						scene['name'] = rtype +"/" + group['metadata']['name']
 					scene['name'] += "/" + scene['metadata']['name']
@@ -11314,7 +11473,7 @@ class Plugin(indigo.PluginBase):
 				updateprops = True
 
 			swUpdateID = hueDeviceService['services'].get('device_software_update',[""])[0]
-			if swUpdateID in services['device_software_update']:
+			if swUpdateID in services.get('device_software_update', {}):
 				upd = services['device_software_update'][swUpdateID].get('state',"no_update")
 				stateUpdateList = self.checkIfUpdateState(device, 'softwareUpdate', 		upd,	 	stateUpdateList=stateUpdateList)
 				
@@ -12198,14 +12357,12 @@ class Plugin(indigo.PluginBase):
 
 						# Is this a link button not pressed error?
 						if errorCode == 1:
-							if self.checkForLastNotPairedMessage(hubNumber):
-								self.doErrorLog("getHueConfig: Not paired with the Hue bridge. Press the middle button on the Hue bridge, then press the Pair Now button in the Hue Lights Configuration window (Plugins menu).")
+							self.doErrorLog("getHueConfig: Not paired with the Hue bridge. Press the middle button on the Hue bridge, then press the Pair Now button in the Hue Lights Configuration window (Plugins menu).")
 						# Remember the error.
 							self.paired[hubNumber] = False
 
 						else:
-							if self.checkForLastNotPairedMessage(hubNumber):
-								self.doErrorLog("Error #{} from Hue bridge when getting the Hue bridge configuration. Description is \"{}\"." .format(errorCode, errorDict.get('description', "(no description")))
+							self.doErrorLog("Error #{} from Hue bridge when getting the Hue bridge configuration. Description is \"{}\"." .format(errorCode, errorDict.get('description', "(no description")))
 							self.paired[hubNumber] = False
 
 			except Exception:
@@ -12362,8 +12519,7 @@ class Plugin(indigo.PluginBase):
 				try:
 					retCode, responseData, errorsDict =  self.commandToHub_HTTP( hubNumber, theType)
 					if not retCode:
-						if self.checkForLastNotPairedMessage(hubNumber):
-							self.doErrorLog("Error #{} from Hue bridge#{} when loading available {}. Description is \"{}\".".format(errorCode, hubNumber, theType, errorDict.get('description', "(no description)")))
+						self.doErrorLog("Error #{} from Hue bridge#{} when loading available {}. Description is \"{}\".".format(errorCode, hubNumber, theType, errorDict.get('description', "(no description)")))
 						self.paired[hubNumber] = False
 						return False
 
@@ -12392,13 +12548,11 @@ class Plugin(indigo.PluginBase):
 
 							# Is this a link button not pressed error?
 							if errorCode == 1:
-								if self.checkForLastNotPairedMessage(hubNumber):
-									self.doErrorLog("update{}List: Not paired with the Hue bridge#{}. Press the middle button on the Hue bridge, then press the Pair Now button in the Hue Lights Configuration window (Plugins menu).".format(theType, hubNumber))
+								self.doErrorLog("update{}List: Not paired with the Hue bridge#{}. Press the middle button on the Hue bridge, then press the Pair Now button in the Hue Lights Configuration window (Plugins menu).".format(theType, hubNumber))
 								self.paired[hubNumber] = False
 
 							else:
-								if self.checkForLastNotPairedMessage(hubNumber):
-									self.doErrorLog("Error #{} from Hue bridge#{} when loading available {}. Description is \"{}\".".format(errorCode, hubNumber, theType, errorDict.get('description', "(no description)")))
+								self.doErrorLog("Error #{} from Hue bridge#{} when loading available {}. Description is \"{}\".".format(errorCode, hubNumber, theType, errorDict.get('description', "(no description)")))
 								self.paired[hubNumber] = False
 
 				except requests.exceptions.Timeout:
@@ -13924,7 +14078,7 @@ class Plugin(indigo.PluginBase):
 						return
 					except requests.exceptions.ConnectionError:
 						self._createBridgeSession(hubNumber, force=True)   # drop stale connection
-						self.indiLOG.log(30, "bridge {}: connection lost, session reset".format(hubNumber))
+						self.doErrorLog("bridge {}: connection lost, session reset".format(hubNumber), level=30)
 						self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(10)".format(ipAddress))
 						self.resetBridgeBusy(hubNumber, "", 0)
 						return
@@ -13986,7 +14140,7 @@ class Plugin(indigo.PluginBase):
 						return
 					except requests.exceptions.ConnectionError:
 						self._createBridgeSession(hubNumber, force=True)   # drop stale connection
-						self.indiLOG.log(30, "bridge {}: connection lost, session reset".format(hubNumber))
+						self.doErrorLog("bridge {}: connection lost, session reset".format(hubNumber), level=30)
 						self.resetBridgeBusy(hubNumber, "", 0)
 						self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(12)".format(ipAddress))
 						return
@@ -14113,7 +14267,7 @@ class Plugin(indigo.PluginBase):
 						return
 					except requests.exceptions.ConnectionError:
 						self._createBridgeSession(hubNumber, force=True)   # drop stale connection
-						self.indiLOG.log(30, "bridge {}: connection lost, session reset".format(hubNumber))
+						self.doErrorLog("bridge {}: connection lost, session reset".format(hubNumber), level=30)
 						self.resetBridgeBusy(hubNumber, "", 0)
 						self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(14)".format(ipAddress))
 						# Don't display the error if it's been displayed already.
@@ -14168,7 +14322,7 @@ class Plugin(indigo.PluginBase):
 						return
 					except requests.exceptions.ConnectionError:
 						self._createBridgeSession(hubNumber, force=True)   # drop stale connection
-						self.indiLOG.log(30, "bridge {}: connection lost, session reset".format(hubNumber))
+						self.doErrorLog("bridge {}: connection lost, session reset".format(hubNumber), level=30)
 						self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(16)".format(ipAddress))
 						self.resetBridgeBusy(hubNumber, "", 0)
 						return
@@ -14323,7 +14477,7 @@ class Plugin(indigo.PluginBase):
 					return
 				except requests.exceptions.ConnectionError:
 					self._createBridgeSession(hubNumber, force=True)   # drop stale connection
-					self.indiLOG.log(30, "bridge {}: connection lost, session reset".format(hubNumber))
+					self.doErrorLog("bridge {}: connection lost, session reset".format(hubNumber), level=30)
 					self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(18)".format(ipAddress))
 					self.resetBridgeBusy(hubNumber, "", 0)
 					return
@@ -14522,7 +14676,7 @@ class Plugin(indigo.PluginBase):
 				return
 			except requests.exceptions.ConnectionError:
 				self._createBridgeSession(hubNumber, force=True)   # drop stale connection
-				self.indiLOG.log(30, "bridge {}: connection lost, session reset".format(hubNumber))
+				self.doErrorLog("bridge {}: connection lost, session reset".format(hubNumber), level=30)
 				self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(20)".format(ipAddress))
 				self.resetBridgeBusy(hubNumber, "", 0)
 				return
@@ -14671,7 +14825,7 @@ class Plugin(indigo.PluginBase):
 				return
 			except requests.exceptions.ConnectionError:
 				self._createBridgeSession(hubNumber, force=True)   # drop stale connection
-				self.indiLOG.log(30, "bridge {}: connection lost, session reset".format(hubNumber))
+				self.doErrorLog("bridge {}: connection lost, session reset".format(hubNumber), level=30)
 				self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(22)".format(ipAddress))
 				self.resetBridgeBusy(hubNumber, "", 0)
 				return
@@ -14832,7 +14986,7 @@ class Plugin(indigo.PluginBase):
 					return
 				except requests.exceptions.ConnectionError:
 					self._createBridgeSession(hubNumber, force=True)   # drop stale connection
-					self.indiLOG.log(30, "bridge {}: connection lost, session reset".format(hubNumber))
+					self.doErrorLog("bridge {}: connection lost, session reset".format(hubNumber), level=30)
 					self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(24)".format(ipAddress))
 					self.resetBridgeBusy(hubNumber, "", 0)
 					return
@@ -14974,7 +15128,7 @@ class Plugin(indigo.PluginBase):
 					return
 				except requests.exceptions.ConnectionError:
 					self._createBridgeSession(hubNumber, force=True)   # drop stale connection
-					self.indiLOG.log(30, "bridge {}: connection lost, session reset".format(hubNumber))
+					self.doErrorLog("bridge {}: connection lost, session reset".format(hubNumber), level=30)
 					self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(26)".format(ipAddress))
 					self.resetBridgeBusy(hubNumber, "", 0)
 					return
@@ -15056,7 +15210,7 @@ class Plugin(indigo.PluginBase):
 				return
 			except requests.exceptions.ConnectionError:
 				self._createBridgeSession(hubNumber, force=True)   # drop stale connection
-				self.indiLOG.log(30, "bridge {}: connection lost, session reset".format(hubNumber))
+				self.doErrorLog("bridge {}: connection lost, session reset".format(hubNumber), level=30)
 				self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(28)".format(ipAddress))
 				self.resetBridgeBusy(hubNumber, "", 0)
 				return
@@ -15143,7 +15297,7 @@ class Plugin(indigo.PluginBase):
 
 			except requests.exceptions.ConnectionError:
 				self._createBridgeSession(hubNumber, force=True)   # drop stale connection
-				self.indiLOG.log(30, "bridge {}: connection lost, session reset".format(hubNumber))
+				self.doErrorLog("bridge {}: connection lost, session reset".format(hubNumber), level=30)
 				self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(30)".format(ipAddress))
 				self.resetBridgeBusy(hubNumber, "", 0)
 				return
@@ -16842,7 +16996,7 @@ class Plugin(indigo.PluginBase):
 
 				except requests.exceptions.ConnectionError:
 					self._createBridgeSession(hubNumber, force=True)   # drop stale connection
-					self.indiLOG.log(30, "bridge {}: connection lost, session reset".format(hubNumber))
+					self.doErrorLog("bridge {}: connection lost, session reset".format(hubNumber), level=30)
 					self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(30)".format(ipAddress))
 					self.resetBridgeBusy(hubNumber, "", 0)
 					return
@@ -16873,7 +17027,7 @@ class Plugin(indigo.PluginBase):
 
 					except requests.exceptions.ConnectionError:
 						self._createBridgeSession(hubNumber, force=True)   # drop stale connection
-						self.indiLOG.log(30, "bridge {}: connection lost, session reset".format(hubNumber))
+						self.doErrorLog("bridge {}: connection lost, session reset".format(hubNumber), level=30)
 						self.doErrorLog("Failed to connect to the Hue bridge at {}. - Check that the bridge is connected and turned on.(30)".format(ipAddress))
 						self.resetBridgeBusy(hubNumber, "", 0)
 						return
@@ -17241,9 +17395,115 @@ class Plugin(indigo.PluginBase):
 
 	####----------------- use bonjour to find local hue bridges , store in self.bridgesAvailable, to be used in config setup  ---------
 	########################################
+	def _discoverHueBridgesMDNS(self, timeout=2.0):
+		"""Discover Hue bridges on the LAN via multicast DNS, pure stdlib (replaces the macOS dns-sd shell
+		calls). Multicast-queries PTR _hue._tcp.local. on 224.0.0.251:5353 and parses the SRV/TXT/A records
+		in the replies. Returns {BRIDGEID(upper): {"ipAddress": ip, "name": host}} for every bridge that
+		reported both a bridgeid (TXT) and an IPv4 (A)."""
+		import struct
+		MCAST = "224.0.0.251"; PORT = 5353; SERVICE = "_hue._tcp.local"
+
+		def enc_name(name):
+			out = b""
+			for lab in name.split("."):
+				if lab:
+					lb = lab.encode("utf-8")
+					out += bytes([len(lb)]) + lb
+			return out + b"\x00"
+
+		def dec_name(data, off):
+			# decode a DNS name, following 0xC0 compression pointers; returns (name, offset-after-name)
+			labels = []; jumped = False; nxt = off; hops = 0
+			while True:
+				if off >= len(data) or hops > 128: break
+				ln = data[off]
+				if ln == 0:
+					if not jumped: nxt = off + 1
+					break
+				if (ln & 0xC0) == 0xC0:
+					if off + 1 >= len(data): break
+					ptr = ((ln & 0x3F) << 8) | data[off + 1]
+					if not jumped: nxt = off + 2
+					off = ptr; jumped = True; hops += 1
+					continue
+				off += 1
+				labels.append(data[off:off + ln].decode("utf-8", "replace"))
+				off += ln
+			return ".".join(labels), nxt
+
+		# one PTR question; QU (unicast-response) bit set in qclass so bridges may also reply to our port
+		query = struct.pack(">HHHHHH", 0, 0, 1, 0, 0, 0) + enc_name(SERVICE) + struct.pack(">HH", 12, 0x8001)
+
+		srvHost = {}; txtBridge = {}; hostIp = {}
+		sock = None
+		try:
+			sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+			sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+			try:	sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+			except Exception:	pass
+			try:
+				sock.bind(("", PORT))	# share 5353 with the OS mDNS responder, join the group to catch replies
+				mreq = struct.pack("=4sl", socket.inet_aton(MCAST), socket.INADDR_ANY)
+				sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+			except Exception:
+				try:	sock.close()
+				except Exception:	pass
+				sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+				sock.bind(("", 0))	# fall back to an ephemeral port, rely on QU unicast replies
+			try:	sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
+			except Exception:	pass
+			sock.sendto(query, (MCAST, PORT))
+			deadline = time.time() + timeout
+			while True:
+				remaining = deadline - time.time()
+				if remaining <= 0: break
+				sock.settimeout(remaining)
+				try:	pkt, _addr = sock.recvfrom(9000)
+				except socket.timeout:	break
+				except Exception:	continue
+				try:
+					if len(pkt) < 12: continue
+					qd, an, ns, ar = struct.unpack(">HHHH", pkt[4:12])
+					off = 12
+					for _ in range(qd):
+						_, off = dec_name(pkt, off); off += 4
+					for _ in range(an + ns + ar):
+						rname, off = dec_name(pkt, off)
+						if off + 10 > len(pkt): break
+						rtype, rclass, ttl, rdlen = struct.unpack(">HHIH", pkt[off:off + 10])
+						off += 10; rdstart = off; off += rdlen
+						if rtype == 33:						# SRV: prio(2) weight(2) port(2) target(name)
+							tgt, _ = dec_name(pkt, rdstart + 6)
+							srvHost[rname] = tgt
+						elif rtype == 16:					# TXT: length-prefixed key=value strings
+							i = rdstart; end = min(rdstart + rdlen, len(pkt))
+							while i < end:
+								l = pkt[i]; i += 1
+								s = pkt[i:i + l].decode("utf-8", "replace"); i += l
+								if s.lower().startswith("bridgeid="):
+									txtBridge[rname] = s.split("=", 1)[1]
+						elif rtype == 1 and rdlen == 4:		# A: IPv4 for the SRV target host
+							hostIp[rname] = ".".join(str(b) for b in pkt[rdstart:rdstart + 4])
+				except Exception:
+					continue
+		except Exception:
+			self.indiLOG.log(30, "", exc_info=True)
+		finally:
+			if sock is not None:
+				try:	sock.close()
+				except Exception:	pass
+
+		result = {}
+		for inst, bid in txtBridge.items():
+			host = srvHost.get(inst)
+			ip = hostIp.get(host) if host else None
+			if bid and ip:
+				result[bid.upper()] = {"ipAddress": ip, "name": host or inst}
+		return result
+
 	def findHueBridges(self):# , startTime):
 		"""
-		Continuously discover local Hue bridges using Bonjour/dns-sd and store results in bridgesAvailable.
+		Continuously discover local Hue bridges via multicast DNS (pure Python) and store results in bridgesAvailable.
 
 		Args:
 		    self) (any): the self) value
@@ -17270,60 +17530,14 @@ class Plugin(indigo.PluginBase):
 					return
 
 				self.findHueBridgesAreBeingupdated = "updating"
-				# first scan, get bonjour devices
-				# returns lines like: 14:53:34.464  Add        3   4 local.               _hue._tcp.           Philips Hue - A30D45
-				cmd =  "/usr/bin/dns-sd -B _hue._tcp local. & sleep 1; /bin/kill $!"
-				ret, err = self.readPopen(cmd)
-				if self.decideMyLog("FindHueBridge"): self.indiLOG.log(10,"findHueBridges:  (1) cmd:{}, ret={}".format(cmd, ret))
-				lines = ret.split("\n")
-				huesFound = dict()
-				bridgeIds = dict()
-				ipAddress = dict()
-				count = 0
-				for line in lines:
-					if self.searchForStringinFindHueBridge in line:
-						ll = line.split() #   ll[-1] == A30D45
-						huesFound[count] = {"cmd":'"'+self.searchForStringinFindHueBridge+' - '+ ll[-1]+'"',"name":"none"}
-						ipAddress[count] = "none"
-						bridgeIds[count] = "none"
-						count += 1
-
-				if self.decideMyLog("FindHueBridge"): self.indiLOG.log(10,"findHueBridges:  (2) huesFound={}".format( huesFound))
-				# second scan get  names
-				# returns a line like: 14:55:09.260  Philips\032Hue\032-\032A8A63E._hue._tcp.local. can be reached at Bridge-2-201-d2.local.:443 (interface 4)
-				for cc in range(count):
-					if self.findHueBridgesDict['status'] == "stop": return
-					if self.pluginState == "stop": return
-					cmd = "/usr/bin/dns-sd  -L "+huesFound[cc]['cmd']+' _hue._tcp & sleep 1; /bin/kill $!'
-					ret, err = self.readPopen(cmd)
-					if self.decideMyLog("FindHueBridge"): self.indiLOG.log(10,"findHueBridges:  (2)-{} cmd:{}, ret={}".format(cc, cmd, ret))
-					if " can be reached at " in ret:
-						name = ret.split(" can be reached at ")[1].split(":")[0]
-						huesFound[cc]['name'] = name # == Bridge-2-201-d2.local.
-
-						if "bridgeid=" in ret:
-							bridgeIds[cc] = ret.split("bridgeid=")[1].split(" ")[0].upper()
-
-				if self.decideMyLog("FindHueBridge"): self.indiLOG.log(10,"findHueBridges:  (4) huesFound={}".format( bridgeIds))
-
-				# third scan:
-				# returns line like: 14:56:22.568  Add 40000002  4 Bridge-2-201-d2.local.                 192.168.1.201                                120
-				for cc in range(count):
-					if self.findHueBridgesDict['status'] == "stop": return
-					if self.pluginState == "stop": return
-					if len(bridgeIds) <= cc: continue
-					if huesFound[cc]['name'] == "none": continue
-					if bridgeIds[cc] == "none": continue
-
-					cmd =  "/usr/bin/dns-sd -G v4 " + huesFound[cc]['name'] +" & sleep 1; /bin/kill $!"
-					ret, err = self.readPopen(cmd)
-					if self.decideMyLog("FindHueBridge"): self.indiLOG.log(10,"findHueBridges:  (3)-{} cmd:{}, ret={}".format(cc, cmd, ret))
-					if huesFound[cc]['name'] in ret:
-						ipAddress[cc] = ret.split(huesFound[cc]['name'])[1].lstrip(" ").split(" ")[0] # == 192.168.1.201
-
-				for cc in range(count):
-					if bridgeIds[cc] != "none" and ipAddress[cc] != "none":
-						self.bridgesAvailable[bridgeIds[cc]] =  {"ipAddress":ipAddress[cc],"hubNumber":"", "linked": False}
+				# discover local Hue bridges via multicast DNS (pure Python; replaces the macOS dns-sd shell calls)
+				found = self._discoverHueBridgesMDNS(timeout=2.0)
+				if self.decideMyLog("FindHueBridge"): self.indiLOG.log(10,"findHueBridges: mDNS found {}".format(found))
+				for bridgeId, info in found.items():
+					if bridgeId not in self.bridgesAvailable:
+						self.bridgesAvailable[bridgeId] = {"ipAddress": info["ipAddress"], "hubNumber": "", "linked": False}
+					else:
+						self.bridgesAvailable[bridgeId]["ipAddress"] = info["ipAddress"]
 
 
 				## now wait for next round, using delay to update dicts
@@ -17349,9 +17563,11 @@ class Plugin(indigo.PluginBase):
 										# self.bridgesAvailable[bridgeId] = {"ipAddress":"","hubNumber":"", "linked": False}
 
 					for bridgeId in self.bridgesAvailable:
-						if bridgeId not in bridgesAvailableOld:
+						# only announce a genuinely NEW, not-yet-paired bridge; an already-linked bridge reappearing
+						# in a scan (e.g. a menu-forced rescan) is not news
+						if bridgeId not in bridgesAvailableOld and not self.bridgesAvailable[bridgeId].get("linked", False):
 							if not first:
-								self.indiLOG.log(30,"!!!! \nfindHueBridges: new bridge found:{}\n!!!!".format(self.bridgesAvailable[bridgeId]))
+								self.indiLOG.log(30,"!!!! \nfindHueBridges: new (unpaired) bridge found:{}\n!!!!".format(self.bridgesAvailable[bridgeId]))
 								for hubNumber in self.ipAddresses:
 									if not self.hubIsEnabled[hubNumber]: continue
 									self.lastTimeHTTPGet[hubNumber]['all'] = time.time() + 30
@@ -18408,44 +18624,42 @@ class Plugin(indigo.PluginBase):
 
 	# doErrorLog
 	########################################
-	def doErrorLog(self, errorText, level=40, force=False):
+	def doErrorLog(self, errorText, level=40, force=False, key=None, throttleSecs=None):
 		"""
-		Log an error message only if it differs from the last logged error to avoid duplicate spam.
+		Log an error, throttled so a persistent condition (e.g. a bridge that stays down) does not spam the
+		log. Errors are grouped by `key` (defaults to the message text); a given key is logged at most once
+		per `throttleSecs` (defaults to self.deltaRefresh['error'], ~5 min). Repeats that fall inside the
+		window are counted and reported with the next emission ("(+N repeats in last Ms)"). This is the one
+		general gate for error logging — callers no longer need their own per-message timers.
 
 		Args:
 		    errorText (str): the error message text to log
-		    level (int, default 40): the logging level (e.g. 40 = ERROR)
-		    force (bool, default False): if True, bypass timing throttles and force the operation
+		    level (int, default 40): the logging level (e.g. 40 = ERROR, 30 = WARNING)
+		    force (bool, default False): if True, log now regardless of the throttle
+		    key (str, default None): throttle bucket; None -> use errorText (so identical repeats collapse)
+		    throttleSecs (float, default None): min seconds between emissions for this key; None -> deltaRefresh['error']
 
 		Returns:
-		    None
+		    str: errorText (so callers can reuse it, e.g. for an errorsDict, whether or not it was logged)
 		"""
-		if errorText != self.lastErrorMessage or force:
-			self.indiLOG.log(level, errorText)
-			self.lastErrorMessage = errorText
+		try:
+			now = time.time()
+			if throttleSecs is None:
+				throttleSecs = self.deltaRefresh.get('error', 300)
+			k = key if key is not None else errorText
+			rec = self._errorThrottle.get(k)
+			if force or rec is None or (now - rec['last']) >= throttleSecs:
+				suppressed = rec['suppressed'] if rec else 0
+				msg = errorText if suppressed == 0 else "{}   (+{} repeats in last {:.0f}s)".format(errorText, suppressed, throttleSecs)
+				self.indiLOG.log(level, msg)
+				self._errorThrottle[k] = {'last': now, 'suppressed': 0}
+				self.lastErrorMessage = errorText
+			else:
+				rec['suppressed'] += 1
+		except Exception:
+			try: self.indiLOG.log(level, errorText)
+			except Exception: pass
 		return errorText
-
-	# checkForLastNotPairedMessage
-	########################################
-	def checkForLastNotPairedMessage(self, hubNumber):
-		"""
-		Return True if more than 100 seconds have passed since the last not-paired message for a hub.
-
-		Args:
-		    hubNumber (str): the bridge/hub number key (e.g. '0', '1')
-
-		Returns:
-		    bool: True if enough time has passed to show the 'not paired' message
-		"""
-		#self.indiLOG.log(20,"checkForLastNotPairedMessage, hubnumber, notPairedMsg:{}, {}, paired:{}".format(hubNumber, self.notPairedMsg, self.paired))
-		if hubNumber not in self.notPairedMsg:
-			#self.indiLOG.log(20,"checkForLastNotPairedMessage, hubnumber not in notPairedMsg:{}, {}".format(hubNumber, self.notPairedMsg))
-			self.notPairedMsg[hubNumber]  = time.time() - 99
-
-		ret = time.time() - self.notPairedMsg[hubNumber] > 100
-		if ret:
-			self.notPairedMsg[hubNumber]  = time.time()
-		return ret
 
 	# normalizeHue
 	########################################
@@ -18522,25 +18736,6 @@ class Plugin(indigo.PluginBase):
 
 
 ####-------------------------------------------------------------------------####
-
-	# readPopen
-	########################################
-	def readPopen(self, cmd):
-		"""
-		Run a shell command via subprocess and return stdout and stderr as decoded strings.
-
-		Args:
-		    cmd (str): the API endpoint path to GET from the bridge
-
-		Returns:
-		    tuple: (str stdout, str stderr) from the subprocess command
-		"""
-		try:
-			ret, err = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-			return ret.decode('utf_8'), err.decode('utf_8')
-		except Exception as e:
-			if str(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
-
 
 ####-------------------------------------------------------------------------####
 
@@ -18824,7 +19019,11 @@ class Plugin(indigo.PluginBase):
 						return
 
 					if response.status_code == 200:
-						self.indiLOG.log(10 if resumeId else 20,"Successful Connected: Listening for events on Bridge: {} at:{}".format(hubNumber, EVENT_STREAM_URL))
+						# first-ever connect always logged; routine reconnects only when EventApi debug is on
+						if resumeId:
+							if self.decideMyLog("EventApi"): self.indiLOG.log(10,"Successful Connected (reconnect): Bridge {} at {}".format(hubNumber, EVENT_STREAM_URL))
+						else:
+							self.indiLOG.log(20,"Successful Connected: Listening for events on Bridge: {} at:{}".format(hubNumber, EVENT_STREAM_URL))
 						# true outage duration = time since the connection actually dropped (disconnectTime),
 						# NOT since the last Hue event — a quiet-but-healthy bridge can be event-less for hours (#4)
 						gapDur = (time.time() - disconnectTime) if disconnectTime else 0.
@@ -18835,7 +19034,7 @@ class Plugin(indigo.PluginBase):
 							# reconnect is a backfilled/skipped event). The full bridge re-read is deferred
 							# and only forced if the bridge does NOT replay (see the resolution below) —
 							# when it replays, processing the replayed events already makes states current.
-							self.indiLOG.log(10,"reconnect after {:.0f}s gap on bridge {} (last ev-id {}) — checking bridge replay".format(gapDur, hubNumber, resumeId))
+							if self.decideMyLog("EventApi"): self.indiLOG.log(10,"reconnect after {:.0f}s gap on bridge {} (last ev-id {}) — checking bridge replay".format(gapDur, hubNumber, resumeId))
 							countingReplay = True
 							replayCount = 0
 							gapReplayWall = time.time()
@@ -18857,9 +19056,9 @@ class Plugin(indigo.PluginBase):
 								# stop_listener is already handling this entry — just exit
 								self.indiLOG.log(20,f"status = {self.listenThread[hubNumber]['status']}")
 								return
-							if not self.hubIsEnabled[hubNumber]:  
-								self.delayedActionThread['actions'].put({"executionTime":time.time()+0.5, "command":"self.stop_listener()", "param": hubNumber})
-								self.indiLOG.log(20,f"Bridge is disabled")	
+							if not self.hubIsEnabled[hubNumber]:
+								self.indiLOG.log(20,f"Bridge is disabled")
+								self.delayedActionThread['actions'].put({"executionTime":time.time()+0.5, "stopListener": hubNumber})
 								return
 							if stopEvent.is_set():
 								return	
@@ -18907,10 +19106,10 @@ class Plugin(indigo.PluginBase):
 												self.lastTimeFor['checkMissing'] = 0
 											elif replayCount > 0:
 												# replay covered the whole gap -> states current, no re-read
-												self.indiLOG.log(10,"bridge {}: real gap of {:.0f}s — recovered {} events replayed by bridge (last {} -> first {}), states current, no re-read".format(hubNumber, gapDur, replayCount, resumeId, firstIdAfter))
+												if self.decideMyLog("EventApi"): self.indiLOG.log(10,"bridge {}: real gap of {:.0f}s — recovered {} events replayed by bridge (last {} -> first {}), states current, no re-read".format(hubNumber, gapDur, replayCount, resumeId, firstIdAfter))
 											else:
 												# short gap, no events occurred -> nothing missed, no re-read needed
-												self.indiLOG.log(10,"bridge {}: no events during the {:.0f}s gap (nothing missed; last {} -> first {})".format(hubNumber, gapDur, resumeId, firstIdAfter))
+												if self.decideMyLog("EventApi"): self.indiLOG.log(10,"bridge {}: no events during the {:.0f}s gap (nothing missed; last {} -> first {})".format(hubNumber, gapDur, resumeId, firstIdAfter))
 									self.bytesSend[hubNumber]['events']['id'] += 1
 									self.bytesSend[hubNumber]['events']['idL'] += len(str(line))
 		
@@ -18950,7 +19149,8 @@ class Plugin(indigo.PluginBase):
 					if disconnectTime is None: disconnectTime = time.time()	# outage begins now (#4)
 					reconnectFailures += 1
 					delay = (0, 0, 2, 5, 10)[min(reconnectFailures, 4)]	# working conn dropped -> reconnect now; back off only if it keeps failing
-					self.indiLOG.log(10,"Bridge read timeout. Reconnecting in {}s...".format(delay))
+					if delay: self.indiLOG.log(20,"Bridge read timeout (retry {}). Reconnecting in {}s...".format(reconnectFailures, delay))
+					elif self.decideMyLog("EventApi"): self.indiLOG.log(10,"Bridge read timeout. Reconnecting now...")
 					try: session.close()
 					except Exception: pass
 					session = self._newEventStreamSession()	# never reuse a Session after a failure (#3)
@@ -18962,7 +19162,8 @@ class Plugin(indigo.PluginBase):
 					if disconnectTime is None: disconnectTime = time.time()	# outage begins now (#4)
 					reconnectFailures += 1
 					delay = (0, 0, 2, 5, 10)[min(reconnectFailures, 4)]	# a graceful close (bridge recycling the SSE conn) drops us here → reconnect immediately
-					self.indiLOG.log(10,"Bridge connection closed/unreachable. Reconnecting in {}s...".format(delay))
+					if delay: self.indiLOG.log(20,"Bridge connection closed/unreachable (retry {}). Reconnecting in {}s...".format(reconnectFailures, delay))
+					elif self.decideMyLog("EventApi"): self.indiLOG.log(10,"Bridge connection closed/unreachable. Reconnecting now...")
 					try: session.close()
 					except Exception: pass
 					session = self._newEventStreamSession()	# never reuse a Session after a failure (#3)
@@ -18997,6 +19198,23 @@ class Plugin(indigo.PluginBase):
 
 
 
+
+	def _motionHealthFlapHint(self, areaName):
+		"""Record a MotionAware health-change event for this area and, once it has flapped more than 3 times
+		in the last hour, return an advisory string to append to the warning (else ""). Keeps the per-area
+		timestamp list pruned to the rolling 1-hour window."""
+		try:
+			now = time.time()
+			ev = self._motionHealthEvents.setdefault(areaName, [])
+			ev.append(now)
+			cutoff = now - 3600
+			while ev and ev[0] < cutoff:
+				del ev[0]
+			if len(ev) > 3:
+				return "   >>> !!! power cycle hue lamps/switches, check for bad RF interference !!! <<<"
+		except Exception:
+			pass
+		return ""
 
 	######################
 	########################################
@@ -19312,7 +19530,7 @@ no devId for:
 				if "health" in eventDict:
 					health = eventDict['health']
 					if motionDevice is not None:
-						self.indiLOG.log(30,"Hue motion area{:40} \"health\" has changed to  \"{:}\" ".format(motionDeviceName, health))
+						self.indiLOG.log(30,"Hue motion area{:40} \"health\" has changed to  \"{:}\" {}".format(motionDeviceName, health, self._motionHealthFlapHint(motionDeviceName)))
 						printGeneral = False
 						# write directly — motionDevice is not the device the caller's stateUpdateList belongs to
 						self.checkIfUpdateState(motionDevice, 'health', 	health)
@@ -19329,7 +19547,7 @@ no devId for:
 								inId  = self.serviceidToIndigoId[hubNumber].get(rid, None)
 								if inId is not None:
 									device = self.deviceCopiesFromIndigo[inId]
-									self.indiLOG.log(30,"Hue device {:40}  in motion area {:40}  status has changed to  \"{:}\"  ".format(device.name, motionDeviceName, status))
+									self.indiLOG.log(30,"Hue device {:40}  in motion area {:40}  status has changed to  \"{:}\"  {}".format(device.name, motionDeviceName, status, self._motionHealthFlapHint(motionDeviceName)))
 									printGeneral = False
 
 				if printGeneral:

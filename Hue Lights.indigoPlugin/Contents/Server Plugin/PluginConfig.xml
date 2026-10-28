@@ -103,7 +103,6 @@ Make sure you set that up correctly.
 	>
 		<Label>Select action for the bridge:</Label>
 		<List>
-			<Option value="api">change api version</Option>
 			<Option value="add">add or re-pair a new bridge</Option>
 			<Option value="modIP">change the ip number</Option>
 			<Option value="delete">delete an existing bridge</Option>
@@ -156,52 +155,6 @@ Make sure you set that up correctly.
 		<Label>click to enable/disable</Label>
 		<Title>CONFIRM</Title>
 		<CallbackMethod>confirmDisable</CallbackMethod>
-	</Field>
-	<!-- mod api v     -->
-
-	<Field type="label" id="labelAPI"
-		visibleBindingId="showApiMod"
-		visibleBindingValue="true"
-	>
-		<Label>
-== Modify API version of a bridge: Select bridge, select API version, click on CONFIRM:
-</Label>
-	</Field>
-
-	<Field type="menu" id="modAPIList"
-		defaultValue="0"
-		visibleBindingId="showApiMod"
-		visibleBindingValue="true"
-		tooltip=""
-	>
-		<Label>Select a Hue Bridge to modify:</Label>
-		<List
-			class="self"
-			method="gwListGenerator"
-			filter="notEmpty"
-			dynamicReload="true"
-		/>
-	</Field>
-
-	<Field type="menu" id="newAPIVersion"
-		visibleBindingId="showApiMod"
-		visibleBindingValue="true"
-	>
-		<Label>select API version for this bridge:</Label>
-		<List>
-			<Option value="1">api v 1</Option>
-			<Option value="2">api v 2 available on hue pro bridge </Option>
-		</List>
-	</Field>
-
-	<Field type="button" id="confirmAPIMod"
-		visibleBindingId="showApiMod"
-		visibleBindingValue="true"
-		tooltip=""
-	>
-		<Label>click to change API version#</Label>
-		<Title>CONFIRM</Title>
-		<CallbackMethod>confirmAPIMod</CallbackMethod>
 	</Field>
 	<!-- modify  ip     -->
 
@@ -334,17 +287,6 @@ Make sure you set that up correctly.
 			filter=""
 			dynamicReload="true"
 		/>
-	</Field>
-
-	<Field type="menu" id="newHubVersionPair"
-		visibleBindingId="showGwAdd"
-		visibleBindingValue="true"
-	>
-		<Label>enter hub version (leave Blank to keep):</Label>
-		<List>
-			<Option value="1">hue hub version 2 </Option>
-			<Option value="2">hue hub pro </Option>
-		</List>
 	</Field>
 
 	<Field type="button" id="selecthubNumberGWPair"
@@ -499,6 +441,18 @@ Shown after successful pairing process</Label>
 		fontColor="darkgray"
 	>
 		<Label>Used when "ON command uses" = the light's Default Brightness and a light's Default Brightness source is "use plugin default". Each light can instead pick "manual value" in its device settings.</Label>
+	</Field>
+
+	<Field type="menu" id="iconStyle"
+		defaultValue="default"
+		tooltip="Default device icon for all devices (each device can override this in its own settings). 'default' uses the icon appropriate to the device type (lamp / on-off / motion / temperature); the colour options show a green/red dot for on/off."
+	>
+		<Label>Device icons:</Label>
+		<List>
+			<Option value="default">default (by device type)</Option>
+			<Option value="greenOnRedOff">green = on / red = off</Option>
+			<Option value="redOnGreenOff">red = on / green = off</Option>
+		</List>
 	</Field>
 
 	<!-- 'restart api-V2 event listener after no events for N seconds' (NumberOfSecondsEventWoMessage)

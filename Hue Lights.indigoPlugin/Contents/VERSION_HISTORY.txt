@@ -1,5 +1,38 @@
 
-2022.33.122 @ 2016-10-12
+2022.33.127 @ 2026-10-27
+    * doErrorLog is now the one general, time-throttled error logger: it groups by message (or an
+      explicit key) and logs each at most once per ~5 min, counting suppressed repeats and reporting
+      them with the next line ("(+N repeats in last Ms)").
+    * The bridge-down log spam is gone - "connection lost, session reset" and the per-bridge
+      "Failed to connect ..." errors now route through doErrorLog's throttle instead of printing every poll.
+    * Folded the separate checkForLastNotPairedMessage 100 s gate (11 call sites) into doErrorLog and
+      removed it; cleanup (errorsDict / resetBridgeBusy) at those sites now always runs.
+
+2022.33.126 @ 2026-10-26
+    * Bridge API version is now auto-detected from the model (BSB001/BSB002 -> v1, BSB003+ Pro -> v2) via
+      the unauthenticated GET /api/config; the manual API-version and bridge-type options are gone.
+    * Bridge discovery and reachability are now pure Python - mDNS over UDP sockets and a TCP-connect test
+      - with no dns-sd/ping shell-outs, no subprocess, and no exec() dispatch.
+    * Added per-device and plugin-wide device icons (type default, or green/red for on/off), a bridge
+      modelId state, and a clean "unreachable" mark on a bridge communication_error.
+    * findHueBridges only warns "new bridge found" for a genuinely new, UNPAIRED bridge now; an already-
+      linked bridge reappearing in a scan (e.g. a menu-forced rescan) no longer raises the warning.
+    * MotionAware health warnings are kept, but when an area's health flaps more than 3x in an hour the
+      warning now appends ">>> !!! power cycle hue lamps/switches, check for bad RF interference !!! <<<".
+
+2022.33.123 @ 2026-10-19
+    Quieter EventStream log (routine reconnects):
+    * A no-issue reconnect no longer prints the "connection closed / Successful Connected /
+      checking replay / nothing missed / recovered N events" block. Those lines are now gated
+      behind the EventApi debug area, so normal quiet operation (incl. the Pro bridge's periodic
+      SSE recycle) produces no log output.
+    * Repeated failures still surface: when a backoff delay kicks in (delay > 0) the reconnect
+      logs at level 20 ("... (retry N). Reconnecting in Ns..."), and the ">300 s ... MAY HAVE
+      BEEN MISSED -> full re-read" line stays at level 20.
+    * The rolling reconnect history shown in print-stats is unchanged.
+
+
+2022.33.122 @ 2026-10-12
     Hue Pro (v2) group fixes :
     * Zone grouped_light events now update their Indigo device — digestV2Event no longer
       overwrites the owner/id_v1-resolved indigoId with a (frequently absent) zone grouped_light

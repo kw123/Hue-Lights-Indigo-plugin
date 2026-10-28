@@ -189,6 +189,11 @@
 				<TriggerLabel>apiVersion</TriggerLabel>
 				<ControlPageLabel>apiVersion</ControlPageLabel>
 			</State>
+			<State id="modelId">
+				<ValueType>String</ValueType>
+				<TriggerLabel>modelId</TriggerLabel>
+				<ControlPageLabel>modelId</ControlPageLabel>
+			</State>
 			<State id="zigbeeChannel">
 				<ValueType>String</ValueType>
 				<TriggerLabel>zigbeeChannel</TriggerLabel>
@@ -469,6 +474,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				tooltip="to keep a record of the serial number in case it needs to be re-learned"
 			>
 				<Label>Serial Number on Lamp:</Label>
+			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -829,6 +844,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -1171,6 +1196,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				tooltip="to keep a record of the serial number in case it needs to be re-learned"
 			>
 				<Label>Serial Number on Lamp:</Label>
+			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -1550,6 +1585,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -1904,6 +1949,16 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -2037,6 +2092,16 @@ The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
 				tooltip="to keep a record of the serial number in case it needs to be re-learned"
 			>
 				<Label>Serial Number on Lamp:</Label>
+			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -2374,6 +2439,16 @@ when a light is changed. With this option you can select
 			<Field type="textfield" id="savedBrightness"
 				hidden="true"
 			/>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -2539,6 +2614,16 @@ when a light is changed. With this option you can select
 			>
 				<Label>Serial Number on sensor:</Label>
 			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -2664,6 +2749,16 @@ when a light is changed. With this option you can select
 				tooltip="to keep a record of the serial number in case it needs to be re-learned"
 			>
 				<Label>Serial Number on Lamp:</Label>
+			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -2831,6 +2926,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -2973,6 +3078,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				tooltip="to keep a record of the serial number in case it needs to be re-learned"
 			>
 				<Label>Serial Number on Lamp:</Label>
+			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -3123,6 +3238,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -3256,6 +3381,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				tooltip="to keep a record of the serial number in case it needs to be re-learned"
 			>
 				<Label>Serial Number on Lamp:</Label>
+			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -3456,6 +3591,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -3594,6 +3739,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				tooltip="to keep a record of the serial number in case it needs to be re-learned"
 			>
 				<Label>Serial Number on Lamp:</Label>
+			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -3759,6 +3914,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 				tooltip="to keep a record of the serial number in case it needs to be re-learned"
 			>
 				<Label>Serial Number on Lamp:</Label>
+			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -4010,6 +4175,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -4215,6 +4390,16 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 			>
 				<Label>Serial Number on Lamp:</Label>
 			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -4411,6 +4596,16 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 			>
 				<Label/>
 			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -4448,6 +4643,16 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 				hidden="false"
 			>
 				<Label>log events and changes to indigolog</Label>
+			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
 			</Field>
 		</ConfigUI>
 		<States>
@@ -4551,6 +4756,16 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 				hidden="false"
 			>
 				<Label>log events and changes to indigolog</Label>
+			</Field>
+			<Field type="menu" id="iconStyle" defaultValue="standard"
+				tooltip="Icon for this device. 'follow plugin default' uses the plugin's Device icons setting; 'default' uses the type icon (lamp / on-off / motion / temperature); the colour options show a green or red dot for on/off.">
+				<Label>Icon:</Label>
+				<List>
+					<Option value="standard">follow plugin default</Option>
+					<Option value="default">default (by device type)</Option>
+					<Option value="greenOnRedOff">green = on / red = off</Option>
+					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
 			</Field>
 		</ConfigUI>
 		<States>

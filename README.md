@@ -26,8 +26,10 @@ Controls Philips Hue lights, groups, sensors, and switches from Indigo. Supports
 
 ## Supported Bridges
 
-- **Classic Hue Bridge** — API v1, REST polling
-- **Hue Pro Bridge** — API v2, real-time Server-Sent Events (SSE), response under 0.5 s
+- **Classic Hue Bridge** (round `BSB001` / square `BSB002`) — API v1, REST polling
+- **Hue Bridge Pro** (`BSB003`) — API v2, real-time Server-Sent Events (SSE), response under 0.5 s
+
+The API version is **auto-detected from the bridge model** — there is no manual setting. On pairing and at every plugin start the plugin reads each bridge's `modelid` from the unauthenticated public config (`GET /api/config`, no key required) and maps it: `BSB001`/`BSB002` → API v1, `BSB003` and newer → API v2, setting the transport accordingly (v1 = http polling, v2 = https + SSE). Detection is ping-gated and conservative: if a bridge is unreachable at startup its last known version is kept, so a momentarily-offline Pro bridge is never downgraded.
 
 Up to 4 bridges can be configured simultaneously. Each bridge can be individually enabled or disabled in preferences without removing its devices.
 
@@ -72,7 +74,7 @@ Zones and Rooms that share lights automatically sync colour temperature bidirect
 
 ### Bridge Device
 
-One Indigo device is auto-created per bridge, exposing 30+ read-only states: light/sensor/switch counts, software update count, Zigbee channel, firmware version, API version, etc.
+One Indigo device is auto-created per bridge, exposing 30+ read-only states: light/sensor/switch counts, software update count, Zigbee channel, firmware version, API version, **`modelId`** (BSB001/BSB002/BSB003), `softwareVersion` (firmware/build), etc.
 
 ---
 
@@ -142,6 +144,7 @@ Additional menu-only utilities:
 - **Delete devices** — remove Indigo devices for selected Hue devices
 - **Enable / disable sensor** — toggle sensor state on the bridge
 - **Print Hue config** — log full bridge data, device list, or network traffic stats to the Indigo log
+- **Apply Device Icons Now** — (re)apply every device's icon per its configured style and current state (see *Device icons* below)
 - **Track specific device** — enable verbose logging for one device (debug)
 
 ---
@@ -157,14 +160,14 @@ Additional menu-only utilities:
 - **On-command brightness** — what a light/group does on an ON command with no explicit brightness: use a **Default Brightness**, or **restore the last brightness**. Overridable per device (light edit dialog: *standard / a Default Brightness / last brightness*). Applies to both API v1 and v2 (Pro) bridges.
 - **Default Brightness (%)** — the plugin-wide Default Brightness value (default **80 %**), used whenever *On-command brightness* resolves to a Default Brightness and the light's **Default Brightness source** is *use plugin default*.
 - **Per-device Default Brightness source** *(light edit dialog)* — each dimmable light/group can choose **use plugin default** (the value above) or **manual value** (a level set on that device). Resolution when the ON command uses a Default Brightness: manual value if the source is *manual*, otherwise the plugin-wide value; if neither yields a usable level the light keeps its last brightness.
+- **Device icons** — plugin-wide default icon style: *default (by device type)* / *green = on / red = off* / *red = on / green = off*. Each device's edit dialog has its own **Icon** menu that can *follow plugin default* or override it. "default" = the type icon (lamp for lights/groups, on/off for switches, motion/temperature for sensors); the colour styles show a green/red dot for on/off and apply only to on/off devices — **sensors keep their native icon** (a motion sensor's grey = no motion / red = motion is left intact). Use **Plugins → Apply Device Icons Now** to apply immediately.
+- **Bridge type / API version** — **auto-detected from the bridge model** (see *Supported Bridges*); there is no manual API-version or bridge-type setting.
 - **Debug flags** — per-area verbose logging: `EditSetup`, `SendCommandsToBridge`, `StateChange`, `NewDevice`, `IpChange`, `TrackedDevice`, …
 
 ### Event-stream restart thresholds *(expert section, Pro bridge)*
 
-Two thresholds control when the V2 Server-Sent-Events listener is restarted (see *Event-stream resilience* below):
-
-- **(main) restart after no events for N s** — `NumberOfSecondsEventRestart`. Drives the TCP keepalive (the primary/fast path). A dead connection is detected roughly this many seconds after the last event.
-- **(fallback) watchdog restart after no events for N s** — `NumberOfSecondsEventWoMessage`. Backstop for the rare case where the TCP connection stays alive but the bridge goes silent. Keep it above the main value.
+- **(main) restart after no events for N s** — `NumberOfSecondsEventRestart`. Drives the TCP keepalive on the SSE socket (the sole failure detector). A genuinely dead connection is detected roughly this many seconds after it drops; the value is baked into the socket when the listener session is created, so changing it restarts the listener (within ~10 s) to pick up the new value.
+- **(read-timeout bound) `NumberOfSecondsEventWoMessage`** — no longer restarts the listener. A quiet stream is expected on the Pro bridge and is **not** treated as a failure; this value now only participates in the stream read-timeout ceiling. (Kept for backward compatibility with saved prefs.)
 
 Both defaults and valid ranges live in `kDefaultPluginPrefs` / `minMaxEventRecovery` in the plugin (single source of truth); out-of-range saved values are clamped to the nearest bound on load.
 
@@ -185,12 +188,15 @@ Both defaults and valid ranges live in `kDefaultPluginPrefs` / `minMaxEventRecov
 
 The Hue Pro bridge periodically drops/recycles its long-lived SSE connection (commonly about once an hour). The plugin absorbs this transparently with no data loss:
 
-- **TCP keepalive** on the stream socket detects a dead/black-holed connection (inbound-only TLS connections are otherwise dropped silently). Timing is driven by the *(main)* restart threshold.
+- **A quiet stream is not a failure** — the Pro bridge legitimately sends no events for long stretches when nothing is changing, so silence never triggers a restart. The listener is torn down only when a genuine socket failure is detected, or when the restart threshold is reconfigured.
+- **TCP keepalive** on the stream socket is the sole health check — it lets the OS detect a dead/black-holed connection (inbound-only TLS connections are otherwise dropped silently). Timing is driven by the *(main)* restart threshold.
+- **Fresh session per reconnect** — after any stream failure the `requests.Session` is closed and rebuilt (re-installing the keepalive adapter) before the next attempt, so a poisoned pooled TLS/TCP connection is never reused (which could otherwise wedge all further reconnects).
 - **Fast reconnect with backoff** — a dropped *working* connection reconnects immediately (0 s); the delay only escalates (2 → 5 → 10 s) if reconnects keep failing (bridge genuinely down).
 - **Last-Event-ID replay** — on reconnect the plugin sends the last received event id, so the bridge replays any events buffered during the gap; those are recovered without loss.
-- **Conditional full re-read** — the whole bridge is re-read to reconcile device states **only on a real outage** (a gap longer than the assumed replay-buffer window, `kEventReplayWindowSecs`); routine recycles need no re-read.
+- **True outage timing** — the gap is measured from when the connection actually dropped (`disconnectTime`), not from the last Hue event, so a quiet-but-healthy bridge no longer inflates the measured gap.
+- **Conditional full re-read** — the whole bridge is re-read to reconcile device states **only on a real outage** (a true gap longer than the assumed replay-buffer window, `kEventReplayWindowSecs` ≈ 300 s); routine recycles need no re-read.
 - **Quiet logging** — routine reconnects log at debug level (10); only a gap long enough to risk missed events logs at level 20.
-- **Reconnect history** — the last 100 reconnects (time, gap, events recovered, last/next event time) are viewable via **Plugins → Print Hue config → bytes send/received**.
+- **Reconnect history** — the last 100 reconnects (time, gap, events recovered, last/first event id) are viewable via **Plugins → Print Hue config → bytes send/received**.
 
 ---
 

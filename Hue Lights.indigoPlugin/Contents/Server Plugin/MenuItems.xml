@@ -4,6 +4,10 @@
 		<Name>Reload Hue Bridge Config</Name>
 		<CallbackMethod>updateAllHueListsForce</CallbackMethod>
 	</MenuItem>
+	<MenuItem id="applyDeviceIcons">
+		<Name>Apply Device Icons Now</Name>
+		<CallbackMethod>applyDeviceIconsNow</CallbackMethod>
+	</MenuItem>
 	<MenuItem id="sep1" />
 	<MenuItem id="savePreset">
 		<Name>Save Preset...</Name>

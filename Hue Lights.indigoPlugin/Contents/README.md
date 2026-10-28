@@ -26,8 +26,10 @@ Controls Philips Hue lights, groups, sensors, and switches from Indigo. Supports
 
 ## Supported Bridges
 
-- **Classic Hue Bridge** — API v1, REST polling
-- **Hue Pro Bridge** — API v2, real-time Server-Sent Events (SSE), response under 0.5 s
+- **Classic Hue Bridge** (round `BSB001` / square `BSB002`) — API v1, REST polling
+- **Hue Bridge Pro** (`BSB003`) — API v2, real-time Server-Sent Events (SSE), response under 0.5 s
+
+The API version is **auto-detected from the bridge model** — there is no manual setting. On pairing and at every plugin start the plugin reads each bridge's `modelid` from the unauthenticated public config (`GET /api/config`, no key required) and maps it: `BSB001`/`BSB002` → API v1, `BSB003` and newer → API v2, setting the transport accordingly (v1 = http polling, v2 = https + SSE). Detection is ping-gated and conservative: if a bridge is unreachable at startup its last known version is kept, so a momentarily-offline Pro bridge is never downgraded.
 
 Up to 4 bridges can be configured simultaneously. Each bridge can be individually enabled or disabled in preferences without removing its devices.
 
@@ -72,7 +74,7 @@ Zones and Rooms that share lights automatically sync colour temperature bidirect
 
 ### Bridge Device
 
-One Indigo device is auto-created per bridge, exposing 30+ read-only states: light/sensor/switch counts, software update count, Zigbee channel, firmware version, API version, etc.
+One Indigo device is auto-created per bridge, exposing 30+ read-only states: light/sensor/switch counts, software update count, Zigbee channel, firmware version, API version, **`modelId`** (BSB001/BSB002/BSB003), `softwareVersion` (firmware/build), etc.
 
 ---
 
@@ -142,6 +144,7 @@ Additional menu-only utilities:
 - **Delete devices** — remove Indigo devices for selected Hue devices
 - **Enable / disable sensor** — toggle sensor state on the bridge
 - **Print Hue config** — log full bridge data, device list, or network traffic stats to the Indigo log
+- **Apply Device Icons Now** — (re)apply every device's icon per its configured style and current state (see *Device icons* below)
 - **Track specific device** — enable verbose logging for one device (debug)
 
 ---
@@ -157,6 +160,8 @@ Additional menu-only utilities:
 - **On-command brightness** — what a light/group does on an ON command with no explicit brightness: use a **Default Brightness**, or **restore the last brightness**. Overridable per device (light edit dialog: *standard / a Default Brightness / last brightness*). Applies to both API v1 and v2 (Pro) bridges.
 - **Default Brightness (%)** — the plugin-wide Default Brightness value (default **80 %**), used whenever *On-command brightness* resolves to a Default Brightness and the light's **Default Brightness source** is *use plugin default*.
 - **Per-device Default Brightness source** *(light edit dialog)* — each dimmable light/group can choose **use plugin default** (the value above) or **manual value** (a level set on that device). Resolution when the ON command uses a Default Brightness: manual value if the source is *manual*, otherwise the plugin-wide value; if neither yields a usable level the light keeps its last brightness.
+- **Device icons** — plugin-wide default icon style: *default (by device type)* / *green = on / red = off* / *red = on / green = off*. Each device's edit dialog has its own **Icon** menu that can *follow plugin default* or override it. "default" = the type icon (lamp for lights/groups, on/off for switches, motion/temperature for sensors); the colour styles show a green/red dot for on/off and apply only to on/off devices — **sensors keep their native icon** (a motion sensor's grey = no motion / red = motion is left intact). Use **Plugins → Apply Device Icons Now** to apply immediately.
+- **Bridge type / API version** — **auto-detected from the bridge model** (see *Supported Bridges*); there is no manual API-version or bridge-type setting.
 - **Debug flags** — per-area verbose logging: `EditSetup`, `SendCommandsToBridge`, `StateChange`, `NewDevice`, `IpChange`, `TrackedDevice`, …
 
 ### Event-stream restart thresholds *(expert section, Pro bridge)*
