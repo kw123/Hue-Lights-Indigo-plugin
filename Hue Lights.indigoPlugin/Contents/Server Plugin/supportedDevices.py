@@ -191,6 +191,8 @@
 # Philips Hue Motion Sensors
 # SML001	=	Hue Motion Sensor (multi-sensor with presense, illumination and temperature)
 # SML002    =   Hue Outdoor Motion Sensor
+# SML003	=	Hue Motion Sensor (newer multi-sensor revision)
+# SML004	=	Hue Outdoor Motion Sensor (newer revision)
 #
 # Switches (button sensor devices in the Hue bridge)
 # ZGPSWITCH	=	Hue Tap
@@ -482,9 +484,9 @@ kmapSensorTypeToIndigoDevType = {
 							}
 
 kmapSensordevTypeToModelId = {
-								"hueMotionSensor": 			['SML003','SML002','SML001'],
-								"hueMotionTemperatureSensor": ['SML003','SML002','SML001'],
-								"hueMotionLightSensor": 	['SML003','SML002','SML001'],
+								"hueMotionSensor": 			['SML004','SML003','SML002','SML001'],
+								"hueMotionTemperatureSensor": ['SML004','SML003','SML002','SML001'],
+								"hueMotionLightSensor": 	['SML004','SML003','SML002','SML001'],
 								"hueDimmerSwitch": 			['RWL020', 'RWL021', 'RWL022'],
 								"hueSmartButton": 			['ROM001', 'RDM005', 'RDM003'],
 								"hueWallSwitchModule": 		['RDM001'],
@@ -523,7 +525,10 @@ kmasterChild = {
 								'relative_rotary': ["button"]
 							}
 kmodelWithChild = {			
+								'SML001': ["temperature", "light_level"],
+								'SML002': ["temperature", "light_level"],
 								'SML003': ["temperature", "light_level"],
+								'SML004': ["temperature", "light_level"],
 								'hueRotaryWallRing': ["button"]
 							}
 kdevTypeIdWithChild = {			
@@ -537,7 +542,10 @@ kchildToIndigoDeviceType = {
 							"light_level":"hueMotionLightSensor"
 							}
 kmodelIdToIndigodevTypes = {
+								'SML001': ["hueMotionSensor", "hueMotionTemperatureSensor", "hueMotionLightSensor"],
+								'SML002': ["hueMotionSensor", "hueMotionTemperatureSensor", "hueMotionLightSensor"],
 								'SML003': ["hueMotionSensor", "hueMotionTemperatureSensor", "hueMotionLightSensor"],
+								'SML004': ["hueMotionSensor", "hueMotionTemperatureSensor", "hueMotionLightSensor"],
 								'RWL020': ["hueDimmerSwitch"],
 								'RWL021': ["hueDimmerSwitch"],
 								'RWL022': ["hueDimmerSwitch"],

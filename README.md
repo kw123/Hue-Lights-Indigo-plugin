@@ -89,6 +89,7 @@ One Indigo device is auto-created per bridge, exposing 30+ read-only states: lig
 - `whiteTemperature` — Same as colorTemp
 - `hue` — Hue 0–360°
 - `saturation` — Saturation 0–100 %
+- `whiteLevel` — Indigo "white level" slider, stored as `100 − saturation`. This is a **synthetic** value: the bridge has no "white level", so it is derived from the colour (inverse of saturation). The read-back uses the same colour-gamut model the plugin sends with, so the slider value comes back as set — except near full saturation (whiteLevel ≈ 0), where the lamp's colour gamut is the real limit and the value reads back a little higher.
 - `redLevel` / `greenLevel` / `blueLevel` — RGB 0–100 %
 - `online` — Reachable via Zigbee (true/false)
 - `effect` — Active effect name
@@ -179,7 +180,9 @@ Both defaults and valid ranges live in `kDefaultPluginPrefs` / `minMaxEventRecov
 - **Background threads** — SSE listener (one per V2 bridge), API v1 poll loop, offline watchdog, delayed-action queue, save loop.
 - **Delayed-action queue** — group colour recalculations are token-debounced; only the newest queued token for a device executes, preventing redundant bridge calls from rapid SSE bursts.
 - **Colour math** — `colormath/` module handles RGB↔XY↔colour-temperature conversions; `add_rgb_temp_to_rgb.py` averages mixed RGB + kelvin lamp lists.
+- **Command transport (v1 vs v2)** — on a Pro (v2) bridge every command goes through the v2 endpoint (`prepHpptCallV2`): on/off, brightness (`dimming`), colour-temperature (`mirek`), and colour — RGB and HSB/white — as xy chromaticity + `dimming`. HSB and RGB are converted to xy via `colormath` before sending (the v2 API does not accept hue/saturation). Classic (v1) bridges use the v1 REST endpoint (`/api/<key>/lights|groups/<id>/state`). The version is chosen per command from the auto-detected bridge model.
 - **Persistent state** — not used for lights (bridge is source of truth). Bridge data cached in `allV2Data` / `allV1Data` in-memory dicts and saved to JSON in the Indigo preferences folder on a throttled schedule.
+- **Throttled error logging** — all error/warning output goes through a single helper, `doErrorLog()`. It groups messages by `key` (default: the message text) and logs each at most once per `deltaRefresh['error']` (≈5 min), counting the repeats it suppresses and reporting them with the next line (`(+N repeats in last Ms)`). This keeps a down or unreachable bridge from flooding the log — the per-poll "connection lost" / "failed to connect" lines are collapsed to one every few minutes. When a message embeds a value that changes every call (a bridge response, a state dict, a hub number), the caller passes an explicit stable `key=` so the bucket is the *condition*, not the interpolated text — otherwise each occurrence would be its own un-throttled bucket. `doErrorLog()` is thread-safe (it is called from the SSE, dimmer and delayed-action threads); `flushErrorThrottle()` runs on the main loop to emit the trailing repeat count once a condition goes quiet and to evict long-idle buckets so the table stays bounded. Pass `force=True` to bypass the gate for a must-see message, or `exc_info=True` to attach a traceback while still throttling.
 - **No build system / no test framework.** Testing is manual via the Indigo native or web UI. Reload with **Plugins → Reload Plugins**.
 
 ---
@@ -211,10 +214,10 @@ The Hue Pro bridge periodically drops/recycles its long-lived SSE connection (co
 
 ## Version History
 
-See `Contents/VERSION_HISTORY.txt` for the full change log.
+See `Contents/changelog.txt` for the full change log.
 
 **Current release — 2022.32.112 (2026-07-09):**
-- **Code audit (.85 → .86):** ~40 correctness bugs fixed across `plugin.py` (Save Preset, scene recall, V2 colour-temperature/brightness, RGB scaling, white-slider hue scaling, inverted button state, motion-area device creation, bridge-move state transfer, and more — see `VERSION_HISTORY.txt`).
+- **Code audit (.85 → .86):** ~40 correctness bugs fixed across `plugin.py` (Save Preset, scene recall, V2 colour-temperature/brightness, RGB scaling, white-slider hue scaling, inverted button state, motion-area device creation, bridge-move state transfer, and more — see `changelog.txt`).
 - **Event-stream resilience (.87 → .112):** major rework of the V2 SSE listener — see *Event-stream resilience* above. Eliminated an 8-minute restart stall, added TCP keepalive, fast reconnect with backoff, Last-Event-ID replay, conditional re-read only on a real outage, a 100-entry reconnect-history table in print-stats, and near-silent routine logging.
 - **Config thresholds:** the SSE restart control was split into two expert-section parameters (main keepalive + fallback watchdog) with configurable ranges; changes now apply live (within ~10 s) without a plugin reload.
 - **Refactors:** config-parameter defaults consolidated into `kDefaultPluginPrefs` (single source of truth); duplicated pref-reading collapsed into `readEventTimerPrefs` / `applyGeneralPrefs`.

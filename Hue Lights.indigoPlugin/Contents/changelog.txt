@@ -1,12 +1,63 @@
 
+=== Week of 2026-10-26 .. 2026-11-02 (.126 - .130) ===
+    Auto-detect bridge v1/v2; one throttled error logger (no spam); v2 colour + white-level
+    fixes on Pro bridges; auto-create all SML motion sensors.
+
+2022.33.130 @ 2026-11-02
+    Summary: auto-create the SML001/SML002/SML004 motion sensors (only SML003 worked before).
+
+    * supportedDevices.py: added SML001, SML002 and SML004 to the model tables that gate sensor
+      creation (kmodelIdToIndigodevTypes and kmodelWithChild). checkIfCreateNewSensorV2 returns
+      silently for any model missing from kmodelIdToIndigodevTypes, so these sensors (and their
+      temperature / light-level children) were never created even with auto-create enabled; only
+      SML003 was listed. Also added SML004 to the motion/temperature/light lists in
+      kmapSensordevTypeToModelId (which already had SML001-003).
+
+2022.33.129 @ 2026-10-31
+    Summary: v2 colour on Pro bridges; white-level round-trips; brightness-after-on fix.
+
+    * doLightUpdate: when the Pro bridge splits a command into an "on" event and a separate "dimming"
+      event in the same SSE batch, the later brightness is no longer dropped. The on-state from the
+      earlier in-batch event is carried forward (via the batch's deviceUpdateList), so brightnessLevel
+      is applied instead of being skipped because Indigo's onState had not yet caught up.
+    * doHSB now uses the v2 API on a Pro (v2) bridge, like doRGB and doColorTemperature already did:
+      HSB is converted to xy chromaticity + dimming and sent through prepHpptCallV2 (was always the v1
+      REST endpoint). This is the path the Indigo "white level" slider uses.
+    * White-level / saturation now round-trips. doLightUpdate recovers hue/saturation from the event's xy
+      through the same gamut model used to send it (Converter(gamut).xy_to_rgb -> HSV) instead of
+      colormath's non-inverse xyY->hsv. The white-level slider value now comes back as set (e.g. 70->70,
+      40->41, 100->100), except near full saturation where the lamp's colour gamut is the real limit.
+
+2022.33.128 @ 2026-10-29
+    Summary: fixed doErrorLog crash/throttle bugs found in review.
+
+    * Fixed three UnboundLocalError crashes (menuEnableDisableSensor / menuDeleteDevice / execRename):
+      the "Bridge response:{}" error handler referenced `response` before it was bound whenever the
+      bridge returned a non-JSON body - exactly the case the message exists to report. `response` is
+      now seeded with the raw body first, so the reply is shown instead of crashing.
+    * The throttle no longer leaks: call sites whose message embeds a per-call value (bridge response,
+      state dict, hub#) now pass a stable `key=` so the bucket is the condition, not the text. Without
+      it every occurrence was its own permanent bucket (no throttling, unbounded _errorThrottle growth).
+    * flushErrorThrottle() (new, called from the main loop) emits the trailing "(+N repeats)" summary
+      when a condition goes quiet and evicts long-idle buckets, so _errorThrottle stays bounded.
+    * doErrorLog is now thread-safe (lock around the get/check/increment; it runs from the SSE,
+      dimmer and delayed-action threads), reports the real elapsed gap (not the nominal window), and
+      takes exc_info= so traceback callers stay throttled instead of bypassing the gate.
+    * Removed dead lastErrorMessage / testIfResetError machinery left from the old scheme.
+    * getadresses: the "no IP" and "invalid IP" faults now log distinct messages naming the hub and
+      the actual cause (they previously shared one message that named neither).
+
 2022.33.127 @ 2026-10-27
+    Summary: one throttled error logger (doErrorLog); no more bridge-down log spam.
+
     * doErrorLog is now the one general, time-throttled error logger: it groups by message (or an
       explicit key) and logs each at most once per ~5 min, counting suppressed repeats and reporting
       them with the next line ("(+N repeats in last Ms)").
     * The bridge-down log spam is gone - "connection lost, session reset" and the per-bridge
       "Failed to connect ..." errors now route through doErrorLog's throttle instead of printing every poll.
     * Folded the separate checkForLastNotPairedMessage 100 s gate (11 call sites) into doErrorLog and
-      removed it; cleanup (errorsDict / resetBridgeBusy) at those sites now always runs.
+      removed it, along with its now-dead notPairedMsg bookkeeping dict; cleanup (errorsDict /
+      resetBridgeBusy) at those sites now always runs.
 
 2022.33.126 @ 2026-10-26
     * Bridge API version is now auto-detected from the model (BSB001/BSB002 -> v1, BSB003+ Pro -> v2) via
