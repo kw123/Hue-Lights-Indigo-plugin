@@ -17410,6 +17410,50 @@ class Plugin(indigo.PluginBase):
 		return valuesDict
 
 
+	# _firstReachableConfiguredBridge
+	########################################
+	def _firstReachableConfiguredBridge(self, port=443, perHostTimeout=0.6):
+		"""Quick unicast test, run from inside Indigo's own process: try a TCP connect to each configured
+		bridge IP. Returns the first IP that answers, else None. Used to tell a multicast-only block apart
+		from a full macOS Local Network denial - a Terminal test cannot, it has its own Local Network grant."""
+		for hub in list(self.ipAddresses):
+			ip = self.ipAddresses.get(hub, "")
+			if not self.isvalidIP(ip): continue
+			s = None
+			try:
+				s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+				s.settimeout(perHostTimeout)
+				s.connect((ip, port))
+				return ip
+			except Exception:
+				pass
+			finally:
+				if s is not None:
+					try:	s.close()
+					except Exception:	pass
+		return None
+
+	# _canReachInternet
+	########################################
+	def _canReachInternet(self, hosts=(("www.google.com", 443), ("1.1.1.1", 443)), perHostTimeout=1.5):
+		"""TCP-connect 'ping' to a public host, run from inside Indigo's own process. Returns True on the
+		first host that answers. Pure Python (no /sbin/ping subprocess). Used to confirm a Local Network
+		block: if the WAN is reachable here but the LAN is not, macOS is blocking local-network access
+		specifically (that gate does not affect internet traffic). 1.1.1.1 is a raw-IP fallback so a DNS
+		hiccup does not give a false 'no internet'."""
+		for host, port in hosts:
+			s = None
+			try:
+				s = socket.create_connection((host, port), timeout=perHostTimeout)
+				return True
+			except Exception:
+				pass
+			finally:
+				if s is not None:
+					try:	s.close()
+					except Exception:	pass
+		return False
+
 	####----------------- use bonjour to find local hue bridges , store in self.bridgesAvailable, to be used in config setup  ---------
 	########################################
 	def _discoverHueBridgesMDNS(self, timeout=2.0):
@@ -17469,7 +17513,26 @@ class Plugin(indigo.PluginBase):
 				sock.bind(("", 0))	# fall back to an ephemeral port, rely on QU unicast replies
 			try:	sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
 			except Exception:	pass
-			sock.sendto(query, (MCAST, PORT))
+			try:
+				sock.sendto(query, (MCAST, PORT))
+			except OSError as e:
+				# errno 65 EHOSTUNREACH (or 51 ENETUNREACH) on a multicast send to 224.0.0.251 is the
+				# signature of macOS blocking this process's local-network traffic. To tell a multicast-only
+				# block apart from a full Local Network denial, probe a unicast connect to a configured bridge
+				# (in this same process - a Terminal test has its own separate grant and cannot see this).
+				if getattr(e, "errno", None) in (65, 51):
+					# primary test: can we reach the bridge directly (LAN-specific "ping")?
+					reachable = self._firstReachableConfiguredBridge()
+					if reachable:
+						self.doErrorLog("mDNS bridge auto-discovery is blocked (errno {} on the multicast send to 224.0.0.251), but a DIRECT connection to your configured bridge at {} works. So this is a multicast-only restriction, not a full Local Network block: existing bridges/devices keep working, only automatic discovery of NEW bridges is affected. To restore discovery, grant Indigo 'Local Network' access (System Settings > Privacy & Security > Local Network) and restart the server.".format(e.errno, reachable), level=30, key="localNetworkBlocked")
+					# bridge unreachable: use the internet check to tell a LAN-specific block from a real outage
+					elif self._canReachInternet():
+						self.doErrorLog("Local Network access appears BLOCKED for Indigo (errno {} on the multicast send; no configured bridge is reachable directly, yet the public internet IS reachable from this same process). Internet up + LAN down = macOS is blocking local-network access specifically. Fix: System Settings > Privacy & Security > Local Network, enable Indigo (toggle off/on if already on), then restart the Indigo server. This commonly resets after an Indigo version upgrade.".format(e.errno), level=30, key="localNetworkBlocked")
+					else:
+						self.doErrorLog("Hue plugin cannot reach the LAN (errno {} on the multicast send, no configured bridge reachable) AND cannot reach the public internet either. This looks like a general network outage for the Indigo server (network down, VPN, DNS, or firewall), not a Local Network permission problem - check the Mac's network connection first.".format(e.errno), level=30, key="localNetworkBlocked")
+					return {}
+				raise
+
 			deadline = time.time() + timeout
 			while True:
 				remaining = deadline - time.time()
@@ -19594,7 +19657,7 @@ no devId for:
 				if "health" in eventDict:
 					health = eventDict['health']
 					if motionDevice is not None:
-						self.indiLOG.log(30,"Hue motion area{:40} \"health\" has changed to  \"{:}\" {}".format(motionDeviceName, health, self._motionHealthFlapHint(motionDeviceName)))
+						self.doErrorLog("Hue motion area{:40} \"health\" has changed to  \"{:}\" {}".format(motionDeviceName, health, self._motionHealthFlapHint(motionDeviceName)), level=30, key="motionAreaHealth-"+str(motionDeviceName))
 						printGeneral = False
 						# write directly — motionDevice is not the device the caller's stateUpdateList belongs to
 						self.checkIfUpdateState(motionDevice, 'health', 	health)
@@ -19611,7 +19674,7 @@ no devId for:
 								inId  = self.serviceidToIndigoId[hubNumber].get(rid, None)
 								if inId is not None:
 									device = self.deviceCopiesFromIndigo[inId]
-									self.indiLOG.log(30,"Hue device {:40}  in motion area {:40}  status has changed to  \"{:}\"  {}".format(device.name, motionDeviceName, status, self._motionHealthFlapHint(motionDeviceName)))
+									self.doErrorLog("Hue device {:40}  in motion area {:40}  status has changed to  \"{:}\"  {}".format(device.name, motionDeviceName, status, self._motionHealthFlapHint(motionDeviceName)), level=30, key="motionPartHealth-"+str(device.name)+"-"+str(motionDeviceName))
 									printGeneral = False
 
 				if printGeneral:
@@ -20203,7 +20266,11 @@ no devId for:
 		    list: updated stateUpdateList with any new state updates appended
 		"""
 		try:
-			if not self.pluginPrefs.get("useApi2ForSensorEvents", False): return stateUpdateList
+			# NOTE: do NOT gate on useApi2ForSensorEvents here. digestV2Event only runs for the v2 SSE
+			# event stream, so API2 is already in use by the time we get here; this gate (which has no UI
+			# control and defaults False, and is absent from the motion/temperature/contact siblings) only
+			# ever silently dropped button presses on Pro bridges. Left disabled like the tamper sibling.
+			#if not self.pluginPrefs.get("useApi2ForSensorEvents", False): return stateUpdateList
 			#if self.decideMyLog("EventApi"): self.indiLOG.log(20,"into:{:20}, eventDict:{}".format(servicetype, eventDict))
 			servicetype = "button"
 			if "button_report" not in eventDict[servicetype]: 							return stateUpdateList

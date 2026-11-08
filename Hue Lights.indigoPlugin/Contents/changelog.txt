@@ -1,7 +1,50 @@
 
-=== Week of 2026-10-26 .. 2026-11-02 (.126 - .130) ===
+=== Week of 2026-10-26 .. 2026-11-02 (.126 - .131) ===
     Auto-detect bridge v1/v2; one throttled error logger (no spam); v2 colour + white-level
-    fixes on Pro bridges; auto-create all SML motion sensors.
+    fixes on Pro bridges; fixed dropped Pro button presses; auto-create all SML motion sensors.
+
+2022.33.133 @ 2026-11-07
+    Summary: standalone Indigo script to diagnose the macOS Local Network block.
+
+    * MotionAware health warnings (area "health" changed, participant "status" changed) now go through the
+      throttled doErrorLog with a per-area / per-device key, so a flapping area collapses to one line per
+      entity per ~5 min (with "(+N repeats)") instead of flooding the log for the whole episode. The device
+      "health" state is still updated on every event; only the log line is throttled.
+    * Added Contents/testLocalNetwork.py: runs three checks (multicast send, direct bridge connect,
+      internet connect) as a standalone script from Indigo's scripting shell / Scripts folder / an
+      Execute Script action (NOT Terminal, which has its own separate Local Network grant). Edit
+      BRIDGE_IPS, run, read the verdict in the Event Log. Verdict keys off the multicast result first:
+      a successful multicast send is proof Local Network access is granted, so an unreachable bridge is
+      reported as a bridge-IP/power problem (listing the IPs tried), not a false "BLOCKED"; only a
+      FAILED multicast reads as blocked.
+      (No menu item: the plugin already runs this detection automatically via _discoverHueBridgesMDNS
+      shortly after start, so an on-demand menu button added no value.)
+
+2022.33.132 @ 2026-11-06
+    Summary: detect a macOS "Local Network" block and report whether it is multicast-only or total.
+
+    * _discoverHueBridgesMDNS now catches errno 65 (EHOSTUNREACH) / 51 (ENETUNREACH) on the multicast
+      send and logs one throttled, actionable line instead of a traceback. It runs two pure-Python
+      reachability probes inside Indigo's own process (no /sbin/ping subprocess) to pinpoint the cause:
+        1. _firstReachableConfiguredBridge - TCP connect to a configured bridge (LAN "ping").
+        2. _canReachInternet - TCP connect to www.google.com (1.1.1.1 fallback), the WAN check.
+      Three outcomes:
+        - bridge reachable              -> multicast-only restriction; existing devices keep working,
+          only auto-discovery of NEW bridges is affected (explains why non-multicast plugins are fine).
+        - bridge down, internet up      -> Local Network access blocked specifically (LAN down, WAN up).
+        - bridge down, internet down    -> general network outage, not a permission problem.
+      These tests must run inside Indigo's process - a Terminal check cannot see the block, since
+      Terminal has its own Local Network grant. Fix (first two cases): System Settings > Privacy &
+      Security > Local Network, enable Indigo, restart the server (commonly reset after an Indigo upgrade).
+
+2022.33.131 @ 2026-11-02
+    Summary: fixed dropped button presses on Pro bridges.
+
+    * Button presses (dimmer switches, smart/wall buttons, FOH) on a Pro (v2) bridge were accepted and
+      logged but never applied. fillIndigoStatesWithApi2_button_Events returned early on an
+      unset "useApi2ForSensorEvents" pref (no UI control, defaults False) that gated only buttons -
+      the motion/temperature/contact siblings have no such gate. Removed it: digestV2Event only runs for
+      the v2 event stream, so API2 is already in use by the time the handler is reached.
 
 2022.33.130 @ 2026-11-02
     Summary: auto-create the SML001/SML002/SML004 motion sensors (only SML003 worked before).
