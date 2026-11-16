@@ -531,6 +531,52 @@ others: fixed at 3-5 minutes
 		<Label>WARNING: Lowering the Preset Memories number will cause the highest Preset memory spaces to be permanently deleted. All actions that reference deleted Presets will result in Indigo errors when attempting to recall those Presets. Don't lower the number unless you're sure nothing uses the Presets that will be deleted.</Label>
 	</Field>
 
+	<Field id="tagLabel" type="label" fontColor="green">
+		<Label>== Device tags (Indigo 2026.1 or newer) ==</Label>
+	</Field>
+	<Field id="tagsEnabled" type="checkbox">
+		<Label>Add a tag to all devices of this plugin:</Label>
+	</Field>
+	<Field id="tagsEnabledLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey">
+		<Label>If ticked, each device of this plugin gets the tag below when it starts, and all devices get it when you save this dialog.
+If the tag does not exist yet, it is created in the Indigo tag library; an existing tag is used as it is.
+The plugin never removes a tag, remove tags in Indigo (also the old tag after you changed the name below).
+This is ignored on Indigo versions before 2026.1.</Label>
+	</Field>
+	<Field id="tagName" type="textfield" visibleBindingId="tagsEnabled" visibleBindingValue="true">
+		<Label>Name of the tag:</Label>
+	</Field>
+	<Field id="tagNameLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey" visibleBindingId="tagsEnabled" visibleBindingValue="true">
+		<Label>Lower case letters, digits and single dashes, e.g. "hue". Other characters are changed when you save this dialog;
+an empty name becomes "hue".</Label>
+	</Field>
+	<Field id="tagColor" type="menu" visibleBindingId="tagsEnabled" visibleBindingValue="true">
+		<Label>Color of the tag:</Label>
+		<List>
+			<Option value="1E88E5">blue</Option>
+			<Option value="039BE5">light blue</Option>
+			<Option value="00ACC1">cyan</Option>
+			<Option value="00897B">teal</Option>
+			<Option value="43A047">green</Option>
+			<Option value="9E9D24">olive</Option>
+			<Option value="FBC02D">yellow</Option>
+			<Option value="FB8C00">orange</Option>
+			<Option value="F4511E">deep orange</Option>
+			<Option value="E53935">red</Option>
+			<Option value="D81B60">pink</Option>
+			<Option value="8E24AA">purple</Option>
+			<Option value="5E35B1">deep purple</Option>
+			<Option value="3949AB">indigo</Option>
+			<Option value="6D4C41">brown</Option>
+			<Option value="757575">gray</Option>
+			<Option value="546E7A">blue gray</Option>
+			<Option value="212121">black</Option>
+		</List>
+	</Field>
+	<Field id="tagColorLabel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgrey" visibleBindingId="tagsEnabled" visibleBindingValue="true">
+		<Label>Indigo has one color per tag and derives the text and border colors from it. The plugin sets the color of the tag in the
+Indigo tag library to this color at start and when you save this dialog. If you change the color in Indigo, the plugin sets it back.</Label>
+	</Field>
 	<Field type="separator" id="sepdeb" />
 
 	<Field type="separator" id="sepdeb2" />
@@ -683,4 +729,10 @@ others: fixed at 3-5 minutes
 			<Option value="200">200 s</Option>
 		</List>
 	</Field>
+	<Field id="sepSqlNoStats" type="separator"/>
+	<Field id="sqlNoStatsDefault" type="checkbox" defaultValue="false">
+		<Label>do not write statistics states into the SQL logger:</Label>
+		<Description>min / max / ave, today, yesterday, day-x, this / last week, month, year, switchpoints. default for all devices, each device edit can change it</Description>
+	</Field>
+
 </PluginConfig>

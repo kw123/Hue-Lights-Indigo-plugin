@@ -59,6 +59,8 @@ from colormath.rgbTOxy import GamutC
 from colormath.add_rgb_temp_to_rgb import calculate_total_rgb
 
 import json
+import statsSqlIgnore	# option: statistics states into the SQL logger or not
+import deviceTags	# Indigo 2026.1 device tags: every device of the plugin gets the tag of the plugin, color from the plugin config
 
 from supportedDevices import *
 
@@ -297,6 +299,7 @@ class Plugin(indigo.PluginBase):
 		    None
 		"""
 		super(Plugin, self).__init__(pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
+		self.tagAvailable = deviceTags.setup("hue", "FBC02D", self)	# Indigo 2026.1 device tags: True if this Indigo has them (tag name, default color, this plugin)
 		indigo.server.log('Starting plugin initialization.')
 		self.hostId 					= pluginPrefs.get('hostId', '')	# Username/key used to access Hue bridge Old
 		self.hostIds 					= json.loads(pluginPrefs.get("hostIds", '{"0":""}'))	# Username/key used to access Hue bridge for multiple bridge
@@ -681,6 +684,8 @@ class Plugin(indigo.PluginBase):
 		Returns:
 		    None
 		"""
+		statsSqlIgnore.applyLater(device.id)	# statistics states into the SQL logger or not (device edit / plugin config)
+		deviceTags.deviceStart(device)	# Indigo 2026.1 device tags: the tag of this plugin, color from the plugin config
 		if self.decideMyLog("Init"): self.indiLOG.log(10,"Starting device: {}".format(device.name))
 		try:
 			device.setErrorStateOnServer(None)
@@ -3735,6 +3740,7 @@ class Plugin(indigo.PluginBase):
 		"""
 		valuesDict = indigo.Dict()
 		(valuesDict, errorsDict) = super(Plugin, self).getPrefsConfigUiValues()
+		deviceTags.uiValues(valuesDict)	# Indigo 2026.1 device tags: shows the config section if this Indigo has them
 		try:
 			if self.decideMyLog("EditSetup"): self.indiLOG.log(self.sendDeviceUpdatesTo,'Starting  getPrefsConfigUiValues(self):')
 			valuesDict['hubNumber'] 				= "0"
@@ -4428,6 +4434,8 @@ class Plugin(indigo.PluginBase):
 		Returns:
 		    tuple: (bool success, indigo.Dict valuesDict) or (False, valuesDict, errorsDict) on error
 		"""
+		statsSqlIgnore.prefsChanged(valuesDict)	# default for the statistics states in the SQL logger changed: all devices
+		deviceTags.prefsChanged(valuesDict)	# Indigo 2026.1 device tags: tags on / off or the color changed: all devices of the plugin
 		if self.decideMyLog("EditSetup"): self.indiLOG.log(self.sendDeviceUpdatesTo,"validatePrefsConfigUi: Values passed:\n{}".format(valuesDict))
 		isError = False
 		errorsDict = indigo.Dict()
@@ -8645,13 +8653,17 @@ class Plugin(indigo.PluginBase):
 	def getDeviceConfigUiXml(self, typeId, devId):
 		"""Append the per-state min/max/average and change/trend option fields to the ConfigUI
 		of the tracked sensor device types (before </ConfigUI>)."""
-		xml = super(Plugin, self).getDeviceConfigUiXml(typeId, devId)
+		xmlIn = super(Plugin, self).getDeviceConfigUiXml(typeId, devId)
 		try:
+			# indigo 2026 hands the xml over as bytes (ElementTree.tostring w encoding UTF-8): work on text, return the same type
+			isBytes = isinstance(xmlIn, bytes)
+			xml = xmlIn.decode("utf-8") if isBytes else xmlIn
 			if xml and "</ConfigUI>" in xml and typeId in K_MINMAX_TRACKED and 'id="minMaxEnable_' not in xml:
 				xml = xml.replace("</ConfigUI>", _minMaxConfigFieldsXml(typeId) + "</ConfigUI>", 1)
+				return xml.encode("utf-8") if isBytes else xml
 		except	Exception as e:
 			if "{}".format(e).find("None") == -1: self.indiLOG.log(40,"", exc_info=True)
-		return xml
+		return xmlIn
 
 
 	####----------------- min/max/average + changes/trend tracking (same scheme as homematic/piBeacon/uniFiAP plugins) ---------
@@ -20742,7 +20754,16 @@ no devId for:
 
 			if eventDict is None: return stateUpdateList
 			test = False
-	
+
+			def toLevel(b):
+				# round to nearest, but never report 0 for a light that is lit (same rule as the V1 path,
+				# parseOneHueLightDataV1): a lamp at <0.5% brightness otherwise rounds to brightnessLevel 0,
+				# so the device shows off and then flaps off/on at every ~131 s full refresh.
+				lvl = int(b + 0.5)
+				if lvl == 0 and b > 0:
+					lvl = 1
+				return lvl
+
 			previous = self.deviceUpdateList.get(indigoDevice.id, list())
 
 
@@ -20786,8 +20807,8 @@ no devId for:
 					brightness = eventDict['dimming'].get("brightness",0)
 					test = True
 					if on:
-						stateUpdateList = self.checkIfUpdateState(indigoDevice, 'brightnessLevel', int(brightness+0.5), stateUpdateList=stateUpdateList)
-					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'brightness_on', int(brightness+0.5), stateUpdateList=stateUpdateList)
+						stateUpdateList = self.checkIfUpdateState(indigoDevice, 'brightnessLevel', toLevel(brightness), stateUpdateList=stateUpdateList)
+					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'brightness_on', toLevel(brightness), stateUpdateList=stateUpdateList)
 					if logChanges: self.indiLOG.log(sendLog,"doLightUpdate  indigoDevice:{}, 2. brightness:{}   stateUpdateList:{}".format(indigoDevice.id, int(brightness), stateUpdateList))
 				
 			# for hue groups (zone and rooms) the bridge aggregate (brightness, colour)
@@ -20866,9 +20887,9 @@ no devId for:
 					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'colorRed', 	colorRed,  decimalPlaces=1, 	stateUpdateList=stateUpdateList)
 					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'colorGreen', 	colorGreen,  decimalPlaces=1, stateUpdateList=stateUpdateList)
 					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'colorBlue', 	colorBlue,  decimalPlaces=1, 	stateUpdateList=stateUpdateList)
-					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'brightness_on', int(brightness+0.5), stateUpdateList=stateUpdateList)
+					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'brightness_on', toLevel(brightness), stateUpdateList=stateUpdateList)
 					if on:
-						stateUpdateList = self.checkIfUpdateState(indigoDevice, 'brightnessLevel', 	int(brightness+0.5),  decimalPlaces=1, stateUpdateList=stateUpdateList)
+						stateUpdateList = self.checkIfUpdateState(indigoDevice, 'brightnessLevel', 	toLevel(brightness),  decimalPlaces=1, stateUpdateList=stateUpdateList)
 						stateUpdateList = self.checkIfUpdateState(indigoDevice, 'redLevel', 	colorRed,  decimalPlaces=1, 	stateUpdateList=stateUpdateList)
 						stateUpdateList = self.checkIfUpdateState(indigoDevice, 'greenLevel', 	colorGreen,  decimalPlaces=1, stateUpdateList=stateUpdateList)
 						stateUpdateList = self.checkIfUpdateState(indigoDevice, 'blueLevel', 	colorBlue,  decimalPlaces=1,	stateUpdateList=stateUpdateList)
@@ -20896,8 +20917,8 @@ no devId for:
 				stateUpdateList = self.checkIfUpdateState(indigoDevice, 'onOffState', True,
 					uiImage=indigo.kStateImageSel.DimmerOn,  stateUpdateList=stateUpdateList, calledFrom="doLightUpdate")
 				if brightness > 0:
-					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'brightnessLevel', int(brightness+0.5), stateUpdateList=stateUpdateList)
-					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'brightness_on', int(brightness+0.5), stateUpdateList=stateUpdateList)
+					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'brightnessLevel', toLevel(brightness), stateUpdateList=stateUpdateList)
+					stateUpdateList = self.checkIfUpdateState(indigoDevice, 'brightness_on', toLevel(brightness), stateUpdateList=stateUpdateList)
 			else:
 				stateUpdateList = self.checkIfUpdateState(indigoDevice, 'onOffState', False,
 					uiImage=indigo.kStateImageSel.DimmerOff,   stateUpdateList=stateUpdateList, calledFrom="doLightUpdate")

@@ -27,6 +27,15 @@
 			>
 				<Label>This device canot be edited . Newly devices added to your Hue bridge/gateway are added automatically in the indigo device folder "Hue New Devices" (set name in config)  </Label>
 			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -485,6 +494,15 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 					<Option value="redOnGreenOff">red = on / green = off</Option>
 				</List>
 			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -854,6 +872,15 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 					<Option value="redOnGreenOff">red = on / green = off</Option>
 				</List>
 			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -1205,6 +1232,15 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 					<Option value="default">default (by device type)</Option>
 					<Option value="greenOnRedOff">green = on / red = off</Option>
 					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
 				</List>
 			</Field>
 		</ConfigUI>
@@ -1595,6 +1631,15 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 					<Option value="redOnGreenOff">red = on / green = off</Option>
 				</List>
 			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -1959,6 +2004,15 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 					<Option value="redOnGreenOff">red = on / green = off</Option>
 				</List>
 			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -2101,6 +2155,15 @@ The lumen device state is calculated as: brightness% x Max Lumen / 100.</Label>
 					<Option value="default">default (by device type)</Option>
 					<Option value="greenOnRedOff">green = on / red = off</Option>
 					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
 				</List>
 			</Field>
 		</ConfigUI>
@@ -2449,6 +2512,15 @@ when a light is changed. With this option you can select
 					<Option value="redOnGreenOff">red = on / green = off</Option>
 				</List>
 			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -2624,6 +2696,15 @@ when a light is changed. With this option you can select
 					<Option value="redOnGreenOff">red = on / green = off</Option>
 				</List>
 			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -2758,6 +2839,15 @@ when a light is changed. With this option you can select
 					<Option value="default">default (by device type)</Option>
 					<Option value="greenOnRedOff">green = on / red = off</Option>
 					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
 				</List>
 			</Field>
 		</ConfigUI>
@@ -2936,6 +3026,15 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 					<Option value="redOnGreenOff">red = on / green = off</Option>
 				</List>
 			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -3087,6 +3186,15 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 					<Option value="default">default (by device type)</Option>
 					<Option value="greenOnRedOff">green = on / red = off</Option>
 					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
 				</List>
 			</Field>
 		</ConfigUI>
@@ -3248,6 +3356,15 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 					<Option value="redOnGreenOff">red = on / green = off</Option>
 				</List>
 			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -3390,6 +3507,15 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 					<Option value="default">default (by device type)</Option>
 					<Option value="greenOnRedOff">green = on / red = off</Option>
 					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
 				</List>
 			</Field>
 		</ConfigUI>
@@ -3601,6 +3727,15 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 					<Option value="redOnGreenOff">red = on / green = off</Option>
 				</List>
 			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -3748,6 +3883,15 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 					<Option value="default">default (by device type)</Option>
 					<Option value="greenOnRedOff">green = on / red = off</Option>
 					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
 				</List>
 			</Field>
 		</ConfigUI>
@@ -3923,6 +4067,15 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 					<Option value="default">default (by device type)</Option>
 					<Option value="greenOnRedOff">green = on / red = off</Option>
 					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
 				</List>
 			</Field>
 		</ConfigUI>
@@ -4185,6 +4338,15 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 					<Option value="redOnGreenOff">red = on / green = off</Option>
 				</List>
 			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -4400,6 +4562,15 @@ Optionally set a calibration offset if the sensor readings are inaccurate.
 					<Option value="redOnGreenOff">red = on / green = off</Option>
 				</List>
 			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -4606,6 +4777,15 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 					<Option value="redOnGreenOff">red = on / green = off</Option>
 				</List>
 			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
+				</List>
+			</Field>
 		</ConfigUI>
 		<States>
 			<State id="created">
@@ -4652,6 +4832,15 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 					<Option value="default">default (by device type)</Option>
 					<Option value="greenOnRedOff">green = on / red = off</Option>
 					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
 				</List>
 			</Field>
 		</ConfigUI>
@@ -4765,6 +4954,15 @@ Optionally set a default "on" level. When turned on, the Hue Device Attribute Co
 					<Option value="default">default (by device type)</Option>
 					<Option value="greenOnRedOff">green = on / red = off</Option>
 					<Option value="redOnGreenOff">red = on / green = off</Option>
+				</List>
+			</Field>
+			<Field id="sepSqlNoStats" type="separator"/>
+			<Field id="sqlNoStats" type="menu" defaultValue="default">
+				<Label>statistics states (min / max / ave, today .. this / last year) into the SQL logger:</Label>
+				<List>
+					<Option value="default">default (as set in plugin config)</Option>
+					<Option value="no">not written</Option>
+					<Option value="yes">written</Option>
 				</List>
 			</Field>
 		</ConfigUI>

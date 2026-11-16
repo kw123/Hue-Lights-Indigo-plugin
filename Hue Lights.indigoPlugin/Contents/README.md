@@ -1,6 +1,5 @@
 # Hue Lights — Indigo Plugin
 
-**Version:** 2022.32.112  
 **Bundle ID:** `com.nathansheldon.indigoplugin.HueLights`  
 **Platform:** macOS · [Indigo Home Automation](https://www.indigodomo.com/) 3.0+
 
@@ -162,6 +161,7 @@ Additional menu-only utilities:
 - **Default Brightness (%)** — the plugin-wide Default Brightness value (default **80 %**), used whenever *On-command brightness* resolves to a Default Brightness and the light's **Default Brightness source** is *use plugin default*.
 - **Per-device Default Brightness source** *(light edit dialog)* — each dimmable light/group can choose **use plugin default** (the value above) or **manual value** (a level set on that device). Resolution when the ON command uses a Default Brightness: manual value if the source is *manual*, otherwise the plugin-wide value; if neither yields a usable level the light keeps its last brightness.
 - **Device icons** — plugin-wide default icon style: *default (by device type)* / *green = on / red = off* / *red = on / green = off*. Each device's edit dialog has its own **Icon** menu that can *follow plugin default* or override it. "default" = the type icon (lamp for lights/groups, on/off for switches, motion/temperature for sensors); the colour styles show a green/red dot for on/off and apply only to on/off devices — **sensors keep their native icon** (a motion sensor's grey = no motion / red = motion is left intact). Use **Plugins → Apply Device Icons Now** to apply immediately.
+- **Device tags** *(Indigo 2026.1 / API 3.9 or newer)* — the **== Device tags ==** config section can tag every device the plugin owns: tick **Add a tag to all devices of this plugin** (`tagsEnabled`), set the **tag name** (`tagName`, default `hue`) and pick a **color** (`tagColor`, default yellow). When enabled, each device receives the tag at device start, and all devices receive it when the config dialog is saved. The tag is created in the Indigo tag library if it does not exist, and its color is set (and kept) to the chosen color. The plugin only ever *adds* its tag and sets the color — it never removes a tag, so after a rename the old tag stays on the devices until you remove it in Indigo. On Indigo older than 2026.1 the feature is silently inactive. (Implemented in the shared `deviceTags.py` module, identical across the author's other plugins.)
 - **Bridge type / API version** — **auto-detected from the bridge model** (see *Supported Bridges*); there is no manual API-version or bridge-type setting.
 - **Debug flags** — per-area verbose logging: `EditSetup`, `SendCommandsToBridge`, `StateChange`, `NewDevice`, `IpChange`, `TrackedDevice`, …
 
@@ -214,15 +214,4 @@ The Hue Pro bridge periodically drops/recycles its long-lived SSE connection (co
 
 ## Version History
 
-See `Contents/changelog.txt` for the full change log.
-
-**Current release — 2022.32.112 (2026-07-09):**
-- **Code audit (.85 → .86):** ~40 correctness bugs fixed across `plugin.py` (Save Preset, scene recall, V2 colour-temperature/brightness, RGB scaling, white-slider hue scaling, inverted button state, motion-area device creation, bridge-move state transfer, and more — see `changelog.txt`).
-- **Event-stream resilience (.87 → .112):** major rework of the V2 SSE listener — see *Event-stream resilience* above. Eliminated an 8-minute restart stall, added TCP keepalive, fast reconnect with backoff, Last-Event-ID replay, conditional re-read only on a real outage, a 100-entry reconnect-history table in print-stats, and near-silent routine logging.
-- **Config thresholds:** the SSE restart control was split into two expert-section parameters (main keepalive + fallback watchdog) with configurable ranges; changes now apply live (within ~10 s) without a plugin reload.
-- **Refactors:** config-parameter defaults consolidated into `kDefaultPluginPrefs` (single source of truth); duplicated pref-reading collapsed into `readEventTimerPrefs` / `applyGeneralPrefs`.
-
-**Earlier — 2022.32.82 (2026-05-13):**
-- New `lumen` device state on all dimmer types and groups; new `lumenMax` device property (default 600)
-- Reformatted plugin XML files for readability (no functional change)
-- New actions: dynamic scene speed, power-on behaviour, sunrise timed effect, smart scene recall
+See `Contents/changelog.txt` for the full, version-tagged change log.

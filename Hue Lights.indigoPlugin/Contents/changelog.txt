@@ -1,3 +1,27 @@
+2022.33.134 @ 2026-11-16
+    Summary:
+    - fixed low-brightness lights (e.g. a scene at 0.4%) flapping the Indigo device off/on every ~131 s
+    - option to keep statistics states out of the SQL logger (plugin config + per-device)
+    - device tags (Indigo 2026.1): every plugin device gets a tag, name and color set in the plugin config
+
+    * device tags (Indigo 2026.1 / API 3.9, deviceTags.py): new plugin-config section "== Device tags =="
+      with checkbox "Add a tag to all devices of this plugin" (tagsEnabled), a tag name (tagName, default
+      "hue") and a color menu (tagColor, default yellow). When enabled, each device gets the tag at device
+      start and all devices get it when the config dialog is saved; the tag is created in the Indigo tag
+      library if missing and its color is set/kept to the chosen color. The plugin never removes a tag
+      (after a rename the old tag stays on the devices; remove it in Indigo). Silently inactive on Indigo
+      older than 2026.1. shared module, identical across piBeacon / uniFiAP / homematic / NetworkScanner /
+      shellyDirect / INDIGOplotD / utilities.
+    * doLightUpdate: a light left on at very low brightness (e.g. a scene at 0.4%) no longer flaps the Indigo
+      device off/on every ~131 s. brightness < 0.5 % rounded to brightnessLevel 0 (device showed off), then the
+      next full read flipped it back on. New toLevel() helper rounds to nearest but never reports 0 for a lit
+      light (b > 0 -> at least 1), same rule as the V1 path; it replaces the six int(brightness+0.5) calls.
+    * option "statistics states into the SQL logger": plugin config checkbox "do not write statistics states into the SQL logger"
+      (default off = no change) and in every device edit "default (as set in plugin config) / not written / written".
+      statistics states = min / max / ave today / yesterday (+ At), measurements, today, yesterday, day-x, this / last week,
+      month, year, switchpoints (At0). they are put into / taken out of the device's sqlLoggerIgnoreStates, other entries stay.
+      applied at device start, after the device edit is saved and when the plugin config default changes (statsSqlIgnore.py)
+
 
 === Week of 2026-10-26 .. 2026-11-02 (.126 - .131) ===
     Auto-detect bridge v1/v2; one throttled error logger (no spam); v2 colour + white-level
@@ -19,6 +43,8 @@
       FAILED multicast reads as blocked.
       (No menu item: the plugin already runs this detection automatically via _discoverHueBridgesMDNS
       shortly after start, so an on-demand menu button added no value.)
+    * Device edit of motion temperature / light sensors (min/max/average checkboxes): getDeviceConfigUiXml
+      now accepts the dialog XML as bytes or text (safety; indigo builds it with ElementTree.tostring UTF-8).
 
 2022.33.132 @ 2026-11-06
     Summary: detect a macOS "Local Network" block and report whether it is multicast-only or total.
@@ -836,7 +862,7 @@ Code audit: ~40 bug fixes across plugin.py (no new features). Highlights:
 
 
 ========================================
-2022.20.62@ 2025-11-05
+2022.20.62 @ 2025-11-05
 A. added support for hue pro bridge
    this is the first beta version.
 B. added print pro bridge events to log (for debugging )
@@ -1228,7 +1254,7 @@ fixed
 
 
 ========================================
-2022.11.29 @ 2022-06-22 
+2022.11.29 @ 2022-06-22
 New functions:
 * added state "created". It shows date-time stamp of when device was created, or if it is empty put current stamp in, ie for old devices, as we don't know when they were created.
   this is only useful for new devices created after this release  
@@ -1253,14 +1279,14 @@ Fixes:
 
 
 ========================================
-2022.11.28 @ 2022-06-19 
+2022.11.28 @ 2022-06-19
 *extended expiration time for confirming bridge # to 120 secs (from 15 secs) 
  that should deal with message bridge confirm popup error message 
  Also now after successfull delete / change IP# and (re-)pair bridge 
  the config menu goes back to first step: "Select action for the bridge"
 
 ========================================
-2022.11.27 @ 2022-06-18 
+2022.11.27 @ 2022-06-18
 *fix bugs: 
 - line 5383, in excecStatesUpdate;  type: dictionary changed size during iteration
 - line 9575, in setColorTemperature:  if bulbId is None or bulbId == 0:
