@@ -22,7 +22,7 @@
       month, year, switchpoints (At0). they are put into / taken out of the device's sqlLoggerIgnoreStates, other entries stay.
       applied at device start, after the device edit is saved and when the plugin config default changes (statsSqlIgnore.py)
 
-   
+     
 === Week of 2026-10-26 .. 2026-11-02 (.126 - .131) ===
     Auto-detect bridge v1/v2; one throttled error logger (no spam); v2 colour + white-level
     fixes on Pro bridges; fixed dropped Pro button presses; auto-create all SML motion sensors.

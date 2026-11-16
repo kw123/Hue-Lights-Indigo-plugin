@@ -14,7 +14,7 @@ Controls Philips Hue lights, groups, sensors, and switches from Indigo. Supports
 - **Python** — 3 (bundled with Indigo)
 - **Hue Bridge** — Classic bridge (API v1) or Pro bridge (API v2)
 
----
+---  
 
 ## Installation
 
